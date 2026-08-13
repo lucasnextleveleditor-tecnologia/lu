@@ -1,20 +1,17 @@
 import type { Config } from "tailwindcss";
 
-// Paleta "Dark Mode Cinematográfico" da Lume Strada Filmes: fundo quase preto,
-// tipografia em branco suave e um acento (âmbar, lembrando a luz de
-// marquise/projeção de cinema) usado com moderação em ações primárias e
-// estados de destaque.
+// Design system "Futurista Minimalista" — fundo absoluto em preto (#000000),
+// superfícies em tons de zinc ultra-escuro e tipografia em branco puro/cinza
+// claro. É a identidade FIXA de toda a plataforma (login, admin, área de
+// membros) — não muda por personalização de cliente; a única coisa
+// configurável por área é a logotipo (ver `components/branding/BrandingLogo`
+// + `app/login/page.tsx` vs. `app/admin/layout.tsx` / `app/dashboard/layout.tsx`).
 //
-// `accent` e `accent2` NÃO são hex fixos — são `rgb(var(--x) / <alpha-value>)`,
-// lidos das variáveis CSS injetadas pelo layout raiz (ver
-// `lib/branding/getBrandingConfig.ts` + `lib/utils/color.ts`) a partir do que
-// o admin configurar no painel de Aparência (`/admin/aparencia`). O formato
-// `rgb(var(--x) / <alpha-value>)` é o que permite `bg-accent/10`,
-// `border-accent/30` etc. continuarem funcionando com uma cor DINÂMICA — é
-// o próprio Tailwind quem substitui `<alpha-value>` pelo modificador de
-// opacidade da classe. `base`, `ink`, `status` e `danger` seguem FIXOS e
-// validados por contraste (skill de dataviz) — branding troca a cor de
-// destaque, nunca a paleta de leitura/estado que já foi auditada.
+// `accent`/`accent2` continuam no formato `rgb(var(--x) / <alpha-value>)` —
+// é o que permite `bg-accent/10`, `border-accent/30` etc. — mas agora as
+// variáveis CSS são CONSTANTES fixas declaradas em `globals.css` (não lidas
+// mais de `branding_config`/admin). `base`, `ink`, `status` e `danger`
+// seguem FIXOS e validados por contraste (skill de dataviz).
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   darkMode: "class",
@@ -22,26 +19,24 @@ const config: Config = {
     extend: {
       colors: {
         base: {
-          950: "#050505",
-          900: "#0a0a0a",
-          850: "#111111",
-          800: "#161616",
-          700: "#242424",
-          600: "#333333",
+          950: "#000000",
+          900: "#09090b",
+          850: "#111113",
+          800: "#18181b",
+          700: "#27272a",
+          600: "#3f3f46",
         },
         ink: {
-          primary: "#f5f4f2",
-          secondary: "#a6a3a0",
-          muted: "#6f6c69",
+          primary: "#ffffff",
+          secondary: "#a1a1aa",
+          muted: "#71717a",
         },
         accent: {
           DEFAULT: "rgb(var(--color-accent) / <alpha-value>)",
           strong: "rgb(var(--color-accent-strong) / <alpha-value>)",
         },
-        // Segunda cor customizável do branding ("cor de fundo/acentuação") —
-        // usada no fundo da tela de login e como destaque secundário,
-        // deliberadamente separada de `accent` (que dirige botões/links/
-        // badges) pra não competir visualmente com a ação primária.
+        // Acento secundário — usado no glow sutil do fundo da tela de login e
+        // como destaque secundário. Fixo (ver acima), não customizável.
         accent2: {
           DEFAULT: "rgb(var(--color-accent-2) / <alpha-value>)",
         },

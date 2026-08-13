@@ -1,19 +1,15 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import type { BrandingConfigRow, LoginBgPreset, LoginBoxPosition, ThemePreset } from "@/lib/types/database";
+import { useState, useTransition } from "react";
+import type { BrandingConfigRow, LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
 import { salvarBranding } from "@/app/admin/aparencia/actions";
-import { THEME_PRESETS, LOGIN_BG_PRESETS } from "@/lib/branding/constants";
-import { buildBrandingCssVars, contrastRatio, isValidHex } from "@/lib/utils/color";
-import { cn } from "@/lib/utils/cn";
+import { LOGIN_BG_PRESETS } from "@/lib/branding/constants";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { UploadField } from "@/components/admin/aparencia/UploadField";
 import { LoginPreview } from "@/components/admin/aparencia/LoginPreview";
-
-const SURFACE_MAIS_ESCURA = "#050505"; // base-950 — pior caso de contraste do app
 
 const POSICOES: { value: LoginBoxPosition; label: string }[] = [
   { value: "esquerda", label: "Esquerda" },
@@ -31,44 +27,25 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
   const [loginBgUrl, setLoginBgUrl] = useState(initialBranding.login_bg_url);
 
   // Os demais campos só persistem ao clicar "Salvar Alterações".
-  const [primaryColor, setPrimaryColor] = useState(initialBranding.primary_color);
-  const [accentColor, setAccentColor] = useState(initialBranding.accent_color);
   const [loginTitle, setLoginTitle] = useState(initialBranding.login_title);
   const [loginSubtitle, setLoginSubtitle] = useState(initialBranding.login_subtitle);
   const [loginBoxPosition, setLoginBoxPosition] = useState<LoginBoxPosition>(initialBranding.login_box_position);
   const [loginBgPreset, setLoginBgPreset] = useState<LoginBgPreset>(initialBranding.login_bg_preset);
-  const [themePreset, setThemePreset] = useState<ThemePreset>(initialBranding.theme_preset);
   const [sidebarCompactoPadrao, setSidebarCompactoPadrao] = useState(initialBranding.sidebar_compacto_padrao);
 
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [salvoRecentemente, setSalvoRecentemente] = useState(false);
 
-  const previewVars = useMemo(() => buildBrandingCssVars({ primaryColor, accentColor }), [primaryColor, accentColor]);
-
-  const contrastePrimaria = useMemo(
-    () => (isValidHex(primaryColor) ? contrastRatio(primaryColor, SURFACE_MAIS_ESCURA) : null),
-    [primaryColor]
-  );
-
-  function aplicarPreset(preset: (typeof THEME_PRESETS)[number]) {
-    setThemePreset(preset.key);
-    setPrimaryColor(preset.primaryColor);
-    setAccentColor(preset.accentColor);
-  }
-
   function handleSalvar() {
     setError(null);
     setSalvoRecentemente(false);
     startTransition(async () => {
       const result = await salvarBranding({
-        primaryColor,
-        accentColor,
         loginTitle,
         loginSubtitle,
         loginBoxPosition,
         loginBgPreset,
-        themePreset,
         sidebarCompactoPadrao,
       });
       if (!result.ok) {
@@ -85,8 +62,9 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
         <Card>
           <h2 className="mb-1 text-sm font-semibold">Logotipo & Favicon</h2>
           <p className="mb-4 text-xs text-ink-muted">
-            Usados no menu lateral do admin, no header do cliente e na tela de login. O app hoje é fixo em Dark Mode — a versão
-            &ldquo;clara&rdquo; fica pronta pra quando existir um modo claro.
+            Usados no menu lateral do admin e no header do cliente (área de membros) — a tela de login sempre exibe a marca
+            padrão da Lume Strada, por design. O app hoje é fixo em Dark Mode — a versão &ldquo;clara&rdquo; fica pronta pra
+            quando existir um modo claro.
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <UploadField label="Logo principal" campo="logo_url" valorAtual={logoUrl} onChange={setLogoUrl} />
@@ -105,73 +83,6 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
               onChange={setLogoLightUrl}
               hint="Versão escura/preta — reservada p/ um modo claro futuro."
             />
-          </div>
-        </Card>
-
-        <Card>
-          <h2 className="mb-1 text-sm font-semibold">Cores (Design Tokens)</h2>
-          <p className="mb-4 text-xs text-ink-muted">
-            A cor primária dirige botões, links e destaques (token <code className="text-ink-secondary">accent</code> /{" "}
-            <code className="text-ink-secondary">--primary</code>) em todo o app. A de acentuação customiza o fundo da tela de
-            login e destaques secundários.
-          </p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Cor Primária</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={isValidHex(primaryColor) ? primaryColor : "#d4a24e"}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="h-9 w-11 shrink-0 cursor-pointer rounded-md border border-base-600 bg-base-900 p-1"
-                  aria-label="Selecionar cor primária"
-                />
-                <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} placeholder="#d4a24e" className="font-mono" />
-              </div>
-              {contrastePrimaria !== null && contrastePrimaria < 3 && (
-                <p className="mt-1.5 text-xs text-status-warning">
-                  Contraste baixo ({contrastePrimaria.toFixed(2)}:1) sobre o fundo mais escuro do app — pode ficar difícil de ver
-                  em bordas/ícones finos.
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Cor de Acentuação / Fundo</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={isValidHex(accentColor) ? accentColor : "#e8bd72"}
-                  onChange={(e) => setAccentColor(e.target.value)}
-                  className="h-9 w-11 shrink-0 cursor-pointer rounded-md border border-base-600 bg-base-900 p-1"
-                  aria-label="Selecionar cor de acentuação"
-                />
-                <Input value={accentColor} onChange={(e) => setAccentColor(e.target.value)} placeholder="#e8bd72" className="font-mono" />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-5 border-t border-base-800 pt-4">
-            <p className="mb-2 text-xs font-medium text-ink-secondary">Tema Rápido</p>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {THEME_PRESETS.map((preset) => (
-                <button
-                  key={preset.key}
-                  type="button"
-                  onClick={() => aplicarPreset(preset)}
-                  className={cn(
-                    "rounded-lg border p-3 text-left transition",
-                    themePreset === preset.key ? "border-accent bg-accent/10" : "border-base-700 hover:border-base-600"
-                  )}
-                >
-                  <div className="mb-2 flex gap-1.5">
-                    <span className="h-4 w-4 rounded-full border border-base-600" style={{ backgroundColor: preset.primaryColor }} />
-                    <span className="h-4 w-4 rounded-full border border-base-600" style={{ backgroundColor: preset.accentColor }} />
-                  </div>
-                  <p className="text-xs font-medium text-ink-primary">{preset.label}</p>
-                  <p className="mt-0.5 text-[11px] text-ink-muted">{preset.descricao}</p>
-                </button>
-              ))}
-            </div>
           </div>
         </Card>
 
@@ -259,17 +170,16 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
       <div className="lg:sticky lg:top-8 lg:self-start">
         <Card>
           <h2 className="mb-1 text-sm font-semibold">Pré-visualização em Tempo Real</h2>
-          <p className="mb-4 text-xs text-ink-muted">Reflete as cores e textos ainda não salvos — os uploads já são reais.</p>
+          <p className="mb-4 text-xs text-ink-muted">Reflete os textos ainda não salvos — os uploads já são reais.</p>
 
-          {/* Vars escopadas SÓ a este container — os tokens accent/accent2 do
-              Tailwind seguem a cascata de CSS custom properties, então os
-              mesmos componentes (Button, bordas, etc.) já respondem à cor
-              ainda não salva, sem duplicar nenhum estilo. */}
-          <div style={previewVars as React.CSSProperties} className="space-y-4">
+          <div className="space-y-4">
             <div>
               <p className="mb-2 text-xs font-medium text-ink-secondary">Tela de Login</p>
+              {/* A logotipo do login é sempre a marca padrão (nunca a
+                  customizada) — o preview usa `logoUrl={null}` de propósito,
+                  pra refletir exatamente o que aparece na tela real. */}
               <LoginPreview
-                logoUrl={logoDarkUrl ?? logoUrl}
+                logoUrl={null}
                 titulo={loginTitle}
                 subtitulo={loginSubtitle}
                 posicao={loginBoxPosition}
@@ -279,7 +189,7 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-medium text-ink-secondary">Botões & Destaques</p>
+              <p className="mb-2 text-xs font-medium text-ink-secondary">Botões & Destaques (fixos em toda a plataforma)</p>
               <div className="space-y-2 rounded-xl border border-base-700 bg-base-950/60 p-4">
                 <div className="flex flex-wrap gap-2">
                   <Button className="px-3 py-1.5 text-xs">Ação Primária</Button>

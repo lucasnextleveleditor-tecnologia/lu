@@ -33,7 +33,10 @@ export default async function LoginPage() {
 
       <div className="relative w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <BrandingLogo logoUrl={branding.logo_dark_url ?? branding.logo_url} sizeClassName="h-12" className="mb-4" />
+          {/* Login é a única tela pública (pré-login) da plataforma — a logotipo
+              personalizada só é exibida na área de membros e no painel
+              admin, nunca aqui, então passamos sempre `null` (marca padrão). */}
+          <BrandingLogo logoUrl={null} sizeClassName="h-12" className="mb-4" />
           <h1 className="text-lg font-semibold tracking-tight">{branding.login_title}</h1>
           <p className="mt-1 text-xs text-ink-muted">{branding.login_subtitle}</p>
         </div>

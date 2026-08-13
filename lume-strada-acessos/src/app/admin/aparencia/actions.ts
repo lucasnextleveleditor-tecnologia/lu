@@ -3,8 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { BRANDING_CONFIG_ID } from "@/lib/branding/constants";
-import { isValidHex } from "@/lib/utils/color";
-import type { LoginBgPreset, LoginBoxPosition, ThemePreset } from "@/lib/types/database";
+import type { LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type UploadResult = { ok: true; url: string } | { ok: false; error: string };
@@ -70,43 +69,43 @@ export async function removerBrandingAsset(campo: CampoUpload): Promise<ActionRe
 }
 
 export interface BrandingInput {
-  primaryColor: string;
-  accentColor: string;
   loginTitle: string;
   loginSubtitle: string;
   loginBoxPosition: LoginBoxPosition;
   loginBgPreset: LoginBgPreset;
-  themePreset: ThemePreset;
   sidebarCompactoPadrao: boolean;
 }
 
-/** Salva cores, textos/posição do login, tema selecionado e o padrão do menu lateral — os campos de upload já são salvos à parte, ver acima. */
+/**
+ * Salva textos/posição/fundo do login e o padrão do menu lateral — os
+ * campos de upload já são salvos à parte, ver acima. Cores (`primary_color`/
+ * `accent_color`/`theme_preset`) não são mais configuráveis: a paleta
+ * preto/branco é fixa em toda a plataforma (ver `globals.css` / `tailwind.config.ts`)
+ * — as colunas continuam existindo no banco por compatibilidade, mas nada no
+ * app as lê mais.
+ */
 export async function salvarBranding(input: BrandingInput): Promise<ActionResult> {
   try {
     const { supabase } = await requireAdmin();
 
-    if (!isValidHex(input.primaryColor)) return { ok: false, error: "Cor primária inválida." };
-    if (!isValidHex(input.accentColor)) return { ok: false, error: "Cor de acentuação inválida." };
     if (!input.loginTitle.trim()) return { ok: false, error: "Informe o título da tela de login." };
 
     const { error } = await supabase
       .from("branding_config")
       .update({
-        primary_color: input.primaryColor,
-        accent_color: input.accentColor,
         login_title: input.loginTitle.trim(),
         login_subtitle: input.loginSubtitle.trim(),
         login_box_position: input.loginBoxPosition,
         login_bg_preset: input.loginBgPreset,
-        theme_preset: input.themePreset,
         sidebar_compacto_padrao: input.sidebarCompactoPadrao,
       })
       .eq("id", BRANDING_CONFIG_ID);
 
     if (error) return { ok: false, error: error.message };
 
-    // Branding afeta o layout raiz (CSS vars/favicon), a sidebar do admin,
-    // o header do cliente e a tela de login — invalidação ampla de propósito.
+    // Branding afeta o favicon, a sidebar do admin e o header do cliente —
+    // invalidação ampla de propósito (login não usa mais nenhum campo de
+    // branding além de título/subtítulo/fundo, já cobertos aqui).
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (err) {

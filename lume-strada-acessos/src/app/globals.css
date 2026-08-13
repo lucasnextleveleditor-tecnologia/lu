@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Acento FIXO da plataforma — branco/zinc, não customizável por branding.
+   Formato "r g b" (space-separated) exigido pelo `rgb(var(--x) / <alpha-value>)`
+   dinâmico configurado em `tailwind.config.ts`. Único lugar que pode variar
+   por área é a logotipo (ver `components/branding/BrandingLogo`), nunca cor. */
+:root {
+  --color-accent: 255 255 255; /* branco puro — ações primárias, links, destaques */
+  --color-accent-strong: 228 228 231; /* zinc-200 — hover do branco */
+  --color-accent-2: 161 161 170; /* zinc-400 — glow/destaque secundário sutil */
+}
+
 html,
 body {
   background-color: theme("colors.base.950");
