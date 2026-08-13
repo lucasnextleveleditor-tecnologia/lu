@@ -3,10 +3,12 @@
 import { useState, type FormEvent } from "react";
 import type { CategoriaInventarioRow, ItemInventarioRow, StatusItemInventario } from "@/lib/types/database";
 import { criarItem, atualizarItem, type ItemInput } from "@/app/admin/inventario/actions";
-import { STATUS_ITEM_META, STATUS_ITEM_OPCOES } from "@/lib/utils/inventario";
+import { STATUS_ITEM_META, STATUS_ITEM_OPCOES, calcularDepreciacao } from "@/lib/utils/inventario";
+import { fmtBRL, fmtPercent } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { Badge } from "@/components/ui/Badge";
 
 interface ItemModalProps {
   item?: ItemInventarioRow | null;
@@ -21,12 +23,22 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
   const [status, setStatus] = useState<StatusItemInventario>(item?.status ?? "ativo");
   const [localizacao, setLocalizacao] = useState(item?.localizacao ?? "");
   const [dataAquisicao, setDataAquisicao] = useState(item?.data_aquisicao?.slice(0, 10) ?? "");
-  const [valorEstimado, setValorEstimado] = useState(item?.valor_estimado != null ? String(item.valor_estimado) : "");
+  const [valorPago, setValorPago] = useState(item?.valor_pago != null ? String(item.valor_pago) : "");
+  const [valorAtual, setValorAtual] = useState(item?.valor_atual != null ? String(item.valor_atual) : "");
   const [responsavelAtual, setResponsavelAtual] = useState(item?.responsavel_atual ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const editando = Boolean(item);
+
+  // Prévia ao vivo da depreciação enquanto o admin digita — mesma lógica
+  // usada na tag da listagem e no Dashboard Financeiro (`calcularDepreciacao`).
+  const valorPagoNum = valorPago.trim() === "" ? null : Number(valorPago);
+  const valorAtualNum = valorAtual.trim() === "" ? null : Number(valorAtual);
+  const depreciacaoPreview =
+    valorPagoNum != null && !Number.isNaN(valorPagoNum) && valorAtualNum != null && !Number.isNaN(valorAtualNum)
+      ? calcularDepreciacao({ valor_pago: valorPagoNum, valor_atual: valorAtualNum })
+      : null;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -40,7 +52,8 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
       status,
       localizacao: localizacao || null,
       dataAquisicao: dataAquisicao || null,
-      valorEstimado: valorEstimado.trim() === "" ? null : Number(valorEstimado),
+      valorPago: valorPagoNum,
+      valorAtual: valorAtualNum,
       responsavelAtual: responsavelAtual || null,
     };
 
@@ -118,23 +131,49 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
               </div>
             </div>
 
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data de Aquisição *</label>
+              <Input required type="date" value={dataAquisicao} onChange={(e) => setDataAquisicao(e.target.value)} />
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data de Aquisição</label>
-                <Input type="date" value={dataAquisicao} onChange={(e) => setDataAquisicao(e.target.value)} />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Valor Estimado (R$)</label>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Valor Pago (R$) *</label>
                 <Input
+                  required
                   type="number"
                   min="0"
                   step="0.01"
-                  value={valorEstimado}
-                  onChange={(e) => setValorEstimado(e.target.value)}
+                  value={valorPago}
+                  onChange={(e) => setValorPago(e.target.value)}
                   placeholder="0,00"
                 />
+                <p className="mt-1 text-[11px] text-ink-muted">Quanto foi investido na aquisição.</p>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Valor Atual (R$) *</label>
+                <Input
+                  required
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={valorAtual}
+                  onChange={(e) => setValorAtual(e.target.value)}
+                  placeholder="0,00"
+                />
+                <p className="mt-1 text-[11px] text-ink-muted">Valor de mercado hoje.</p>
               </div>
             </div>
+
+            {depreciacaoPreview && (
+              <div className="flex items-center justify-between rounded-lg border border-base-700 bg-base-950/40 px-3.5 py-2.5">
+                <span className="text-xs text-ink-secondary">{depreciacaoPreview.apreciou ? "Valorização" : "Depreciação"}</span>
+                <Badge
+                  tone={depreciacaoPreview.apreciou ? "good" : "neutral"}
+                  label={`${depreciacaoPreview.apreciou ? "+" : "-"}${fmtBRL(Math.abs(depreciacaoPreview.delta))} (${fmtPercent(Math.abs(depreciacaoPreview.percentual))})`}
+                />
+              </div>
+            )}
 
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Responsável Atual</label>

@@ -299,3 +299,24 @@ export function IconTarget(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícones do Dashboard Financeiro do Patrimônio (depreciação/distribuição por categoria). */
+
+export function IconTrendingDown(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <polyline points="3.5 8 9.5 14 13.5 10 20.5 17.5" />
+      <polyline points="20.5 11.5 20.5 17.5 14.5 17.5" />
+    </svg>
+  );
+}
+
+export function IconBarChart2(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="3.5" y="13" width="4" height="7.5" rx="1" />
+      <rect x="10" y="8" width="4" height="12.5" rx="1" />
+      <rect x="16.5" y="3.5" width="4" height="17" rx="1" />
+    </svg>
+  );
+}

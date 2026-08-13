@@ -75,7 +75,8 @@ export interface ItemInventarioRow {
   status: StatusItemInventario;
   localizacao: string | null;
   data_aquisicao: string | null; // ISO date (yyyy-mm-dd)
-  valor_estimado: number | null;
+  valor_pago: number | null; // quanto foi investido na aquisição (era `valor_estimado`)
+  valor_atual: number | null; // valor de mercado hoje — junto com `valor_pago` alimenta o Dashboard Financeiro (depreciação)
   responsavel_atual: string | null; // colaborador ou setor — texto livre, nem todo bem tem um usuário do sistema como dono
   created_at: string;
   updated_at: string;

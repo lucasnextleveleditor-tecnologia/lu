@@ -100,14 +100,24 @@ export interface ItemInput {
   status: StatusItemInventario;
   localizacao: string | null;
   dataAquisicao: string | null; // yyyy-mm-dd
-  valorEstimado: number | null;
+  valorPago: number | null;
+  valorAtual: number | null;
   responsavelAtual: string | null;
 }
 
+// `valorPago`/`valorAtual`/`dataAquisicao` viraram obrigatórios (pedido do
+// módulo de inteligência financeira — sem os dois valores não dá pra
+// calcular depreciação individual nem alimentar o Dashboard Financeiro).
+// Itens antigos que ainda não têm esses campos preenchidos continuam
+// existindo e aparecendo na listagem normalmente — a obrigatoriedade vale
+// só pra criar/editar um item daqui pra frente.
 function validarItem(input: ItemInput): string | null {
   if (!input.codigoEtiqueta.trim()) return "Informe o número da etiqueta / código de barras.";
   if (!input.categoriaId) return "Selecione a categoria do item.";
   if (!input.nomeItem.trim()) return "Informe o nome do item.";
+  if (!input.dataAquisicao) return "Informe a data de aquisição.";
+  if (input.valorPago == null) return "Informe o valor pago na aquisição.";
+  if (input.valorAtual == null) return "Informe o valor atual de mercado.";
   return null;
 }
 
@@ -124,12 +134,14 @@ export async function criarItem(input: ItemInput): Promise<ActionResult> {
       status: input.status,
       localizacao: input.localizacao?.trim() || null,
       data_aquisicao: input.dataAquisicao || null,
-      valor_estimado: input.valorEstimado,
+      valor_pago: input.valorPago,
+      valor_atual: input.valorAtual,
       responsavel_atual: input.responsavelAtual?.trim() || null,
     });
 
     if (error) return { ok: false, error: mensagemAmigavel(error, "item") };
     revalidatePath("/admin/inventario/itens");
+    revalidatePath("/admin/inventario/dashboard");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -151,13 +163,15 @@ export async function atualizarItem(id: string, input: ItemInput): Promise<Actio
         status: input.status,
         localizacao: input.localizacao?.trim() || null,
         data_aquisicao: input.dataAquisicao || null,
-        valor_estimado: input.valorEstimado,
+        valor_pago: input.valorPago,
+        valor_atual: input.valorAtual,
         responsavel_atual: input.responsavelAtual?.trim() || null,
       })
       .eq("id", id);
 
     if (error) return { ok: false, error: mensagemAmigavel(error, "item") };
     revalidatePath("/admin/inventario/itens");
+    revalidatePath("/admin/inventario/dashboard");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -171,6 +185,7 @@ export async function removerItem(id: string): Promise<ActionResult> {
 
     if (error) return { ok: false, error: mensagemAmigavel(error, "item") };
     revalidatePath("/admin/inventario/itens");
+    revalidatePath("/admin/inventario/dashboard");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

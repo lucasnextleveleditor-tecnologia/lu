@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils/cn";
 const TABS = [
   { href: "/admin/inventario", label: "Categorias" },
   { href: "/admin/inventario/itens", label: "Itens & Etiquetas" },
+  { href: "/admin/inventario/dashboard", label: "Dashboard Financeiro" },
 ];
 
 export function InventarioNav() {

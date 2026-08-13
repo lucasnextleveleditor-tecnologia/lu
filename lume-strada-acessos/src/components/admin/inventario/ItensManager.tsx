@@ -3,8 +3,8 @@
 import { useMemo, useState, useTransition } from "react";
 import type { CategoriaInventarioRow, ItemInventarioComCategoria } from "@/lib/types/database";
 import { removerItem } from "@/app/admin/inventario/actions";
-import { STATUS_ITEM_META, STATUS_ITEM_OPCOES } from "@/lib/utils/inventario";
-import { fmtBRL } from "@/lib/utils/format";
+import { STATUS_ITEM_META, STATUS_ITEM_OPCOES, calcularDepreciacao } from "@/lib/utils/inventario";
+import { fmtBRL, fmtPercent } from "@/lib/utils/format";
 import { fmtData } from "@/lib/utils/status";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -135,7 +135,7 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
             {itens.length === 0 ? "Nenhum item cadastrado ainda." : "Nenhum item corresponde aos filtros atuais."}
           </div>
         ) : (
-          <table className="w-full min-w-[920px] text-left">
+          <table className="w-full min-w-[1080px] text-left">
             <thead>
               <tr className="border-b border-base-800 text-xs uppercase tracking-wide text-ink-muted">
                 <th className="px-6 py-3 font-medium">Etiqueta</th>
@@ -144,13 +144,15 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
                 <th className="px-0 py-3 font-medium">Localização</th>
                 <th className="px-0 py-3 font-medium">Responsável</th>
                 <th className="px-0 py-3 font-medium">Aquisição</th>
-                <th className="px-0 py-3 font-medium">Valor Est.</th>
+                <th className="px-0 py-3 font-medium">Pago / Atual</th>
+                <th className="px-0 py-3 font-medium">Depreciação</th>
                 <th className="px-6 py-3 font-medium text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="[&>tr>td:first-child]:pl-6 [&>tr>td:last-child]:pr-6">
               {itensFiltrados.map((item) => {
                 const statusMeta = STATUS_ITEM_META[item.status];
+                const depreciacao = calcularDepreciacao(item);
                 return (
                   <tr key={item.id} className="border-b border-base-800 last:border-0">
                     <td className="py-3 pr-4">
@@ -173,9 +175,24 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
                       <span className="text-xs text-ink-muted">{item.data_aquisicao ? fmtData(item.data_aquisicao) : "—"}</span>
                     </td>
                     <td className="py-3 pr-4">
-                      <span className="text-xs text-ink-secondary">
-                        {item.valor_estimado != null ? fmtBRL(item.valor_estimado) : "—"}
-                      </span>
+                      {item.valor_pago != null || item.valor_atual != null ? (
+                        <span className="text-xs text-ink-secondary">
+                          {item.valor_pago != null ? fmtBRL(item.valor_pago) : "—"} /{" "}
+                          {item.valor_atual != null ? fmtBRL(item.valor_atual) : "—"}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-ink-muted">—</span>
+                      )}
+                    </td>
+                    <td className="py-3 pr-4">
+                      {depreciacao ? (
+                        <Badge
+                          tone={depreciacao.apreciou ? "good" : "neutral"}
+                          label={`${depreciacao.apreciou ? "+" : "-"}${fmtBRL(Math.abs(depreciacao.delta))} (${fmtPercent(Math.abs(depreciacao.percentual))})`}
+                        />
+                      ) : (
+                        <span className="text-xs text-ink-muted">Sem dados</span>
+                      )}
                     </td>
                     <td className="py-3 text-right">
                       {confirmandoExclusao === item.id ? (

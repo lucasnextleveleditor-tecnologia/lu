@@ -268,7 +268,8 @@ create table if not exists public.itens_inventario (
   status text not null default 'ativo' check (status in ('ativo', 'manutencao', 'baixado', 'emprestado')),
   localizacao text,
   data_aquisicao date,
-  valor_estimado numeric(12, 2),
+  valor_pago numeric(12, 2), -- quanto foi investido na aquisição (era `valor_estimado`)
+  valor_atual numeric(12, 2), -- valor de mercado hoje — junto com `valor_pago` alimenta o Dashboard Financeiro (depreciação)
   responsavel_atual text, -- colaborador ou setor — texto livre (nem todo bem é "dono" de um usuário do sistema)
 
   created_at timestamptz not null default now(),
