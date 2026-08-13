@@ -1,0 +1,156 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import type { ProfileRow } from "@/lib/types/database";
+import type { FuncionarioRow, PrioridadeTarefa, TipoServicoRow } from "@/lib/types/producao";
+import { criarTarefa } from "@/app/admin/producao/actions";
+import { PRIORIDADE_TAREFA_META, PRIORIDADE_TAREFA_ORDEM } from "@/lib/utils/producao";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
+import { cn } from "@/lib/utils/cn";
+
+interface TarefaModalProps {
+  clientes: Pick<ProfileRow, "id" | "email" | "full_name">[];
+  funcionarios: FuncionarioRow[];
+  tiposServico: TipoServicoRow[];
+  onClose: () => void;
+}
+
+/** Criação de uma nova tarefa. Edição completa (+ subtarefas/entregas) acontece no painel de detalhe, depois de criada. */
+export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: TarefaModalProps) {
+  const [titulo, setTitulo] = useState("");
+  const [briefing, setBriefing] = useState("");
+  const [clienteId, setClienteId] = useState("");
+  const [responsavelId, setResponsavelId] = useState("");
+  const [tipoServicoId, setTipoServicoId] = useState("");
+  const [prioridade, setPrioridade] = useState<PrioridadeTarefa>("normal");
+  const [dataEntrega, setDataEntrega] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const result = await criarTarefa({
+      titulo,
+      briefing: briefing || null,
+      clienteId: clienteId || null,
+      responsavelId: responsavelId || null,
+      tipoServicoId: tipoServicoId || null,
+      prioridade,
+      dataEntrega: dataEntrega || null,
+    });
+
+    setLoading(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
+      <div
+        className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-base-700 bg-base-900 p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-5 flex items-center justify-between">
+          <h3 className="text-base font-semibold">Nova Tarefa</h3>
+          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label="Fechar">
+            ×
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Título *</label>
+            <Input required value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex: Edição do vídeo institucional" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Cliente</label>
+              <Select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
+                <option value="">Sem cliente vinculado</option>
+                {clientes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.full_name || c.email}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Tipo de Serviço</label>
+              <Select value={tipoServicoId} onChange={(e) => setTipoServicoId(e.target.value)}>
+                <option value="">Sem categoria</option>
+                {tiposServico.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.nome}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Responsável</label>
+              <Select value={responsavelId} onChange={(e) => setResponsavelId(e.target.value)}>
+                <option value="">Sem responsável</option>
+                {funcionarios.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.nome}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Prazo de Entrega</label>
+              <Input type="date" value={dataEntrega} onChange={(e) => setDataEntrega(e.target.value)} />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Prioridade</label>
+            <div className="inline-flex w-full rounded-lg border border-base-700 bg-base-950/60 p-1">
+              {PRIORIDADE_TAREFA_ORDEM.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPrioridade(p)}
+                  className={cn(
+                    "flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition",
+                    prioridade === p ? "bg-accent text-base-950" : "text-ink-muted hover:text-ink-primary"
+                  )}
+                >
+                  {PRIORIDADE_TAREFA_META[p].label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Briefing</label>
+            <RichTextEditor value={briefing} onChange={setBriefing} placeholder="Detalhes completos da tarefa..." />
+          </div>
+
+          {error && <p className="text-sm text-danger">{error}</p>}
+
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="ghost" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Criando..." : "Criar Tarefa"}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

@@ -208,3 +208,83 @@ export function IconPlus(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícones do módulo Produção/Tarefas. */
+
+export function IconColumns(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+      <path d="M9.5 4.5v15" />
+      <path d="M14.5 4.5v15" />
+    </svg>
+  );
+}
+
+export function IconList(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M8 6.5h12.5" />
+      <path d="M8 12h12.5" />
+      <path d="M8 17.5h12.5" />
+      <circle cx="4" cy="6.5" r="0.9" fill="currentColor" stroke="none" />
+      <circle cx="4" cy="12" r="0.9" fill="currentColor" stroke="none" />
+      <circle cx="4" cy="17.5" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconCalendar(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="3.5" y="5" width="17" height="15" rx="2" />
+      <path d="M3.5 9.5h17" />
+      <path d="M8 3v4" />
+      <path d="M16 3v4" />
+    </svg>
+  );
+}
+
+export function IconPaperclip(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M17.5 8.5l-8 8a3 3 0 0 0 4.24 4.24l8-8a5 5 0 0 0-7.07-7.07l-8.5 8.5a7 7 0 0 0 9.9 9.9" />
+    </svg>
+  );
+}
+
+export function IconSettings(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3.5v2.2M12 18.3v2.2M20.5 12h-2.2M5.7 12H3.5M17.8 6.2l-1.55 1.55M7.75 16.25L6.2 17.8M17.8 17.8l-1.55-1.55M7.75 7.75L6.2 6.2" />
+    </svg>
+  );
+}
+
+export function IconCheck(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M5 12.5l4.5 4.5L19.5 7" />
+    </svg>
+  );
+}
+
+export function IconRotateCcw(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M4 9.5A8.5 8.5 0 1 1 4.8 15" />
+      <path d="M4 4.5v5h5" />
+    </svg>
+  );
+}
+
+export function IconExternalLink(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M9 6.5H5.5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V15" />
+      <path d="M13.5 4.5H19.5v6" />
+      <path d="M19.5 4.5L11 13" />
+    </svg>
+  );
+}

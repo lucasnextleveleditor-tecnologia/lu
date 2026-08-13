@@ -6,11 +6,21 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import { BrandingLogo } from "@/components/branding/BrandingLogo";
 import { LogoutButton } from "@/components/auth/LogoutButton";
-import { IconUsers, IconActivity, IconBox, IconPalette, IconWallet, IconChevronsLeft, IconChevronsRight } from "@/components/ui/icons";
+import {
+  IconUsers,
+  IconActivity,
+  IconBox,
+  IconPalette,
+  IconWallet,
+  IconColumns,
+  IconChevronsLeft,
+  IconChevronsRight,
+} from "@/components/ui/icons";
 
 const NAV = [
   { href: "/admin", label: "Clientes & Acessos", icon: IconUsers },
   { href: "/admin/financeiro", label: "Financeiro", icon: IconWallet },
+  { href: "/admin/producao", label: "Produção & Tarefas", icon: IconColumns },
   { href: "/admin/trafego", label: "Tráfego & Metas", icon: IconActivity },
   { href: "/admin/inventario", label: "Inventário & Patrimônio", icon: IconBox },
   { href: "/admin/aparencia", label: "Aparência", icon: IconPalette },
