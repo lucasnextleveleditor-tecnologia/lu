@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Acento FIXO da plataforma — branco/zinc, não customizável por branding.
+   Formato "r g b" (space-separated) exigido pelo `rgb(var(--x) / <alpha-value>)`
+   dinâmico configurado em `tailwind.config.ts`. Único lugar que pode variar
+   por área é a logotipo (ver `components/branding/BrandingLogo`), nunca cor. */
+:root {
+  --color-accent: 255 255 255; /* branco puro — ações primárias, links, destaques */
+  --color-accent-strong: 228 228 231; /* zinc-200 — hover do branco */
+  --color-accent-2: 161 161 170; /* zinc-400 — glow/destaque secundário sutil */
+}
+
+html,
+body {
+  background-color: theme("colors.base.950");
+  color: theme("colors.ink.primary");
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+}
+
+::selection {
+  background: rgba(212, 162, 78, 0.25);
+}
+
+/* Textura sutil de "grão de filme" no fundo — reforça o tom cinematográfico
+   sem depender de nenhuma imagem externa. */
+.film-grain-bg {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.035) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+/* Padrões de fundo da tela de login (painel de Aparência > Personalização
+   do Login) — usados quando o admin não faz upload de uma imagem própria.
+   São classes CSS de verdade (não classes arbitrárias do Tailwind) porque
+   misturam gradientes com a cor de acentuação dinâmica (`--color-accent-2`)
+   e ficam mais fáceis de auditar/ajustar aqui do que em uma string JIT. */
+.login-bg-grain {
+  background-color: theme("colors.base.950");
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.035) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+.login-bg-projector {
+  background-color: theme("colors.base.950");
+  background-image: radial-gradient(ellipse at top, rgb(var(--color-accent-2) / 0.16), transparent 60%);
+}
+
+.login-bg-film-strip {
+  background-color: theme("colors.base.950");
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.035) 0px,
+    rgba(255, 255, 255, 0.035) 2px,
+    transparent 2px,
+    transparent 26px
+  );
+}
+
+.login-bg-none {
+  background-color: theme("colors.base.950");
+}
