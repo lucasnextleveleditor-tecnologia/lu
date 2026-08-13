@@ -288,3 +288,14 @@ export function IconExternalLink(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícone do módulo Comercial (CRM & Vendas). */
+export function IconTarget(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.5" />
+      <circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}

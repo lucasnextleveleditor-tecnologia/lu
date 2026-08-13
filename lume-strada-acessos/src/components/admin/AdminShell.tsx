@@ -13,17 +13,33 @@ import {
   IconPalette,
   IconWallet,
   IconColumns,
+  IconTarget,
   IconChevronsLeft,
   IconChevronsRight,
 } from "@/components/ui/icons";
 
-const NAV = [
-  { href: "/admin", label: "Clientes & Acessos", icon: IconUsers },
-  { href: "/admin/financeiro", label: "Financeiro", icon: IconWallet },
-  { href: "/admin/producao", label: "Produção & Tarefas", icon: IconColumns },
-  { href: "/admin/trafego", label: "Tráfego & Metas", icon: IconActivity },
-  { href: "/admin/inventario", label: "Inventário & Patrimônio", icon: IconBox },
-  { href: "/admin/aparencia", label: "Aparência", icon: IconPalette },
+// Menu separado em grupos — "Comercial" (pré-vendas/CRM + a base de
+// clientes já convertidos) de um lado, o resto da operação da agência do
+// outro. Cada grupo pode crescer independente sem bagunçar a leitura do
+// menu inteiro.
+const NAV_GRUPOS = [
+  {
+    titulo: "Comercial",
+    itens: [
+      { href: "/admin/comercial", label: "CRM & Vendas", icon: IconTarget },
+      { href: "/admin", label: "Clientes & Acessos", icon: IconUsers },
+    ],
+  },
+  {
+    titulo: "Gestão",
+    itens: [
+      { href: "/admin/financeiro", label: "Financeiro", icon: IconWallet },
+      { href: "/admin/producao", label: "Produção & Tarefas", icon: IconColumns },
+      { href: "/admin/trafego", label: "Tráfego & Metas", icon: IconActivity },
+      { href: "/admin/inventario", label: "Inventário & Patrimônio", icon: IconBox },
+      { href: "/admin/aparencia", label: "Aparência", icon: IconPalette },
+    ],
+  },
 ] as const;
 
 /** Preferência é por navegador (localStorage), não por conta — o valor salvo no branding é só o PADRÃO inicial de cada sessão nova. */
@@ -76,32 +92,39 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, children }: 
           )}
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {NAV.map((item) => {
-            const active = item.href === "/admin" ? pathname === "/admin" : pathname?.startsWith(item.href);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                title={colapsado ? item.label : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition",
-                  colapsado && "justify-center px-0",
-                  active
-                    ? // Item ativo vira um "pill" sólido branco (mesmos tokens do botão
-                      // primário: `bg-accent` + `text-base-950`) — bem mais contrastado
-                      // que um simples highlight sutil, igual ao destaque forte do item
-                      // ativo em dashboards de referência, sem sair do preto/branco fixo.
-                      "bg-accent text-base-950 shadow-[0_8px_20px_-8px_rgba(255,255,255,0.45)]"
-                    : "font-medium text-ink-muted hover:bg-base-800 hover:text-ink-secondary"
-                )}
-              >
-                <Icon className={cn("h-[18px] w-[18px] shrink-0", active ? "text-base-950" : undefined)} />
-                {!colapsado && <span className="truncate">{item.label}</span>}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
+          {NAV_GRUPOS.map((grupo, i) => (
+            <div key={grupo.titulo} className={cn(i > 0 && colapsado && "border-t border-base-800 pt-3")}>
+              {!colapsado && <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{grupo.titulo}</p>}
+              <div className="space-y-1">
+                {grupo.itens.map((item) => {
+                  const active = item.href === "/admin" ? pathname === "/admin" : pathname?.startsWith(item.href);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      title={colapsado ? item.label : undefined}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition",
+                        colapsado && "justify-center px-0",
+                        active
+                          ? // Item ativo vira um "pill" sólido branco (mesmos tokens do botão
+                            // primário: `bg-accent` + `text-base-950`) — bem mais contrastado
+                            // que um simples highlight sutil, igual ao destaque forte do item
+                            // ativo em dashboards de referência, sem sair do preto/branco fixo.
+                            "bg-accent text-base-950 shadow-[0_8px_20px_-8px_rgba(255,255,255,0.45)]"
+                          : "font-medium text-ink-muted hover:bg-base-800 hover:text-ink-secondary"
+                      )}
+                    >
+                      <Icon className={cn("h-[18px] w-[18px] shrink-0", active ? "text-base-950" : undefined)} />
+                      {!colapsado && <span className="truncate">{item.label}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         <div className={cn("border-t border-base-800 p-3", colapsado && "px-2")}>
