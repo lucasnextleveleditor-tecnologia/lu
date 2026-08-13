@@ -27,6 +27,7 @@ export const ORIGEM_LEAD_META: Record<OrigemLead, { label: string }> = {
   trafego_pago: { label: "Tráfego Pago" },
   outbound: { label: "Outbound" },
   outro: { label: "Outro" },
+  whatsapp: { label: "WhatsApp" }, // origem automática, criada pelo botão "Adicionar ao CRM" do Inbox
 };
 
 /** Um lead conta como "em aberto" (ainda no funil) quando não chegou em Fechado nem Perdido. */

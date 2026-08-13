@@ -1,4 +1,4 @@
-export type OrigemLead = "indicacao" | "trafego_pago" | "outbound" | "outro";
+export type OrigemLead = "indicacao" | "trafego_pago" | "outbound" | "outro" | "whatsapp";
 export type StatusLead =
   | "lead_frio"
   | "contato_inicial"

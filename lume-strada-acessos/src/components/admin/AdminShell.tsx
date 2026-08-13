@@ -14,19 +14,21 @@ import {
   IconWallet,
   IconColumns,
   IconTarget,
+  IconMessageCircle,
   IconChevronsLeft,
   IconChevronsRight,
 } from "@/components/ui/icons";
 
 // Menu separado em grupos — "Comercial" (pré-vendas/CRM + a base de
-// clientes já convertidos) de um lado, o resto da operação da agência do
-// outro. Cada grupo pode crescer independente sem bagunçar a leitura do
-// menu inteiro.
+// clientes já convertidos + o Inbox do WhatsApp, que alimenta o CRM) de um
+// lado, o resto da operação da agência do outro. Cada grupo pode crescer
+// independente sem bagunçar a leitura do menu inteiro.
 const NAV_GRUPOS = [
   {
     titulo: "Comercial",
     itens: [
       { href: "/admin/comercial", label: "CRM & Vendas", icon: IconTarget },
+      { href: "/admin/whatsapp", label: "WhatsApp", icon: IconMessageCircle },
       { href: "/admin", label: "Clientes & Acessos", icon: IconUsers },
     ],
   },

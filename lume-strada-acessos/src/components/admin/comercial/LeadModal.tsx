@@ -14,6 +14,9 @@ interface LeadModalProps {
   onClose: () => void;
 }
 
+// "whatsapp" fica de fora daqui de propósito — só o botão "Adicionar ao CRM"
+// do Inbox cria lead com essa origem; não faz sentido escolher manualmente
+// ao criar um lead do zero (ainda não veio de conversa nenhuma).
 const ORIGEM_OPCOES: OrigemLead[] = ["indicacao", "trafego_pago", "outbound", "outro"];
 
 /** Criação de um novo lead. Edição completa (+ histórico de follow-up + conversão) acontece no painel de detalhe, depois de criado. */

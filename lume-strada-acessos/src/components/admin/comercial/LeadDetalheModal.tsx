@@ -21,7 +21,10 @@ interface LeadDetalheModalProps {
   onClose: () => void;
 }
 
-const ORIGEM_OPCOES: OrigemLead[] = ["indicacao", "trafego_pago", "outbound", "outro"];
+// Inclui "whatsapp" aqui (diferente do modal de criação) — leads que vieram
+// do Inbox via "Adicionar ao CRM" já nascem com essa origem, e o admin
+// precisa conseguir ver/editar esse campo no detalhe como qualquer outro.
+const ORIGEM_OPCOES: OrigemLead[] = ["indicacao", "trafego_pago", "outbound", "outro", "whatsapp"];
 
 export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: LeadDetalheModalProps) {
   const [nome, setNome] = useState(lead.nome);

@@ -26,7 +26,7 @@ create table if not exists public.crm_leads (
   nome text not null, -- empresa ou pessoa
   email text,
   whatsapp text,
-  origem text check (origem in ('indicacao', 'trafego_pago', 'outbound', 'outro')),
+  origem text check (origem in ('indicacao', 'trafego_pago', 'outbound', 'outro', 'whatsapp')),
 
   -- Dados do negócio
   tipo_servico_id uuid references public.prod_tipos_servico(id) on delete set null, -- reaproveita o cadastro de serviços do módulo de Produção

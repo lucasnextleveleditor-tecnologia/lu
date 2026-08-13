@@ -320,3 +320,56 @@ export function IconBarChart2(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícones do módulo WhatsApp (Omnichannel / Inbox). */
+
+export function IconMessageCircle(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M3.5 12a8.5 8.5 0 1 1 3.5 6.9L3.5 20l1.2-3.6A8.4 8.4 0 0 1 3.5 12z" />
+    </svg>
+  );
+}
+
+export function IconQrCode(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="3.5" y="3.5" width="6" height="6" rx="1" />
+      <rect x="14.5" y="3.5" width="6" height="6" rx="1" />
+      <rect x="3.5" y="14.5" width="6" height="6" rx="1" />
+      <path d="M14.5 14.5h3v3h-3z" />
+      <path d="M20.5 14.5v3" />
+      <path d="M14.5 20.5h3" />
+      <path d="M20.5 20.5h.01" />
+    </svg>
+  );
+}
+
+export function IconBattery(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="2.5" y="8" width="16" height="8" rx="2" />
+      <path d="M21.5 10.5v3" />
+      <path d="M5.5 11v2" />
+      <path d="M9 11v2" />
+    </svg>
+  );
+}
+
+export function IconSend(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M21 3L3 10.5l7.5 3L14 21l7-18z" />
+      <path d="M10.5 13.5L21 3" />
+    </svg>
+  );
+}
+
+export function IconSearch(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="M20 20l-4.35-4.35" />
+    </svg>
+  );
+}
