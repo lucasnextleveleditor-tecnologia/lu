@@ -1,14 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ProfileRow } from "@/lib/types/database";
+import { calcularStatus } from "@/lib/utils/status";
 import { UserRow } from "@/components/admin/UserRow";
 import { InviteClientModal } from "@/components/admin/InviteClientModal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { StatTile } from "@/components/ui/StatTile";
+import { IconUsers, IconCheckCircle, IconAlertTriangle, IconPauseCircle } from "@/components/ui/icons";
 
 export function UsersTable({ users }: { users: ProfileRow[] }) {
   const [modalOpen, setModalOpen] = useState(false);
+
+  // Contagem por status é sempre derivada (nunca gravada) — mesma regra de
+  // `calcularStatus` usada linha a linha na tabela, só agregada aqui pros
+  // KPIs do topo.
+  const resumo = useMemo(() => {
+    const contagem = { ativo: 0, inativo: 0, expirado: 0 };
+    users.forEach((u) => {
+      contagem[calcularStatus(u)]++;
+    });
+    return contagem;
+  }, [users]);
 
   return (
     <div>
@@ -18,6 +32,13 @@ export function UsersTable({ users }: { users: ProfileRow[] }) {
           <p className="mt-0.5 text-sm text-ink-muted">{users.length} usuário(s) cadastrado(s)</p>
         </div>
         <Button onClick={() => setModalOpen(true)}>+ Convidar Cliente</Button>
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatTile icon={IconUsers} label="Total de Usuários" value={users.length} />
+        <StatTile icon={IconCheckCircle} label="Ativos" value={resumo.ativo} tone="good" />
+        <StatTile icon={IconAlertTriangle} label="Expirados" value={resumo.expirado} tone="critical" />
+        <StatTile icon={IconPauseCircle} label="Inativos" value={resumo.inativo} tone="neutral" />
       </div>
 
       <Card className="overflow-x-auto p-0">

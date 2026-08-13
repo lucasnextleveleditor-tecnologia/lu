@@ -77,7 +77,9 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, children }: 
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition",
                   colapsado && "justify-center px-0",
-                  active ? "bg-accent/10 text-ink-primary" : "text-ink-muted hover:bg-base-800 hover:text-ink-secondary"
+                  active
+                    ? "bg-base-800 text-ink-primary shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08),0_0_16px_-6px_rgba(255,255,255,0.35)]"
+                    : "text-ink-muted hover:bg-base-800 hover:text-ink-secondary"
                 )}
               >
                 <Icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-accent")} />
