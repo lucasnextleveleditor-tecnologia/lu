@@ -51,6 +51,7 @@ create table if not exists public.prod_tarefas (
   status text not null default 'backlog'
     check (status in ('backlog', 'a_fazer', 'em_producao', 'revisao_interna', 'preview_cliente', 'concluida')),
   prioridade text not null default 'normal' check (prioridade in ('baixa', 'normal', 'alta', 'urgente')),
+  data_captacao date, -- dia da gravação/filmagem — separado da data de entrega (ver módulo Dashboard/Calendário)
   data_entrega date,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -59,6 +60,7 @@ create table if not exists public.prod_tarefas (
 create index if not exists prod_tarefas_status_idx on public.prod_tarefas (status);
 create index if not exists prod_tarefas_cliente_idx on public.prod_tarefas (cliente_id);
 create index if not exists prod_tarefas_responsavel_idx on public.prod_tarefas (responsavel_id);
+create index if not exists prod_tarefas_data_captacao_idx on public.prod_tarefas (data_captacao);
 create index if not exists prod_tarefas_data_entrega_idx on public.prod_tarefas (data_entrega);
 
 drop trigger if exists prod_tarefas_set_updated_at on public.prod_tarefas;

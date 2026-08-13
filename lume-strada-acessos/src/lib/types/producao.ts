@@ -25,6 +25,7 @@ export interface TarefaRow {
   tipo_servico_id: string | null;
   status: StatusTarefa;
   prioridade: PrioridadeTarefa;
+  data_captacao: string | null; // ISO date — dia da gravação/filmagem (ver módulo Dashboard/Calendário)
   data_entrega: string | null; // ISO date
   created_at: string;
   updated_at: string;

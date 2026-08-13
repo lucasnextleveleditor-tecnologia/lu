@@ -37,6 +37,7 @@ export function TarefaCard({ tarefa, onClick, className }: TarefaCardProps) {
       {tarefa.cliente_nome && <p className="mb-1 truncate text-xs text-ink-secondary">{tarefa.cliente_nome}</p>}
 
       <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
+        {tarefa.data_captacao && <span>Captação: {fmtData(tarefa.data_captacao)}</span>}
         {tarefa.data_entrega && (
           <span className={atrasada ? "font-medium text-danger" : ""}>
             {atrasada ? "Atrasada · " : "Prazo: "}

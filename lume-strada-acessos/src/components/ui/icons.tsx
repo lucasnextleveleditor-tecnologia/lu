@@ -373,3 +373,26 @@ export function IconSearch(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícones do módulo Dashboard Geral & Calendário. */
+
+export function IconLayoutGrid(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.2" />
+      <rect x="13" y="3.5" width="7.5" height="7.5" rx="1.2" />
+      <rect x="3.5" y="13" width="7.5" height="7.5" rx="1.2" />
+      <rect x="13" y="13" width="7.5" height="7.5" rx="1.2" />
+    </svg>
+  );
+}
+
+export function IconCamera(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M4 8.5a1.5 1.5 0 0 1 1.5-1.5h1.2l.9-1.5h4.8l.9 1.5h1.2A1.5 1.5 0 0 1 16 8.5v8A1.5 1.5 0 0 1 14.5 18h-9A1.5 1.5 0 0 1 4 16.5v-8z" />
+      <circle cx="10" cy="12.2" r="3" />
+      <path d="M18 9.5l3-1.5v9l-3-1.5" />
+    </svg>
+  );
+}

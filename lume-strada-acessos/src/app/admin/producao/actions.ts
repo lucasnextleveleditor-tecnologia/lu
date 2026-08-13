@@ -76,6 +76,7 @@ export interface TarefaInput {
   responsavelId: string | null;
   tipoServicoId: string | null;
   prioridade: PrioridadeTarefa;
+  dataCaptacao: string | null;
   dataEntrega: string | null;
 }
 
@@ -93,6 +94,7 @@ export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
         responsavel_id: input.responsavelId,
         tipo_servico_id: input.tipoServicoId,
         prioridade: input.prioridade,
+        data_captacao: input.dataCaptacao || null,
         data_entrega: input.dataEntrega || null,
       })
       .select("id")
@@ -120,6 +122,7 @@ export async function atualizarTarefa(id: string, input: TarefaInput): Promise<A
         responsavel_id: input.responsavelId,
         tipo_servico_id: input.tipoServicoId,
         prioridade: input.prioridade,
+        data_captacao: input.dataCaptacao || null,
         data_entrega: input.dataEntrega || null,
       })
       .eq("id", id);

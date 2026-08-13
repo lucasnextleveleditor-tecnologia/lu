@@ -31,6 +31,7 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
   const [responsavelId, setResponsavelId] = useState(tarefa.responsavel_id ?? "");
   const [tipoServicoId, setTipoServicoId] = useState(tarefa.tipo_servico_id ?? "");
   const [prioridade, setPrioridade] = useState<PrioridadeTarefa>(tarefa.prioridade);
+  const [dataCaptacao, setDataCaptacao] = useState(tarefa.data_captacao ?? "");
   const [dataEntrega, setDataEntrega] = useState(tarefa.data_entrega ?? "");
   const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -51,6 +52,7 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
         responsavelId: responsavelId || null,
         tipoServicoId: tipoServicoId || null,
         prioridade,
+        dataCaptacao: dataCaptacao || null,
         dataEntrega: dataEntrega || null,
       });
       if (!result.ok) setError(result.error);
@@ -148,17 +150,23 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
             </div>
           </div>
 
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Responsável</label>
+            <Select value={responsavelId} onChange={(e) => setResponsavelId(e.target.value)}>
+              <option value="">Sem responsável</option>
+              {funcionarios.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.nome}
+                </option>
+              ))}
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Responsável</label>
-              <Select value={responsavelId} onChange={(e) => setResponsavelId(e.target.value)}>
-                <option value="">Sem responsável</option>
-                {funcionarios.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.nome}
-                  </option>
-                ))}
-              </Select>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data de Captação</label>
+              <Input type="date" value={dataCaptacao} onChange={(e) => setDataCaptacao(e.target.value)} />
+              <p className="mt-1 text-[11px] text-ink-muted">Dia da gravação/filmagem.</p>
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Prazo de Entrega</label>

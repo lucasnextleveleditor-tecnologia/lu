@@ -26,6 +26,7 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
   const [responsavelId, setResponsavelId] = useState("");
   const [tipoServicoId, setTipoServicoId] = useState("");
   const [prioridade, setPrioridade] = useState<PrioridadeTarefa>("normal");
+  const [dataCaptacao, setDataCaptacao] = useState("");
   const [dataEntrega, setDataEntrega] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +43,7 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
       responsavelId: responsavelId || null,
       tipoServicoId: tipoServicoId || null,
       prioridade,
+      dataCaptacao: dataCaptacao || null,
       dataEntrega: dataEntrega || null,
     });
 
@@ -97,17 +99,23 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
             </div>
           </div>
 
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Responsável</label>
+            <Select value={responsavelId} onChange={(e) => setResponsavelId(e.target.value)}>
+              <option value="">Sem responsável</option>
+              {funcionarios.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.nome}
+                </option>
+              ))}
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Responsável</label>
-              <Select value={responsavelId} onChange={(e) => setResponsavelId(e.target.value)}>
-                <option value="">Sem responsável</option>
-                {funcionarios.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.nome}
-                  </option>
-                ))}
-              </Select>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data de Captação</label>
+              <Input type="date" value={dataCaptacao} onChange={(e) => setDataCaptacao(e.target.value)} />
+              <p className="mt-1 text-[11px] text-ink-muted">Dia da gravação/filmagem.</p>
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Prazo de Entrega</label>

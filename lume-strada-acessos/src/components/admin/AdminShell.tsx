@@ -15,15 +15,21 @@ import {
   IconColumns,
   IconTarget,
   IconMessageCircle,
+  IconLayoutGrid,
   IconChevronsLeft,
   IconChevronsRight,
 } from "@/components/ui/icons";
 
-// Menu separado em grupos — "Comercial" (pré-vendas/CRM + a base de
-// clientes já convertidos + o Inbox do WhatsApp, que alimenta o CRM) de um
-// lado, o resto da operação da agência do outro. Cada grupo pode crescer
-// independente sem bagunçar a leitura do menu inteiro.
+// Menu separado em grupos — "Visão Geral" (o Dashboard, que junta Produção +
+// Comercial + Financeiro numa tela só) no topo, "Comercial" (pré-vendas/CRM
+// + clientes convertidos + Inbox do WhatsApp) depois, e o resto da operação
+// da agência por último. Cada grupo pode crescer independente sem bagunçar
+// a leitura do menu inteiro.
 const NAV_GRUPOS = [
+  {
+    titulo: "Visão Geral",
+    itens: [{ href: "/admin/dashboard", label: "Dashboard", icon: IconLayoutGrid }],
+  },
   {
     titulo: "Comercial",
     itens: [
