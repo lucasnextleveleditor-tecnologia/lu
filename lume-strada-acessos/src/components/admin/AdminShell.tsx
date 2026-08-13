@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import { BrandingLogo } from "@/components/branding/BrandingLogo";
 import { LogoutButton } from "@/components/auth/LogoutButton";
-import { IconUsers, IconActivity, IconBox, IconPalette, IconChevronsLeft, IconChevronsRight } from "@/components/ui/icons";
+import { IconUsers, IconActivity, IconBox, IconPalette, IconWallet, IconChevronsLeft, IconChevronsRight } from "@/components/ui/icons";
 
 const NAV = [
   { href: "/admin", label: "Clientes & Acessos", icon: IconUsers },
+  { href: "/admin/financeiro", label: "Financeiro", icon: IconWallet },
   { href: "/admin/trafego", label: "Tráfego & Metas", icon: IconActivity },
   { href: "/admin/inventario", label: "Inventário & Patrimônio", icon: IconBox },
   { href: "/admin/aparencia", label: "Aparência", icon: IconPalette },
@@ -75,14 +76,18 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, children }: 
                 href={item.href}
                 title={colapsado ? item.label : undefined}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition",
                   colapsado && "justify-center px-0",
                   active
-                    ? "bg-base-800 text-ink-primary shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08),0_0_16px_-6px_rgba(255,255,255,0.35)]"
-                    : "text-ink-muted hover:bg-base-800 hover:text-ink-secondary"
+                    ? // Item ativo vira um "pill" sólido branco (mesmos tokens do botão
+                      // primário: `bg-accent` + `text-base-950`) — bem mais contrastado
+                      // que um simples highlight sutil, igual ao destaque forte do item
+                      // ativo em dashboards de referência, sem sair do preto/branco fixo.
+                      "bg-accent text-base-950 shadow-[0_8px_20px_-8px_rgba(255,255,255,0.45)]"
+                    : "font-medium text-ink-muted hover:bg-base-800 hover:text-ink-secondary"
                 )}
               >
-                <Icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-accent")} />
+                <Icon className={cn("h-[18px] w-[18px] shrink-0", active ? "text-base-950" : undefined)} />
                 {!colapsado && <span className="truncate">{item.label}</span>}
               </Link>
             );

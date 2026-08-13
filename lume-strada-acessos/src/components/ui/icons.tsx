@@ -150,3 +150,61 @@ export function IconTag(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícones do módulo Financeiro. */
+
+export function IconWallet(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M3.5 7.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1H5.5a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V11a2 2 0 0 0-2-2h-3" />
+      <path d="M3.5 10.5v7.5a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V11a2 2 0 0 0-2-2H5.5a2 2 0 0 1-2-2z" />
+      <circle cx="16.5" cy="14.5" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconCreditCard(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="3" y="5.5" width="18" height="13" rx="2" />
+      <path d="M3 9.5h18" />
+      <path d="M6.5 14.5h4" />
+    </svg>
+  );
+}
+
+export function IconArrowRightLeft(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M6 4.5v11.5" />
+      <path d="M3 12.5l3 3.5 3-3.5" />
+      <path d="M18 19.5V8" />
+      <path d="M21 11.5l-3-3.5-3 3.5" />
+    </svg>
+  );
+}
+
+export function IconChevronLeft(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M14.5 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
+export function IconChevronRight(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M9.5 18l6-6-6-6" />
+    </svg>
+  );
+}
+
+export function IconPlus(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </svg>
+  );
+}
