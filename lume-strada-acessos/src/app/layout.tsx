@@ -1,5 +1,16 @@
 import type { Metadata } from "next";
 import "./globals.css";
+// Fonte fixa da plataforma — geométrica/arredondada, mesmo espírito da
+// referência visual aprovada (títulos em negrito, bem legível em telas de
+// dashboard), nunca customizável por branding, igual à paleta de cores.
+// Usamos @fontsource (arquivos da fonte empacotados no próprio projeto) em
+// vez de `next/font/google`: assim o build NUNCA depende de baixar nada da
+// internet no momento do deploy — evita builds falharem por causa de rede.
+import "@fontsource/outfit/400.css";
+import "@fontsource/outfit/500.css";
+import "@fontsource/outfit/600.css";
+import "@fontsource/outfit/700.css";
+import "@fontsource/outfit/800.css";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,7 +31,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className="dark">
-      <body className="film-grain-bg min-h-screen bg-base-950 text-ink-primary antialiased">{children}</body>
+      {/* Fundo liso/sólido — sem textura de grão (era um efeito "cinematográfico" antigo, removido a pedido). */}
+      <body className="min-h-screen bg-base-950 text-ink-primary antialiased">{children}</body>
     </html>
   );
 }

@@ -10,6 +10,8 @@
   --color-accent: 255 255 255; /* branco puro — ações primárias, links, destaques */
   --color-accent-strong: 228 228 231; /* zinc-200 — hover do branco */
   --color-accent-2: 161 161 170; /* zinc-400 — glow/destaque secundário sutil */
+  /* Fonte fixa da plataforma (ver import de "@fontsource/outfit" em `app/layout.tsx`) — arredondada/geométrica, nunca customizável por branding. */
+  --font-sans: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 html,
@@ -26,14 +28,10 @@ body {
 }
 
 ::selection {
-  background: rgba(212, 162, 78, 0.25);
-}
-
-/* Textura sutil de "grão de filme" no fundo — reforça o tom cinematográfico
-   sem depender de nenhuma imagem externa. */
-.film-grain-bg {
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.035) 1px, transparent 0);
-  background-size: 22px 22px;
+  /* Branco fixo (mesmo tom do acento) — antes usava um dourado antigo que
+     sobrou de antes da identidade preto/branco, nunca mais usado em nenhum
+     outro lugar da UI. */
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Padrões de fundo da tela de login (painel de Aparência > Personalização
