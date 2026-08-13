@@ -91,3 +91,62 @@ export function IconUpload(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícones adicionais usados nos StatTiles (KPIs) do topo de cada módulo. */
+
+export function IconCheckCircle(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M8.5 12.3l2.4 2.4 4.6-5.2" />
+    </svg>
+  );
+}
+
+export function IconAlertTriangle(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M12 4.2L21 19.5H3L12 4.2z" />
+      <path d="M12 10.2v4" />
+      <circle cx="12" cy="16.8" r="0.15" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconPauseCircle(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M10 9v6" />
+      <path d="M14 9v6" />
+    </svg>
+  );
+}
+
+export function IconTrendingUp(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <polyline points="3.5 16 9.5 10 13.5 14 20.5 6.5" />
+      <polyline points="14.5 6.5 20.5 6.5 20.5 12.5" />
+    </svg>
+  );
+}
+
+export function IconLayers(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M12 3.5l8.5 4.5-8.5 4.5-8.5-4.5L12 3.5z" />
+      <path d="M3.5 12.5L12 17l8.5-4.5" />
+      <path d="M3.5 16.5L12 21l8.5-4.5" />
+    </svg>
+  );
+}
+
+export function IconTag(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M11.5 3.5H4.5v7l9.8 9.8a1.5 1.5 0 0 0 2.1 0l5.2-5.2a1.5 1.5 0 0 0 0-2.1L11.5 3.5z" />
+      <circle cx="8.3" cy="7.3" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
