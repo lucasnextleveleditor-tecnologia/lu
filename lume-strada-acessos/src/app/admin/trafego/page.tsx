@@ -1,9 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import type { ProfileRow, MetaDiariaRow, TrafegoRegistroRow } from "@/lib/types/database";
 import { todayISO } from "@/lib/utils/format";
+import { calcularResumoTrafego, type StatusTrafego } from "@/lib/utils/trafego";
 import { DateNav } from "@/components/admin/trafego/DateNav";
 import { MetaCard } from "@/components/admin/trafego/MetaCard";
 import { Card } from "@/components/ui/Card";
+import { StatTile } from "@/components/ui/StatTile";
+import { IconTrendingUp, IconCheckCircle, IconAlertTriangle, IconPauseCircle } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +70,16 @@ export default async function TrafegoPage({ searchParams }: TrafegoPageProps) {
     registrosPorMeta.set(r.meta_id, lista);
   });
 
+  // KPIs do topo — mesmo cálculo de status usado em cada MetaCard, só
+  // agregado por cliente pra dar a visão geral do dia de cara.
+  const contagemStatus: Record<StatusTrafego, number> = { sem_meta: 0, abaixo_da_meta: 0, no_caminho: 0, meta_batida: 0 };
+  (clientes ?? []).forEach((cliente) => {
+    const meta = metaPorCliente.get(cliente.id) ?? null;
+    const registrosDoCliente = meta ? registrosPorMeta.get(meta.id) ?? [] : [];
+    const resumo = calcularResumoTrafego(meta ? { valor_investido_meta: meta.valor_investido_meta } : null, registrosDoCliente);
+    contagemStatus[resumo.status]++;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -77,6 +90,13 @@ export default async function TrafegoPage({ searchParams }: TrafegoPageProps) {
           </p>
         </div>
         <DateNav data={data} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatTile icon={IconTrendingUp} label="No Caminho" value={contagemStatus.no_caminho} tone="good" />
+        <StatTile icon={IconCheckCircle} label="Meta Batida" value={contagemStatus.meta_batida} tone="good" />
+        <StatTile icon={IconAlertTriangle} label="Abaixo da Meta" value={contagemStatus.abaixo_da_meta} tone="warning" />
+        <StatTile icon={IconPauseCircle} label="Sem Meta Definida" value={contagemStatus.sem_meta} tone="neutral" />
       </div>
 
       {!clientes?.length ? (
