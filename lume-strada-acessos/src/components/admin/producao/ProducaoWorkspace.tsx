@@ -48,14 +48,16 @@ export function ProducaoWorkspace({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex rounded-lg border border-base-700 bg-base-900/60 p-1">
+        <div className="inline-flex rounded-xl border border-base-700/70 bg-gradient-to-b from-base-900 to-base-950 p-1 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
           {VISOES.map((v) => (
             <button
               key={v.value}
               onClick={() => setVisao(v.value)}
               className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition",
-                visao === v.value ? "bg-accent text-base-950" : "text-ink-muted hover:text-ink-primary"
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200",
+                visao === v.value
+                  ? "bg-accent text-base-950 shadow-[0_2px_10px_-2px_rgba(255,255,255,0.35)]"
+                  : "text-ink-muted hover:text-ink-primary"
               )}
             >
               <v.icon className="h-3.5 w-3.5" />
@@ -67,7 +69,7 @@ export function ProducaoWorkspace({
           <Button variant="ghost" onClick={() => setModalConfigAberto(true)} className="px-3 py-2 text-xs" title="Funcionários e Tipos de Serviço">
             <IconSettings className="h-4 w-4" />
           </Button>
-          <Button onClick={() => setModalNovaAberto(true)}>
+          <Button onClick={() => setModalNovaAberto(true)} className="shadow-[0_0_18px_-4px_rgba(255,255,255,0.35)]">
             <IconPlus className="h-4 w-4" />
             Nova Tarefa
           </Button>

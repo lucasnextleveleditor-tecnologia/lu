@@ -3,7 +3,7 @@ import type { StatusTrafego } from "@/lib/utils/trafego";
 import { DateNav } from "@/components/admin/trafego/DateNav";
 import { MetaCard } from "@/components/admin/trafego/MetaCard";
 import { Card } from "@/components/ui/Card";
-import { StatTile } from "@/components/ui/StatTile";
+import { PremiumStatTile } from "@/components/admin/trafego/PremiumStatTile";
 import { IconTrendingUp, IconCheckCircle, IconAlertTriangle, IconPauseCircle } from "@/components/ui/icons";
 
 type ClienteResumido = Pick<ProfileRow, "id" | "full_name" | "email">;
@@ -26,10 +26,10 @@ export function ClientesTrafegoTab({ data, clientes, metaPorCliente, registrosPo
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={IconTrendingUp} label="No Caminho" value={contagemStatus.no_caminho} tone="good" hint="≥60% da meta do dia" />
-        <StatTile icon={IconCheckCircle} label="Meta Batida" value={contagemStatus.meta_batida} tone="good" hint="100% ou mais investido" />
-        <StatTile icon={IconAlertTriangle} label="Abaixo da Meta" value={contagemStatus.abaixo_da_meta} tone="warning" hint="Precisa de atenção" />
-        <StatTile icon={IconPauseCircle} label="Sem Meta Definida" value={contagemStatus.sem_meta} tone="neutral" hint="Nenhuma meta lançada hoje" />
+        <PremiumStatTile icon={IconTrendingUp} label="No Caminho" value={contagemStatus.no_caminho} tone="good" hint="≥60% da meta do dia" />
+        <PremiumStatTile icon={IconCheckCircle} label="Meta Batida" value={contagemStatus.meta_batida} tone="good" hint="100% ou mais investido" />
+        <PremiumStatTile icon={IconAlertTriangle} label="Abaixo da Meta" value={contagemStatus.abaixo_da_meta} tone="warning" hint="Precisa de atenção" />
+        <PremiumStatTile icon={IconPauseCircle} label="Sem Meta Definida" value={contagemStatus.sem_meta} tone="neutral" hint="Nenhuma meta lançada hoje" />
       </div>
 
       {!clientes.length ? (

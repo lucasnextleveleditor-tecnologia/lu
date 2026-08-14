@@ -4,8 +4,10 @@ import { useEffect, useState, useTransition } from "react";
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd";
 import type { StatusTarefa, TarefaComRelacoes } from "@/lib/types/producao";
 import { STATUS_TAREFA_META, STATUS_TAREFA_ORDEM } from "@/lib/utils/producao";
+import { TONE_META } from "@/lib/utils/tone";
 import { moverStatusTarefa } from "@/app/admin/producao/actions";
 import { TarefaCard } from "@/components/admin/producao/TarefaCard";
+import { IconClipboardList } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
 
 interface KanbanBoardProps {
@@ -51,13 +53,18 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   className={cn(
-                    "flex w-72 shrink-0 flex-col rounded-2xl border p-3 transition-colors",
-                    snapshot.isDraggingOver ? "border-accent/50 bg-base-900/60" : "border-base-800 bg-base-950/40"
+                    "flex w-72 shrink-0 flex-col rounded-2xl border p-3 backdrop-blur-sm transition-all duration-300",
+                    snapshot.isDraggingOver
+                      ? "border-accent/50 bg-base-900/70 shadow-[0_0_28px_-10px_rgba(255,255,255,0.18)]"
+                      : "border-base-800/70 bg-base-950/50"
                   )}
                 >
                   <div className="mb-3 flex items-center justify-between px-1">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{meta.label}</p>
-                    <span className="rounded-full bg-base-800 px-2 py-0.5 text-[11px] font-medium text-ink-secondary">
+                    <div className="flex items-center gap-1.5">
+                      <span className={cn("h-1.5 w-1.5 rounded-full", TONE_META[meta.tone].dotClassName)} />
+                      <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{meta.label}</p>
+                    </div>
+                    <span className="rounded-full border border-base-700/60 bg-gradient-to-b from-base-800 to-base-900 px-2 py-0.5 text-[11px] font-medium text-ink-secondary">
                       {tarefasDaColuna.length}
                     </span>
                   </div>
@@ -70,7 +77,10 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
                             ref={providedDrag.innerRef}
                             {...providedDrag.draggableProps}
                             {...providedDrag.dragHandleProps}
-                            className={snapshotDrag.isDragging ? "rotate-1" : undefined}
+                            className={cn(
+                              "transition-transform",
+                              snapshotDrag.isDragging && "rotate-1 scale-[1.02] drop-shadow-[0_16px_28px_rgba(0,0,0,0.6)]"
+                            )}
                           >
                             <TarefaCard tarefa={tarefa} onClick={() => onAbrirTarefa(tarefa.id)} />
                           </div>
@@ -79,9 +89,10 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
                     ))}
                     {provided.placeholder}
                     {tarefasDaColuna.length === 0 && (
-                      <p className="rounded-lg border border-dashed border-base-800 p-4 text-center text-xs text-ink-muted">
-                        Nenhuma tarefa aqui.
-                      </p>
+                      <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl bg-base-900/40 py-8 text-center">
+                        <IconClipboardList className="h-5 w-5 text-ink-muted/60" />
+                        <p className="text-xs text-ink-muted">Nenhuma tarefa aqui</p>
+                      </div>
                     )}
                   </div>
                 </div>

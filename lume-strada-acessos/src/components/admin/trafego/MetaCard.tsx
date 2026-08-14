@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Meter } from "@/components/ui/Meter";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils/cn";
+import { TONE_GLOW } from "@/components/admin/trafego/tone-glow";
 
 interface MetaCardProps {
   cliente: Pick<ProfileRow, "id" | "full_name" | "email">;
@@ -69,8 +71,15 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
   }
 
   return (
-    <Card>
-      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+    // O glow por tone fica num wrapper FORA do `Card` de propósito: o
+    // `Card` compartilhado já tem seu próprio `shadow-[...]` de reflexo
+    // interno (usado em todos os outros módulos) — duas classes
+    // `shadow-[...]` no MESMO elemento não somam, só uma vence. Em
+    // elementos diferentes (wrapper + Card) os dois efeitos aparecem juntos
+    // sem conflito.
+    <div className={cn("rounded-2xl transition-all duration-300 hover:-translate-y-0.5", TONE_GLOW[statusMeta.tone])}>
+      <Card className="overflow-hidden bg-gradient-to-br from-base-800/30 via-transparent to-transparent">
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
         <div>
           <p className="text-sm font-semibold text-ink-primary">{cliente.full_name || "Sem nome"}</p>
           <p className="text-xs text-ink-muted">{cliente.email}</p>
@@ -118,7 +127,7 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
       </div>
 
       {/* Status atual do tráfego — a razão contra o limite (Meter) */}
-      <div className="mb-5 rounded-xl border border-base-700 bg-base-950/60 p-4">
+      <div className="mb-5 rounded-xl border border-base-700/70 bg-gradient-to-b from-base-800/40 to-base-950/60 p-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
         <div className="flex items-center justify-between mb-2 text-xs text-ink-secondary">
           <span>
             Investido: <span className="font-medium text-ink-primary">{fmtBRL(resumo.totalInvestido)}</span>
@@ -126,7 +135,9 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
           </span>
           {resumo.pctInvestido !== null && <span className="font-medium text-ink-primary">{fmtPercent(resumo.pctInvestido)}</span>}
         </div>
-        <Meter pct={resumo.pctInvestido ?? 0} tone={statusMeta.tone === "neutral" ? "neutral" : statusMeta.tone} />
+        <div className={cn("rounded-full", TONE_GLOW[statusMeta.tone === "neutral" ? "neutral" : statusMeta.tone])}>
+          <Meter pct={resumo.pctInvestido ?? 0} tone={statusMeta.tone === "neutral" ? "neutral" : statusMeta.tone} />
+        </div>
         <p className="mt-2 text-xs text-ink-secondary">
           Leads: <span className="font-medium text-ink-primary">{resumo.totalLeads}</span>
           {meta?.leads_meta != null && <> de {meta.leads_meta}</>}
@@ -139,7 +150,10 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
         {registros.length > 0 && (
           <div className="mb-3 space-y-2">
             {registros.map((r) => (
-              <div key={r.id} className="flex items-center justify-between gap-2 rounded-lg border border-base-700 bg-base-950/40 px-3 py-2 text-sm">
+              <div
+                key={r.id}
+                className="flex items-center justify-between gap-2 rounded-lg border border-base-700/70 bg-gradient-to-r from-base-800/40 to-base-950/40 px-3 py-2 text-sm transition-colors hover:border-base-600"
+              >
                 <div className="min-w-0">
                   <p className="truncate font-medium">{r.nome_campanha || "Lançamento sem nome"}</p>
                   <p className="text-xs text-ink-muted">
@@ -190,6 +204,7 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
         </form>
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}
       </div>
-    </Card>
+      </Card>
+    </div>
   );
 }

@@ -5,10 +5,11 @@ import type { TarefaComRelacoes } from "@/lib/types/producao";
 import { PRIORIDADE_TAREFA_META, STATUS_TAREFA_META, STATUS_TAREFA_ORDEM, isTarefaAtrasada } from "@/lib/utils/producao";
 import { fmtData } from "@/lib/utils/status";
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { PillTag } from "@/components/admin/producao/PillTag";
+import { IconClipboardList } from "@/components/ui/icons";
 
 interface ListaTarefasProps {
   tarefas: TarefaComRelacoes[];
@@ -57,8 +58,12 @@ export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
   }, [tarefas, filtroStatus, filtroPrioridade, busca, ordenarPor, ordemAsc]);
 
   return (
-    <Card className="p-0">
-      <div className="flex flex-wrap items-end gap-3 border-b border-base-800 p-5">
+    // Sombra de elevação num wrapper FORA do `Card`: o `Card` compartilhado
+    // já tem seu próprio `shadow-[...]` de reflexo interno — duas classes
+    // `shadow-[...]` no MESMO elemento não somam, só uma vence.
+    <div className="rounded-2xl shadow-[0_24px_60px_-36px_rgba(0,0,0,0.7)]">
+    <Card className="overflow-hidden bg-gradient-to-b from-base-800/30 to-transparent p-0">
+      <div className="flex flex-wrap items-end gap-3 border-b border-base-800/70 bg-gradient-to-b from-base-800/30 to-transparent p-5">
         <div className="min-w-[180px] flex-1">
           <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Buscar</label>
           <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Título, cliente, responsável..." />
@@ -101,13 +106,16 @@ export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
 
       <div className="overflow-x-auto">
         {tarefasFiltradas.length === 0 ? (
-          <div className="p-10 text-center text-sm text-ink-muted">
-            {tarefas.length === 0 ? "Nenhuma tarefa cadastrada ainda." : "Nenhuma tarefa corresponde aos filtros atuais."}
+          <div className="flex flex-col items-center gap-2 p-14 text-center">
+            <IconClipboardList className="h-6 w-6 text-ink-muted/60" />
+            <p className="text-sm text-ink-muted">
+              {tarefas.length === 0 ? "Nenhuma tarefa cadastrada ainda." : "Nenhuma tarefa corresponde aos filtros atuais."}
+            </p>
           </div>
         ) : (
           <table className="w-full min-w-[900px] text-left">
             <thead>
-              <tr className="border-b border-base-800 text-xs uppercase tracking-wide text-ink-muted">
+              <tr className="border-b border-base-800/70 text-xs uppercase tracking-wide text-ink-muted">
                 <th className="px-5 py-3 font-medium">Tarefa</th>
                 <th className="px-0 py-3 font-medium">Cliente</th>
                 <th className="px-0 py-3 font-medium">
@@ -133,7 +141,7 @@ export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
                   <tr
                     key={t.id}
                     onClick={() => onAbrirTarefa(t.id)}
-                    className="cursor-pointer border-b border-base-800 last:border-0 hover:bg-base-900/60"
+                    className="cursor-pointer border-b border-base-800/70 transition-colors duration-200 last:border-0 hover:bg-gradient-to-r hover:from-base-800/50 hover:via-base-800/15 hover:to-transparent"
                   >
                     <td className="py-3 pr-4">
                       <p className="text-sm font-medium text-ink-primary">{t.titulo}</p>
@@ -146,15 +154,15 @@ export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
                       <span className="text-xs text-ink-secondary">{t.responsavel_nome || "—"}</span>
                     </td>
                     <td className="py-3 pr-4">
-                      <span className={atrasada ? "text-xs font-medium text-danger" : "text-xs text-ink-muted"}>
+                      <span className={atrasada ? "text-xs font-semibold text-danger" : "text-xs text-ink-muted"}>
                         {t.data_entrega ? fmtData(t.data_entrega) : "—"}
                       </span>
                     </td>
                     <td className="py-3 pr-4">
-                      <Badge tone={prioridadeMeta.tone} label={prioridadeMeta.label} />
+                      <PillTag tone={prioridadeMeta.tone} label={prioridadeMeta.label} />
                     </td>
                     <td className="py-3 text-right">
-                      <Badge tone={statusMeta.tone} label={statusMeta.label} />
+                      <PillTag tone={statusMeta.tone} label={statusMeta.label} />
                     </td>
                   </tr>
                 );
@@ -164,5 +172,6 @@ export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
         )}
       </div>
     </Card>
+    </div>
   );
 }
