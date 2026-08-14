@@ -521,3 +521,62 @@ export function IconPercent(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícones do preview visual do módulo Financeiro (categorias/contas mockadas). */
+
+export function IconHome(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M4 11.5L12 4l8 7.5" />
+      <path d="M6 10v9h12v-9" />
+      <path d="M10 19v-5h4v5" />
+    </svg>
+  );
+}
+
+export function IconShoppingBag(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M6.5 8h11l1 12h-13l1-12z" />
+      <path d="M9 8V6.5a3 3 0 0 1 6 0V8" />
+    </svg>
+  );
+}
+
+export function IconCar(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M4.5 16v-3.2L6.5 8h11l2 4.8V16" />
+      <path d="M4.5 16h15M6.5 16v2M17.5 16v2" />
+      <circle cx="8" cy="16" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="16" cy="16" r="1.4" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconHeart(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M12 19.5S4 14.8 4 9.6C4 6.9 6.1 5 8.5 5c1.6 0 3 .8 3.5 2.1C12.5 5.8 13.9 5 15.5 5 17.9 5 20 6.9 20 9.6c0 5.2-8 9.9-8 9.9z" />
+    </svg>
+  );
+}
+
+export function IconCoffee(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9z" />
+      <path d="M16 10.5h1.5a2.3 2.3 0 0 1 0 4.6H16" />
+      <path d="M8 6c0-1 .8-1.2.8-2M11.5 6c0-1 .8-1.2.8-2" />
+    </svg>
+  );
+}
+
+export function IconDollarSign(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M12 3v18" />
+      <path d="M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.2-4.5 3c0 4 9 2.3 9 6.3 0 1.8-2 3.2-4.5 3.2s-4.5-1.3-4.5-3.2" />
+    </svg>
+  );
+}
