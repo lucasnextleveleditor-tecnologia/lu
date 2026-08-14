@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { ProfileRow } from "@/lib/types/database";
+import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
 import { AdminShell } from "@/components/admin/AdminShell";
 
@@ -16,12 +16,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, full_name, email, permissoes")
-    .eq("id", user.id)
-    .single()
-    .overrideTypes<Pick<ProfileRow, "role" | "full_name" | "email" | "permissoes">, { merge: false }>();
+  // `buscarPerfilComPermissoes` tem fallback pra quando `permissoes` ainda
+  // não existe no banco (supabase/cadastros.sql não rodado) — sem isso, um
+  // select pedindo essa coluna falharia por INTEIRO e expulsaria todo mundo
+  // (inclusive o admin) pro /dashboard de cliente.
+  const profile = await buscarPerfilComPermissoes(supabase, user.id);
 
   // Admin e funcionário passam — cliente é redirecionado pro portal dele.
   // A checagem FINA (qual módulo cada funcionário pode ver/usar) mora em
