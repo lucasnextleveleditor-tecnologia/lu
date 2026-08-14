@@ -396,3 +396,97 @@ export function IconCamera(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícones do Módulo Central de Cadastros (Clientes / Equipe / Gerar Acesso / Permissões). */
+
+export function IconKey(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <circle cx="7.5" cy="15.5" r="4" />
+      <path d="M10.5 12.5L19 4" />
+      <path d="M15.5 8L18 10.5" />
+      <path d="M18.5 5L21 7.5" />
+    </svg>
+  );
+}
+
+export function IconShieldCheck(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M12 3.5l7 2.7v5.3c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6.2l7-2.7z" />
+      <path d="M9 12l2 2 4-4.5" />
+    </svg>
+  );
+}
+
+export function IconClipboardList(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="5" y="4.5" width="14" height="16" rx="1.6" />
+      <path d="M9 4.5V3.7a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 3.7v.8" />
+      <path d="M8.5 11h1.2M8.5 14.5h1.2M8.5 18h1.2" />
+      <path d="M12 11h3.5M12 14.5h3.5M12 18h3.5" />
+    </svg>
+  );
+}
+
+export function IconUserPlus(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3 19c.7-3 3-4.8 6-4.8s5.3 1.8 6 4.8" />
+      <path d="M18 8v5.5" />
+      <path d="M15.3 10.75h5.4" />
+    </svg>
+  );
+}
+
+export function IconBriefcase(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="3" y="7.5" width="18" height="12" rx="1.8" />
+      <path d="M8 7.5V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1.5" />
+      <path d="M3 12.5h18" />
+      <path d="M10.5 12.5h3v1.6h-3z" />
+    </svg>
+  );
+}
+
+export function IconMail(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="3.5" y="5.5" width="17" height="13" rx="1.8" />
+      <path d="M4 6.5l8 6.5 8-6.5" />
+    </svg>
+  );
+}
+
+export function IconTrash(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M4.5 7h15" />
+      <path d="M9 7V5.2a1.2 1.2 0 0 1 1.2-1.2h3.6A1.2 1.2 0 0 1 15 5.2V7" />
+      <path d="M6.5 7l.7 12a1.8 1.8 0 0 0 1.8 1.7h6a1.8 1.8 0 0 0 1.8-1.7l.7-12" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
+export function IconPencil(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M4 20l.9-4 10.6-10.6a2 2 0 0 1 2.8 0l.3.3a2 2 0 0 1 0 2.8L8 19l-4 1z" />
+      <path d="M13.5 6.5l3 3" />
+    </svg>
+  );
+}
+
+export function IconBuilding(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="5" y="3.5" width="10" height="17" rx="1" />
+      <rect x="15.5" y="9.5" width="4.5" height="11" rx="1" />
+      <path d="M8 7.5h1M8 11h1M8 14.5h1M11.5 7.5h1M11.5 11h1M11.5 14.5h1" />
+    </svg>
+  );
+}

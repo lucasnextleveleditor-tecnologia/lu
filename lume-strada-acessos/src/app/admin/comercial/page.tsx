@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import type { AnotacaoRow, LeadComRelacoes, LeadRow } from "@/lib/types/comercial";
 import type { TipoServicoRow } from "@/lib/types/producao";
 import { leadEstaAberto } from "@/lib/utils/comercial";
@@ -10,7 +10,7 @@ import { ComercialWorkspace } from "@/components/admin/comercial/ComercialWorksp
 export const dynamic = "force-dynamic";
 
 export default async function ComercialPage() {
-  const supabase = await createClient();
+  const { supabase } = await requireModuloOuRedirect("comercial");
 
   const [leadsRes, anotacoesRes, tiposServicoRes] = await Promise.all([
     supabase.from("crm_leads").select("*").order("created_at", { ascending: false }).overrideTypes<LeadRow[], { merge: false }>(),

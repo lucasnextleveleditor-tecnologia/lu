@@ -125,7 +125,10 @@ export async function middleware(request: NextRequest) {
       }
 
       if (status === "ativo") {
-        const home = role === "admin" ? "/admin" : "/dashboard";
+        // Admin cai na Home do painel (Cadastros); funcionário cai direto no
+        // Dashboard (Visão Geral — o único módulo aberto a qualquer membro
+        // da equipe, sem depender de permissão); cliente vai pro portal dele.
+        const home = role === "admin" ? "/admin" : role === "funcionario" ? "/admin/dashboard" : "/dashboard";
 
         if (pathname === "/login" || pathname === "/") {
           const url = request.nextUrl.clone();
@@ -133,7 +136,7 @@ export async function middleware(request: NextRequest) {
           return NextResponse.redirect(url);
         }
 
-        if (pathname.startsWith("/admin") && role !== "admin") {
+        if (pathname.startsWith("/admin") && role !== "admin" && role !== "funcionario") {
           const url = request.nextUrl.clone();
           url.pathname = "/dashboard";
           return NextResponse.redirect(url);

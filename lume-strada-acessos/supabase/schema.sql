@@ -24,7 +24,13 @@ create table if not exists public.profiles (
   email text not null,
   full_name text,
 
-  role text not null default 'cliente' check (role in ('admin', 'cliente')),
+  role text not null default 'cliente' check (role in ('admin', 'funcionario', 'cliente')),
+
+  -- Só lida/usada quando role = 'funcionario' — quais módulos do menu
+  -- aquele funcionário pode acessar (ver `supabase/cadastros.sql` e
+  -- `lib/auth/requireAdmin.ts`). Admin sempre tem acesso total (bypass);
+  -- cliente nunca acessa /admin.
+  permissoes jsonb not null default '{}'::jsonb,
 
   -- Suspensão manual (botão Suspender/Reativar no painel admin). Independe
   -- da data de expiração — um admin pode suspender mesmo com prazo válido.
@@ -111,6 +117,21 @@ as $$
   select exists (
     select 1 from public.profiles
     where id = auth.uid() and role = 'admin'
+  );
+$$;
+
+-- `is_staff()` — "é admin OU funcionário" (acesso de banco grosso; a
+-- permissão FINA de cada funcionário, por módulo, é checada na aplicação —
+-- ver a nota de segurança no topo de `supabase/cadastros.sql`).
+create or replace function public.is_staff()
+returns boolean
+language sql
+security definer set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role in ('admin', 'funcionario')
   );
 $$;
 
@@ -204,14 +225,14 @@ alter table public.trafego_registros enable row level security;
 drop policy if exists "metas_diarias_admin_all" on public.metas_diarias;
 create policy "metas_diarias_admin_all" on public.metas_diarias
   for all to authenticated
-  using (public.is_admin())
-  with check (public.is_admin());
+  using (public.is_staff())
+  with check (public.is_staff());
 
 drop policy if exists "trafego_registros_admin_all" on public.trafego_registros;
 create policy "trafego_registros_admin_all" on public.trafego_registros
   for all to authenticated
-  using (public.is_admin())
-  with check (public.is_admin());
+  using (public.is_staff())
+  with check (public.is_staff());
 
 -- Cliente: só ENXERGA (select) a própria meta e os próprios registros —
 -- quem define a meta e lança tráfego é sempre o admin (ver requisito 3: "o
@@ -299,14 +320,14 @@ alter table public.itens_inventario enable row level security;
 drop policy if exists "categorias_inventario_admin_all" on public.categorias_inventario;
 create policy "categorias_inventario_admin_all" on public.categorias_inventario
   for all to authenticated
-  using (public.is_admin())
-  with check (public.is_admin());
+  using (public.is_staff())
+  with check (public.is_staff());
 
 drop policy if exists "itens_inventario_admin_all" on public.itens_inventario;
 create policy "itens_inventario_admin_all" on public.itens_inventario
   for all to authenticated
-  using (public.is_admin())
-  with check (public.is_admin());
+  using (public.is_staff())
+  with check (public.is_staff());
 
 -- ============================================================================
 -- 7. Personalização Visual (White-Label / Branding)

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import type { StatusItemInventario } from "@/lib/types/database";
 import { InventarioNav } from "@/components/admin/inventario/InventarioNav";
 import { StatTile } from "@/components/ui/StatTile";
@@ -10,7 +10,7 @@ export default async function InventarioLayout({ children }: { children: React.R
   // KPIs do topo, compartilhados pelas duas abas (Categorias / Itens &
   // Etiquetas) — busca mínima (só `status`) só pra contar, sem duplicar a
   // query completa que cada aba já faz pra sua própria tabela.
-  const supabase = await createClient();
+  const { supabase } = await requireModuloOuRedirect("inventario");
 
   const { count: totalCategorias } = await supabase.from("categorias_inventario").select("*", { count: "exact", head: true });
 

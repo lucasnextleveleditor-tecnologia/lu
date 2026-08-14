@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { convidarCliente } from "@/app/admin/actions";
+import type { ClienteRow } from "@/lib/types/cadastros";
+import { gerarAcessoCliente } from "@/app/admin/actions";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
-export function InviteClientModal({ onClose }: { onClose: () => void }) {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: ClienteRow; onClose: () => void }) {
+  const [email, setEmail] = useState(cliente.email ?? "");
   const [expiresAt, setExpiresAt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,9 +16,7 @@ export function InviteClientModal({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
-    const result = await convidarCliente({ email, fullName, expiresAt: expiresAt || null });
-
+    const result = await gerarAcessoCliente(cliente.id, { email, expiresAt: expiresAt || null });
     setLoading(false);
     if (!result.ok) {
       setError(result.error);
@@ -28,13 +26,10 @@ export function InviteClientModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
-      <div
-        className="w-full max-w-md rounded-2xl border border-base-700 bg-base-900 p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl border border-base-700 bg-base-900 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-base font-semibold">Convidar Cliente</h3>
+          <h3 className="text-base font-semibold">Gerar Acesso — {cliente.nome}</h3>
           <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label="Fechar">
             ×
           </button>
@@ -42,18 +37,11 @@ export function InviteClientModal({ onClose }: { onClose: () => void }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Nome</label>
-            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Nome do cliente" />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">E-mail *</label>
-            <Input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="cliente@empresa.com"
-            />
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">E-mail de login *</label>
+            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="cliente@empresa.com" />
+            <p className="mt-1 text-xs text-ink-muted">
+              O cliente recebe um convite nesse e-mail pra definir a senha e passa a ver só os dashboards dele (Tráfego, Aprovações, Boletos).
+            </p>
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data de expiração (opcional)</label>
@@ -68,7 +56,7 @@ export function InviteClientModal({ onClose }: { onClose: () => void }) {
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Enviando convite..." : "Enviar Convite"}
+              {loading ? "Enviando..." : "Gerar Acesso e Enviar Convite"}
             </Button>
           </div>
         </form>

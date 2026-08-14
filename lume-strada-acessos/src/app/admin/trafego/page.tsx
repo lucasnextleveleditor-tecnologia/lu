@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import type { ProfileRow, MetaDiariaRow, TrafegoRegistroRow } from "@/lib/types/database";
 import { todayISO } from "@/lib/utils/format";
 import { calcularResumoTrafego, type StatusTrafego } from "@/lib/utils/trafego";
@@ -29,7 +29,7 @@ const DATA_ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
 export default async function TrafegoPage({ searchParams }: TrafegoPageProps) {
   const data = searchParams.data && DATA_ISO_RE.test(searchParams.data) ? searchParams.data : todayISO();
 
-  const supabase = await createClient();
+  const { supabase } = await requireModuloOuRedirect("trafego");
 
   const { data: clientes } = await supabase
     .from("profiles")

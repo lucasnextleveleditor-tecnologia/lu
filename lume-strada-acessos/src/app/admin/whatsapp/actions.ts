@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireModulo } from "@/lib/auth/requireAdmin";
 import { getWhatsAppProvider } from "@/lib/whatsapp/provider";
 import type { ContatoWhatsappRow, MensagemWhatsappRow, SessaoWhatsappRow } from "@/lib/types/whatsapp";
 
@@ -17,7 +17,7 @@ const PATH_CONEXAO = "/admin/whatsapp/conexao";
 
 /** Busca a sessão singleton atual — usado tanto pela página quanto pelo polling defensivo do client. */
 export async function consultarSessaoAtual(): Promise<SessaoWhatsappRow | null> {
-  const { supabase } = await requireAdmin();
+  const { supabase } = await requireModulo("whatsapp");
   const { data } = await supabase
     .from("whatsapp_sessoes")
     .select("id, status, numero_conectado, qr_code_base64, bateria_percentual, ultima_atualizacao, conectado_em, created_at, updated_at")
@@ -29,7 +29,7 @@ export async function consultarSessaoAtual(): Promise<SessaoWhatsappRow | null> 
 
 export async function gerarQrCode(): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("whatsapp");
     const provider = getWhatsAppProvider();
     const resultado = await provider.gerarQrCode();
 
@@ -52,7 +52,7 @@ export async function gerarQrCode(): Promise<ActionResult> {
 
 export async function desconectarSessao(): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("whatsapp");
     const provider = getWhatsAppProvider();
     await provider.desconectar();
 
@@ -81,7 +81,7 @@ export async function desconectarSessao(): Promise<ActionResult> {
 
 /** Mensagens de UM contato, mais antigas primeiro — buscadas sob demanda quando o atendente abre a conversa (nunca todo o histórico de todo mundo de uma vez). */
 export async function listarMensagens(contatoId: string): Promise<MensagemWhatsappRow[]> {
-  const { supabase } = await requireAdmin();
+  const { supabase } = await requireModulo("whatsapp");
   const { data } = await supabase
     .from("whatsapp_mensagens")
     .select("id, contato_id, direcao, tipo, conteudo, midia_url, status_entrega, external_message_id, enviado_por, created_at")
@@ -93,7 +93,7 @@ export async function listarMensagens(contatoId: string): Promise<MensagemWhatsa
 
 export async function enviarMensagem(contatoId: string, conteudo: string): Promise<ActionResult> {
   try {
-    const { supabase, user } = await requireAdmin();
+    const { supabase, user } = await requireModulo("whatsapp");
     const texto = conteudo.trim();
     if (!texto) return { ok: false, error: "Digite uma mensagem." };
 
@@ -152,7 +152,7 @@ export async function enviarMensagem(contatoId: string, conteudo: string): Promi
 /** Cria um Lead no CRM a partir de uma conversa desconhecida — "Adicionar ao CRM" na tela de chat. */
 export async function criarLeadDoContato(contatoId: string): Promise<ActionResultId> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("whatsapp");
 
     const { data: contato, error: erroContato } = await supabase
       .from("whatsapp_contatos")

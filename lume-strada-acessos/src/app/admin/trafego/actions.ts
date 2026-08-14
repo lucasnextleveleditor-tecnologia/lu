@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireModulo } from "@/lib/auth/requireAdmin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -37,7 +37,7 @@ export async function salvarMeta(
   valores: { valorInvestidoMeta: number; leadsMeta: number | null; objetivo: string | null }
 ): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("trafego");
     const { error } = await supabase.from("metas_diarias").upsert(
       {
         cliente_id: clienteId,
@@ -64,7 +64,7 @@ export async function adicionarRegistro(
   registro: { nomeCampanha: string | null; valorInvestido: number; leadsGerados: number }
 ): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("trafego");
 
     const meta = await getOuCriarMeta(supabase, clienteId, data);
     if ("erro" in meta) return { ok: false, error: meta.erro };
@@ -87,7 +87,7 @@ export async function adicionarRegistro(
 
 export async function removerRegistro(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("trafego");
     const { error } = await supabase.from("trafego_registros").delete().eq("id", id);
 
     if (error) return { ok: false, error: error.message };

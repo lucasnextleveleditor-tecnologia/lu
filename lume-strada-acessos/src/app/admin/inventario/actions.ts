@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireModulo } from "@/lib/auth/requireAdmin";
 import type { StatusItemInventario } from "@/lib/types/database";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -29,7 +29,7 @@ function mensagemAmigavel(error: { code?: string; message: string }, contexto: "
 
 export async function criarCategoria(input: { nome: string; descricao: string | null; codigo: string }): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("inventario");
     const nome = input.nome.trim();
     const codigo = input.codigo.trim().toUpperCase();
     if (!nome) return { ok: false, error: "Informe o nome da categoria." };
@@ -55,7 +55,7 @@ export async function atualizarCategoria(
   input: { nome: string; descricao: string | null; codigo: string }
 ): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("inventario");
     const nome = input.nome.trim();
     const codigo = input.codigo.trim().toUpperCase();
     if (!nome) return { ok: false, error: "Informe o nome da categoria." };
@@ -77,7 +77,7 @@ export async function atualizarCategoria(
 
 export async function removerCategoria(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("inventario");
     const { error } = await supabase.from("categorias_inventario").delete().eq("id", id);
 
     if (error) return { ok: false, error: mensagemAmigavel(error, "categoria") };
@@ -123,7 +123,7 @@ function validarItem(input: ItemInput): string | null {
 
 export async function criarItem(input: ItemInput): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("inventario");
     const erroValidacao = validarItem(input);
     if (erroValidacao) return { ok: false, error: erroValidacao };
 
@@ -150,7 +150,7 @@ export async function criarItem(input: ItemInput): Promise<ActionResult> {
 
 export async function atualizarItem(id: string, input: ItemInput): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("inventario");
     const erroValidacao = validarItem(input);
     if (erroValidacao) return { ok: false, error: erroValidacao };
 
@@ -180,7 +180,7 @@ export async function atualizarItem(id: string, input: ItemInput): Promise<Actio
 
 export async function removerItem(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("inventario");
     const { error } = await supabase.from("itens_inventario").delete().eq("id", id);
 
     if (error) return { ok: false, error: mensagemAmigavel(error, "item") };

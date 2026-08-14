@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import type {
   CartaoLimiteRow,
   CartaoRow,
@@ -27,13 +27,12 @@ interface FinanceiroPageProps {
 }
 
 export default async function FinanceiroPage({ searchParams }: FinanceiroPageProps) {
+  const { supabase } = await requireModuloOuRedirect("financeiro");
   const params = await searchParams;
   const referencia = parseMesParam(params.mes);
   const contexto: "todos" | FinContexto =
     params.contexto === "pessoal" || params.contexto === "profissional" ? params.contexto : "todos";
   const { inicio, fim } = limitesDoMes(referencia);
-
-  const supabase = await createClient();
 
   const [contasRes, contasSaldoRes, cartoesRes, cartoesLimiteRes, categoriasRes, transacoesRes] = await Promise.all([
     supabase.from("fin_contas").select("*").order("nome").overrideTypes<ContaRow[], { merge: false }>(),

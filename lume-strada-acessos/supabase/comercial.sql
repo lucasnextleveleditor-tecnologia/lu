@@ -86,8 +86,8 @@ alter table public.crm_anotacoes enable row level security;
 
 drop policy if exists "crm_leads_admin_all" on public.crm_leads;
 create policy "crm_leads_admin_all" on public.crm_leads
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());
 
 drop policy if exists "crm_anotacoes_admin_all" on public.crm_anotacoes;
 create policy "crm_anotacoes_admin_all" on public.crm_anotacoes
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());

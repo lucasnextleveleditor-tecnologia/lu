@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireModulo } from "@/lib/auth/requireAdmin";
 import type { FinContexto, FinRecorrencia, FinTipoTransacao } from "@/lib/types/financeiro";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -14,7 +14,7 @@ const PATH = "/admin/financeiro";
 // ----------------------------------------------------------------------------
 export async function criarConta(input: { nome: string; tipo: string | null; saldoInicial: number; contexto: FinContexto }): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("financeiro");
     if (!input.nome.trim()) return { ok: false, error: "Informe o nome da conta." };
 
     const { error } = await supabase.from("fin_contas").insert({
@@ -33,7 +33,7 @@ export async function criarConta(input: { nome: string; tipo: string | null; sal
 
 export async function removerConta(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("financeiro");
     const { error } = await supabase.from("fin_contas").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -54,7 +54,7 @@ export async function criarCartao(input: {
   contexto: FinContexto;
 }): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("financeiro");
     if (!input.nome.trim()) return { ok: false, error: "Informe o nome do cartão." };
 
     const { error } = await supabase.from("fin_cartoes").insert({
@@ -74,7 +74,7 @@ export async function criarCartao(input: {
 
 export async function removerCartao(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("financeiro");
     const { error } = await supabase.from("fin_cartoes").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -89,7 +89,7 @@ export async function removerCartao(id: string): Promise<ActionResult> {
 // ----------------------------------------------------------------------------
 export async function criarCategoria(input: { nome: string; tipo: "receita" | "despesa"; cor: string | null }): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("financeiro");
     if (!input.nome.trim()) return { ok: false, error: "Informe o nome da categoria." };
 
     const { error } = await supabase.from("fin_categorias").insert({
@@ -107,7 +107,7 @@ export async function criarCategoria(input: { nome: string; tipo: "receita" | "d
 
 export async function removerCategoria(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("financeiro");
     const { error } = await supabase.from("fin_categorias").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -137,7 +137,7 @@ export interface CriarTransacaoInput {
 
 export async function criarTransacao(input: CriarTransacaoInput): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("financeiro");
 
     if (!input.descricao.trim()) return { ok: false, error: "Informe uma descrição." };
     if (input.valor <= 0) return { ok: false, error: "O valor precisa ser maior que zero." };
@@ -179,7 +179,7 @@ export async function criarTransacao(input: CriarTransacaoInput): Promise<Action
  */
 export async function marcarPago(id: string, pago: boolean): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("financeiro");
     const { error } = await supabase
       .from("fin_transacoes")
       .update({ pago, data_pagamento: pago ? new Date().toISOString() : null })
@@ -194,7 +194,7 @@ export async function marcarPago(id: string, pago: boolean): Promise<ActionResul
 
 export async function removerTransacao(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("financeiro");
     const { error } = await supabase.from("fin_transacoes").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -207,7 +207,7 @@ export async function removerTransacao(id: string): Promise<ActionResult> {
 /** Pagar Fatura — chama a função de banco `pagar_fatura` (ver 002_financeiro.sql), que faz tudo atomicamente. */
 export async function pagarFatura(input: { cartaoId: string; contaPagamentoId: string; periodoReferencia: string }): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("financeiro");
     const { error } = await supabase.rpc("pagar_fatura", {
       p_cartao_id: input.cartaoId,
       p_conta_pagamento_id: input.contaPagamentoId,

@@ -165,8 +165,8 @@ declare
   v_fatura_id uuid;
   v_contexto public.fin_contexto;
 begin
-  if not public.is_admin() then
-    raise exception 'Apenas administradores podem pagar faturas.';
+  if not public.is_staff() then
+    raise exception 'Você não tem permissão pra pagar faturas.';
   end if;
 
   select contexto into v_contexto from public.fin_cartoes where id = p_cartao_id;
@@ -207,10 +207,10 @@ alter table public.fin_categorias enable row level security;
 alter table public.fin_transacoes enable row level security;
 alter table public.fin_faturas enable row level security;
 
-create policy fin_contas_admin on public.fin_contas for all using (public.is_admin()) with check (public.is_admin());
-create policy fin_cartoes_admin on public.fin_cartoes for all using (public.is_admin()) with check (public.is_admin());
-create policy fin_categorias_admin on public.fin_categorias for all using (public.is_admin()) with check (public.is_admin());
-create policy fin_transacoes_admin on public.fin_transacoes for all using (public.is_admin()) with check (public.is_admin());
-create policy fin_faturas_admin on public.fin_faturas for all using (public.is_admin()) with check (public.is_admin());
+create policy fin_contas_admin on public.fin_contas for all using (public.is_staff()) with check (public.is_staff());
+create policy fin_cartoes_admin on public.fin_cartoes for all using (public.is_staff()) with check (public.is_staff());
+create policy fin_categorias_admin on public.fin_categorias for all using (public.is_staff()) with check (public.is_staff());
+create policy fin_transacoes_admin on public.fin_transacoes for all using (public.is_staff()) with check (public.is_staff());
+create policy fin_faturas_admin on public.fin_faturas for all using (public.is_staff()) with check (public.is_staff());
 
 -- Views herdam RLS das tabelas base automaticamente (security_invoker é o padrão do Postgres/Supabase pra views simples como estas).

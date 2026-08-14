@@ -1,6 +1,8 @@
+import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import { WhatsappNav } from "@/components/admin/whatsapp/WhatsappNav";
 
-export default function WhatsappLayout({ children }: { children: React.ReactNode }) {
+export default async function WhatsappLayout({ children }: { children: React.ReactNode }) {
+  await requireModuloOuRedirect("whatsapp");
   return (
     <div className="space-y-6">
       <div>

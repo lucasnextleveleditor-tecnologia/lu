@@ -1,9 +1,11 @@
+import { requireAdminOuRedirect } from "@/lib/auth/requireAdmin";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
 import { AparenciaForm } from "@/components/admin/aparencia/AparenciaForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function AparenciaPage() {
+  await requireAdminOuRedirect();
   const branding = await getBrandingConfig();
 
   return (

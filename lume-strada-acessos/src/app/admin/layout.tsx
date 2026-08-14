@@ -18,12 +18,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, full_name, email")
+    .select("role, full_name, email, permissoes")
     .eq("id", user.id)
     .single()
-    .overrideTypes<Pick<ProfileRow, "role" | "full_name" | "email">, { merge: false }>();
+    .overrideTypes<Pick<ProfileRow, "role" | "full_name" | "email" | "permissoes">, { merge: false }>();
 
-  if (profile?.role !== "admin") redirect("/dashboard");
+  // Admin e funcionário passam — cliente é redirecionado pro portal dele.
+  // A checagem FINA (qual módulo cada funcionário pode ver/usar) mora em
+  // `requireModulo`/`requireModuloOuRedirect`, chamado em cada módulo; aqui
+  // é só o portão geral do `/admin`.
+  if (profile?.role !== "admin" && profile?.role !== "funcionario") redirect("/dashboard");
 
   const branding = await getBrandingConfig();
 
@@ -33,6 +37,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       nome={profile.full_name ?? ""}
       email={profile.email}
       colapsadoPadrao={branding.sidebar_compacto_padrao}
+      papel={profile.role}
+      permissoes={profile.permissoes ?? {}}
     >
       {children}
     </AdminShell>

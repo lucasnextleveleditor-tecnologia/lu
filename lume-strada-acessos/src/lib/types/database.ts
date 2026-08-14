@@ -18,7 +18,10 @@
  * é seguro voltar a parametrizar os clientes com ele.
  */
 
-export type PapelUsuario = "admin" | "cliente";
+export type PapelUsuario = "admin" | "funcionario" | "cliente";
+
+/** Chaves possíveis dentro de `permissoes` — mesma lista de `ModuloChave` em `lib/auth/requireAdmin.ts`, duplicada aqui só como tipo de dado (evita import circular). */
+export type PermissoesFuncionario = Partial<Record<"clientes" | "financeiro" | "producao" | "comercial" | "trafego" | "inventario" | "whatsapp", boolean>>;
 
 export interface ProfileRow {
   id: string; // uuid — mesmo id de auth.users
@@ -27,6 +30,10 @@ export interface ProfileRow {
   role: PapelUsuario;
   active: boolean; // suspensão manual (independe da data de expiração)
   expires_at: string | null; // ISO timestamp — null = sem expiração definida
+  // Só é lida/usada quando role = 'funcionario' — admin sempre tem acesso
+  // total (bypass), cliente nunca acessa /admin. Chave ausente ou false =
+  // sem acesso àquele módulo. Ver `lib/auth/requireAdmin.ts` (`requireModulo`).
+  permissoes: PermissoesFuncionario;
   created_at: string;
   updated_at: string;
 }

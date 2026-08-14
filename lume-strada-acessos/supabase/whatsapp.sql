@@ -137,15 +137,15 @@ alter table public.whatsapp_mensagens enable row level security;
 
 drop policy if exists "whatsapp_sessoes_admin_all" on public.whatsapp_sessoes;
 create policy "whatsapp_sessoes_admin_all" on public.whatsapp_sessoes
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());
 
 drop policy if exists "whatsapp_contatos_admin_all" on public.whatsapp_contatos;
 create policy "whatsapp_contatos_admin_all" on public.whatsapp_contatos
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());
 
 drop policy if exists "whatsapp_mensagens_admin_all" on public.whatsapp_mensagens;
 create policy "whatsapp_mensagens_admin_all" on public.whatsapp_mensagens
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());
 
 -- ----------------------------------------------------------------------------
 -- 5. Realtime — liga o Postgres Changes pra o Inbox e a Tela de Conexão

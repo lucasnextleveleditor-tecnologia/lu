@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireModulo } from "@/lib/auth/requireAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { OrigemLead, StatusLead } from "@/lib/types/comercial";
 
@@ -26,7 +26,7 @@ export interface LeadInput {
 
 export async function criarLead(input: LeadInput): Promise<ActionResultId> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("comercial");
     if (!input.nome.trim()) return { ok: false, error: "Informe o nome da empresa/pessoa." };
 
     const { data, error } = await supabase
@@ -54,7 +54,7 @@ export async function criarLead(input: LeadInput): Promise<ActionResultId> {
 
 export async function atualizarLead(id: string, input: LeadInput): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("comercial");
     if (!input.nome.trim()) return { ok: false, error: "Informe o nome da empresa/pessoa." };
 
     const { error } = await supabase
@@ -82,7 +82,7 @@ export async function atualizarLead(id: string, input: LeadInput): Promise<Actio
 /** Move o card entre colunas do funil — drag-and-drop do Kanban ou seletor no detalhe. */
 export async function moverStatusLead(id: string, status: StatusLead): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("comercial");
     const { error } = await supabase.from("crm_leads").update({ status }).eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -94,7 +94,7 @@ export async function moverStatusLead(id: string, status: StatusLead): Promise<A
 
 export async function removerLead(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("comercial");
     const { error } = await supabase.from("crm_leads").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -109,7 +109,7 @@ export async function removerLead(id: string): Promise<ActionResult> {
 // ----------------------------------------------------------------------------
 export async function criarAnotacao(leadId: string, nota: string, proximoContatoEm: string | null): Promise<ActionResult> {
   try {
-    const { supabase, user } = await requireAdmin();
+    const { supabase, user } = await requireModulo("comercial");
     if (!nota.trim()) return { ok: false, error: "Escreva um resumo do contato." };
 
     const { error: erroAnotacao } = await supabase.from("crm_anotacoes").insert({
@@ -136,14 +136,17 @@ export async function criarAnotacao(leadId: string, nota: string, proximoContato
 
 // ----------------------------------------------------------------------------
 // Conversão — Lead vira Cliente de verdade (mesmo fluxo de convite por
-// e-mail já usado em "Clientes & Acessos" — `convidarCliente`, em
-// `app/admin/actions.ts`), sem duplicar a lógica de Auth: chamamos a mesma
-// API do Supabase (Service Role) aqui, e no fim vinculamos o lead ao
-// profile recém-criado.
+// e-mail usado em "Gerar Acesso" na aba Clientes da Central de Cadastros —
+// `gerarAcessoCliente`, em `app/admin/actions.ts`), sem duplicar a lógica de
+// Auth: chamamos a mesma API do Supabase (Service Role) aqui, e no fim
+// vinculamos o lead ao profile recém-criado. Nota: isso cria só o LOGIN
+// (`profiles`, role 'cliente') — não cria automaticamente um registro na
+// nova tabela `clientes` (cadastro rico); se quiser o cadastro completo
+// também, crie-o manualmente na aba Clientes depois.
 // ----------------------------------------------------------------------------
 export async function converterLeadEmCliente(leadId: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("comercial");
 
     const { data: lead, error: erroLead } = await supabase.from("crm_leads").select("nome, email, cliente_id").eq("id", leadId).single();
     if (erroLead || !lead) return { ok: false, error: erroLead?.message ?? "Lead não encontrado." };

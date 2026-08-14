@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import type { ProfileRow } from "@/lib/types/database";
 import type {
   EntregaComVersoes,
@@ -15,7 +15,7 @@ import { ProducaoWorkspace } from "@/components/admin/producao/ProducaoWorkspace
 export const dynamic = "force-dynamic";
 
 export default async function ProducaoPage() {
-  const supabase = await createClient();
+  const { supabase } = await requireModuloOuRedirect("producao");
 
   const [tarefasRes, subtarefasRes, entregasRes, versoesRes, clientesRes, funcionariosRes, tiposServicoRes] = await Promise.all([
     supabase.from("prod_tarefas").select("*").order("data_entrega", { ascending: true }).overrideTypes<TarefaRow[], { merge: false }>(),

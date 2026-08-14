@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
+import type { PapelUsuario, PermissoesFuncionario } from "@/lib/types/database";
 import { BrandingLogo } from "@/components/branding/BrandingLogo";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import {
@@ -25,27 +26,33 @@ import {
 // + clientes convertidos + Inbox do WhatsApp) depois, e o resto da operação
 // da agência por último. Cada grupo pode crescer independente sem bagunçar
 // a leitura do menu inteiro.
+//
+// `chave` é a mesma `ModuloChave` usada por `requireModulo`/`requireModuloOuRedirect`
+// no servidor — o item some do menu de um funcionário sem aquela permissão
+// ligada. Item sem `chave` (Dashboard) é visível pra qualquer membro da
+// equipe. `adminOnly` (Aparência) nunca aparece pra funcionário, mesmo com
+// todas as outras permissões ligadas — mesma regra do guard no servidor.
 const NAV_GRUPOS = [
   {
     titulo: "Visão Geral",
-    itens: [{ href: "/admin/dashboard", label: "Dashboard", icon: IconLayoutGrid }],
+    itens: [{ href: "/admin/dashboard", label: "Dashboard", icon: IconLayoutGrid, chave: null }],
   },
   {
     titulo: "Comercial",
     itens: [
-      { href: "/admin/comercial", label: "CRM & Vendas", icon: IconTarget },
-      { href: "/admin/whatsapp", label: "WhatsApp", icon: IconMessageCircle },
-      { href: "/admin", label: "Clientes & Acessos", icon: IconUsers },
+      { href: "/admin/comercial", label: "CRM & Vendas", icon: IconTarget, chave: "comercial" },
+      { href: "/admin/whatsapp", label: "WhatsApp", icon: IconMessageCircle, chave: "whatsapp" },
+      { href: "/admin", label: "Cadastros", icon: IconUsers, chave: "clientes" },
     ],
   },
   {
     titulo: "Gestão",
     itens: [
-      { href: "/admin/financeiro", label: "Financeiro", icon: IconWallet },
-      { href: "/admin/producao", label: "Produção & Tarefas", icon: IconColumns },
-      { href: "/admin/trafego", label: "Tráfego & Metas", icon: IconActivity },
-      { href: "/admin/inventario", label: "Inventário & Patrimônio", icon: IconBox },
-      { href: "/admin/aparencia", label: "Aparência", icon: IconPalette },
+      { href: "/admin/financeiro", label: "Financeiro", icon: IconWallet, chave: "financeiro" },
+      { href: "/admin/producao", label: "Produção & Tarefas", icon: IconColumns, chave: "producao" },
+      { href: "/admin/trafego", label: "Tráfego & Metas", icon: IconActivity, chave: "trafego" },
+      { href: "/admin/inventario", label: "Inventário & Patrimônio", icon: IconBox, chave: "inventario" },
+      { href: "/admin/aparencia", label: "Aparência", icon: IconPalette, chave: null, adminOnly: true },
     ],
   },
 ] as const;
@@ -58,12 +65,31 @@ interface AdminShellProps {
   nome: string;
   email: string;
   colapsadoPadrao: boolean;
+  papel: PapelUsuario;
+  permissoes: PermissoesFuncionario;
   children: React.ReactNode;
 }
 
-export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, children }: AdminShellProps) {
+export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permissoes, children }: AdminShellProps) {
   const pathname = usePathname();
   const [colapsado, setColapsado] = useState(colapsadoPadrao);
+
+  // Mesma regra de autorização do servidor (`requireModulo`/`requireAdmin`),
+  // só que aqui é pra decidir o que MOSTRAR no menu — a permissão de
+  // verdade continua sendo sempre reforçada no servidor (Server Action +
+  // RLS), o filtro aqui é só pra não deixar o funcionário nem ver um link
+  // que vai barrar.
+  function itemVisivel(item: { chave: string | null; adminOnly?: boolean }): boolean {
+    if (papel === "admin") return true;
+    if (item.adminOnly) return false;
+    if (!item.chave) return true;
+    return permissoes?.[item.chave as keyof PermissoesFuncionario] === true;
+  }
+
+  const gruposVisiveis = NAV_GRUPOS.map((grupo) => ({
+    ...grupo,
+    itens: grupo.itens.filter(itemVisivel),
+  })).filter((grupo) => grupo.itens.length > 0);
 
   // Sincroniza com a preferência pessoal salva no navegador DEPOIS da
   // primeira renderização — evita mismatch de hidratação (servidor não tem
@@ -101,7 +127,7 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, children }: 
         </div>
 
         <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
-          {NAV_GRUPOS.map((grupo, i) => (
+          {gruposVisiveis.map((grupo, i) => (
             <div key={grupo.titulo} className={cn(i > 0 && colapsado && "border-t border-base-800 pt-3")}>
               {!colapsado && <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{grupo.titulo}</p>}
               <div className="space-y-1">

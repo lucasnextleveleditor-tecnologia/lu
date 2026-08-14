@@ -174,27 +174,27 @@ alter table public.prod_entrega_versoes enable row level security;
 
 drop policy if exists "prod_funcionarios_admin_all" on public.prod_funcionarios;
 create policy "prod_funcionarios_admin_all" on public.prod_funcionarios
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());
 
 drop policy if exists "prod_tipos_servico_admin_all" on public.prod_tipos_servico;
 create policy "prod_tipos_servico_admin_all" on public.prod_tipos_servico
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());
 
 drop policy if exists "prod_tarefas_admin_all" on public.prod_tarefas;
 create policy "prod_tarefas_admin_all" on public.prod_tarefas
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());
 
 drop policy if exists "prod_subtarefas_admin_all" on public.prod_subtarefas;
 create policy "prod_subtarefas_admin_all" on public.prod_subtarefas
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());
 
 drop policy if exists "prod_entregas_admin_all" on public.prod_entregas;
 create policy "prod_entregas_admin_all" on public.prod_entregas
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());
 
 drop policy if exists "prod_entrega_versoes_admin_all" on public.prod_entrega_versoes;
 create policy "prod_entrega_versoes_admin_all" on public.prod_entrega_versoes
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using (public.is_staff()) with check (public.is_staff());
 
 -- ----------------------------------------------------------------------------
 -- 8. Storage — bucket "producao" (arquivos/entregas). PRIVADO (ao contrário
@@ -210,23 +210,23 @@ on conflict (id) do nothing;
 drop policy if exists "producao_bucket_admin_select" on storage.objects;
 create policy "producao_bucket_admin_select" on storage.objects
   for select to authenticated
-  using (bucket_id = 'producao' and public.is_admin());
+  using (bucket_id = 'producao' and public.is_staff());
 
 drop policy if exists "producao_bucket_admin_insert" on storage.objects;
 create policy "producao_bucket_admin_insert" on storage.objects
   for insert to authenticated
-  with check (bucket_id = 'producao' and public.is_admin());
+  with check (bucket_id = 'producao' and public.is_staff());
 
 drop policy if exists "producao_bucket_admin_update" on storage.objects;
 create policy "producao_bucket_admin_update" on storage.objects
   for update to authenticated
-  using (bucket_id = 'producao' and public.is_admin())
-  with check (bucket_id = 'producao' and public.is_admin());
+  using (bucket_id = 'producao' and public.is_staff())
+  with check (bucket_id = 'producao' and public.is_staff());
 
 drop policy if exists "producao_bucket_admin_delete" on storage.objects;
 create policy "producao_bucket_admin_delete" on storage.objects
   for delete to authenticated
-  using (bucket_id = 'producao' and public.is_admin());
+  using (bucket_id = 'producao' and public.is_staff());
 
 -- ============================================================================
 -- MIGRAÇÃO — só rode isto se você já tinha aplicado uma versão ANTERIOR

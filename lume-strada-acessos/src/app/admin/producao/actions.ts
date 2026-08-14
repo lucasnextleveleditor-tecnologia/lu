@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireModulo } from "@/lib/auth/requireAdmin";
 import type { PrioridadeTarefa, StatusTarefa } from "@/lib/types/producao";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -18,7 +18,7 @@ const TAMANHO_MAX_BYTES = 50 * 1024 * 1024; // 50MB — arquivos de produção (
 // ----------------------------------------------------------------------------
 export async function criarFuncionario(nome: string): Promise<ActionResultId> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     if (!nome.trim()) return { ok: false, error: "Informe o nome do funcionário." };
     const { data, error } = await supabase.from("prod_funcionarios").insert({ nome: nome.trim() }).select("id").single();
     if (error) return { ok: false, error: error.message };
@@ -31,7 +31,7 @@ export async function criarFuncionario(nome: string): Promise<ActionResultId> {
 
 export async function removerFuncionario(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     const { error } = await supabase.from("prod_funcionarios").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -43,7 +43,7 @@ export async function removerFuncionario(id: string): Promise<ActionResult> {
 
 export async function criarTipoServico(nome: string): Promise<ActionResultId> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     if (!nome.trim()) return { ok: false, error: "Informe o nome do tipo de serviço." };
     const { data, error } = await supabase.from("prod_tipos_servico").insert({ nome: nome.trim() }).select("id").single();
     if (error) return { ok: false, error: error.message };
@@ -56,7 +56,7 @@ export async function criarTipoServico(nome: string): Promise<ActionResultId> {
 
 export async function removerTipoServico(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     const { error } = await supabase.from("prod_tipos_servico").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -82,7 +82,7 @@ export interface TarefaInput {
 
 export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     if (!input.titulo.trim()) return { ok: false, error: "Informe o título da tarefa." };
 
     const { data, error } = await supabase
@@ -110,7 +110,7 @@ export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
 
 export async function atualizarTarefa(id: string, input: TarefaInput): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     if (!input.titulo.trim()) return { ok: false, error: "Informe o título da tarefa." };
 
     const { error } = await supabase
@@ -138,7 +138,7 @@ export async function atualizarTarefa(id: string, input: TarefaInput): Promise<A
 /** Move o card entre colunas — usado pelo drag-and-drop do Kanban e pelo seletor de status no detalhe. */
 export async function moverStatusTarefa(id: string, status: StatusTarefa): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     const { error } = await supabase.from("prod_tarefas").update({ status }).eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -150,7 +150,7 @@ export async function moverStatusTarefa(id: string, status: StatusTarefa): Promi
 
 export async function removerTarefa(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     const { error } = await supabase.from("prod_tarefas").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -165,7 +165,7 @@ export async function removerTarefa(id: string): Promise<ActionResult> {
 // ----------------------------------------------------------------------------
 export async function criarSubtarefa(tarefaId: string, titulo: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     if (!titulo.trim()) return { ok: false, error: "Informe o título da subtarefa." };
     const { error } = await supabase.from("prod_subtarefas").insert({ tarefa_id: tarefaId, titulo: titulo.trim() });
     if (error) return { ok: false, error: error.message };
@@ -178,7 +178,7 @@ export async function criarSubtarefa(tarefaId: string, titulo: string): Promise<
 
 export async function toggleSubtarefa(id: string, concluida: boolean): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     const { error } = await supabase.from("prod_subtarefas").update({ concluida }).eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -190,7 +190,7 @@ export async function toggleSubtarefa(id: string, concluida: boolean): Promise<A
 
 export async function removerSubtarefa(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     const { error } = await supabase.from("prod_subtarefas").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -205,7 +205,7 @@ export async function removerSubtarefa(id: string): Promise<ActionResult> {
 // ----------------------------------------------------------------------------
 export async function criarEntrega(tarefaId: string, nome: string): Promise<ActionResultId> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     if (!nome.trim()) return { ok: false, error: "Informe o nome da entrega." };
     const { data, error } = await supabase
       .from("prod_entregas")
@@ -222,7 +222,7 @@ export async function criarEntrega(tarefaId: string, nome: string): Promise<Acti
 
 export async function removerEntrega(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     // Apaga só o metadado (a linha e as versões, em cascata). Os arquivos em
     // si ficam no bucket — mesma decisão já tomada em `removerBrandingAsset`
     // (limpeza do Storage fica manual, pelo painel do Supabase, se precisar).
@@ -235,7 +235,7 @@ export async function removerEntrega(id: string): Promise<ActionResult> {
   }
 }
 
-async function proximaVersaoDe(supabase: Awaited<ReturnType<typeof requireAdmin>>["supabase"], entregaId: string): Promise<number> {
+async function proximaVersaoDe(supabase: Awaited<ReturnType<typeof requireModulo>>["supabase"], entregaId: string): Promise<number> {
   const { data } = await supabase
     .from("prod_entrega_versoes")
     .select("versao")
@@ -248,7 +248,7 @@ async function proximaVersaoDe(supabase: Awaited<ReturnType<typeof requireAdmin>
 /** Envia uma NOVA VERSÃO (arquivo) pra uma entrega — nunca sobrescreve, sempre soma +1. Coloca a tarefa em "Preview Cliente". */
 export async function enviarVersaoArquivo(tarefaId: string, entregaId: string, formData: FormData): Promise<UploadResult> {
   try {
-    const { supabase, user } = await requireAdmin();
+    const { supabase, user } = await requireModulo("producao");
     const file = formData.get("file");
 
     if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Selecione um arquivo." };
@@ -294,7 +294,7 @@ export async function enviarVersaoLink(
   input: { url: string; rotulo: string }
 ): Promise<UploadResult> {
   try {
-    const { supabase, user } = await requireAdmin();
+    const { supabase, user } = await requireModulo("producao");
     if (!input.url.trim()) return { ok: false, error: "Informe o link." };
     try {
       new URL(input.url.trim());
@@ -329,7 +329,7 @@ export async function enviarVersaoLink(
 /** Aprovar — fecha a revisão dessa versão e marca a tarefa inteira como Concluída. */
 export async function aprovarVersao(tarefaId: string, versaoId: string): Promise<ActionResult> {
   try {
-    const { supabase, user } = await requireAdmin();
+    const { supabase, user } = await requireModulo("producao");
     const { error: erroVersao } = await supabase
       .from("prod_entrega_versoes")
       .update({ status_aprovacao: "aprovado", aprovado_por: user.id, aprovado_em: new Date().toISOString() })
@@ -349,7 +349,7 @@ export async function aprovarVersao(tarefaId: string, versaoId: string): Promise
 /** Solicitar Alteração — registra o feedback na versão e devolve a tarefa pra produção; o próximo envio já nasce V+1. */
 export async function solicitarAlteracaoVersao(tarefaId: string, versaoId: string, observacao: string): Promise<ActionResult> {
   try {
-    const { supabase, user } = await requireAdmin();
+    const { supabase, user } = await requireModulo("producao");
     if (!observacao.trim()) return { ok: false, error: "Descreva o que precisa mudar." };
 
     const { error: erroVersao } = await supabase
@@ -376,7 +376,7 @@ export async function solicitarAlteracaoVersao(tarefaId: string, versaoId: strin
 /** Link de download temporário (1h) — o bucket `producao` é privado, nunca tem URL pública fixa. */
 export async function getUrlDownload(storagePath: string): Promise<SignedUrlResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase } = await requireModulo("producao");
     const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, 60 * 60);
     if (error || !data) return { ok: false, error: error?.message ?? "Não foi possível gerar o link de download." };
     return { ok: true, url: data.signedUrl };
