@@ -490,3 +490,34 @@ export function IconBuilding(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícones do módulo Info-Produtos (dentro de Tráfego & Metas). */
+
+export function IconFilm(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="3.5" y="4" width="17" height="16" rx="1.5" />
+      <path d="M8 4v16M16 4v16M3.5 9h4.5M16 9h4.5M3.5 15h4.5M16 15h4.5" />
+    </svg>
+  );
+}
+
+export function IconLock(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="5" y="10.5" width="14" height="9.5" rx="1.8" />
+      <path d="M7.5 10.5V7.5a4.5 4.5 0 0 1 9 0v3" />
+      <circle cx="12" cy="15" r="1.3" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconPercent(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M5 19L19 5" />
+      <circle cx="7" cy="7" r="2.3" />
+      <circle cx="17" cy="17" r="2.3" />
+    </svg>
+  );
+}

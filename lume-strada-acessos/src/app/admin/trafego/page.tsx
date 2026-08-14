@@ -1,12 +1,9 @@
 import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import type { ProfileRow, MetaDiariaRow, TrafegoRegistroRow } from "@/lib/types/database";
+import type { AnuncioComRelacoes, AnuncioTrackingRow, FechamentoSemanalRow, MetaCalendarioRow, ProdutoRow } from "@/lib/types/infoprodutos";
 import { todayISO } from "@/lib/utils/format";
 import { calcularResumoTrafego, type StatusTrafego } from "@/lib/utils/trafego";
-import { DateNav } from "@/components/admin/trafego/DateNav";
-import { MetaCard } from "@/components/admin/trafego/MetaCard";
-import { Card } from "@/components/ui/Card";
-import { StatTile } from "@/components/ui/StatTile";
-import { IconTrendingUp, IconCheckCircle, IconAlertTriangle, IconPauseCircle } from "@/components/ui/icons";
+import { TrafegoWorkspace } from "@/components/admin/trafego/TrafegoWorkspace";
 
 export const dynamic = "force-dynamic";
 
@@ -17,20 +14,23 @@ interface TrafegoPageProps {
 }
 
 const DATA_ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+const BUCKET_INFOPRODUTOS = "infoprodutos";
 
 /**
- * Painel de Tráfego & Metas Diárias — visão unificada
- * [Cliente] -> [Meta do Dia] -> [Status Atual do Tráfego], um card por
- * cliente. Meta e registros do dia SEMPRE vêm relacionados (nunca em silos
- * separados — ver supabase/schema.sql seção 5): busca-se todos os clientes,
- * depois as metas_diarias daquele dia, depois os trafego_registros presos a
- * essas metas, e tudo é agrupado em memória por cliente para o MetaCard.
+ * Painel de Tráfego & Metas — duas abas dentro do mesmo módulo/permissão
+ * (`requireModulo("trafego")`): "Clientes" (fluxo já existente, inalterado
+ * — [Cliente] -> [Meta do Dia] -> [Status do Tráfego]) e "Info-Produtos"
+ * (novo — tracking de anúncios dos próprios infoprodutos da agência, com
+ * calendário de metas de LUCRO LÍQUIDO e fechamento semanal com reembolsos).
  */
 export default async function TrafegoPage({ searchParams }: TrafegoPageProps) {
   const data = searchParams.data && DATA_ISO_RE.test(searchParams.data) ? searchParams.data : todayISO();
 
   const { supabase } = await requireModuloOuRedirect("trafego");
 
+  // ---------------------------------------------------------------------
+  // Aba Clientes — mesma busca de sempre, sem nenhuma mudança de lógica.
+  // ---------------------------------------------------------------------
   const { data: clientes } = await supabase
     .from("profiles")
     .select("id, full_name, email")
@@ -70,8 +70,6 @@ export default async function TrafegoPage({ searchParams }: TrafegoPageProps) {
     registrosPorMeta.set(r.meta_id, lista);
   });
 
-  // KPIs do topo — mesmo cálculo de status usado em cada MetaCard, só
-  // agregado por cliente pra dar a visão geral do dia de cara.
   const contagemStatus: Record<StatusTrafego, number> = { sem_meta: 0, abaixo_da_meta: 0, no_caminho: 0, meta_batida: 0 };
   (clientes ?? []).forEach((cliente) => {
     const meta = metaPorCliente.get(cliente.id) ?? null;
@@ -80,36 +78,39 @@ export default async function TrafegoPage({ searchParams }: TrafegoPageProps) {
     contagemStatus[resumo.status]++;
   });
 
+  // ---------------------------------------------------------------------
+  // Aba Info-Produtos — escala de ferramenta interna (poucas dezenas/
+  // centenas de linhas), então busca tudo de uma vez e agrupa em memória no
+  // client, mesmo padrão já usado em Produção/Comercial.
+  // ---------------------------------------------------------------------
+  const [produtosRes, anunciosRes, metasCalendarioRes, fechamentosRes] = await Promise.all([
+    supabase.from("produtos").select("*").order("nome").overrideTypes<ProdutoRow[], { merge: false }>(),
+    supabase.from("anuncios_tracking").select("*").order("data", { ascending: false }).overrideTypes<AnuncioTrackingRow[], { merge: false }>(),
+    supabase.from("metas_calendario").select("*").overrideTypes<MetaCalendarioRow[], { merge: false }>(),
+    supabase.from("fechamentos_semanais").select("*").overrideTypes<FechamentoSemanalRow[], { merge: false }>(),
+  ]);
+
+  const produtos = produtosRes.data ?? [];
+  const produtosPorId = new Map(produtos.map((p) => [p.id, p]));
+
+  const anuncios: AnuncioComRelacoes[] = (anunciosRes.data ?? []).map((a) => ({
+    ...a,
+    criativo_url: a.criativo_path ? supabase.storage.from(BUCKET_INFOPRODUTOS).getPublicUrl(a.criativo_path).data.publicUrl : null,
+    produto_principal_nome: a.produto_principal_id ? produtosPorId.get(a.produto_principal_id)?.nome ?? null : null,
+    order_bump_nome: a.order_bump_id ? produtosPorId.get(a.order_bump_id)?.nome ?? null : null,
+  }));
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-semibold tracking-tight">Tráfego & Metas Diárias</h1>
-          <p className="mt-0.5 text-sm text-ink-muted">
-            Cada card liga o cliente à Meta do Dia e ao status atual do tráfego lançado.
-          </p>
-        </div>
-        <DateNav data={data} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={IconTrendingUp} label="No Caminho" value={contagemStatus.no_caminho} tone="good" hint="≥60% da meta do dia" />
-        <StatTile icon={IconCheckCircle} label="Meta Batida" value={contagemStatus.meta_batida} tone="good" hint="100% ou mais investido" />
-        <StatTile icon={IconAlertTriangle} label="Abaixo da Meta" value={contagemStatus.abaixo_da_meta} tone="warning" hint="Precisa de atenção" />
-        <StatTile icon={IconPauseCircle} label="Sem Meta Definida" value={contagemStatus.sem_meta} tone="neutral" hint="Nenhuma meta lançada hoje" />
-      </div>
-
-      {!clientes?.length ? (
-        <Card className="py-14 text-center text-sm text-ink-muted">Nenhum cliente cadastrado ainda.</Card>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {clientes.map((cliente) => {
-            const meta = metaPorCliente.get(cliente.id) ?? null;
-            const registrosDoCard = meta ? registrosPorMeta.get(meta.id) ?? [] : [];
-            return <MetaCard key={cliente.id} cliente={cliente} data={data} meta={meta} registros={registrosDoCard} />;
-          })}
-        </div>
-      )}
-    </div>
+    <TrafegoWorkspace
+      data={data}
+      clientes={clientes ?? []}
+      metaPorCliente={Object.fromEntries(metaPorCliente)}
+      registrosPorMeta={Object.fromEntries(registrosPorMeta)}
+      contagemStatus={contagemStatus}
+      produtos={produtos}
+      anuncios={anuncios}
+      metasCalendario={metasCalendarioRes.data ?? []}
+      fechamentos={fechamentosRes.data ?? []}
+    />
   );
 }
