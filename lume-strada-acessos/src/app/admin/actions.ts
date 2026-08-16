@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin, requireModulo } from "@/lib/auth/requireAdmin";
-import type { PermissoesFuncionario } from "@/lib/types/database";
+import type { PermissoesFuncionario, PreferenciasDashboard } from "@/lib/types/database";
 import type { ClienteAtividadeRow, TipoAtividadeCliente } from "@/lib/types/cadastros";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -271,6 +271,19 @@ export async function atualizarPermissoes(profileId: string, permissoes: Permiss
   try {
     const { supabase } = await requireAdmin();
     const { error } = await supabase.from("profiles").update({ permissoes }).eq("id", profileId);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/** Edita quais cards do Dashboard aparecem pra um funcionário — mesmo padrão de `atualizarPermissoes`, coluna separada (`dashboard_config`, não é RBAC — ver `DashboardCardChave`). */
+export async function atualizarDashboardConfig(profileId: string, dashboardConfig: PreferenciasDashboard): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireAdmin();
+    const { error } = await supabase.from("profiles").update({ dashboard_config: dashboardConfig }).eq("id", profileId);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
     return { ok: true };

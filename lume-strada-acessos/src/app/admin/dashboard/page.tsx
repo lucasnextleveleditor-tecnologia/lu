@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
-import type { ProfileRow } from "@/lib/types/database";
+import type { DashboardCardChave, ProfileRow } from "@/lib/types/database";
 import type { TarefaRow } from "@/lib/types/producao";
 import type { LeadRow } from "@/lib/types/comercial";
 import type { StatusSessaoWhatsapp } from "@/lib/types/whatsapp";
@@ -40,6 +40,17 @@ export default async function DashboardPage() {
   const podeVerInventario = perfil?.role === "admin" || perfil?.permissoes?.inventario === true;
   const podeVerTrafego = perfil?.role === "admin" || perfil?.permissoes?.trafego === true;
   const podeVerWhatsapp = perfil?.role === "admin" || perfil?.permissoes?.whatsapp === true;
+
+  // Além do módulo (segurança), cada funcionário pode ter cards individuais
+  // escondidos por preferência do admin (`dashboard_config` — NUNCA é
+  // segurança, só "o que aparece pra essa pessoa" — ver comentário em
+  // `DashboardCardChave`). Admin sempre vê todos os cards que o módulo
+  // permitir, independente de qualquer configuração salva.
+  const dashboardConfig = perfil?.dashboard_config ?? {};
+  function cardVisivel(chave: DashboardCardChave): boolean {
+    if (perfil?.role === "admin") return true;
+    return dashboardConfig[chave] !== false;
+  }
 
   const hoje = hojeISO();
   const { inicio: inicioMes, fim: fimMes } = limitesDoMes(new Date());
@@ -197,20 +208,20 @@ export default async function DashboardPage() {
 
   return (
     <VisaoGeral
-      captacoesHoje={captacoesHoje.length}
-      entregasHoje={entregasHoje.length}
-      tarefasAtrasadas={tarefasAtrasadas}
-      entregasAguardandoAprovacao={entregasAguardandoAprovacao}
-      leadsEmAberto={leadsEmAberto}
-      followUpsAtrasados={followUpsAtrasados}
-      valorPropostasAbertas={valorPropostasAbertas}
-      saldoConsolidado={saldoConsolidado}
-      contasVencidas={contasVencidas}
-      financeiroDoMes={financeiroDoMes}
-      resumoInventario={resumoInventario}
-      resumoTrafegoHoje={resumoTrafegoHoje}
-      whatsapp={whatsapp}
-      agendaHoje={{ captacoes: captacoesHoje, entregas: entregasHoje, followUps: followUpsHoje }}
+      captacoesHoje={cardVisivel("captacoesHoje") ? captacoesHoje.length : null}
+      entregasHoje={cardVisivel("entregasHoje") ? entregasHoje.length : null}
+      tarefasAtrasadas={cardVisivel("tarefasAtrasadas") ? tarefasAtrasadas : null}
+      entregasAguardandoAprovacao={cardVisivel("entregasAguardandoAprovacao") ? entregasAguardandoAprovacao : null}
+      leadsEmAberto={cardVisivel("leadsEmAberto") ? leadsEmAberto : null}
+      followUpsAtrasados={cardVisivel("followUpsAtrasados") ? followUpsAtrasados : null}
+      valorPropostasAbertas={cardVisivel("valorPropostasAbertas") ? valorPropostasAbertas : null}
+      saldoConsolidado={cardVisivel("saldoConsolidado") ? saldoConsolidado : null}
+      contasVencidas={cardVisivel("contasVencidas") ? contasVencidas : null}
+      financeiroDoMes={cardVisivel("financeiroDoMes") ? financeiroDoMes : null}
+      resumoInventario={cardVisivel("resumoInventario") ? resumoInventario : null}
+      resumoTrafegoHoje={cardVisivel("resumoTrafegoHoje") ? resumoTrafegoHoje : null}
+      whatsapp={cardVisivel("whatsapp") ? whatsapp : null}
+      agendaHoje={cardVisivel("agendaDoDia") ? { captacoes: captacoesHoje, entregas: entregasHoje, followUps: followUpsHoje } : null}
     />
   );
 }

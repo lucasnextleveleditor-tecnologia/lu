@@ -51,7 +51,6 @@ export async function salvarMeta(
 
     if (error) return { ok: false, error: error.message };
     revalidatePath("/admin/trafego");
-    revalidatePath("/dashboard");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -78,7 +77,6 @@ export async function adicionarRegistro(
 
     if (error) return { ok: false, error: error.message };
     revalidatePath("/admin/trafego");
-    revalidatePath("/dashboard");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -92,7 +90,6 @@ export async function removerRegistro(id: string): Promise<ActionResult> {
 
     if (error) return { ok: false, error: error.message };
     revalidatePath("/admin/trafego");
-    revalidatePath("/dashboard");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

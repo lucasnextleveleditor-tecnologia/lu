@@ -23,6 +23,36 @@ export type PapelUsuario = "admin" | "funcionario" | "cliente";
 /** Chaves possíveis dentro de `permissoes` — mesma lista de `ModuloChave` em `lib/auth/requireAdmin.ts`, duplicada aqui só como tipo de dado (evita import circular). */
 export type PermissoesFuncionario = Partial<Record<"clientes" | "financeiro" | "producao" | "comercial" | "trafego" | "inventario" | "whatsapp", boolean>>;
 
+/**
+ * Chave de cada card/seção do Dashboard administrativo (`VisaoGeral.tsx`) —
+ * mesma lista usada nos toggles do modal de Permissões (ver `CARDS_DASHBOARD`
+ * em `lib/utils/cadastros.ts`). Ao contrário de `PermissoesFuncionario`
+ * (onde chave ausente = SEM acesso, por segurança), aqui é o oposto: chave
+ * ausente = card VISÍVEL. Essa configuração nunca é a barreira de segurança
+ * de nada (o dado sensível já é barrado por módulo antes de chegar aqui,
+ * ver `podeVerFinanceiro` etc. em `src/app/admin/dashboard/page.tsx`) — é
+ * só "o que esse funcionário quer/precisa ver no dia a dia dele", então o
+ * padrão seguro de sempre (deny-by-default) viraria uma dashboard vazia pra
+ * todo mundo que já tinha acesso antes dessa configuração existir.
+ */
+export type DashboardCardChave =
+  | "captacoesHoje"
+  | "entregasHoje"
+  | "tarefasAtrasadas"
+  | "entregasAguardandoAprovacao"
+  | "leadsEmAberto"
+  | "followUpsAtrasados"
+  | "valorPropostasAbertas"
+  | "saldoConsolidado"
+  | "contasVencidas"
+  | "financeiroDoMes"
+  | "resumoInventario"
+  | "resumoTrafegoHoje"
+  | "whatsapp"
+  | "agendaDoDia";
+
+export type PreferenciasDashboard = Partial<Record<DashboardCardChave, boolean>>;
+
 export interface ProfileRow {
   id: string; // uuid — mesmo id de auth.users
   email: string;
@@ -34,6 +64,10 @@ export interface ProfileRow {
   // total (bypass), cliente nunca acessa /admin. Chave ausente ou false =
   // sem acesso àquele módulo. Ver `lib/auth/requireAdmin.ts` (`requireModulo`).
   permissoes: PermissoesFuncionario;
+  // Quais cards do Dashboard aparecem pra esse funcionário — ver
+  // `DashboardCardChave` acima. Também só é lida/usada quando
+  // role = 'funcionario' (admin sempre vê tudo).
+  dashboard_config: PreferenciasDashboard;
   created_at: string;
   updated_at: string;
 }

@@ -22,32 +22,36 @@ import {
 } from "@/components/ui/icons";
 
 interface VisaoGeralProps {
-  captacoesHoje: number;
-  entregasHoje: number;
-  tarefasAtrasadas: number;
-  /** Versões de entrega com `status_aprovacao = 'pendente'` — mesmo espírito operacional de "tarefas atrasadas", não é dado sensível, sempre visível. */
-  entregasAguardandoAprovacao: number;
-  leadsEmAberto: number;
-  followUpsAtrasados: number;
+  // Todo card aqui é `| null` por DOIS motivos possíveis, nunca misturados
+  // na leitura: (1) módulo sem permissão pro usuário logado — segurança,
+  // dado sensível nem chega a ser calculado (ver `src/app/admin/dashboard/page.tsx`);
+  // ou (2) card escondido de propósito pra ESSE funcionário via
+  // `dashboard_config` — preferência do admin, não segurança. Os dois casos
+  // resultam no mesmo `null` aqui porque o componente não precisa (nem
+  // deve) diferenciar o motivo — só decide "mostra ou não mostra".
+  captacoesHoje: number | null;
+  entregasHoje: number | null;
+  tarefasAtrasadas: number | null;
+  /** Versões de entrega com `status_aprovacao = 'pendente'`. */
+  entregasAguardandoAprovacao: number | null;
+  leadsEmAberto: number | null;
+  followUpsAtrasados: number | null;
   /** Soma de `valor_estimado` dos leads ainda em aberto (não fechado/perdido). */
-  valorPropostasAbertas: number;
-  /** `null` quando o usuário logado não tem permissão do módulo Financeiro — o card some, em vez de mostrar saldo pra quem não devia ver (ver `src/app/admin/dashboard/page.tsx`). */
+  valorPropostasAbertas: number | null;
   saldoConsolidado: number | null;
-  /** `null` sem permissão de Financeiro. Contas não pagas com vencimento já passado. */
+  /** Contas não pagas com vencimento já passado. */
   contasVencidas: number | null;
-  /** `null` sem permissão de Financeiro. */
   financeiroDoMes: { receitas: number; despesas: number } | null;
-  /** `null` sem permissão de Inventário. */
   resumoInventario: { manutencao: number; emprestados: number } | null;
-  /** `null` sem permissão de Tráfego. Soma de todos os clientes, hoje. */
+  /** Soma de todos os clientes, hoje. */
   resumoTrafegoHoje: { totalInvestido: number; totalLeads: number } | null;
-  /** `null` sem permissão de WhatsApp. `status: null` quando a sessão ainda não foi inicializada (SQL não rodado). */
+  /** `status: null` quando a sessão ainda não foi inicializada (SQL não rodado) — diferente do card inteiro vir `null` (sem permissão/escondido). */
   whatsapp: { status: StatusSessaoWhatsapp | null; conversasHoje: number } | null;
   agendaHoje: {
     captacoes: TarefaAgendaItem[];
     entregas: TarefaAgendaItem[];
     followUps: LeadAgendaItem[];
-  };
+  } | null;
 }
 
 export function VisaoGeral({
@@ -66,40 +70,82 @@ export function VisaoGeral({
   whatsapp,
   agendaHoje,
 }: VisaoGeralProps) {
+  const mostrarAgenda = agendaHoje !== null;
+  const mostrarFinanceiroDoMes = financeiroDoMes !== null;
+
+  const nenhumCardVisivel = [
+    captacoesHoje,
+    entregasHoje,
+    tarefasAtrasadas,
+    entregasAguardandoAprovacao,
+    leadsEmAberto,
+    followUpsAtrasados,
+    valorPropostasAbertas,
+    saldoConsolidado,
+    contasVencidas,
+    financeiroDoMes,
+    resumoInventario,
+    resumoTrafegoHoje,
+    whatsapp,
+    agendaHoje,
+  ].every((valor) => valor === null);
+
+  if (nenhumCardVisivel) {
+    return (
+      <div className="rounded-2xl border border-dashed border-base-700 p-10 text-center text-sm text-ink-muted">
+        Nenhum card liberado pro seu usuário ainda — fale com o administrador pra ajustar em Cadastros → Equipe.
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={IconCamera} label="Captações Hoje" value={captacoesHoje} hint="Gravações agendadas pra hoje" />
-        <StatTile icon={IconExternalLink} label="Entregas Hoje" value={entregasHoje} hint="Prazos de entrega vencendo hoje" />
-        <StatTile
-          icon={IconAlertTriangle}
-          label="Tarefas Atrasadas"
-          value={tarefasAtrasadas}
-          tone={tarefasAtrasadas > 0 ? "critical" : "neutral"}
-          hint="Prazo vencido, ainda não concluídas"
-        />
-        <StatTile
-          icon={IconCheckCircle}
-          label="Aguardando Aprovação"
-          value={entregasAguardandoAprovacao}
-          tone={entregasAguardandoAprovacao > 0 ? "warning" : "neutral"}
-          hint="Versões de entrega esperando o cliente"
-        />
+        {captacoesHoje !== null && (
+          <StatTile icon={IconCamera} label="Captações Hoje" value={captacoesHoje} hint="Gravações agendadas pra hoje" />
+        )}
+        {entregasHoje !== null && (
+          <StatTile icon={IconExternalLink} label="Entregas Hoje" value={entregasHoje} hint="Prazos de entrega vencendo hoje" />
+        )}
+        {tarefasAtrasadas !== null && (
+          <StatTile
+            icon={IconAlertTriangle}
+            label="Tarefas Atrasadas"
+            value={tarefasAtrasadas}
+            tone={tarefasAtrasadas > 0 ? "critical" : "neutral"}
+            hint="Prazo vencido, ainda não concluídas"
+          />
+        )}
+        {entregasAguardandoAprovacao !== null && (
+          <StatTile
+            icon={IconCheckCircle}
+            label="Aguardando Aprovação"
+            value={entregasAguardandoAprovacao}
+            tone={entregasAguardandoAprovacao > 0 ? "warning" : "neutral"}
+            hint="Versões de entrega esperando o cliente"
+          />
+        )}
 
-        <StatTile icon={IconTarget} label="Leads em Aberto" value={leadsEmAberto} hint="Ainda no funil comercial" />
-        <StatTile
-          icon={IconActivity}
-          label="Follow-ups Atrasados"
-          value={followUpsAtrasados}
-          tone={followUpsAtrasados > 0 ? "warning" : "neutral"}
-          hint="Próximo contato já venceu"
-        />
-        <StatTile
-          icon={IconDollarSign}
-          label="Propostas Abertas"
-          value={fmtBRL(valorPropostasAbertas)}
-          hint="Valor estimado, leads em aberto"
-        />
+        {leadsEmAberto !== null && (
+          <StatTile icon={IconTarget} label="Leads em Aberto" value={leadsEmAberto} hint="Ainda no funil comercial" />
+        )}
+        {followUpsAtrasados !== null && (
+          <StatTile
+            icon={IconActivity}
+            label="Follow-ups Atrasados"
+            value={followUpsAtrasados}
+            tone={followUpsAtrasados > 0 ? "warning" : "neutral"}
+            hint="Próximo contato já venceu"
+          />
+        )}
+        {valorPropostasAbertas !== null && (
+          <StatTile
+            icon={IconDollarSign}
+            label="Propostas Abertas"
+            value={fmtBRL(valorPropostasAbertas)}
+            hint="Valor estimado, leads em aberto"
+          />
+        )}
         {saldoConsolidado !== null && (
           <StatTile icon={IconWallet} label="Saldo Consolidado" value={fmtBRL(saldoConsolidado)} hint="Soma das contas profissionais" />
         )}
@@ -141,7 +187,7 @@ export function VisaoGeral({
         )}
       </div>
 
-      {financeiroDoMes !== null ? (
+      {mostrarAgenda && mostrarFinanceiroDoMes && (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <AgendaDoDia
@@ -154,7 +200,8 @@ export function VisaoGeral({
           </div>
           <FinanceiroDoMesCard receitas={financeiroDoMes.receitas} despesas={financeiroDoMes.despesas} />
         </div>
-      ) : (
+      )}
+      {mostrarAgenda && !mostrarFinanceiroDoMes && (
         <AgendaDoDia
           data={hojeISO()}
           titulo="Agenda de Hoje"
@@ -162,6 +209,11 @@ export function VisaoGeral({
           entregas={agendaHoje.entregas}
           followUps={agendaHoje.followUps}
         />
+      )}
+      {!mostrarAgenda && mostrarFinanceiroDoMes && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <FinanceiroDoMesCard receitas={financeiroDoMes.receitas} despesas={financeiroDoMes.despesas} />
+        </div>
       )}
     </div>
   );

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import type { EquipeMembroRow } from "@/lib/types/cadastros";
-import type { ProfileRow, PermissoesFuncionario } from "@/lib/types/database";
-import { gerarAcessoFuncionario, atualizarPermissoes } from "@/app/admin/actions";
-import { MODULOS_PERMISSAO } from "@/lib/utils/cadastros";
+import type { ProfileRow, PermissoesFuncionario, PreferenciasDashboard, DashboardCardChave } from "@/lib/types/database";
+import { gerarAcessoFuncionario, atualizarPermissoes, atualizarDashboardConfig } from "@/app/admin/actions";
+import { MODULOS_PERMISSAO, CARDS_DASHBOARD } from "@/lib/utils/cadastros";
 import { AcessoStatusControls } from "@/components/admin/cadastros/AcessoStatusControls";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -28,6 +28,7 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
   const [email, setEmail] = useState(membro.email ?? "");
   const [expiresAt, setExpiresAt] = useState("");
   const [permissoes, setPermissoes] = useState<PermissoesFuncionario>(profile?.permissoes ?? {});
+  const [dashboardConfig, setDashboardConfig] = useState<PreferenciasDashboard>(profile?.dashboard_config ?? {});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
@@ -36,6 +37,20 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
 
   function alternarPermissao(chave: keyof PermissoesFuncionario) {
     setPermissoes((atual) => ({ ...atual, [chave]: !atual[chave] }));
+  }
+
+  // Card ausente do objeto = visível (padrão oposto de `permissoes` — ver
+  // comentário em `DashboardCardChave`). O switch some quando explicitamente
+  // `false`; o primeiro clique grava `false` (some), o segundo apaga a
+  // chave de novo (volta a herdar "visível").
+  function alternarCardDashboard(chave: DashboardCardChave) {
+    setDashboardConfig((atual) => {
+      const visivelAgora = atual[chave] !== false;
+      const proximo = { ...atual };
+      if (visivelAgora) proximo[chave] = false;
+      else delete proximo[chave];
+      return proximo;
+    });
   }
 
   async function handleGerarAcesso() {
@@ -59,12 +74,21 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
     setLoading(true);
     setError(null);
     setSalvo(false);
-    const result = await atualizarPermissoes(profile.id, permissoes);
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.error);
+
+    const resultPermissoes = await atualizarPermissoes(profile.id, permissoes);
+    if (!resultPermissoes.ok) {
+      setLoading(false);
+      setError(resultPermissoes.error);
       return;
     }
+
+    const resultDashboard = await atualizarDashboardConfig(profile.id, dashboardConfig);
+    setLoading(false);
+    if (!resultDashboard.ok) {
+      setError(resultDashboard.error);
+      return;
+    }
+
     setSalvo(true);
   }
 
@@ -121,8 +145,30 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
           </div>
         </div>
 
+        {jaTemAcesso && profile && (
+          <div className="mb-5">
+            <p className="mb-1 text-sm font-semibold text-ink-primary">Cards do Dashboard</p>
+            <p className="mb-3 text-xs text-ink-muted">
+              Escolha o que aparece na Visão Geral desse funcionário — os cards de módulo (Financeiro/Inventário/Tráfego/WhatsApp) só
+              aparecem se o módulo acima também estiver liberado.
+            </p>
+            <div className="grid grid-cols-1 gap-x-3 gap-y-1 rounded-xl border border-base-800 p-2 sm:grid-cols-2">
+              {CARDS_DASHBOARD.map((card) => (
+                <div key={card.chave} className="flex items-center justify-between gap-3 rounded-lg px-2.5 py-2">
+                  <p className="text-sm leading-tight text-ink-primary">{card.label}</p>
+                  <Switch
+                    checked={dashboardConfig[card.chave] !== false}
+                    onChange={() => alternarCardDashboard(card.chave)}
+                    label={card.label}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {error && <p className="mb-3 text-sm text-danger">{error}</p>}
-        {salvo && <p className="mb-3 text-sm text-ink-secondary">Permissões atualizadas.</p>}
+        {salvo && <p className="mb-3 text-sm text-ink-secondary">Alterações salvas.</p>}
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" onClick={onClose}>
@@ -130,7 +176,7 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
           </Button>
           {jaTemAcesso ? (
             <Button type="button" onClick={handleSalvarPermissoes} disabled={loading}>
-              {loading ? "Salvando..." : "Salvar Permissões"}
+              {loading ? "Salvando..." : "Salvar Alterações"}
             </Button>
           ) : (
             <Button type="button" onClick={handleGerarAcesso} disabled={loading}>

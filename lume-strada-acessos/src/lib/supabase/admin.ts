@@ -11,11 +11,17 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  * também rode no navegador — é a rede de segurança contra vazar a Service
  * Role Key no bundle do cliente.
  *
- * Único usado neste projeto para: convidar clientes por e-mail
- * (`auth.admin.inviteUserByEmail`). As demais ações administrativas
- * (editar data de expiração, suspender/reativar) usam o cliente comum de
- * `lib/supabase/server.ts` autenticado como o próprio admin logado — RLS
- * já garante que só um admin consegue alterar o perfil de terceiros.
+ * Usado neste projeto pra: (1) convidar clientes/funcionários por e-mail
+ * (`auth.admin.inviteUserByEmail`) e (2) o Dashboard do CLIENTE
+ * (`src/app/dashboard/actions.ts`) ler/aprovar entregas de Produção — a RLS
+ * dessas tabelas (`is_staff()`) bloqueia um cliente por completo, então a
+ * checagem de posse (`tarefa.cliente_id === user.id`) é feita na aplicação
+ * ANTES de qualquer leitura/escrita, nunca confiando em RLS pra isso (mesma
+ * filosofia de segurança documentada em `lib/auth/requireAdmin.ts`). As
+ * demais ações administrativas (editar data de expiração, suspender/
+ * reativar) usam o cliente comum de `lib/supabase/server.ts` autenticado
+ * como o próprio admin logado — RLS já garante que só um admin consegue
+ * alterar o perfil de terceiros.
  */
 export function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

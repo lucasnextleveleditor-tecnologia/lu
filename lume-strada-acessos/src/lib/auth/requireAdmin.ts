@@ -2,29 +2,30 @@ import "server-only";
 import { redirect } from "next/navigation";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import type { PapelUsuario, PermissoesFuncionario, ProfileRow } from "@/lib/types/database";
+import type { PapelUsuario, PermissoesFuncionario, PreferenciasDashboard, ProfileRow } from "@/lib/types/database";
 
 export interface PerfilComPermissoes {
   role: PapelUsuario;
   full_name: string | null;
   email: string;
   permissoes: PermissoesFuncionario;
+  dashboard_config: PreferenciasDashboard;
 }
 
 /**
- * Busca o profile já com `permissoes` — COM FALLBACK pra quando essa coluna
- * ainda não existe no banco (`supabase/cadastros.sql` não foi rodado, ou
- * rodou só até a metade). Sem esse fallback, um `select` pedindo uma coluna
- * que não existe falha por INTEIRO — `data` vem `null` mesmo o usuário
- * existindo — e isso expulsa TODO MUNDO de `/admin` (inclusive o admin,
- * porque o profile "parece" não existir). Com o fallback, quem ainda não
- * rodou a migração continua entrando normalmente — só sem RBAC por
- * funcionário até rodar o SQL.
+ * Busca o profile já com `permissoes`/`dashboard_config` — COM FALLBACK pra
+ * quando essas colunas ainda não existem no banco (`supabase/cadastros.sql`/
+ * `supabase/dashboard-config.sql` não foram rodados, ou rodaram só até a
+ * metade). Sem esse fallback, um `select` pedindo uma coluna que não existe
+ * falha por INTEIRO — `data` vem `null` mesmo o usuário existindo — e isso
+ * expulsa TODO MUNDO de `/admin` (inclusive o admin, porque o profile
+ * "parece" não existir). Com o fallback, quem ainda não rodou a migração
+ * continua entrando normalmente — só sem RBAC por funcionário até rodar o SQL.
  */
 export async function buscarPerfilComPermissoes(supabase: SupabaseClient, userId: string): Promise<PerfilComPermissoes | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("role, full_name, email, permissoes")
+    .select("role, full_name, email, permissoes, dashboard_config")
     .eq("id", userId)
     .single()
     .overrideTypes<PerfilComPermissoes, { merge: false }>();
@@ -33,7 +34,10 @@ export async function buscarPerfilComPermissoes(supabase: SupabaseClient, userId
 
   // Fallback: pede só as colunas que existem desde sempre — `permissoes`
   // vira `{}` (equivalente a "nenhuma permissão de funcionário liberada",
-  // o que é seguro: admin passa igual, funcionário só perde acesso extra).
+  // o que é seguro: admin passa igual, funcionário só perde acesso extra) e
+  // `dashboard_config` também vira `{}` (equivalente a "todos os cards
+  // visíveis" — ver comentário em `DashboardCardChave`, é o padrão oposto
+  // de propósito).
   const { data: basico } = await supabase
     .from("profiles")
     .select("role, full_name, email")
@@ -42,7 +46,7 @@ export async function buscarPerfilComPermissoes(supabase: SupabaseClient, userId
     .overrideTypes<Pick<ProfileRow, "role" | "full_name" | "email">, { merge: false }>();
 
   if (!basico) return null;
-  return { ...basico, permissoes: {} };
+  return { ...basico, permissoes: {}, dashboard_config: {} };
 }
 
 /**
