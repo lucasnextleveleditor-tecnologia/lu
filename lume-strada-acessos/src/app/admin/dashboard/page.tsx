@@ -3,59 +3,140 @@ import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
 import type { ProfileRow } from "@/lib/types/database";
 import type { TarefaRow } from "@/lib/types/producao";
 import type { LeadRow } from "@/lib/types/comercial";
+import type { StatusSessaoWhatsapp } from "@/lib/types/whatsapp";
 import type { TarefaAgendaItem, LeadAgendaItem } from "@/lib/types/dashboard";
 import { isTarefaAtrasada } from "@/lib/utils/producao";
 import { leadEstaAberto, isFollowUpAtrasado } from "@/lib/utils/comercial";
 import { hojeISO } from "@/lib/utils/dashboard";
+import { limitesDoMes } from "@/lib/utils/financeiro";
+import { somarRegistros } from "@/lib/utils/trafego";
 import { VisaoGeral } from "@/components/admin/dashboard/VisaoGeral";
 
 export const dynamic = "force-dynamic";
 
 type TarefaMin = Pick<TarefaRow, "id" | "titulo" | "cliente_id" | "status" | "prioridade" | "data_captacao" | "data_entrega">;
-type LeadMin = Pick<LeadRow, "id" | "nome" | "status" | "proximo_contato_em">;
+type LeadMin = Pick<LeadRow, "id" | "nome" | "status" | "proximo_contato_em" | "valor_estimado">;
 
 export default async function DashboardPage() {
   const supabase = await createClient();
 
   // Dashboard é o único módulo aberto a QUALQUER membro da equipe (admin ou
   // funcionário, mesmo sem nenhuma permissão extra — ver comentário em
-  // `src/middleware.ts`). O card de Saldo Consolidado, porém, é dado
-  // financeiro — antes desse fix, a query rodava incondicionalmente pra
-  // qualquer funcionário logado (a policy de RLS só checa "é staff?", não
-  // "tem o módulo Financeiro liberado?" — essa checagem fina é da aplicação,
-  // igual documentado em `requireModulo`), então um funcionário sem acesso
-  // ao módulo Financeiro via a lista de módulos ainda via o saldo total
-  // (inclusive de contas "pessoal") só de abrir o Dashboard.
+  // `src/middleware.ts`). Produção e Comercial seguem esse mesmo espírito:
+  // agenda/números operacionais básicos são visíveis a qualquer um da
+  // equipe, sem checagem fina de módulo (igual sempre foi).
+  //
+  // Financeiro, Inventário, Tráfego e WhatsApp são diferentes: carregam
+  // dado sensível (saldo, valor patrimonial, verba de anúncio, acesso a
+  // conversa) — cada card só aparece pra quem tem aquele módulo liberado
+  // (ou é admin), mesmo turnover a policy de RLS só checar "é da equipe?"
+  // (a checagem fina de módulo é sempre da aplicação, não do banco — ver
+  // `requireModulo`). Mesmo padrão já usado pro card de Saldo Consolidado.
   const {
     data: { user },
   } = await supabase.auth.getUser();
   const perfil = user ? await buscarPerfilComPermissoes(supabase, user.id) : null;
   const podeVerFinanceiro = perfil?.role === "admin" || perfil?.permissoes?.financeiro === true;
+  const podeVerInventario = perfil?.role === "admin" || perfil?.permissoes?.inventario === true;
+  const podeVerTrafego = perfil?.role === "admin" || perfil?.permissoes?.trafego === true;
+  const podeVerWhatsapp = perfil?.role === "admin" || perfil?.permissoes?.whatsapp === true;
 
-  const [tarefasRes, clientesRes, leadsRes, contasRes] = await Promise.all([
-    supabase
-      .from("prod_tarefas")
-      .select("id, titulo, cliente_id, status, prioridade, data_captacao, data_entrega")
-      .overrideTypes<TarefaMin[], { merge: false }>(),
-    supabase
-      .from("profiles")
-      .select("id, email, full_name")
-      .eq("role", "cliente")
-      .overrideTypes<Pick<ProfileRow, "id" | "email" | "full_name">[], { merge: false }>(),
-    supabase.from("crm_leads").select("id, nome, status, proximo_contato_em").overrideTypes<LeadMin[], { merge: false }>(),
-    podeVerFinanceiro
-      ? supabase
-          .from("fin_contas_saldo")
-          .select("saldo_atual")
-          .eq("contexto", "profissional") // saldo "pessoal" nunca entra no card da equipe, mesmo pra quem pode ver Financeiro
-          .overrideTypes<{ saldo_atual: number }[], { merge: false }>()
-      : Promise.resolve({ data: null as { saldo_atual: number }[] | null }),
-  ]);
+  const hoje = hojeISO();
+  const { inicio: inicioMes, fim: fimMes } = limitesDoMes(new Date());
+  const amanha = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  const [tarefasRes, clientesRes, leadsRes, versoesRes, contasRes, transacoesMesRes, contasVencidasRes, itensInventarioRes] =
+    await Promise.all([
+      supabase
+        .from("prod_tarefas")
+        .select("id, titulo, cliente_id, status, prioridade, data_captacao, data_entrega")
+        .overrideTypes<TarefaMin[], { merge: false }>(),
+      supabase
+        .from("profiles")
+        .select("id, email, full_name")
+        .eq("role", "cliente")
+        .overrideTypes<Pick<ProfileRow, "id" | "email" | "full_name">[], { merge: false }>(),
+      supabase.from("crm_leads").select("id, nome, status, proximo_contato_em, valor_estimado").overrideTypes<LeadMin[], { merge: false }>(),
+      // Entregas aguardando aprovação do cliente — mesmo espírito operacional
+      // de "tarefas atrasadas", não é dado sensível, então não é gated.
+      supabase.from("prod_entrega_versoes").select("id", { count: "exact", head: true }).eq("status_aprovacao", "pendente"),
+      podeVerFinanceiro
+        ? supabase
+            .from("fin_contas_saldo")
+            .select("saldo_atual")
+            .eq("contexto", "profissional") // saldo "pessoal" nunca entra no card da equipe, mesmo pra quem pode ver Financeiro
+            .overrideTypes<{ saldo_atual: number }[], { merge: false }>()
+        : Promise.resolve({ data: null as { saldo_atual: number }[] | null }),
+      podeVerFinanceiro
+        ? supabase
+            .from("fin_transacoes")
+            .select("tipo, valor")
+            .eq("contexto", "profissional")
+            .in("tipo", ["receita", "despesa"])
+            .gte("data_vencimento", inicioMes)
+            .lte("data_vencimento", fimMes)
+            .overrideTypes<{ tipo: "receita" | "despesa"; valor: number }[], { merge: false }>()
+        : Promise.resolve({ data: null as { tipo: "receita" | "despesa"; valor: number }[] | null }),
+      podeVerFinanceiro
+        ? supabase
+            .from("fin_transacoes")
+            .select("id", { count: "exact", head: true })
+            .eq("contexto", "profissional")
+            .eq("pago", false)
+            .lt("data_vencimento", hoje)
+        : Promise.resolve({ count: null as number | null }),
+      podeVerInventario
+        ? supabase.from("itens_inventario").select("status").overrideTypes<{ status: string }[], { merge: false }>()
+        : Promise.resolve({ data: null as { status: string }[] | null }),
+    ]);
 
   const tarefas = tarefasRes.data ?? [];
   const clientes = clientesRes.data ?? [];
   const leads = leadsRes.data ?? [];
   const contas = contasRes.data;
+
+  // Tráfego e WhatsApp dependem do resultado de queries anteriores (ids de
+  // cliente / metas do dia) — rodam depois, só quando o usuário tem o
+  // módulo liberado (evita query desnecessária pra quem nunca vai ver o card).
+  const clienteIds = clientes.map((c) => c.id);
+
+  const [metasHojeRes, sessaoRes] = await Promise.all([
+    podeVerTrafego && clienteIds.length > 0
+      ? supabase
+          .from("metas_diarias")
+          .select("id")
+          .eq("data", hoje)
+          .in("cliente_id", clienteIds)
+          .overrideTypes<{ id: string }[], { merge: false }>()
+      : Promise.resolve({ data: null as { id: string }[] | null }),
+    podeVerWhatsapp
+      ? supabase
+          .from("whatsapp_sessoes")
+          .select("status")
+          .eq("singleton", true)
+          .maybeSingle()
+          .overrideTypes<{ status: StatusSessaoWhatsapp } | null, { merge: false }>()
+      : Promise.resolve({ data: null as { status: StatusSessaoWhatsapp } | null }),
+  ]);
+
+  const metaIds = (metasHojeRes.data ?? []).map((m) => m.id);
+
+  const [registrosHojeRes, conversasHojeRes] = await Promise.all([
+    podeVerTrafego && metaIds.length > 0
+      ? supabase
+          .from("trafego_registros")
+          .select("valor_investido, leads_gerados")
+          .in("meta_id", metaIds)
+          .overrideTypes<{ valor_investido: number; leads_gerados: number }[], { merge: false }>()
+      : Promise.resolve({ data: null as { valor_investido: number; leads_gerados: number }[] | null }),
+    podeVerWhatsapp
+      ? supabase
+          .from("whatsapp_contatos")
+          .select("id", { count: "exact", head: true })
+          .gte("ultima_mensagem_em", `${hoje}T00:00:00`)
+          .lt("ultima_mensagem_em", `${amanha}T00:00:00`)
+      : Promise.resolve({ count: null as number | null }),
+  ]);
 
   const nomeCliente = new Map(clientes.map((c) => [c.id, c.full_name || c.email]));
 
@@ -75,8 +156,6 @@ export default async function DashboardPage() {
     proximo_contato_em: l.proximo_contato_em,
   }));
 
-  const hoje = hojeISO();
-
   const captacoesHoje = tarefasAgenda.filter((t) => t.data_captacao === hoje);
   const entregasHoje = tarefasAgenda.filter((t) => t.data_entrega === hoje);
   const followUpsHoje = leadsAgenda.filter((l) => l.proximo_contato_em === hoje && leadEstaAberto(l));
@@ -84,16 +163,53 @@ export default async function DashboardPage() {
   const tarefasAtrasadas = tarefas.filter(isTarefaAtrasada).length;
   const leadsEmAberto = leads.filter(leadEstaAberto).length;
   const followUpsAtrasados = leads.filter(isFollowUpAtrasado).length;
+  const valorPropostasAbertas = leads.filter(leadEstaAberto).reduce((soma, l) => soma + (l.valor_estimado ?? 0), 0);
+  const entregasAguardandoAprovacao = versoesRes.count ?? 0;
+
   const saldoConsolidado = contas ? contas.reduce((soma, c) => soma + (c.saldo_atual ?? 0), 0) : null;
+
+  const transacoesMes = transacoesMesRes.data;
+  const financeiroDoMes = transacoesMes
+    ? {
+        receitas: transacoesMes.filter((t) => t.tipo === "receita").reduce((soma, t) => soma + t.valor, 0),
+        despesas: transacoesMes.filter((t) => t.tipo === "despesa").reduce((soma, t) => soma + t.valor, 0),
+      }
+    : null;
+  const contasVencidas = podeVerFinanceiro ? (contasVencidasRes.count ?? 0) : null;
+
+  const itensInventario = itensInventarioRes.data;
+  const resumoInventario = itensInventario
+    ? {
+        manutencao: itensInventario.filter((i) => i.status === "manutencao").length,
+        emprestados: itensInventario.filter((i) => i.status === "emprestado").length,
+      }
+    : null;
+
+  const registrosTrafegoHoje = registrosHojeRes.data;
+  const resumoTrafegoHoje = podeVerTrafego ? somarRegistros(registrosTrafegoHoje ?? []) : null;
+
+  const whatsapp = podeVerWhatsapp
+    ? {
+        status: sessaoRes.data?.status ?? null,
+        conversasHoje: conversasHojeRes.count ?? 0,
+      }
+    : null;
 
   return (
     <VisaoGeral
       captacoesHoje={captacoesHoje.length}
       entregasHoje={entregasHoje.length}
       tarefasAtrasadas={tarefasAtrasadas}
+      entregasAguardandoAprovacao={entregasAguardandoAprovacao}
       leadsEmAberto={leadsEmAberto}
       followUpsAtrasados={followUpsAtrasados}
+      valorPropostasAbertas={valorPropostasAbertas}
       saldoConsolidado={saldoConsolidado}
+      contasVencidas={contasVencidas}
+      financeiroDoMes={financeiroDoMes}
+      resumoInventario={resumoInventario}
+      resumoTrafegoHoje={resumoTrafegoHoje}
+      whatsapp={whatsapp}
       agendaHoje={{ captacoes: captacoesHoje, entregas: entregasHoje, followUps: followUpsHoje }}
     />
   );
