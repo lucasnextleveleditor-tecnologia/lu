@@ -1,17 +1,33 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import type { AnotacaoRow } from "@/lib/types/comercial";
 import { criarAnotacao } from "@/app/admin/comercial/actions";
+import { CADENCIA_FOLLOWUP_DIAS, sugerirProximoContato } from "@/lib/utils/comercial";
 import { fmtDataHora } from "@/lib/utils/status";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 export function FollowUpLog({ leadId, anotacoes }: { leadId: string; anotacoes: AnotacaoRow[] }) {
   const [nota, setNota] = useState("");
-  const [proximoContato, setProximoContato] = useState("");
+  // Pré-preenchido com a sugestão da cadência (ver `sugerirProximoContato`)
+  // pra não depender de ninguém lembrar de calcular/digitar a data — mas
+  // continua um campo de data normal, editável/limpável como sempre foi.
+  const [proximoContato, setProximoContato] = useState(() => sugerirProximoContato(anotacoes.length));
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  // Recalcula a sugestão quando o histórico muda de verdade (depois de
+  // registrar uma anotação e a página revalidar) — nunca enquanto a pessoa
+  // ainda está digitando/editando o rascunho atual.
+  useEffect(() => {
+    setProximoContato(sugerirProximoContato(anotacoes.length));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anotacoes.length]);
+
+  const numeroContato = anotacoes.length + 1;
+  const indiceCadencia = Math.min(anotacoes.length, CADENCIA_FOLLOWUP_DIAS.length - 1);
+  const diasSugeridos = CADENCIA_FOLLOWUP_DIAS[indiceCadencia] ?? CADENCIA_FOLLOWUP_DIAS[CADENCIA_FOLLOWUP_DIAS.length - 1]!;
 
   function handleAdicionar(e: React.FormEvent) {
     e.preventDefault();
@@ -20,10 +36,7 @@ export function FollowUpLog({ leadId, anotacoes }: { leadId: string; anotacoes: 
     startTransition(async () => {
       const result = await criarAnotacao(leadId, nota, proximoContato || null);
       if (!result.ok) setError(result.error);
-      else {
-        setNota("");
-        setProximoContato("");
-      }
+      else setNota("");
     });
   }
 
@@ -41,7 +54,9 @@ export function FollowUpLog({ leadId, anotacoes }: { leadId: string; anotacoes: 
         />
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex-1">
-            <label className="mb-1 block text-[11px] text-ink-muted">Agendar próximo contato (opcional)</label>
+            <label className="mb-1 block text-[11px] text-ink-muted">
+              Próximo contato <span className="text-ink-muted/70">(sugestão: {numeroContato}º contato, +{diasSugeridos}d)</span>
+            </label>
             <Input type="date" value={proximoContato} onChange={(e) => setProximoContato(e.target.value)} className="text-xs" />
           </div>
           <Button type="submit" disabled={pending} className="shrink-0 self-end px-3 py-2 text-xs">
