@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { BrandingLogo } from "@/components/branding/BrandingLogo";
+import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
 import { LOGIN_BG_PRESETS } from "@/lib/branding/constants";
 import { cn } from "@/lib/utils/cn";
@@ -30,6 +31,23 @@ export default async function LoginPage() {
     >
       {/* Imagem de fundo customizada precisa de um véu escuro por cima pra caixa de login continuar legível — os padrões prontos já nascem escuros. */}
       {branding.login_bg_url && <div className="absolute inset-0 bg-base-950/70" />}
+
+      {branding.banner_ativo_login && (
+        <div className="absolute inset-x-0 top-0 z-10 p-4">
+          <div className="mx-auto max-w-xl">
+            <AnnouncementBanner
+              titulo={branding.banner_titulo}
+              descricao={branding.banner_descricao}
+              linkUrl={branding.banner_link_url}
+              linkLabel={branding.banner_link_label}
+              imgUrl={branding.banner_img_url}
+              tone={branding.banner_tone}
+              dispensavel={branding.banner_dispensavel}
+              chaveDispensa={`${branding.banner_titulo}|${branding.banner_descricao}|${branding.updated_at}`}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="relative w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">

@@ -30,6 +30,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const branding = await getBrandingConfig();
 
+  const banner =
+    branding.banner_ativo_admin && branding.banner_titulo.trim()
+      ? {
+          titulo: branding.banner_titulo,
+          descricao: branding.banner_descricao,
+          linkUrl: branding.banner_link_url,
+          linkLabel: branding.banner_link_label,
+          imgUrl: branding.banner_img_url,
+          tone: branding.banner_tone,
+          dispensavel: branding.banner_dispensavel,
+          chaveDispensa: `${branding.banner_titulo}|${branding.banner_descricao}|${branding.updated_at}`,
+        }
+      : null;
+
   return (
     <AdminShell
       logoUrl={branding.logo_dark_url ?? branding.logo_url}
@@ -38,6 +52,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       colapsadoPadrao={branding.sidebar_compacto_padrao}
       papel={profile.role}
       permissoes={profile.permissoes ?? {}}
+      banner={banner}
     >
       {children}
     </AdminShell>

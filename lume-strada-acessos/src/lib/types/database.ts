@@ -132,6 +132,9 @@ export type LoginBgPreset = "grain" | "projector" | "film-strip" | "none";
 export type LoginBoxPosition = "esquerda" | "direita" | "centro";
 export type ThemePreset = "cinematic_dark" | "minimalist_clean" | "midnight_blue";
 
+/** Tom do banner de destaque — mesmos 4 tons fixos do resto do app (`lib/utils/tone.ts`), nunca uma cor livre. */
+export type BannerTone = "neutral" | "good" | "warning" | "critical";
+
 /**
  * Linha SINGLETON (sempre uma só, id fixo — ver supabase/schema.sql seção
  * 7) com a identidade visual dinâmica do app: logos, favicon, cores, tela
@@ -153,6 +156,20 @@ export interface BrandingConfigRow {
   login_box_position: LoginBoxPosition;
   theme_preset: ThemePreset;
   sidebar_compacto_padrao: boolean;
+  // Banner de destaque — UM banner só (mesmo conteúdo), com 3 chaves
+  // independentes pra decidir ONDE ele aparece (ver supabase/banner.sql).
+  // "Ativo" em qualquer uma delas + título preenchido é o que decide se
+  // `AnnouncementBanner` renderiza alguma coisa (ver o componente).
+  banner_ativo_login: boolean;
+  banner_ativo_admin: boolean;
+  banner_ativo_cliente: boolean;
+  banner_titulo: string;
+  banner_descricao: string;
+  banner_link_url: string | null;
+  banner_link_label: string;
+  banner_img_url: string | null;
+  banner_tone: BannerTone;
+  banner_dispensavel: boolean;
   created_at: string;
   updated_at: string;
 }

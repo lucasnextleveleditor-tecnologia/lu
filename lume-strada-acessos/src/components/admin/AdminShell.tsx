@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import type { PapelUsuario, PermissoesFuncionario } from "@/lib/types/database";
 import { BrandingLogo } from "@/components/branding/BrandingLogo";
+import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
+import type { BannerConfig } from "@/components/branding/AnnouncementBanner";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import {
   IconUsers,
@@ -78,10 +80,12 @@ interface AdminShellProps {
   colapsadoPadrao: boolean;
   papel: PapelUsuario;
   permissoes: PermissoesFuncionario;
+  /** Já resolvido pelo `admin/layout.tsx` (`null` quando `banner_ativo_admin` está desligado ou o título está vazio) — aparece no topo de TODA página admin/funcionário, dashboards inclusos, porque este é o único wrapper compartilhado por todas elas. */
+  banner: BannerConfig | null;
   children: React.ReactNode;
 }
 
-export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permissoes, children }: AdminShellProps) {
+export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permissoes, banner, children }: AdminShellProps) {
   const pathname = usePathname();
   const [colapsado, setColapsado] = useState(colapsadoPadrao);
 
@@ -193,7 +197,10 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permi
       </aside>
 
       <main className={cn("min-h-screen transition-[padding] duration-200", colapsado ? "pl-[72px]" : "pl-64")}>
-        <div className="mx-auto max-w-6xl px-6 py-8">{children}</div>
+        <div className="mx-auto max-w-6xl px-6 py-8">
+          {banner && <AnnouncementBanner {...banner} className="mb-6" />}
+          {children}
+        </div>
       </main>
     </div>
   );

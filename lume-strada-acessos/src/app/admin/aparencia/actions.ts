@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { BRANDING_CONFIG_ID } from "@/lib/branding/constants";
 import { ehImagemPermitida } from "@/lib/utils/upload";
-import type { LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
+import type { BannerTone, LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type UploadResult = { ok: true; url: string } | { ok: false; error: string };
@@ -12,7 +12,7 @@ export type UploadResult = { ok: true; url: string } | { ok: false; error: strin
 const BUCKET = "branding";
 const TAMANHO_MAX_BYTES = 3 * 1024 * 1024; // 3MB — logo/favicon/fundo não precisam de mais que isso
 
-export type CampoUpload = "logo_url" | "logo_dark_url" | "logo_light_url" | "favicon_url" | "login_bg_url";
+export type CampoUpload = "logo_url" | "logo_dark_url" | "logo_light_url" | "favicon_url" | "login_bg_url" | "banner_img_url";
 
 /**
  * Envia um arquivo pro bucket `branding` (Supabase Storage) e já grava a
@@ -75,21 +75,39 @@ export interface BrandingInput {
   loginBoxPosition: LoginBoxPosition;
   loginBgPreset: LoginBgPreset;
   sidebarCompactoPadrao: boolean;
+  bannerAtivoLogin: boolean;
+  bannerAtivoAdmin: boolean;
+  bannerAtivoCliente: boolean;
+  bannerTitulo: string;
+  bannerDescricao: string;
+  bannerLinkUrl: string;
+  bannerLinkLabel: string;
+  bannerTone: BannerTone;
+  bannerDispensavel: boolean;
 }
 
 /**
- * Salva textos/posição/fundo do login e o padrão do menu lateral — os
- * campos de upload já são salvos à parte, ver acima. Cores (`primary_color`/
- * `accent_color`/`theme_preset`) não são mais configuráveis: a paleta
- * preto/branco é fixa em toda a plataforma (ver `globals.css` / `tailwind.config.ts`)
- * — as colunas continuam existindo no banco por compatibilidade, mas nada no
- * app as lê mais.
+ * Salva textos/posição/fundo do login, o padrão do menu lateral e o banner
+ * de destaque — os campos de upload já são salvos à parte, ver acima. Cores
+ * (`primary_color`/`accent_color`/`theme_preset`) não são mais
+ * configuráveis: a paleta preto/branco é fixa em toda a plataforma (ver
+ * `globals.css` / `tailwind.config.ts`) — as colunas continuam existindo no
+ * banco por compatibilidade, mas nada no app as lê mais.
  */
 export async function salvarBranding(input: BrandingInput): Promise<ActionResult> {
   try {
     const { supabase } = await requireAdmin();
 
     if (!input.loginTitle.trim()) return { ok: false, error: "Informe o título da tela de login." };
+
+    // Ligar qualquer toggle de "onde aparece" sem preencher o título do
+    // banner deixaria o admin achando que salvou algo que na prática nunca
+    // vai aparecer pra ninguém (`AnnouncementBanner` exige título) — mais
+    // seguro barrar aqui do que deixar o admin descobrir isso sozinho.
+    const bannerAtivoEmAlgumLugar = input.bannerAtivoLogin || input.bannerAtivoAdmin || input.bannerAtivoCliente;
+    if (bannerAtivoEmAlgumLugar && !input.bannerTitulo.trim()) {
+      return { ok: false, error: "Preencha o título do banner antes de ativá-lo em algum lugar." };
+    }
 
     const { error } = await supabase
       .from("branding_config")
@@ -99,6 +117,15 @@ export async function salvarBranding(input: BrandingInput): Promise<ActionResult
         login_box_position: input.loginBoxPosition,
         login_bg_preset: input.loginBgPreset,
         sidebar_compacto_padrao: input.sidebarCompactoPadrao,
+        banner_ativo_login: input.bannerAtivoLogin,
+        banner_ativo_admin: input.bannerAtivoAdmin,
+        banner_ativo_cliente: input.bannerAtivoCliente,
+        banner_titulo: input.bannerTitulo.trim(),
+        banner_descricao: input.bannerDescricao.trim(),
+        banner_link_url: input.bannerLinkUrl.trim() || null,
+        banner_link_label: input.bannerLinkLabel.trim() || "Saiba mais",
+        banner_tone: input.bannerTone,
+        banner_dispensavel: input.bannerDispensavel,
       })
       .eq("id", BRANDING_CONFIG_ID);
 
@@ -106,7 +133,7 @@ export async function salvarBranding(input: BrandingInput): Promise<ActionResult
 
     // Branding afeta o favicon, a sidebar do admin e o header do cliente —
     // invalidação ampla de propósito (login não usa mais nenhum campo de
-    // branding além de título/subtítulo/fundo, já cobertos aqui).
+    // branding além de título/subtítulo/fundo/banner, já cobertos aqui).
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (err) {

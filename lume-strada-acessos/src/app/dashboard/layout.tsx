@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { ProfileRow } from "@/lib/types/database";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
 import { BrandingLogo } from "@/components/branding/BrandingLogo";
+import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -36,7 +37,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-4xl px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-4xl px-6 py-8">
+        {branding.banner_ativo_cliente && branding.banner_titulo.trim() && (
+          <AnnouncementBanner
+            titulo={branding.banner_titulo}
+            descricao={branding.banner_descricao}
+            linkUrl={branding.banner_link_url}
+            linkLabel={branding.banner_link_label}
+            imgUrl={branding.banner_img_url}
+            tone={branding.banner_tone}
+            dispensavel={branding.banner_dispensavel}
+            chaveDispensa={`${branding.banner_titulo}|${branding.banner_descricao}|${branding.updated_at}`}
+            className="mb-6"
+          />
+        )}
+        {children}
+      </main>
     </div>
   );
 }

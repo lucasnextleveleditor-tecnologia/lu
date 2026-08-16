@@ -1,4 +1,4 @@
-import type { BrandingConfigRow, LoginBgPreset, ThemePreset } from "@/lib/types/database";
+import type { BannerTone, BrandingConfigRow, LoginBgPreset, ThemePreset } from "@/lib/types/database";
 
 /** Id fixo da linha singleton — o mesmo usado no `insert` do supabase/schema.sql. */
 export const BRANDING_CONFIG_ID = "00000000-0000-0000-0000-000000000001";
@@ -24,6 +24,16 @@ export const DEFAULT_BRANDING: BrandingConfigRow = {
   login_box_position: "centro",
   theme_preset: "cinematic_dark",
   sidebar_compacto_padrao: false,
+  banner_ativo_login: false,
+  banner_ativo_admin: false,
+  banner_ativo_cliente: false,
+  banner_titulo: "",
+  banner_descricao: "",
+  banner_link_url: null,
+  banner_link_label: "Saiba mais",
+  banner_img_url: null,
+  banner_tone: "neutral",
+  banner_dispensavel: true,
   created_at: "1970-01-01T00:00:00Z",
   updated_at: "1970-01-01T00:00:00Z",
 };
@@ -74,3 +84,11 @@ export const LOGIN_BG_PRESETS: LoginBgPresetDef[] = [
   { key: "film-strip", label: "Rolo de Filme", className: "login-bg-film-strip" },
   { key: "none", label: "Sólido", className: "login-bg-none" },
 ];
+
+/** Rótulo de cada tom do banner — mesmos 4 tons fixos de `lib/utils/tone.ts`, nunca uma cor livre. */
+export const BANNER_TONE_LABELS: Record<BannerTone, string> = {
+  neutral: "Neutro (aviso/informação)",
+  good: "Bom (novidade/sucesso)",
+  warning: "Atenção",
+  critical: "Crítico/Urgente",
+};

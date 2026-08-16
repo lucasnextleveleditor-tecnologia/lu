@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { BrandingConfigRow, LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
+import type { BannerTone, BrandingConfigRow, LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
 import { salvarBranding } from "@/app/admin/aparencia/actions";
-import { LOGIN_BG_PRESETS } from "@/lib/branding/constants";
+import { BANNER_TONE_LABELS, LOGIN_BG_PRESETS } from "@/lib/branding/constants";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
+import { Switch } from "@/components/ui/Switch";
 import { UploadField } from "@/components/admin/aparencia/UploadField";
 import { LoginPreview } from "@/components/admin/aparencia/LoginPreview";
+import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
 
 const POSICOES: { value: LoginBoxPosition; label: string }[] = [
   { value: "esquerda", label: "Esquerda" },
@@ -33,6 +36,19 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
   const [loginBgPreset, setLoginBgPreset] = useState<LoginBgPreset>(initialBranding.login_bg_preset);
   const [sidebarCompactoPadrao, setSidebarCompactoPadrao] = useState(initialBranding.sidebar_compacto_padrao);
 
+  // Banner de destaque — `bannerImgUrl` salva sozinho (upload), o resto só
+  // persiste ao clicar "Salvar Alterações", igual o resto do formulário.
+  const [bannerImgUrl, setBannerImgUrl] = useState(initialBranding.banner_img_url);
+  const [bannerAtivoLogin, setBannerAtivoLogin] = useState(initialBranding.banner_ativo_login);
+  const [bannerAtivoAdmin, setBannerAtivoAdmin] = useState(initialBranding.banner_ativo_admin);
+  const [bannerAtivoCliente, setBannerAtivoCliente] = useState(initialBranding.banner_ativo_cliente);
+  const [bannerTitulo, setBannerTitulo] = useState(initialBranding.banner_titulo);
+  const [bannerDescricao, setBannerDescricao] = useState(initialBranding.banner_descricao);
+  const [bannerLinkUrl, setBannerLinkUrl] = useState(initialBranding.banner_link_url ?? "");
+  const [bannerLinkLabel, setBannerLinkLabel] = useState(initialBranding.banner_link_label);
+  const [bannerTone, setBannerTone] = useState<BannerTone>(initialBranding.banner_tone);
+  const [bannerDispensavel, setBannerDispensavel] = useState(initialBranding.banner_dispensavel);
+
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [salvoRecentemente, setSalvoRecentemente] = useState(false);
@@ -47,6 +63,15 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
         loginBoxPosition,
         loginBgPreset,
         sidebarCompactoPadrao,
+        bannerAtivoLogin,
+        bannerAtivoAdmin,
+        bannerAtivoCliente,
+        bannerTitulo,
+        bannerDescricao,
+        bannerLinkUrl,
+        bannerLinkLabel,
+        bannerTone,
+        bannerDispensavel,
       });
       if (!result.ok) {
         setError(result.error);
@@ -142,6 +167,100 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
         </Card>
 
         <Card>
+          <h2 className="mb-1 text-sm font-semibold">Banner de Destaque</h2>
+          <p className="mb-4 text-xs text-ink-muted">
+            Um aviso no topo da tela — pra anunciar novidade, manutenção programada, campanha etc. Mesmo conteúdo em
+            qualquer lugar que você ligar abaixo; cada pessoa pode fechar (se você permitir) e ele só volta a aparecer
+            pra ela se você editar o texto depois.
+          </p>
+
+          <div className="mb-4 divide-y divide-base-800 rounded-xl border border-base-800">
+            <div className="flex items-center justify-between gap-3 px-4 py-3">
+              <div>
+                <p className="text-sm text-ink-primary">Exibir na Tela de Login</p>
+                <p className="text-xs text-ink-muted">Antes de qualquer um entrar — visível pra quem ainda não é cliente/equipe.</p>
+              </div>
+              <Switch checked={bannerAtivoLogin} onChange={setBannerAtivoLogin} label="Exibir na Tela de Login" />
+            </div>
+            <div className="flex items-center justify-between gap-3 px-4 py-3">
+              <div>
+                <p className="text-sm text-ink-primary">Exibir na Área Admin/Funcionário</p>
+                <p className="text-xs text-ink-muted">No topo de toda página de dentro de /admin — Dashboard e todos os módulos.</p>
+              </div>
+              <Switch checked={bannerAtivoAdmin} onChange={setBannerAtivoAdmin} label="Exibir na Área Admin/Funcionário" />
+            </div>
+            <div className="flex items-center justify-between gap-3 px-4 py-3">
+              <div>
+                <p className="text-sm text-ink-primary">Exibir no Portal do Cliente</p>
+                <p className="text-xs text-ink-muted">No topo do portal (área de membros) que os clientes acessam.</p>
+              </div>
+              <Switch checked={bannerAtivoCliente} onChange={setBannerAtivoCliente} label="Exibir no Portal do Cliente" />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Título</label>
+              <Input value={bannerTitulo} onChange={(e) => setBannerTitulo(e.target.value)} placeholder="Ex: Manutenção programada no sábado" />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Descrição (opcional)</label>
+              <Textarea
+                rows={2}
+                value={bannerDescricao}
+                onChange={(e) => setBannerDescricao(e.target.value)}
+                placeholder="Ex: O sistema fica indisponível das 2h às 4h pra atualização."
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Texto do link (opcional)</label>
+                <Input value={bannerLinkLabel} onChange={(e) => setBannerLinkLabel(e.target.value)} placeholder="Saiba mais" />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">URL do link (opcional)</label>
+                <Input
+                  type="url"
+                  value={bannerLinkUrl}
+                  onChange={(e) => setBannerLinkUrl(e.target.value)}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Tom</label>
+                <Select value={bannerTone} onChange={(e) => setBannerTone(e.target.value as BannerTone)}>
+                  {(Object.keys(BANNER_TONE_LABELS) as BannerTone[]).map((tone) => (
+                    <option key={tone} value={tone}>
+                      {BANNER_TONE_LABELS[tone]}
+                    </option>
+                  ))}
+                </Select>
+                <p className="mt-1 text-xs text-ink-muted">Só afeta o ícone — texto continua sempre legível, nunca colorido.</p>
+              </div>
+              <div className="flex items-end pb-2.5">
+                <label className="flex items-center gap-2.5 text-sm text-ink-secondary">
+                  <Switch checked={bannerDispensavel} onChange={setBannerDispensavel} label="Permitir fechar o banner" />
+                  Permitir que a pessoa feche o banner (×)
+                </label>
+              </div>
+            </div>
+
+            <UploadField
+              label="Ou envie uma imagem de fundo pro banner (opcional)"
+              campo="banner_img_url"
+              valorAtual={bannerImgUrl}
+              onChange={setBannerImgUrl}
+              formato="wide"
+              hint="Quando enviada, o banner vira uma faixa com essa imagem de fundo em vez do cartão simples."
+            />
+          </div>
+        </Card>
+
+        <Card>
           <h2 className="mb-1 text-sm font-semibold">Menu Lateral</h2>
           <p className="mb-4 text-xs text-ink-muted">
             Cada admin pode expandir/recolher a própria sidebar a qualquer momento (botão no rodapé do menu) — isto só define o
@@ -186,6 +305,32 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
                 bgPreset={loginBgPreset}
                 bgUrl={loginBgUrl}
               />
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs font-medium text-ink-secondary">Banner de Destaque</p>
+              {bannerTitulo.trim() ? (
+                // `dispensavel={false}` de propósito só aqui no preview — evita
+                // que um clique no × durante a configuração grave uma dispensa
+                // de verdade no localStorage deste navegador (ver componente).
+                <AnnouncementBanner
+                  titulo={bannerTitulo}
+                  descricao={bannerDescricao}
+                  linkUrl={bannerLinkUrl || null}
+                  linkLabel={bannerLinkLabel}
+                  imgUrl={bannerImgUrl}
+                  tone={bannerTone}
+                  dispensavel={false}
+                  chaveDispensa="preview"
+                />
+              ) : (
+                <div className="rounded-xl border border-dashed border-base-700 p-4 text-center text-xs text-ink-muted">
+                  Preencha o título do banner pra ver o preview.
+                </div>
+              )}
+              {bannerTitulo.trim() && !bannerAtivoLogin && !bannerAtivoAdmin && !bannerAtivoCliente && (
+                <p className="mt-2 text-xs text-status-warning">Nenhum toggle ligado acima — o banner não vai aparecer em lugar nenhum ainda.</p>
+              )}
             </div>
 
             <div>

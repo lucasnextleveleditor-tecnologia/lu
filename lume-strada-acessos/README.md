@@ -46,7 +46,10 @@ Postgres + RLS + Storage + Realtime).
 - **Inventário** (`/admin/inventario`) — bens da agência por categoria e
   etiqueta, uso exclusivo da equipe.
 - **Aparência** (`/admin/aparencia`) — White-Label: logo, favicon, cores,
-  tela de login, tema — tudo lido a cada request de uma linha singleton.
+  tela de login, tema, e um Banner de Destaque opcional (título, descrição,
+  link e imagem de fundo) que pode ser ligado independentemente na Tela de
+  Login, na área Admin/Funcionário (todo `/admin/*`) e no Portal do Cliente —
+  tudo lido a cada request de uma linha singleton.
 - **Dashboard** (`/admin/dashboard`) — visão geral (o único módulo aberto a
   *qualquer* membro da equipe, sem depender de permissão): agenda do dia,
   contadores de atraso, e o saldo consolidado financeiro só aparece pra quem
@@ -115,7 +118,8 @@ src/
   components/
     admin/<modulo>/              # Componentes de cada módulo acima, espelhando a mesma pasta em app/admin
     admin/relatorios/            # Um <Modulo>Report.tsx por aba do Hub + RelatoriosHub.tsx (tabs + período) + chartTheme.ts (cores dos gráficos)
-    ui/                          # Button, Input, Select, Card, Badge, Meter, StatTile, DateRangePicker, ExportMenuButton, icons — kit visual mínimo
+    branding/                    # BrandingLogo + AnnouncementBanner (banner de destaque, reaproveitado em Login/Admin/Portal do Cliente)
+    ui/                          # Button, Input, Textarea, Select, Switch, Card, Badge, Meter, StatTile, DateRangePicker, ExportMenuButton, icons — kit visual mínimo
   lib/
     supabase/{client,server,admin}.ts   # Clientes Supabase (browser ANON / server ANON+cookies / Service Role — server-only)
     auth/requireAdmin.ts         # RBAC — requireAdmin, requireModulo(OuRedirect), buscarPerfilComPermissoes
@@ -133,7 +137,8 @@ supabase/
   patrimonio.sql / dashboard.sql # Extras de inventário / views de apoio ao dashboard
   correcoes-auditoria.sql        # Correções pós-auditoria (ver AUDITORIA.md)
   financeiro-categorias.sql      # Categorias padrão do Financeiro (emoji + cor)
-  dashboard-config.sql           # Cards do Dashboard liberados por funcionário — rode por ÚLTIMO
+  dashboard-config.sql           # Cards do Dashboard liberados por funcionário
+  banner.sql                     # Banner de destaque configurável (Login/Admin/Portal do Cliente) — rode por ÚLTIMO
 AUDITORIA.md                     # Relatório de auditoria do projeto (segurança, modelo de dados, UX, gaps, performance) e o que ainda falta
 ```
 
@@ -210,7 +215,8 @@ AUDITORIA.md                     # Relatório de auditoria do projeto (seguranç
    dashboard.sql
    correcoes-auditoria.sql   -- só ALTERA o que os outros criaram
    financeiro-categorias.sql -- semeia as categorias padrão do Financeiro (emoji + cor)
-   dashboard-config.sql      -- por último — cards do Dashboard liberados por funcionário
+   dashboard-config.sql      -- cards do Dashboard liberados por funcionário
+   banner.sql                -- por último — banner de destaque (Login/Admin/Portal do Cliente)
    ```
    Todos são idempotentes — seguro rodar de novo se precisar reaplicar.
 3. Vá em **Authentication → Providers** e confirme que "Email" está

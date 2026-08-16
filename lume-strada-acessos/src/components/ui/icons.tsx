@@ -637,3 +637,14 @@ export function IconLoader(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícone do banner de destaque (`AnnouncementBanner`) — usado quando não há imagem própria configurada. */
+export function IconMegaphone(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M3 10v4a1 1 0 0 0 1 1h2l8 4V5L6 9H4a1 1 0 0 0-1 1z" />
+      <path d="M7 15v3a1.3 1.3 0 0 0 1.3 1.3h.4A1.3 1.3 0 0 0 10 18v-2.4" />
+      <path d="M18.5 9a3.3 3.3 0 0 1 0 6" />
+    </svg>
+  );
+}
