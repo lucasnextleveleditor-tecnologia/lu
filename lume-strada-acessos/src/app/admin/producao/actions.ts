@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireModulo } from "@/lib/auth/requireAdmin";
+import { requireModulo, requireQualquerModulo } from "@/lib/auth/requireAdmin";
 import { sanitizarBriefingHtml } from "@/lib/utils/sanitize";
 import { ehExtensaoPerigosaParaEntrega } from "@/lib/utils/upload";
 import type { PrioridadeTarefa, StatusTarefa } from "@/lib/types/producao";
@@ -43,13 +43,19 @@ export async function removerFuncionario(id: string): Promise<ActionResult> {
   }
 }
 
+// "Tipo de Serviço" é um cadastro de apoio COMPARTILHADO: nasceu aqui em
+// Produção, mas o Comercial reaproveita a mesma tabela pro campo "Serviço
+// de Interesse" do lead (ver `supabase/comercial.sql`) — por isso as duas
+// funções abaixo usam `requireQualquerModulo` (Produção OU Comercial), não
+// `requireModulo("producao")` sozinho, e revalidam os dois caminhos.
 export async function criarTipoServico(nome: string): Promise<ActionResultId> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase } = await requireQualquerModulo(["producao", "comercial"]);
     if (!nome.trim()) return { ok: false, error: "Informe o nome do tipo de serviço." };
     const { data, error } = await supabase.from("prod_tipos_servico").insert({ nome: nome.trim() }).select("id").single();
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
+    revalidatePath("/admin/comercial");
     return { ok: true, id: data!.id as string };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -58,10 +64,11 @@ export async function criarTipoServico(nome: string): Promise<ActionResultId> {
 
 export async function removerTipoServico(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase } = await requireQualquerModulo(["producao", "comercial"]);
     const { error } = await supabase.from("prod_tipos_servico").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
+    revalidatePath("/admin/comercial");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { IconCheck } from "@/components/ui/icons";
 import { FollowUpLog } from "@/components/admin/comercial/FollowUpLog";
+import { GerenciarServicosModal } from "@/components/admin/comercial/GerenciarServicosModal";
 import { cn } from "@/lib/utils/cn";
 
 interface LeadDetalheModalProps {
@@ -41,6 +42,7 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
   const [salvo, setSalvo] = useState(false);
   const [convertendo, setConvertendo] = useState(false);
   const [erroConversao, setErroConversao] = useState<string | null>(null);
+  const [gerenciarServicosAberto, setGerenciarServicosAberto] = useState(false);
 
   function handleSalvar(e: FormEvent) {
     e.preventDefault();
@@ -185,7 +187,16 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
               </Select>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Serviço de Interesse</label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-medium text-ink-secondary">Serviço de Interesse</label>
+                <button
+                  type="button"
+                  onClick={() => setGerenciarServicosAberto(true)}
+                  className="text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
+                >
+                  Gerenciar
+                </button>
+              </div>
               <Select value={tipoServicoId} onChange={(e) => setTipoServicoId(e.target.value)}>
                 <option value="">Não informado</option>
                 {tiposServico.map((t) => (
@@ -248,6 +259,8 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
 
         <FollowUpLog leadId={lead.id} anotacoes={anotacoes} />
       </div>
+
+      {gerenciarServicosAberto && <GerenciarServicosModal tiposServico={tiposServico} onClose={() => setGerenciarServicosAberto(false)} />}
     </div>
   );
 }

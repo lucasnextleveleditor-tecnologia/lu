@@ -114,7 +114,7 @@ export type ModuloChave = "clientes" | "financeiro" | "producao" | "comercial" |
 
 type ResultadoPermissao = { autorizado: true; supabase: SupabaseClient; user: User } | { autorizado: false };
 
-async function carregarAutorizacao(chave: ModuloChave): Promise<ResultadoPermissao> {
+async function carregarAutorizacaoQualquer(chaves: ModuloChave[]): Promise<ResultadoPermissao> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -125,20 +125,36 @@ async function carregarAutorizacao(chave: ModuloChave): Promise<ResultadoPermiss
 
   if (!profile) return { autorizado: false };
   if (profile.role === "admin") return { autorizado: true, supabase, user };
-  if (profile.role === "funcionario" && profile.permissoes?.[chave] === true) return { autorizado: true, supabase, user };
+  if (profile.role === "funcionario" && chaves.some((chave) => profile.permissoes?.[chave] === true)) {
+    return { autorizado: true, supabase, user };
+  }
   return { autorizado: false };
 }
 
 /** Guarda por permissão pra Server Actions dos módulos operacionais. Lança erro — quem chama já espera capturar em try/catch e devolver `ActionResult`, igual `requireAdmin`. */
 export async function requireModulo(chave: ModuloChave) {
-  const resultado = await carregarAutorizacao(chave);
+  const resultado = await carregarAutorizacaoQualquer([chave]);
+  if (!resultado.autorizado) throw new Error("Você não tem permissão para acessar este módulo.");
+  return { supabase: resultado.supabase, user: resultado.user };
+}
+
+/**
+ * Mesma ideia de `requireModulo`, mas libera quem tem QUALQUER UMA das
+ * permissões dadas — pra cadastro de apoio compartilhado entre módulos (ex:
+ * "Tipos de Serviço", usado tanto em Produção quanto em Comercial). Sem
+ * isso, um funcionário com só a permissão "Comercial" ligada não conseguia
+ * cadastrar um novo serviço a partir do lead — a ação exigia "Produção",
+ * módulo que ele nem precisa acessar pra vender.
+ */
+export async function requireQualquerModulo(chaves: ModuloChave[]) {
+  const resultado = await carregarAutorizacaoQualquer(chaves);
   if (!resultado.autorizado) throw new Error("Você não tem permissão para acessar este módulo.");
   return { supabase: resultado.supabase, user: resultado.user };
 }
 
 /** Mesma checagem de `requireModulo`, mas pra Server Components de página — redireciona em vez de lançar. */
 export async function requireModuloOuRedirect(chave: ModuloChave) {
-  const resultado = await carregarAutorizacao(chave);
+  const resultado = await carregarAutorizacaoQualquer([chave]);
   if (!resultado.autorizado) redirect("/admin/dashboard");
   return { supabase: resultado.supabase, user: resultado.user };
 }
