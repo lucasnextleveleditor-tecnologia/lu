@@ -24,7 +24,18 @@ export const getBrandingConfig = cache(async (): Promise<BrandingConfigRow> => {
       .overrideTypes<BrandingConfigRow[], { merge: false }>();
 
     if (error || !data?.[0]) return DEFAULT_BRANDING;
-    return data[0];
+
+    // O select("*") só traz as colunas que já existem no banco do usuário
+    // NESTE momento. Se o código já foi atualizado com um campo novo (ex: as
+    // colunas de banner_*) mas a migração .sql correspondente ainda não
+    // rodou no Supabase dele, o objeto volta SEM essas chaves (undefined,
+    // não null). Por isso sempre mesclamos com DEFAULT_BRANDING por baixo:
+    // garante que todo consumidor (login, admin, dashboard, formulário de
+    // Aparência) sempre recebe o formato completo de BrandingConfigRow,
+    // mesmo com o banco temporariamente atrás do código — evita telas
+    // quebrando com "Cannot read properties of undefined" só porque o SQL
+    // ainda não foi aplicado.
+    return { ...DEFAULT_BRANDING, ...data[0] };
   } catch {
     return DEFAULT_BRANDING;
   }

@@ -38,16 +38,20 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
 
   // Banner de destaque — `bannerImgUrl` salva sozinho (upload), o resto só
   // persiste ao clicar "Salvar Alterações", igual o resto do formulário.
-  const [bannerImgUrl, setBannerImgUrl] = useState(initialBranding.banner_img_url);
-  const [bannerAtivoLogin, setBannerAtivoLogin] = useState(initialBranding.banner_ativo_login);
-  const [bannerAtivoAdmin, setBannerAtivoAdmin] = useState(initialBranding.banner_ativo_admin);
-  const [bannerAtivoCliente, setBannerAtivoCliente] = useState(initialBranding.banner_ativo_cliente);
-  const [bannerTitulo, setBannerTitulo] = useState(initialBranding.banner_titulo);
-  const [bannerDescricao, setBannerDescricao] = useState(initialBranding.banner_descricao);
+  // `?? valorPadrão` em cada campo abaixo é proteção extra: se o banco ainda
+  // não tiver rodado a migração `supabase/banner.sql`, essas colunas não
+  // existem e `initialBranding.banner_*` chega como `undefined` — sem essa
+  // proteção o `.trim()` do preview mais abaixo quebraria a página inteira.
+  const [bannerImgUrl, setBannerImgUrl] = useState(initialBranding.banner_img_url ?? null);
+  const [bannerAtivoLogin, setBannerAtivoLogin] = useState(initialBranding.banner_ativo_login ?? false);
+  const [bannerAtivoAdmin, setBannerAtivoAdmin] = useState(initialBranding.banner_ativo_admin ?? false);
+  const [bannerAtivoCliente, setBannerAtivoCliente] = useState(initialBranding.banner_ativo_cliente ?? false);
+  const [bannerTitulo, setBannerTitulo] = useState(initialBranding.banner_titulo ?? "");
+  const [bannerDescricao, setBannerDescricao] = useState(initialBranding.banner_descricao ?? "");
   const [bannerLinkUrl, setBannerLinkUrl] = useState(initialBranding.banner_link_url ?? "");
-  const [bannerLinkLabel, setBannerLinkLabel] = useState(initialBranding.banner_link_label);
-  const [bannerTone, setBannerTone] = useState<BannerTone>(initialBranding.banner_tone);
-  const [bannerDispensavel, setBannerDispensavel] = useState(initialBranding.banner_dispensavel);
+  const [bannerLinkLabel, setBannerLinkLabel] = useState(initialBranding.banner_link_label ?? "Saiba mais");
+  const [bannerTone, setBannerTone] = useState<BannerTone>(initialBranding.banner_tone ?? "neutral");
+  const [bannerDispensavel, setBannerDispensavel] = useState(initialBranding.banner_dispensavel ?? true);
 
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
