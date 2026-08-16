@@ -234,7 +234,7 @@ export function TransacaoModal({ contas, cartoes, categorias, contextoInicial, t
                   <option value="">Sem categoria</option>
                   {categoriasDoTipo.map((categoria) => (
                     <option key={categoria.id} value={categoria.id}>
-                      {categoria.nome}
+                      {categoria.emoji ? `${categoria.emoji} ${categoria.nome}` : categoria.nome}
                     </option>
                   ))}
                 </Select>

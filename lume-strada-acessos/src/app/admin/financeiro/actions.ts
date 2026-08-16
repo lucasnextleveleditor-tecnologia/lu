@@ -91,7 +91,7 @@ export async function removerCartao(id: string): Promise<ActionResult> {
 // ----------------------------------------------------------------------------
 // Categorias
 // ----------------------------------------------------------------------------
-export async function criarCategoria(input: { nome: string; tipo: "receita" | "despesa"; cor: string | null }): Promise<ActionResult> {
+export async function criarCategoria(input: { nome: string; tipo: "receita" | "despesa"; cor: string | null; emoji: string | null }): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("financeiro");
     if (!input.nome.trim()) return { ok: false, error: "Informe o nome da categoria." };
@@ -100,8 +100,12 @@ export async function criarCategoria(input: { nome: string; tipo: "receita" | "d
       nome: input.nome.trim(),
       tipo: input.tipo,
       cor: input.cor,
+      emoji: input.emoji?.trim() || null,
     });
-    if (error) return { ok: false, error: error.message };
+    // 23505 = já existe uma categoria com esse nome+tipo (constraint única,
+    // ver `supabase/financeiro-categorias.sql`) — evita duplicar sem querer
+    // uma categoria que já veio no pacote padrão.
+    if (error) return { ok: false, error: error.code === "23505" ? "Já existe uma categoria com esse nome e tipo." : error.message };
     revalidatePath(PATH);
     return { ok: true };
   } catch (err) {

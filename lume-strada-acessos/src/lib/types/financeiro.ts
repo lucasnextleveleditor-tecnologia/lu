@@ -43,6 +43,7 @@ export interface CategoriaRow {
   nome: string;
   tipo: "receita" | "despesa";
   cor: string | null;
+  emoji: string | null;
   created_at: string;
 }
 

@@ -5,9 +5,33 @@ import type { CategoriaRow } from "@/lib/types/financeiro";
 import { removerCategoria } from "@/app/admin/financeiro/actions";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import { IconTag } from "@/components/ui/icons";
 import { NovaCategoriaModal } from "@/components/admin/financeiro/NovaCategoriaModal";
+import { cn } from "@/lib/utils/cn";
+
+/**
+ * Chip de categoria — diferente do `Badge` genérico de status (só 4 tones
+ * fixos): categoria usa uma cor arbitrária (`categoria.cor`, da paleta de
+ * `PALETA_CATEGORIAS`) + emoji, escolhidos por categoria. Receita nunca leva
+ * `cor` própria (fica sempre no verde de "entrada de dinheiro", igual antes
+ * dessa mudança) — só despesa varia de cor. Emoji + nome sempre visíveis
+ * junto da cor, então a cor nunca é a única portadora de identidade.
+ */
+function CategoriaChip({ categoria }: { categoria: CategoriaRow }) {
+  const cor = categoria.tipo === "despesa" ? categoria.cor : null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium text-ink-primary",
+        !cor && (categoria.tipo === "receita" ? "border-status-good/30 bg-status-good/10" : "border-base-600 bg-base-800/50")
+      )}
+      style={cor ? { borderColor: `${cor}66`, backgroundColor: `${cor}22` } : undefined}
+    >
+      {categoria.emoji && <span aria-hidden>{categoria.emoji}</span>}
+      {categoria.nome}
+    </span>
+  );
+}
 
 export function CategoriasCard({ categorias }: { categorias: CategoriaRow[] }) {
   const [modalAberto, setModalAberto] = useState(false);
@@ -58,7 +82,7 @@ export function CategoriasCard({ categorias }: { categorias: CategoriaRow[] }) {
                 </div>
               ) : (
                 <button onClick={() => setConfirmando(categoria.id)} className="block" title="Clique para excluir">
-                  <Badge tone={categoria.tipo === "receita" ? "good" : "neutral"} label={categoria.nome} />
+                  <CategoriaChip categoria={categoria} />
                 </button>
               )}
             </div>

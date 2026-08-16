@@ -10,6 +10,24 @@ export const STATUS_TRANSACAO_META: Record<StatusTransacao, { label: string; ton
   vencida: { label: "Vencida", tone: "critical" },
 };
 
+/**
+ * As 7 cores da paleta categórica validada pela skill interna de dataviz
+ * (ordem fixa, nunca ciclada dentro de um MESMO gráfico) — os mesmos 7 hex
+ * já usados no preview do Financeiro (`financeiro-preview-mock.ts`) e nas
+ * categorias padrão semeadas em `supabase/financeiro-categorias.sql`, todos
+ * validados contra a superfície escura real do app (`#09090b`).
+ *
+ * Usada aqui pro seletor de cor de "Nova Categoria" — com mais de 7
+ * categorias cadastradas (comum: água, energia, aluguel, alimentação...),
+ * a cor deixa de ser único-por-categoria e passa a se repetir — o que é
+ * seguro porque a cor NUNCA é a única portadora de identidade da categoria
+ * aqui: o emoji + o nome já identificam sozinhos (é uma lista de
+ * tags/etiquetas, não a legenda de um gráfico onde a cor precisaria ser
+ * exclusiva). O slot 8 (vermelho) fica de fora de propósito — é perto
+ * demais de `status.critical`/`danger`, reservado pra "vencida".
+ */
+export const PALETA_CATEGORIAS = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9"] as const;
+
 /** Primeiro e último dia (ISO) do mês de um `Date` — usado na navegação mensal do dashboard. */
 export function limitesDoMes(referencia: Date): { inicio: string; fim: string } {
   const ano = referencia.getFullYear();

@@ -121,7 +121,8 @@ supabase/
   infoprodutos.sql               # Produtos, anuncios_tracking, fechamentos semanais, bucket "infoprodutos"
   whatsapp.sql                   # Conversas/mensagens de WhatsApp
   patrimonio.sql / dashboard.sql # Extras de inventário / views de apoio ao dashboard
-  correcoes-auditoria.sql        # Correções pós-auditoria (rode por ÚLTIMO — ver AUDITORIA.md)
+  correcoes-auditoria.sql        # Correções pós-auditoria (ver AUDITORIA.md)
+  financeiro-categorias.sql      # Categorias padrão do Financeiro (emoji + cor) — rode por ÚLTIMO
 AUDITORIA.md                     # Relatório de auditoria do projeto (segurança, modelo de dados, UX, gaps, performance) e o que ainda falta
 ```
 
@@ -196,7 +197,8 @@ AUDITORIA.md                     # Relatório de auditoria do projeto (seguranç
    whatsapp.sql
    patrimonio.sql
    dashboard.sql
-   correcoes-auditoria.sql   -- por último, sempre — só ALTERA o que os outros criaram
+   correcoes-auditoria.sql   -- só ALTERA o que os outros criaram
+   financeiro-categorias.sql -- por último — semeia as categorias padrão do Financeiro (emoji + cor)
    ```
    Todos são idempotentes — seguro rodar de novo se precisar reaplicar.
 3. Vá em **Authentication → Providers** e confirme que "Email" está

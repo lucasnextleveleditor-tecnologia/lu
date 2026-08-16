@@ -63,7 +63,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
   const limitePorCartao = new Map(limites.map((l) => [l.cartao_id, l]));
   const nomeConta = new Map(contas.map((c) => [c.id, c.nome]));
   const nomeCartao = new Map(cartoes.map((c) => [c.id, c.nome]));
-  const nomeCategoria = new Map(categorias.map((c) => [c.id, c.nome]));
+  const nomeCategoria = new Map(categorias.map((c) => [c.id, c.emoji ? `${c.emoji} ${c.nome}` : c.nome]));
 
   const contasComSaldo = contas.map((c) => ({ ...c, saldo_atual: saldoPorConta.get(c.id) ?? c.saldo_inicial }));
   const cartoesComLimite = cartoes.map((c) => {
