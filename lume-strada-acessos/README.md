@@ -51,6 +51,14 @@ Postgres + RLS + Storage + Realtime).
   *qualquer* membro da equipe, sem depender de permissão): agenda do dia,
   contadores de atraso, e o saldo consolidado financeiro só aparece pra quem
   tem o módulo Financeiro liberado.
+- **Relatórios** (`/admin/relatorios`) — Hub de Business Intelligence: abas
+  por módulo (Comercial, Financeiro, Produção, Tráfego, Inventário) com
+  gráficos (Recharts) e um seletor de período global que filtra tudo de uma
+  vez. Cada aba só aparece pra quem tem aquele módulo liberado (mesma regra
+  de permissão de sempre). Só consulta as tabelas já existentes — nenhuma
+  migração de SQL nova. Todo módulo já existente (Financeiro, CRM, Produção,
+  Tráfego) ganhou um botão de exportar (PDF/PNG/CSV, `ExportMenuButton`) no
+  cabeçalho da tela.
 - **Portal do Cliente** (`/dashboard`) — status do próprio acesso + tráfego
   de hoje (somente leitura) + área de conteúdo liberado.
 
@@ -95,6 +103,7 @@ src/
     admin/
       layout.tsx, page.tsx, actions.ts   # Cadastros (home do admin): clientes, equipe, gerar acesso
       dashboard/                 # Visão Geral — aberta a qualquer membro da equipe
+      relatorios/                # Hub de BI — abas por módulo, actions.ts agrega os dados já existentes (sem tabela nova)
       financeiro/                # Contas, cartões, categorias, transações, faturas
       producao/                  # Kanban/Lista de tarefas, entregas versionadas, aprovação
       comercial/                 # Funil de leads, atividades, conversão em cliente
@@ -105,13 +114,14 @@ src/
     dashboard/                   # Portal do cliente
   components/
     admin/<modulo>/              # Componentes de cada módulo acima, espelhando a mesma pasta em app/admin
-    ui/                          # Button, Input, Select, Card, Badge, Meter, StatTile, icons — kit visual mínimo
+    admin/relatorios/            # Um <Modulo>Report.tsx por aba do Hub + RelatoriosHub.tsx (tabs + período) + chartTheme.ts (cores dos gráficos)
+    ui/                          # Button, Input, Select, Card, Badge, Meter, StatTile, DateRangePicker, ExportMenuButton, icons — kit visual mínimo
   lib/
     supabase/{client,server,admin}.ts   # Clientes Supabase (browser ANON / server ANON+cookies / Service Role — server-only)
     auth/requireAdmin.ts         # RBAC — requireAdmin, requireModulo(OuRedirect), buscarPerfilComPermissoes
     branding/                    # Config de White-Label (leitura cacheada, nunca lança)
     types/                       # Tipos do banco, escritos à mão por módulo
-    utils/                       # Uma "única fonte da verdade" por cálculo (status.ts, trafego.ts, financeiro.ts, producao.ts, upload.ts, sanitize.ts...)
+    utils/                       # Uma "única fonte da verdade" por cálculo (status.ts, trafego.ts, financeiro.ts, producao.ts, upload.ts, sanitize.ts, export.ts...)
 supabase/
   schema.sql                     # Base: profiles, RBAC, metas/tráfego, inventário, branding — rode primeiro
   cadastros.sql                  # Clientes, equipe, atividades, bucket "producao"

@@ -17,6 +17,7 @@ import {
   IconTarget,
   IconMessageCircle,
   IconLayoutGrid,
+  IconBarChart2,
   IconChevronsLeft,
   IconChevronsRight,
 } from "@/components/ui/icons";
@@ -35,7 +36,17 @@ import {
 const NAV_GRUPOS = [
   {
     titulo: "Visão Geral",
-    itens: [{ href: "/admin/dashboard", label: "Dashboard", icon: IconLayoutGrid, chave: null }],
+    itens: [
+      { href: "/admin/dashboard", label: "Dashboard", icon: IconLayoutGrid, chave: null },
+      // Mesmo espírito do Dashboard (chave: null — visível pra qualquer
+      // membro da equipe, sem checagem de módulo aqui no menu): a checagem
+      // FINA de quais relatórios cada um vê mora dentro da própria página
+      // (`/admin/relatorios/page.tsx`, mesmo padrão de `cardVisivel` já
+      // usado no Dashboard) — um funcionário sem nenhuma permissão extra
+      // simplesmente vê o Hub vazio, com uma orientação pra falar com o
+      // admin, em vez do link sumir do menu.
+      { href: "/admin/relatorios", label: "Relatórios", icon: IconBarChart2, chave: null },
+    ],
   },
   {
     titulo: "Comercial",

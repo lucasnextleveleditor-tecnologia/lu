@@ -9,9 +9,11 @@ import type {
   TransacaoComRelacoes,
   TransacaoRow,
 } from "@/lib/types/financeiro";
-import { limitesDoMes, parseMesParam } from "@/lib/utils/financeiro";
+import { calcularStatusTransacao } from "@/lib/types/financeiro";
+import { limitesDoMes, mesParam, parseMesParam, STATUS_TRANSACAO_META } from "@/lib/utils/financeiro";
 import { fmtBRL } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
+import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
 import { IconWallet, IconCreditCard, IconTrendingUp, IconAlertTriangle } from "@/components/ui/icons";
 import { MesNav } from "@/components/admin/financeiro/MesNav";
 import { ContextoToggle } from "@/components/admin/financeiro/ContextoToggle";
@@ -84,6 +86,8 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
   const contasFiltradas = contexto === "todos" ? contasComSaldo : contasComSaldo.filter((c) => c.contexto === contexto);
   const cartoesFiltrados = contexto === "todos" ? cartoesComLimite : cartoesComLimite.filter((c) => c.contexto === contexto);
 
+  const mesParamStr = mesParam(referencia);
+
   const receitasDoMes = transacoes.filter((t) => t.tipo === "receita").reduce((acc, t) => acc + t.valor, 0);
   const despesasDoMes = transacoes.filter((t) => t.tipo === "despesa").reduce((acc, t) => acc + t.valor, 0);
   const saldoTotal = contasFiltradas.reduce((acc, c) => acc + c.saldo_atual, 0);
@@ -99,6 +103,28 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
         <div className="flex flex-wrap items-center gap-3">
           <ContextoToggle referencia={referencia} contexto={contexto} />
           <MesNav referencia={referencia} contexto={contexto} />
+          <ExportMenuButton
+            targetId="financeiro-transacoes-export"
+            nomeArquivo={`financeiro-transacoes-${mesParamStr}`}
+            dadosCSV={transacoes.map((t) => ({
+              data: t.data_vencimento,
+              descricao: t.descricao,
+              tipo: t.tipo,
+              valor: t.valor.toFixed(2),
+              status: STATUS_TRANSACAO_META[calcularStatusTransacao(t)].label,
+              categoria: t.categoria_nome ?? "",
+              conta: t.conta_nome ?? t.cartao_nome ?? "",
+            }))}
+            colunasCSV={[
+              { chave: "data", rotulo: "Vencimento" },
+              { chave: "descricao", rotulo: "Descrição" },
+              { chave: "tipo", rotulo: "Tipo" },
+              { chave: "valor", rotulo: "Valor (R$)" },
+              { chave: "status", rotulo: "Status" },
+              { chave: "categoria", rotulo: "Categoria" },
+              { chave: "conta", rotulo: "Conta/Cartão" },
+            ]}
+          />
         </div>
       </div>
 
@@ -126,13 +152,15 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
         <CategoriasCard categorias={categorias} />
       </div>
 
-      <TransacoesManager
-        transacoes={transacoes}
-        contas={contasFiltradas}
-        cartoes={cartoesFiltrados}
-        categorias={categorias}
-        contexto={contexto}
-      />
+      <div id="financeiro-transacoes-export">
+        <TransacoesManager
+          transacoes={transacoes}
+          contas={contasFiltradas}
+          cartoes={cartoesFiltrados}
+          categorias={categorias}
+          contexto={contexto}
+        />
+      </div>
     </div>
   );
 }

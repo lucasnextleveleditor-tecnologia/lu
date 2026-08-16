@@ -11,6 +11,7 @@ import type {
   TipoServicoRow,
 } from "@/lib/types/producao";
 import { ProducaoWorkspace } from "@/components/admin/producao/ProducaoWorkspace";
+import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
 
 export const dynamic = "force-dynamic";
 
@@ -79,19 +80,43 @@ export default async function ProducaoPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold tracking-tight">Produção &amp; Tarefas</h1>
-        <p className="mt-0.5 text-sm text-ink-muted">Board de produção, subtarefas e entregas com controle de versão e aprovação.</p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight">Produção &amp; Tarefas</h1>
+          <p className="mt-0.5 text-sm text-ink-muted">Board de produção, subtarefas e entregas com controle de versão e aprovação.</p>
+        </div>
+        <ExportMenuButton
+          targetId="producao-export-area"
+          nomeArquivo="producao-tarefas"
+          dadosCSV={tarefasComRelacoes.map((t) => ({
+            titulo: t.titulo,
+            status: t.status,
+            responsavel: t.responsavel_nome ?? "",
+            cliente: t.cliente_nome ?? "",
+            prioridade: t.prioridade,
+            dataEntrega: t.data_entrega ?? "",
+          }))}
+          colunasCSV={[
+            { chave: "titulo", rotulo: "Título" },
+            { chave: "status", rotulo: "Status" },
+            { chave: "responsavel", rotulo: "Responsável" },
+            { chave: "cliente", rotulo: "Cliente" },
+            { chave: "prioridade", rotulo: "Prioridade" },
+            { chave: "dataEntrega", rotulo: "Data de Entrega" },
+          ]}
+        />
       </div>
 
-      <ProducaoWorkspace
-        tarefas={tarefasComRelacoes}
-        subtarefasPorTarefa={Object.fromEntries(subtarefasPorTarefa)}
-        entregasPorTarefa={Object.fromEntries(entregasPorTarefa)}
-        clientes={clientes}
-        funcionarios={funcionarios}
-        tiposServico={tiposServico}
-      />
+      <div id="producao-export-area">
+        <ProducaoWorkspace
+          tarefas={tarefasComRelacoes}
+          subtarefasPorTarefa={Object.fromEntries(subtarefasPorTarefa)}
+          entregasPorTarefa={Object.fromEntries(entregasPorTarefa)}
+          clientes={clientes}
+          funcionarios={funcionarios}
+          tiposServico={tiposServico}
+        />
+      </div>
     </div>
   );
 }

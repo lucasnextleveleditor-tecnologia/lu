@@ -5,7 +5,9 @@ import type { AnotacaoRow, LeadComRelacoes } from "@/lib/types/comercial";
 import type { TipoServicoRow } from "@/lib/types/producao";
 import { IconColumns, IconList, IconPlus } from "@/components/ui/icons";
 import { Button } from "@/components/ui/Button";
+import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
 import { cn } from "@/lib/utils/cn";
+import { STATUS_LEAD_META } from "@/lib/utils/comercial";
 import { LeadKanbanBoard } from "@/components/admin/comercial/LeadKanbanBoard";
 import { ListaLeads } from "@/components/admin/comercial/ListaLeads";
 import { LeadModal } from "@/components/admin/comercial/LeadModal";
@@ -49,14 +51,38 @@ export function ComercialWorkspace({ leads, anotacoesPorLead, tiposServico }: Co
             </button>
           ))}
         </div>
-        <Button onClick={() => setModalNovoAberto(true)}>
-          <IconPlus className="h-4 w-4" />
-          Novo Lead
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportMenuButton
+            targetId="comercial-export-area"
+            nomeArquivo="comercial-leads"
+            dadosCSV={leads.map((l) => ({
+              nome: l.nome,
+              status: STATUS_LEAD_META[l.status].label,
+              origem: l.origem ?? "",
+              valorEstimado: (l.valor_estimado ?? 0).toFixed(2),
+              proximoContato: l.proximo_contato_em ?? "",
+              criadoEm: l.created_at.slice(0, 10),
+            }))}
+            colunasCSV={[
+              { chave: "nome", rotulo: "Nome" },
+              { chave: "status", rotulo: "Etapa do Funil" },
+              { chave: "origem", rotulo: "Origem" },
+              { chave: "valorEstimado", rotulo: "Valor Estimado (R$)" },
+              { chave: "proximoContato", rotulo: "Próximo Contato" },
+              { chave: "criadoEm", rotulo: "Criado em" },
+            ]}
+          />
+          <Button onClick={() => setModalNovoAberto(true)}>
+            <IconPlus className="h-4 w-4" />
+            Novo Lead
+          </Button>
+        </div>
       </div>
 
-      {visao === "kanban" && <LeadKanbanBoard leads={leads} onAbrirLead={setLeadDetalheId} />}
-      {visao === "lista" && <ListaLeads leads={leads} onAbrirLead={setLeadDetalheId} />}
+      <div id="comercial-export-area">
+        {visao === "kanban" && <LeadKanbanBoard leads={leads} onAbrirLead={setLeadDetalheId} />}
+        {visao === "lista" && <ListaLeads leads={leads} onAbrirLead={setLeadDetalheId} />}
+      </div>
 
       {modalNovoAberto && <LeadModal tiposServico={tiposServico} onClose={() => setModalNovoAberto(false)} />}
 

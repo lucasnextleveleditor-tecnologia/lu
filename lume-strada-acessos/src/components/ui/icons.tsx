@@ -580,3 +580,60 @@ export function IconDollarSign(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícones do módulo Relatórios & Exportação (`ExportMenuButton`, hub de BI). */
+
+export function IconDownload(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M12 3v12" />
+      <path d="M7.5 10.5 12 15l4.5-4.5" />
+      <path d="M4 17.5v1.5A2.5 2.5 0 0 0 6.5 21.5h11a2.5 2.5 0 0 0 2.5-2.5v-1.5" />
+    </svg>
+  );
+}
+
+export function IconFileText(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M7 3.5h7l4 4v12.2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z" />
+      <path d="M14 3.5V8h4.5" />
+      <path d="M9 13h6M9 16.3h6M9 9.7h2.2" />
+    </svg>
+  );
+}
+
+export function IconImage(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+      <circle cx="8.5" cy="9.5" r="1.6" />
+      <path d="M20.5 15.5 15.8 11l-4 4.2-2-1.8-5.3 5.1" />
+    </svg>
+  );
+}
+
+export function IconTable(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+      <path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15" />
+    </svg>
+  );
+}
+
+export function IconChevronDown(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+export function IconLoader(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M12 3a9 9 0 1 0 9 9" />
+    </svg>
+  );
+}
