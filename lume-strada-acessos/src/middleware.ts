@@ -61,6 +61,17 @@ function respostaErroConfiguracao(mensagem: string): NextResponse {
  * estritamente melhor pra diagnosticar em produção.
  */
 export async function middleware(request: NextRequest) {
+  // Rotas de API (ex: webhook do WhatsApp) fazem sua PRÓPRIA autenticação
+  // (segredo compartilhado, ver src/app/api/whatsapp/webhook/route.ts) e não
+  // devem passar pela checagem de sessão/cookie daqui — um provedor externo
+  // batendo em /api/whatsapp/webhook não tem (nem deveria ter) cookie de
+  // sessão do painel. Sem esse escape, o middleware redirecionava a própria
+  // chamada do provedor pra /login antes do handler da rota sequer rodar,
+  // deixando o webhook inoperante em produção sem nenhum erro visível.
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
+
   let supabaseUrl: string;
   let supabaseAnonKey: string;
 

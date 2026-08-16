@@ -1,207 +1,209 @@
-# Lume Strada Filmes — Gestão de Clientes, Acessos, Tráfego, Patrimônio e Marca
+# Lume Strada Filmes — Painel Interno (Agência Hub)
 
-Sistema para a Lume Strada Filmes convidar clientes, controlar por quanto
-tempo cada um tem acesso liberado, definir a Meta Diária de tráfego de cada
-cliente e acompanhar — numa visão única [Cliente] → [Meta do Dia] → [Status
-Atual] — se o investimento lançado está "No Caminho" ou "Abaixo da Meta", além
-de controlar o inventário de bens da agência (equipamentos, informática,
-imóveis...) por categoria e etiqueta, com filtros rápidos para auditoria, e
-personalizar a identidade visual da própria plataforma (logo, cores, tela de
-login) num painel de White-Label sem precisar mexer em código.
-Next.js 14 (App Router) + TypeScript + Tailwind CSS + Supabase (Auth + Postgres + Storage).
+Sistema interno da Lume Strada Filmes: um único painel dark para a equipe
+gerenciar clientes e o próprio acesso deles à plataforma, o financeiro da
+agência (contas, cartões, transações, faturas), a produção de vídeo (Kanban
+de tarefas, briefing, entregas versionadas com aprovação do cliente), o funil
+comercial (leads → conversão em cliente), o tráfego pago por cliente (meta
+diária vs. investido, no estilo [Cliente] → [Meta do Dia] → [Status Atual]),
+o acompanhamento de anúncios/infoprodutos, notificações via WhatsApp e o
+inventário de bens da agência — além de um painel de White-Label para
+personalizar a identidade visual da própria plataforma sem mexer em código.
 
-## Estrutura de arquivos
+Sistema **single-tenant** (uma agência, um banco) — não existe conceito de
+`company_id` ou multi-tenant; simplicidade deliberada para o caso de uso real.
+
+Next.js 14 (App Router) + TypeScript + Tailwind CSS + Supabase (Auth +
+Postgres + RLS + Storage + Realtime).
+
+## Módulos
+
+- **Cadastros** (`/admin`) — clientes (cadastro rico, fora de `profiles`) e
+  equipe (`equipe_membros`, cadastro leve dos funcionários); gera/gerencia o
+  acesso de login (convite, expiração, suspensão) de clientes e funcionários.
+- **Financeiro** (`/admin/financeiro`) — ERP simples: contas/carteiras,
+  cartões de crédito (com fatura), categorias, transações (receita/despesa/
+  transferência), tudo separado por contexto `pessoal`/`profissional`. Saldo
+  e limite de cartão são sempre *calculados* (views), nunca uma coluna
+  incrementada manualmente.
+- **Produção** (`/admin/producao`) — Kanban e Lista de tarefas de vídeo, com
+  briefing rico, subtarefas, responsável e tipo de serviço; cada tarefa tem
+  "Entregas" com versionamento (v1, v2...) de arquivo ou link externo e um
+  fluxo de aprovação (pendente → aprovado / solicitar alteração).
+- **Comercial** (`/admin/comercial`) — funil de leads (CRM simples) com
+  atividades e follow-up; converter um lead em cliente cria a conta de
+  acesso dele (`auth.admin.inviteUserByEmail`) — ação admin-only.
+- **Tráfego & Metas** (`/admin/trafego`) — meta diária de investimento/leads
+  por cliente vs. o que foi realmente lançado no dia, com status calculado
+  (Sem Meta / Abaixo da Meta / No Caminho / Meta Batida). Inclui o
+  sub-módulo **Info-Produtos**: produtos, criativos de anúncio,
+  acompanhamento diário (`anuncios_tracking`) e fechamento semanal de lucro.
+- **WhatsApp** (`/admin/whatsapp`) — envio/recebimento de mensagens; o
+  webhook (`/api/whatsapp/webhook`) já está de pé, mas o *provider* real
+  (Twilio/Meta Cloud API/etc.) ainda não foi implementado —
+  `getWhatsAppProvider()` hoje sempre retorna "não configurado" (ver
+  `AUDITORIA.md`, item deferido).
+- **Inventário** (`/admin/inventario`) — bens da agência por categoria e
+  etiqueta, uso exclusivo da equipe.
+- **Aparência** (`/admin/aparencia`) — White-Label: logo, favicon, cores,
+  tela de login, tema — tudo lido a cada request de uma linha singleton.
+- **Dashboard** (`/admin/dashboard`) — visão geral (o único módulo aberto a
+  *qualquer* membro da equipe, sem depender de permissão): agenda do dia,
+  contadores de atraso, e o saldo consolidado financeiro só aparece pra quem
+  tem o módulo Financeiro liberado.
+- **Portal do Cliente** (`/dashboard`) — status do próprio acesso + tráfego
+  de hoje (somente leitura) + área de conteúdo liberado.
+
+## RBAC — papéis e permissões
+
+Três papéis em `profiles.role`: `admin`, `funcionario`, `cliente`. Sem
+hierarquia de tenant — é literalmente só isso.
+
+- **`admin`** — acesso total a tudo, sempre (bypass incondicional).
+- **`funcionario`** — acesso módulo a módulo, controlado por
+  `profiles.permissoes` (jsonb: `{ clientes, financeiro, producao,
+  comercial, trafego, inventario, whatsapp }`, cada chave um boolean). Duas
+  ações ficam deliberadamente FORA desse sistema, só-admin mesmo com todas
+  as permissões ligadas: gerenciar Equipe/Gerar Acesso e a tela de
+  Aparência (`requireAdmin()`), e converter um lead em cliente (cria conta
+  de login de verdade).
+- **`cliente`** — só o Portal (`/dashboard`); nunca acessa `/admin`.
+
+Duas camadas de checagem, sempre as duas:
+
+1. **RLS no banco** (`public.is_staff()` / `public.is_admin()`,
+   `security definer`, evita recursão) — garante só "é admin OU
+   funcionário?" a nível de linha. É grosso de propósito.
+2. **Checagem fina na aplicação** — `requireAdmin()`/`requireModuloOuRedirect()`
+   em `src/lib/auth/requireAdmin.ts`, chamada no topo de toda página de
+   módulo e no início de toda Server Action correspondente. É aqui que
+   "funcionário tem a permissão X ligada?" é decidido — o RLS não sabe disso.
+
+`src/middleware.ts` roda em toda requisição e é a única camada que garante
+expiração em tempo real: compara `active`/`expires_at` do perfil a cada
+request (não só no login), então suspender/expirar alguém já logado o
+derruba na próxima navegação dele.
+
+## Estrutura de arquivos (visão geral)
 
 ```
 src/
-  middleware.ts                  # Protege rotas + valida expiração a cada requisição
+  middleware.ts                  # Protege rotas, valida expiração a cada requisição, libera /api (webhooks) da checagem de sessão
   app/
-    layout.tsx                   # Shell global (dark mode, fundo com grão de filme)
-    page.tsx                     # "/" — só redireciona (middleware faz o trabalho real)
-    login/page.tsx               # Tela de login
-    definir-senha/page.tsx       # Passo pós-convite: cliente cria a própria senha
-    acesso-expirado/page.tsx     # Tela mostrada quando active=false ou expires_at passou
-    auth/callback/route.ts       # Troca o "code" do link de convite por uma sessão
+    login/, definir-senha/, acesso-expirado/, auth/callback/   # Fluxo de acesso (convite -> senha -> sessão)
+    api/whatsapp/webhook/        # Recebe eventos do provedor de WhatsApp (autenticação própria, fora do middleware)
     admin/
-      layout.tsx                 # Reconfirma role=admin no servidor + monta a sidebar (AdminShell)
-      page.tsx                   # Busca todos os perfis (RLS libera pra admin) e renderiza a tabela
-      actions.ts                 # Server Actions: convidar, editar expiração, suspender/reativar
-      trafego/
-        page.tsx                 # Painel [Cliente] -> [Meta do Dia] -> [Status Atual], por dia
-        actions.ts                # Server Actions: salvar meta, lançar/remover registro de tráfego
-      inventario/
-        layout.tsx                # Abas Categorias | Itens & Etiquetas
-        page.tsx                   # Aba Categorias — lista + contagem de itens por categoria
-        actions.ts                 # Server Actions: CRUD de categorias e de itens/etiquetas
-        itens/page.tsx              # Aba Itens & Etiquetas — lista com join de categoria + filtros
-      aparencia/
-        page.tsx                   # Painel de White-Label — logos, cores, tela de login, tema, sidebar
-        actions.ts                  # Server Actions: upload de asset (Storage), salvar cores/textos/tema
-    dashboard/
-      layout.tsx                 # Header simplificado do cliente (logo dinâmica)
-      page.tsx                   # Status do próprio acesso + tráfego de hoje (somente leitura) + "conteúdo liberado"
+      layout.tsx, page.tsx, actions.ts   # Cadastros (home do admin): clientes, equipe, gerar acesso
+      dashboard/                 # Visão Geral — aberta a qualquer membro da equipe
+      financeiro/                # Contas, cartões, categorias, transações, faturas
+      producao/                  # Kanban/Lista de tarefas, entregas versionadas, aprovação
+      comercial/                 # Funil de leads, atividades, conversão em cliente
+      trafego/                   # Metas diárias + registros de tráfego; trafego/infoprodutos-actions.ts = sub-módulo Info-Produtos
+      whatsapp/                  # Conversas e envio de mensagens
+      inventario/                # Categorias + Itens & Etiquetas
+      aparencia/                 # White-Label
+    dashboard/                   # Portal do cliente
   components/
-    auth/                        # LoginForm, SetPasswordForm, LogoutButton (Client Components)
-    branding/
-      BrandingLogo.tsx            # Logo configurada (ou o losango padrão) — usada na sidebar, header e login
-    admin/                       # UsersTable, UserRow, InviteClientModal
-      AdminShell.tsx               # Sidebar do admin (expandida/recolhida) + wrapper do conteúdo — client component
-      trafego/
-        DateNav.tsx               # Navegação de dia (?data=yyyy-mm-dd), server-rendered
-        MetaCard.tsx               # Card por cliente: meta editável + status + Meter + lançamentos do dia
-      inventario/
-        InventarioNav.tsx          # Abas Categorias | Itens & Etiquetas
-        CategoriasManager.tsx       # Tabela de categorias + criar/editar/excluir
-        CategoriaModal.tsx          # Formulário de categoria (nome, código, descrição)
-        ItensManager.tsx            # Tabela de itens + filtros rápidos (busca, status, categoria) — 100% client-side
-        ItemModal.tsx                # Formulário de item/etiqueta (todos os campos do requisito)
-      aparencia/
-        AparenciaForm.tsx            # Formulário completo + live preview (a peça central do módulo de branding)
-        UploadField.tsx              # Campo de upload reutilizável (logo/favicon/fundo do login)
-        LoginPreview.tsx             # Maquete em miniatura da tela de login, usada no live preview
-    ui/                          # Button, Input, Select, Card, Badge, Meter, StatusBadge, icons — kit visual mínimo
+    admin/<modulo>/              # Componentes de cada módulo acima, espelhando a mesma pasta em app/admin
+    ui/                          # Button, Input, Select, Card, Badge, Meter, StatTile, icons — kit visual mínimo
   lib/
-    supabase/
-      client.ts                  # Cliente p/ Client Components (chave ANON)
-      server.ts                  # Cliente p/ Server Components/Actions (chave ANON + cookies, respeita RLS)
-      admin.ts                   # Cliente Service Role — server-only, só p/ auth.admin.inviteUserByEmail
-    auth/requireAdmin.ts         # Guarda compartilhada por toda Server Action administrativa
-    branding/
-      constants.ts                # DEFAULT_BRANDING (fallback seguro), THEME_PRESETS, LOGIN_BG_PRESETS
-      getBrandingConfig.ts         # Leitura cacheada (React `cache()`) da config — nunca lança, sempre retorna algo
-    types/database.ts            # Tipos do banco (Profile, MetaDiaria, TrafegoRegistro, CategoriaInventario, ItemInventario, BrandingConfig) escritos à mão
-    utils/
-      status.ts                  # calcularStatus() — a ÚNICA fonte da verdade de Ativo/Inativo/Expirado
-      trafego.ts                 # calcularResumoTrafego() — a ÚNICA fonte da verdade do status de tráfego
-      inventario.ts               # STATUS_ITEM_META — tone de cada status de patrimônio
-      tone.ts                    # Paleta de 4 tons (good/warning/critical/neutral) compartilhada por todo badge/meter
-      color.ts                    # hexToRgbTriplet/contrastRatio/buildBrandingCssVars — motor do branding dinâmico
-      format.ts                  # Helpers de data (yyyy-mm-dd) e formatação de moeda/percentual (pt-BR)
+    supabase/{client,server,admin}.ts   # Clientes Supabase (browser ANON / server ANON+cookies / Service Role — server-only)
+    auth/requireAdmin.ts         # RBAC — requireAdmin, requireModulo(OuRedirect), buscarPerfilComPermissoes
+    branding/                    # Config de White-Label (leitura cacheada, nunca lança)
+    types/                       # Tipos do banco, escritos à mão por módulo
+    utils/                       # Uma "única fonte da verdade" por cálculo (status.ts, trafego.ts, financeiro.ts, producao.ts, upload.ts, sanitize.ts...)
 supabase/
-  schema.sql                     # Schema completo, idempotente — cole no SQL Editor do Supabase
+  schema.sql                     # Base: profiles, RBAC, metas/tráfego, inventário, branding — rode primeiro
+  cadastros.sql                  # Clientes, equipe, atividades, bucket "producao"
+  financeiro.sql                 # ERP: contas, cartões, categorias, transações, faturas, views de saldo/limite
+  producao.sql                   # Tarefas, subtarefas, entregas, versões, bucket "producao"
+  comercial.sql                  # Leads, atividades de lead
+  infoprodutos.sql               # Produtos, anuncios_tracking, fechamentos semanais, bucket "infoprodutos"
+  whatsapp.sql                   # Conversas/mensagens de WhatsApp
+  patrimonio.sql / dashboard.sql # Extras de inventário / views de apoio ao dashboard
+  correcoes-auditoria.sql        # Correções pós-auditoria (rode por ÚLTIMO — ver AUDITORIA.md)
+AUDITORIA.md                     # Relatório de auditoria do projeto (segurança, modelo de dados, UX, gaps, performance) e o que ainda falta
 ```
 
 ## Decisões de projeto (vale ler antes de customizar)
 
-- **Status nunca é uma coluna gravada.** `active` (suspensão manual) e
-  `expires_at` (prazo) são os dois únicos campos reais; "Ativo / Inativo /
-  Expirado" é sempre *calculado* a partir deles em `lib/utils/status.ts`,
-  tanto no middleware quanto no painel admin quanto no dashboard do
-  cliente. Isso evita o bug clássico de status "preso" desatualizado.
-- **Suspensão manual sempre vence a expiração.** Um admin pode suspender
-  alguém mesmo com prazo válido; reativar não limpa a data de expiração.
+- **Single-tenant de propósito.** Sem `company_id`, sem isolamento
+  multi-cliente-da-Lume-Strada — é a ferramenta interna de UMA agência.
+  Simplifica RLS, simplifica todo o resto.
+- **Status nunca é uma coluna gravada.** `active` + `expires_at` são os dois
+  únicos campos reais de acesso; "Ativo / Inativo / Expirado" é sempre
+  *calculado* em `lib/utils/status.ts`. Mesmo padrão se repete em Tráfego
+  (`lib/utils/trafego.ts`) e no status de aprovação de entregas de Produção.
 - **Cadastro é só por convite.** Não existe tela de "criar conta" pública —
-  todo cliente nasce de `auth.admin.inviteUserByEmail`, chamado a partir de
-  uma Server Action que roda no servidor com a Service Role Key. Essa chave
-  nunca é enviada ao navegador (o arquivo que a usa importa `server-only`,
-  que quebra o build se algum Client Component tentar importá-lo).
-- **Todo usuário nasce como `cliente`.** Promover alguém a `admin` é uma
-  ação deliberada via SQL (ver `supabase/schema.sql`, seção 8) — o próprio
-  painel não tem um botão "tornar admin" para evitar escalonamento
-  acidental de privilégio.
-- **RLS + Server Actions, em camadas.** As ações administrativas (editar
-  expiração, suspender/reativar) usam o cliente autenticado normal — RLS
-  (`profiles_update_admin`) já barra qualquer não-admin de alterar outro
-  perfil. Além disso, cada Server Action roda `requireAdmin()` antes de
-  fazer qualquer coisa, então mesmo a chamada que usa Service Role
-  (convidar) é verificada manualmente primeiro.
-- **Paleta "Dark Cinematográfico".** Fundo quase preto + tipografia branca
-  suave + um único acento âmbar (luz de projeção/marquise). Sem identidade
-  visual informada — troque os tokens em `tailwind.config.ts` pela paleta
-  real da Lume Strada quando você tiver.
-- **Dashboard do cliente é um ponto de partida.** O pedido foi "o cliente
-  vê só o conteúdo liberado" — como este projeto é a camada de *gestão de
-  acesso* (não o repositório de entregas), a página já vem com o cartão de
-  status de acesso, o card de tráfego de hoje (somente leitura) e uma área
-  "Conteúdo liberado" em estado vazio, pronta para você plugar os dados
-  reais (vídeos, artes, aprovações).
-- **Metas e Tráfego são integrados, sem silos.** Não existe uma tabela
-  "clientes" separada — um cliente É um `profiles` com `role='cliente'`. A
-  `metas_diarias` (uma por cliente/dia) é a única dona da meta do dia; todo
-  `trafego_registros` está sempre amarrado a uma `metas_diarias` (nunca
-  solto) — é isso que garante a visão única [Cliente] → [Meta do Dia] →
-  [Status Atual] sem precisar cruzar tabelas soltas em cada tela. Ver
-  `supabase/schema.sql`, seção 5.
-- **Status de tráfego também nunca é gravado.** Igual ao status de acesso,
-  "Sem Meta / Abaixo da Meta / No Caminho / Meta Batida" é sempre calculado
-  em `lib/utils/trafego.ts` a partir da soma dos lançamentos do dia contra
-  `valor_investido_meta` — os limiares (60% = No Caminho, 100% = Meta
-  Batida) ficam num único lugar, fáceis de recalibrar.
-- **Uma única paleta de estado para tudo.** Badges de acesso, de tráfego e
-  de patrimônio usam o mesmo sistema de 4 tons (`lib/utils/tone.ts`: good/
-  warning/critical/neutral) — cor nunca é a única portadora de significado
-  (todo tone vem com ícone/rótulo), e o texto de estado nunca usa a cor
-  crítica diretamente (ver `danger` em `tailwind.config.ts`) para manter
-  contraste AA no fundo quase preto do app.
-- **Inventário é de uso exclusivo do admin.** Diferente de Metas/Tráfego
-  (que o cliente vê o próprio, somente leitura), `categorias_inventario` e
-  `itens_inventario` não têm nenhuma policy de RLS pra `cliente` — é um
-  controle interno da agência, não um dado do cliente. Toda etiqueta
-  (`itens_inventario`) é obrigatoriamente vinculada a uma categoria (FK
-  `on delete restrict`, ver `supabase/schema.sql` seção 6) — apagar uma
-  categoria com itens vinculados falha com uma mensagem amigável em vez de
-  apagar ou órfãar os itens.
-- **Status de patrimônio "Baixado" usa o tone `critical` de propósito.**
-  Numa auditoria visual, um bem marcado como baixado/descartado que ainda
-  aparece fisicamente em uso é a discrepância que mais importa notar — por
-  isso ele usa a cor mais chamativa da paleta, mesmo sendo um estado
-  "esperado" do ciclo de vida do bem (ver `lib/utils/inventario.ts`).
-- **Filtros do Inventário são client-side.** A tela de Itens & Etiquetas
-  busca a lista inteira uma vez do servidor (já com a categoria resolvida
-  via join) e filtra por busca/status/categoria inteiramente no navegador —
-  sem round-trip a cada clique, pensado pra alternar filtros rapidamente
-  numa auditoria visual.
+  todo login nasce de `auth.admin.inviteUserByEmail`, chamado a partir de
+  uma Server Action com a Service Role Key (`server-only`, nunca chega ao
+  navegador).
+- **Dinheiro nunca é uma coluna incrementada manualmente.** Saldo de conta e
+  limite de cartão são sempre somados a partir de `fin_transacoes` (views
+  `fin_contas_saldo`/`fin_cartoes_limite`) — evita a conta e a soma das
+  transações "descolarem" com o tempo. Pelo mesmo motivo, apagar uma conta/
+  cartão com transações vinculadas é bloqueado (`on delete restrict`, ver
+  `correcoes-auditoria.sql`) em vez de apagar o histórico em cascata.
+  Exclusão de conta/cartão só é permitida sem lançamentos.
+- **Upload grande vai direto do navegador pro Storage.** Entregas de
+  Produção e criativos de anúncio usam signed upload URL
+  (`createSignedUploadUrl` + `uploadToSignedUrl`) em vez de mandar o arquivo
+  pela Server Action — o corpo de uma function serverless (Vercel) trava em
+  4.5MB, incompatível com vídeo de verdade. O limite de tamanho de fato é
+  garantido pelo `file_size_limit` do bucket no Storage, não só por uma
+  checagem de UI.
+- **Buckets públicos nunca aceitam SVG.** `branding` e `infoprodutos` são
+  buckets públicos (a tela de login e os criativos de anúncio precisam
+  carregar sem sessão) — um upload de SVG malicioso vira XSS armazenado
+  servido do próprio domínio, então a allowlist de tipo (`lib/utils/upload.ts`)
+  é sempre por `Content-Type` explícito, nunca por prefixo `image/*`.
+- **Briefing de tarefa é sanitizado antes de salvar.** `RichTextEditor`
+  grava HTML (`prod_tarefas.briefing`), renderizado depois com
+  `dangerouslySetInnerHTML` — `sanitizarBriefingHtml()`
+  (`lib/utils/sanitize.ts`) roda em toda escrita, porque quem grava esse
+  campo pode ser um funcionário (não só admin) e quem lê pode ser um admin.
+- **RLS + Server Actions, em camadas — sempre as duas.** RLS
+  (`is_staff()`/`is_admin()`) barra por linha; toda Server Action roda
+  `requireAdmin()`/`requireModulo()` antes de qualquer coisa, inclusive
+  ações que usam a Service Role (que ignora RLS).
+- **Uma única paleta de estado para tudo.** Badges/Meters de acesso,
+  tráfego, aprovação de entrega e patrimônio usam o mesmo sistema de 4 tons
+  (`lib/utils/tone.ts`: good/warning/critical/neutral) — cor nunca é a
+  única portadora de significado.
 - **Branding é uma linha SINGLETON, lida a cada request, nunca derruba o
-  app.** `branding_config` tem sempre uma única linha (id fixo + trava
-  `unique` numa coluna booleana — dois cinturões pro mesmo paraquedas, ver
-  `supabase/schema.sql` seção 7). `getBrandingConfig()` nunca lança: se a
-  tabela ainda não existir (schema não rodado) ou a query falhar, o app cai
-  no `DEFAULT_BRANDING` (o mesmo visual de antes deste módulo existir) em
-  vez de quebrar a aplicação inteira.
-- **Cor dinâmica é injetada como CSS var no `<html>`, no servidor — sem
-  flash de cor errada.** O layout raiz lê a config e escreve
-  `--color-accent`/`--color-accent-strong`/`--color-accent-2`/`--primary`
-  direto no `style` do `<html>`, já no primeiro HTML enviado (nenhum JS de
-  cliente decide a cor). `tailwind.config.ts` só troca `accent`/`accent2`
-  pra esse formato dinâmico — `base`, `ink`, `status` e `danger` continuam
-  FIXOS e validados por contraste (skill de dataviz); branding troca a cor
-  de destaque, nunca a paleta de leitura/estado já auditada.
-- **RLS de `branding_config` e do bucket `branding` libera SELECT pra
-  `anon`, de propósito.** A tela de login precisa mostrar logo/cores/título
-  ANTES de qualquer sessão existir — é a única tabela do sistema com select
-  público, porque nada nela é sensível (é literalmente a identidade visual
-  pública da plataforma). Escrita continua só-admin nos dois casos.
-- **Upload salva sozinho; texto/cor só salva no botão.** Cada campo de
-  logo/favicon/fundo do login já grava a URL no banco assim que o upload
-  termina (ver `UploadField`/`uploadBrandingAsset`) — não faria sentido
-  exigir um segundo clique pra "confirmar" um arquivo que já foi enviado.
-  Cores, textos do login, tema e o padrão da sidebar ficam em estado local
-  até "Salvar Alterações", pra dar pro admin a chance de comparar no live
-  preview antes de aplicar pra todo mundo.
-- **Live preview reaproveita os componentes de verdade, não uma cópia.** O
-  painel de Aparência escopa as variáveis CSS de branding num `<div
-  style={...}>` ao redor só do preview — como `accent`/`accent2` do
-  Tailwind seguem a cascata normal de CSS custom properties, o mesmo
-  `<Button>` e as mesmas classes `bg-accent`/`border-accent` usadas no app
-  inteiro já respondem à cor ainda não salva, sem duplicar nenhum CSS.
-- **Sidebar do admin é uma exceção deliberada ao padrão "config só no
-  servidor".** Se expandida/recolhida vive em `localStorage` (preferência
-  por navegador, não por conta) — `sidebar_compacto_padrao` no banco é só o
-  estado INICIAL de uma sessão nova; depois disso, cada admin controla a
-  própria sidebar sem afetar os outros.
+  app.** `getBrandingConfig()` nunca lança — cai no `DEFAULT_BRANDING` se a
+  tabela ainda não existir ou a query falhar. É a única tabela do sistema
+  com `select` liberado pra `anon` (a tela de login precisa da identidade
+  visual antes de qualquer sessão existir).
+- **Cor dinâmica é injetada como CSS var no `<html>`, no servidor.** Sem
+  flash de cor errada — `base`, `ink`, `status` e `danger` continuam FIXOS e
+  validados por contraste; só `accent`/`accent2` são dinâmicos.
 
 ## Como rodar
 
 ### 1. Criar o projeto no Supabase
 
 1. Crie um projeto em [supabase.com](https://supabase.com).
-2. Vá em **SQL Editor**, cole o conteúdo de `supabase/schema.sql` e rode.
+2. No **SQL Editor**, rode os arquivos de `supabase/` **NESSA ORDEM** (cada
+   um depende de tabelas/funções criadas pelo anterior):
+   ```
+   schema.sql
+   cadastros.sql
+   financeiro.sql
+   producao.sql
+   comercial.sql
+   infoprodutos.sql
+   whatsapp.sql
+   patrimonio.sql
+   dashboard.sql
+   correcoes-auditoria.sql   -- por último, sempre — só ALTERA o que os outros criaram
+   ```
+   Todos são idempotentes — seguro rodar de novo se precisar reaplicar.
 3. Vá em **Authentication → Providers** e confirme que "Email" está
-   habilitado (login por e-mail/senha).
+   habilitado.
 4. Vá em **Authentication → URL Configuration** e cadastre a URL do seu
    site (ex: `http://localhost:3000` em dev, seu domínio em produção) tanto
-   em "Site URL" quanto na lista de "Redirect URLs" (necessário para o link
-   de convite funcionar).
+   em "Site URL" quanto em "Redirect URLs" (necessário pro link de convite).
 
 ### 2. Variáveis de ambiente
 
@@ -233,23 +235,31 @@ Ainda não existe nenhum usuário. No painel do Supabase:
    ```
 3. Faça login em `/login` — você cai direto em `/admin`.
 
-A partir daí, use o botão **"+ Convidar Cliente"** no painel para cadastrar
-os próximos usuários (eles recebem um e-mail para definir a própria senha).
+A partir daí, use **Cadastros → Equipe/Gerar Acesso** para convidar os
+próximos usuários (recebem um e-mail para definir a própria senha) e
+liberar os módulos de cada funcionário em `profiles.permissoes`.
 
 ### 5. Personalizar a identidade visual (opcional)
 
-O `supabase/schema.sql` já cria o bucket de Storage `branding` (público de
-leitura, só-admin de escrita) e a linha padrão de `branding_config` — não
-precisa de nenhum passo manual extra no Supabase. Basta acessar
-**Aparência** no menu do admin (`/admin/aparencia`) e enviar logo/favicon,
-escolher as cores ou um tema rápido, e customizar a tela de login. Tudo é
-aplicado pra todo mundo assim que você clica em "Salvar Alterações" — sem
-precisar de novo deploy.
+Acesse **Aparência** no menu do admin (`/admin/aparencia`) — logo, favicon,
+cores, tema e tela de login, tudo aplicado pra todo mundo assim que você
+clica em "Salvar Alterações", sem precisar de novo deploy.
 
-### 6. Produção
+### 6. WhatsApp (pendente)
+
+O webhook (`/api/whatsapp/webhook`) já está de pé, mas o *provider* real
+ainda não foi implementado (ver `AUDITORIA.md`) — hoje o módulo funciona só
+com o "provider" de desenvolvimento. Pra ligar de verdade, escolha um
+provedor (Twilio, Meta Cloud API, etc.), configure as credenciais e
+implemente a classe correspondente em `src/lib/whatsapp/provider.ts`.
+
+### 7. Produção
 
 - Configure as mesmas variáveis de ambiente na Vercel (ou onde for hospedar).
 - Atualize `NEXT_PUBLIC_SITE_URL` para o domínio real — é ele que monta o
   link de callback enviado no e-mail de convite.
 - Reconfirme "Site URL" / "Redirect URLs" no Supabase apontando pro domínio
-  de produção (o mesmo passo do item 1.4, mas com a URL final).
+  de produção.
+- Depois do deploy, confirme que `correcoes-auditoria.sql` já foi rodado no
+  banco de produção — é ele que ajusta os limites de tamanho/tipo dos
+  buckets de Storage usados pelos uploads diretos do navegador.

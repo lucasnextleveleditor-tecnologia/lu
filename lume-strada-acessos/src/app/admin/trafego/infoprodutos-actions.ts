@@ -3,14 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
 import { segundaFeiraISO, domingoISO } from "@/lib/utils/infoprodutos";
+import { ehImagemPermitida, ehVideoPermitido } from "@/lib/utils/upload";
 import type { TipoProduto } from "@/lib/types/infoprodutos";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
+export type UploadAssinadoCriativoResult =
+  | { ok: true; path: string; token: string; tipo: "imagem" | "video" }
+  | { ok: false; error: string };
 
 const PATH = "/admin/trafego";
 const BUCKET = "infoprodutos";
-const TAMANHO_MAX_BYTES = 80 * 1024 * 1024; // 80MB — criativo de anúncio pode ser vídeo MP4
 
 // ----------------------------------------------------------------------------
 // Produtos (Principal / Order Bump)
@@ -177,33 +180,46 @@ export async function removerAnuncio(id: string): Promise<ActionResult> {
   }
 }
 
-/** Upload do criativo (imagem ou MP4) — mesmo padrão de `enviarVersaoArquivo` em admin/producao/actions.ts. */
-export async function enviarCriativo(anuncioId: string, formData: FormData): Promise<ActionResult> {
+/**
+ * Passo 1/2 do upload do criativo — gera uma signed upload URL pro
+ * navegador subir o arquivo DIRETO pro Supabase Storage, mesmo motivo/
+ * mesmo padrão de `criarUploadAssinadoVersao` em `admin/producao/actions.ts`
+ * (o corpo de uma Server Action nunca alcança os 80MB previstos aqui — a
+ * Vercel trava toda function serverless em 4.5MB de corpo).
+ *
+ * A checagem de tipo continua aqui (allowlist, sem SVG — ver Crítico #3)
+ * ANTES de gerar a URL, como primeira camada; a segunda camada é o
+ * `allowed_mime_types` do bucket "infoprodutos" (ver
+ * `supabase/correcoes-auditoria.sql`), que vale mesmo se esse tipo aqui for
+ * contornado.
+ */
+export async function criarUploadAssinadoCriativo(anuncioId: string, nomeArquivo: string, contentType: string): Promise<UploadAssinadoCriativoResult> {
   try {
     const { supabase } = await requireModulo("trafego");
-    const file = formData.get("file");
 
-    if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Selecione um arquivo." };
-    if (file.size > TAMANHO_MAX_BYTES) return { ok: false, error: "Arquivo muito grande (máximo 80MB)." };
+    const tipo: "imagem" | "video" | null = ehImagemPermitida(contentType) ? "imagem" : ehVideoPermitido(contentType) ? "video" : null;
+    if (!tipo) return { ok: false, error: "Envie uma imagem (PNG, JPG, WEBP ou GIF) ou um vídeo (MP4, WEBM ou MOV). SVG não é permitido." };
 
-    const tipo: "imagem" | "video" | null = file.type.startsWith("image/")
-      ? "imagem"
-      : file.type.startsWith("video/")
-        ? "video"
-        : null;
-    if (!tipo) return { ok: false, error: "Envie uma imagem (print) ou um vídeo MP4." };
-
-    const extensao = file.name.includes(".") ? file.name.split(".").pop() : null;
+    const extensao = nomeArquivo.includes(".") ? nomeArquivo.split(".").pop() : null;
     const caminho = `${anuncioId}/${Date.now()}${extensao ? `.${extensao}` : ""}`;
 
-    const { error: erroUpload } = await supabase.storage.from(BUCKET).upload(caminho, file, {
-      contentType: file.type || undefined,
-    });
-    if (erroUpload) return { ok: false, error: erroUpload.message };
+    const { data, error } = await supabase.storage.from(BUCKET).createSignedUploadUrl(caminho);
+    if (error || !data) return { ok: false, error: error?.message ?? "Não foi possível preparar o upload." };
+
+    return { ok: true, path: caminho, token: data.token, tipo };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/** Passo 2/2 — depois que o navegador já subiu o arquivo (via `criarUploadAssinadoCriativo`), grava o path/tipo no anúncio. */
+export async function confirmarCriativo(anuncioId: string, input: { path: string; tipo: "imagem" | "video" }): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("trafego");
 
     const { error } = await supabase
       .from("anuncios_tracking")
-      .update({ criativo_path: caminho, criativo_tipo: tipo })
+      .update({ criativo_path: input.path, criativo_tipo: input.tipo })
       .eq("id", anuncioId);
     if (error) return { ok: false, error: error.message };
 

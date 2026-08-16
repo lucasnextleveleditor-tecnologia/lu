@@ -30,6 +30,7 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
   const [filtroTipo, setFiltroTipo] = useState<string>(TODOS);
   const [modalAberto, setModalAberto] = useState(false);
+  const [transacaoEditando, setTransacaoEditando] = useState<TransacaoComRelacoes | null>(null);
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -214,6 +215,14 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
+                            onClick={() => setTransacaoEditando(t)}
+                            disabled={pending}
+                            className="px-3 py-1.5 text-xs"
+                          >
+                            Editar
+                          </Button>
+                          <Button
+                            variant="ghost"
                             onClick={() => handleTogglePago(t)}
                             disabled={pending}
                             className="px-3 py-1.5 text-xs"
@@ -240,13 +249,17 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
         )}
       </div>
 
-      {modalAberto && (
+      {(modalAberto || transacaoEditando) && (
         <TransacaoModal
           contas={contas}
           cartoes={cartoes}
           categorias={categorias}
           contextoInicial={contexto}
-          onClose={() => setModalAberto(false)}
+          transacaoParaEditar={transacaoEditando}
+          onClose={() => {
+            setModalAberto(false);
+            setTransacaoEditando(null);
+          }}
         />
       )}
     </Card>

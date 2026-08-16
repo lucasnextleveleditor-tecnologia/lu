@@ -35,7 +35,11 @@ export async function removerConta(id: string): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("financeiro");
     const { error } = await supabase.from("fin_contas").delete().eq("id", id);
-    if (error) return { ok: false, error: error.message };
+    // Código 23503 = violação de chave estrangeira (ver `correcoes-auditoria.sql`:
+    // `fin_transacoes.conta_id`/`conta_destino_id` passaram de `on delete cascade`
+    // para `on delete restrict` de propósito, pra impedir que apagar uma conta
+    // apague silenciosamente todo o histórico financeiro ligado a ela).
+    if (error) return { ok: false, error: error.code === "23503" ? "Essa conta tem transações lançadas — remova ou mude a conta delas antes de excluir." : error.message };
     revalidatePath(PATH);
     return { ok: true };
   } catch (err) {
@@ -76,7 +80,7 @@ export async function removerCartao(id: string): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("financeiro");
     const { error } = await supabase.from("fin_cartoes").delete().eq("id", id);
-    if (error) return { ok: false, error: error.message };
+    if (error) return { ok: false, error: error.code === "23503" ? "Esse cartão tem transações lançadas — remova ou mude o cartão delas antes de excluir." : error.message };
     revalidatePath(PATH);
     return { ok: true };
   } catch (err) {
@@ -164,6 +168,52 @@ export async function criarTransacao(input: CriarTransacaoInput): Promise<Action
       pago: input.jaPaga,
       data_pagamento: input.jaPaga ? new Date().toISOString() : null,
     });
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Edita uma transação já lançada. Mesmas validações de `criarTransacao` —
+ * antes dessa função a única forma de corrigir um erro de digitação (valor,
+ * descrição, data, categoria...) era excluir o lançamento inteiro e recriar
+ * do zero, perdendo o histórico de quando foi criado.
+ */
+export async function atualizarTransacao(id: string, input: CriarTransacaoInput): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+
+    if (!input.descricao.trim()) return { ok: false, error: "Informe uma descrição." };
+    if (input.valor <= 0) return { ok: false, error: "O valor precisa ser maior que zero." };
+
+    if (input.tipo === "transferencia") {
+      if (!input.contaId || !input.contaDestinoId) return { ok: false, error: "Selecione a conta de origem e a de destino." };
+      if (input.contaId === input.contaDestinoId) return { ok: false, error: "A conta de origem e destino não podem ser a mesma." };
+    } else if (!input.contaId && !input.cartaoId) {
+      return { ok: false, error: "Selecione a conta ou o cartão dessa transação." };
+    }
+
+    const { error } = await supabase
+      .from("fin_transacoes")
+      .update({
+        tipo: input.tipo,
+        descricao: input.descricao.trim(),
+        valor: input.valor,
+        categoria_id: input.tipo === "transferencia" ? null : input.categoriaId,
+        contexto: input.contexto,
+        conta_id: input.tipo === "transferencia" ? input.contaId : input.cartaoId ? null : input.contaId,
+        conta_destino_id: input.tipo === "transferencia" ? input.contaDestinoId : null,
+        cartao_id: input.tipo === "transferencia" ? null : input.cartaoId,
+        recorrente: input.recorrente,
+        recorrencia_intervalo: input.recorrente ? input.recorrenciaIntervalo : null,
+        data_vencimento: input.dataVencimento,
+        pago: input.jaPaga,
+        data_pagamento: input.jaPaga ? new Date().toISOString() : null,
+      })
+      .eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
     return { ok: true };

@@ -1,6 +1,18 @@
 import type { PrioridadeTarefa, StatusAprovacaoVersao, StatusTarefa, SubtarefaRow, TarefaRow } from "@/lib/types/producao";
 import type { Tone } from "@/lib/utils/tone";
 
+/**
+ * Limite de tamanho pra upload de versão de entrega — só um AVISO pro
+ * usuário antes de começar o upload (o upload real vai direto do navegador
+ * pro Supabase Storage via signed URL, ver `criarUploadAssinadoVersao` em
+ * `src/app/admin/producao/actions.ts`). O limite que de fato vale é o
+ * `file_size_limit` configurado no bucket "producao" (ver
+ * `supabase/correcoes-auditoria.sql`) — se os dois valores um dia
+ * divergirem, o Storage recusa e o usuário vê o erro dele, só que depois de
+ * esperar o upload inteiro. Mantenha os dois em sincronia.
+ */
+export const ENTREGA_TAMANHO_MAX_BYTES = 50 * 1024 * 1024; // 50MB
+
 /** Ordem fixa das colunas do Kanban — a mesma ordem é usada no dropdown de status da Lista/detalhe. */
 export const STATUS_TAREFA_ORDEM: StatusTarefa[] = [
   "backlog",

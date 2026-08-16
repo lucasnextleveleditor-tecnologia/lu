@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireModulo } from "@/lib/auth/requireAdmin";
+import { requireAdmin, requireModulo } from "@/lib/auth/requireAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { OrigemLead, StatusLead } from "@/lib/types/comercial";
 
@@ -146,7 +146,14 @@ export async function criarAnotacao(leadId: string, nota: string, proximoContato
 // ----------------------------------------------------------------------------
 export async function converterLeadEmCliente(leadId: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireModulo("comercial");
+    // Admin-only de propósito (igual Equipe/Aparência em requireAdmin.ts) —
+    // essa ação cria uma conta de acesso de verdade via Service Role
+    // (`admin.auth.admin.inviteUserByEmail`), não é só um CRUD dentro do
+    // módulo Comercial. Antes usava `requireModulo("comercial")`, que
+    // deixava qualquer funcionário com a permissão "Comercial" ligada capaz
+    // de criar contas de login — a mesma ação sensível que só admin pode
+    // fazer em Equipe/Gerar Acesso.
+    const { supabase } = await requireAdmin();
 
     const { data: lead, error: erroLead } = await supabase.from("crm_leads").select("nome, email, cliente_id").eq("id", leadId).single();
     if (erroLead || !lead) return { ok: false, error: erroLead?.message ?? "Lead não encontrado." };

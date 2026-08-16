@@ -1,8 +1,16 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import type { CartaoComLimite, CategoriaRow, ContaComSaldo, FinContexto, FinRecorrencia, FinTipoTransacao } from "@/lib/types/financeiro";
-import { criarTransacao } from "@/app/admin/financeiro/actions";
+import type {
+  CartaoComLimite,
+  CategoriaRow,
+  ContaComSaldo,
+  FinContexto,
+  FinRecorrencia,
+  FinTipoTransacao,
+  TransacaoComRelacoes,
+} from "@/lib/types/financeiro";
+import { atualizarTransacao, criarTransacao } from "@/app/admin/financeiro/actions";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -13,6 +21,8 @@ interface TransacaoModalProps {
   cartoes: CartaoComLimite[];
   categorias: CategoriaRow[];
   contextoInicial: "todos" | FinContexto;
+  /** Quando presente, o modal abre em modo edição pré-preenchido com essa transação (ver `TransacoesManager`). */
+  transacaoParaEditar?: TransacaoComRelacoes | null;
   onClose: () => void;
 }
 
@@ -22,20 +32,23 @@ const TIPO_OPCOES: { value: FinTipoTransacao; label: string }[] = [
   { value: "transferencia", label: "Transferência" },
 ];
 
-export function TransacaoModal({ contas, cartoes, categorias, contextoInicial, onClose }: TransacaoModalProps) {
-  const [tipo, setTipo] = useState<FinTipoTransacao>("despesa");
-  const [descricao, setDescricao] = useState("");
-  const [valor, setValor] = useState("");
-  const [contexto, setContexto] = useState<FinContexto>(contextoInicial === "todos" ? "profissional" : (contextoInicial as FinContexto));
-  const [fonte, setFonte] = useState<"conta" | "cartao">("conta");
-  const [contaId, setContaId] = useState("");
-  const [contaDestinoId, setContaDestinoId] = useState("");
-  const [cartaoId, setCartaoId] = useState("");
-  const [categoriaId, setCategoriaId] = useState("");
-  const [recorrente, setRecorrente] = useState(false);
-  const [recorrenciaIntervalo, setRecorrenciaIntervalo] = useState<FinRecorrencia>("mensal");
-  const [dataVencimento, setDataVencimento] = useState(new Date().toISOString().slice(0, 10));
-  const [jaPaga, setJaPaga] = useState(true);
+export function TransacaoModal({ contas, cartoes, categorias, contextoInicial, transacaoParaEditar, onClose }: TransacaoModalProps) {
+  const editando = transacaoParaEditar ?? null;
+  const [tipo, setTipo] = useState<FinTipoTransacao>(editando?.tipo ?? "despesa");
+  const [descricao, setDescricao] = useState(editando?.descricao ?? "");
+  const [valor, setValor] = useState(editando ? String(editando.valor) : "");
+  const [contexto, setContexto] = useState<FinContexto>(
+    editando?.contexto ?? (contextoInicial === "todos" ? "profissional" : (contextoInicial as FinContexto))
+  );
+  const [fonte, setFonte] = useState<"conta" | "cartao">(editando?.cartao_id ? "cartao" : "conta");
+  const [contaId, setContaId] = useState(editando?.conta_id ?? "");
+  const [contaDestinoId, setContaDestinoId] = useState(editando?.conta_destino_id ?? "");
+  const [cartaoId, setCartaoId] = useState(editando?.cartao_id ?? "");
+  const [categoriaId, setCategoriaId] = useState(editando?.categoria_id ?? "");
+  const [recorrente, setRecorrente] = useState(editando?.recorrente ?? false);
+  const [recorrenciaIntervalo, setRecorrenciaIntervalo] = useState<FinRecorrencia>(editando?.recorrencia_intervalo ?? "mensal");
+  const [dataVencimento, setDataVencimento] = useState(editando?.data_vencimento ?? new Date().toISOString().slice(0, 10));
+  const [jaPaga, setJaPaga] = useState(editando?.pago ?? true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,7 +77,7 @@ export function TransacaoModal({ contas, cartoes, categorias, contextoInicial, o
     }
 
     setLoading(true);
-    const result = await criarTransacao({
+    const payload = {
       tipo,
       descricao,
       valor: Number(valor) || 0,
@@ -77,7 +90,8 @@ export function TransacaoModal({ contas, cartoes, categorias, contextoInicial, o
       recorrenciaIntervalo: recorrente ? recorrenciaIntervalo : null,
       dataVencimento,
       jaPaga,
-    });
+    };
+    const result = editando ? await atualizarTransacao(editando.id, payload) : await criarTransacao(payload);
 
     setLoading(false);
     if (!result.ok) {
@@ -94,7 +108,7 @@ export function TransacaoModal({ contas, cartoes, categorias, contextoInicial, o
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-base font-semibold">Nova Transação</h3>
+          <h3 className="text-base font-semibold">{editando ? "Editar Transação" : "Nova Transação"}</h3>
           <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label="Fechar">
             ×
           </button>
@@ -303,7 +317,7 @@ export function TransacaoModal({ contas, cartoes, categorias, contextoInicial, o
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Salvando..." : "Lançar Transação"}
+              {loading ? "Salvando..." : editando ? "Salvar Alterações" : "Lançar Transação"}
             </Button>
           </div>
         </form>

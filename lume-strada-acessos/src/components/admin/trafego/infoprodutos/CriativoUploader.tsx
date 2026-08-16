@@ -1,8 +1,12 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { enviarCriativo, removerCriativo } from "@/app/admin/trafego/infoprodutos-actions";
+import { confirmarCriativo, criarUploadAssinadoCriativo, removerCriativo } from "@/app/admin/trafego/infoprodutos-actions";
+import { CRIATIVO_TAMANHO_MAX_BYTES } from "@/lib/utils/infoprodutos";
+import { createClient } from "@/lib/supabase/client";
 import { IconUpload, IconTrash } from "@/components/ui/icons";
+
+const BUCKET_INFOPRODUTOS = "infoprodutos";
 
 interface CriativoUploaderProps {
   anuncioId: string;
@@ -18,15 +22,38 @@ export function CriativoUploader({ anuncioId, criativoUrl, criativoTipo }: Criat
 
   function handleArquivoSelecionado(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
     setError(null);
-    const formData = new FormData();
-    formData.append("file", file);
+
+    if (file.size > CRIATIVO_TAMANHO_MAX_BYTES) {
+      setError("Arquivo muito grande (máximo 80MB).");
+      return;
+    }
+
     startTransition(async () => {
-      const result = await enviarCriativo(anuncioId, formData);
+      // 1/3 — pede a signed upload URL (também valida o tipo do arquivo).
+      const assinado = await criarUploadAssinadoCriativo(anuncioId, file.name, file.type);
+      if (!assinado.ok) {
+        setError(assinado.error);
+        return;
+      }
+
+      // 2/3 — sobe direto pro Storage a partir do navegador (ver comentário
+      // em `criarUploadAssinadoCriativo` — contorna o limite de corpo da Vercel).
+      const supabase = createClient();
+      const { error: erroUpload } = await supabase.storage
+        .from(BUCKET_INFOPRODUTOS)
+        .uploadToSignedUrl(assinado.path, assinado.token, file, { contentType: file.type || undefined });
+      if (erroUpload) {
+        setError(erroUpload.message);
+        return;
+      }
+
+      // 3/3 — confirma: grava o path/tipo no anúncio.
+      const result = await confirmarCriativo(anuncioId, { path: assinado.path, tipo: assinado.tipo });
       if (!result.ok) setError(result.error);
     });
-    e.target.value = "";
   }
 
   function handleRemover() {

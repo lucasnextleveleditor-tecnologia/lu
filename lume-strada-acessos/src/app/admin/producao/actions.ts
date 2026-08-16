@@ -2,16 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
+import { sanitizarBriefingHtml } from "@/lib/utils/sanitize";
+import { ehExtensaoPerigosaParaEntrega } from "@/lib/utils/upload";
 import type { PrioridadeTarefa, StatusTarefa } from "@/lib/types/producao";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
 export type UploadResult = { ok: true; id: string } | { ok: false; error: string };
 export type SignedUrlResult = { ok: true; url: string } | { ok: false; error: string };
+export type UploadAssinadoResult = { ok: true; path: string; token: string; versao: number } | { ok: false; error: string };
 
 const PATH = "/admin/producao";
 const BUCKET = "producao";
-const TAMANHO_MAX_BYTES = 50 * 1024 * 1024; // 50MB — arquivos de produção (vídeo/imagem) são maiores que os de branding
 
 // ----------------------------------------------------------------------------
 // Funcionários (Responsável) & Tipos de Serviço — cadastros de apoio.
@@ -89,7 +91,7 @@ export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
       .from("prod_tarefas")
       .insert({
         titulo: input.titulo.trim(),
-        briefing: input.briefing?.trim() || null,
+        briefing: input.briefing?.trim() ? sanitizarBriefingHtml(input.briefing.trim()) : null,
         cliente_id: input.clienteId,
         responsavel_id: input.responsavelId,
         tipo_servico_id: input.tipoServicoId,
@@ -117,7 +119,7 @@ export async function atualizarTarefa(id: string, input: TarefaInput): Promise<A
       .from("prod_tarefas")
       .update({
         titulo: input.titulo.trim(),
-        briefing: input.briefing?.trim() || null,
+        briefing: input.briefing?.trim() ? sanitizarBriefingHtml(input.briefing.trim()) : null,
         cliente_id: input.clienteId,
         responsavel_id: input.responsavelId,
         tipo_servico_id: input.tipoServicoId,
@@ -245,34 +247,69 @@ async function proximaVersaoDe(supabase: Awaited<ReturnType<typeof requireModulo
   return ((data?.[0]?.versao as number | undefined) ?? 0) + 1;
 }
 
-/** Envia uma NOVA VERSÃO (arquivo) pra uma entrega — nunca sobrescreve, sempre soma +1. Coloca a tarefa em "Preview Cliente". */
-export async function enviarVersaoArquivo(tarefaId: string, entregaId: string, formData: FormData): Promise<UploadResult> {
+/**
+ * Passo 1/2 do upload de uma NOVA VERSÃO de entrega — gera uma signed
+ * upload URL do Supabase Storage e devolve o token pro navegador subir o
+ * arquivo DIRETO pro Storage, sem passar pela Server Action.
+ *
+ * Existe por causa de um limite que não dava pra contornar do lado de cá:
+ * uma Server Action do Next.js tem corpo de request limitado (1MB por
+ * padrão) e, mesmo configurando isso, a Vercel trava toda function
+ * serverless em 4.5MB de corpo — então `TAMANHO_MAX_BYTES = 50MB` nunca foi
+ * alcançável em produção, o upload de qualquer arquivo de vídeo real
+ * falhava silenciosamente com erro genérico da plataforma. Com signed
+ * upload URL, o Next.js só troca metadados pequenos (nome, path) — os bytes
+ * do arquivo vão direto do navegador pro Storage.
+ *
+ * O limite de tamanho real passa a ser garantido pelo próprio bucket
+ * (`file_size_limit`, ver `supabase/correcoes-auditoria.sql`) — a UI só
+ * mostra um aviso antes (`ENTREGA_TAMANHO_MAX_BYTES` em
+ * `src/lib/utils/producao.ts`) pra dar feedback imediato sem esperar o
+ * Storage recusar depois do upload inteiro.
+ */
+export async function criarUploadAssinadoVersao(entregaId: string, nomeArquivo: string): Promise<UploadAssinadoResult> {
   try {
-    const { supabase, user } = await requireModulo("producao");
-    const file = formData.get("file");
+    const { supabase } = await requireModulo("producao");
 
-    if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Selecione um arquivo." };
-    if (file.size > TAMANHO_MAX_BYTES) return { ok: false, error: "Arquivo muito grande (máximo 50MB)." };
+    // Sem allowlist de tipo aqui de propósito (ver comentário em
+    // `ehExtensaoPerigosaParaEntrega`, em `src/lib/utils/upload.ts`) — só
+    // bloqueia o que pode ser aberto como página (HTML/SVG) pelo navegador.
+    if (ehExtensaoPerigosaParaEntrega(nomeArquivo)) {
+      return { ok: false, error: "Arquivos HTML/SVG não podem ser enviados como entrega — exporte como PDF, imagem ou vídeo." };
+    }
 
     const proximaVersao = await proximaVersaoDe(supabase, entregaId);
-    const extensao = file.name.includes(".") ? file.name.split(".").pop() : null;
+    const extensao = nomeArquivo.includes(".") ? nomeArquivo.split(".").pop() : null;
     const caminho = `${entregaId}/v${proximaVersao}-${Date.now()}${extensao ? `.${extensao}` : ""}`;
 
-    const { error: erroUpload } = await supabase.storage.from(BUCKET).upload(caminho, file, {
-      contentType: file.type || undefined,
-    });
-    if (erroUpload) return { ok: false, error: erroUpload.message };
+    const { data, error } = await supabase.storage.from(BUCKET).createSignedUploadUrl(caminho);
+    if (error || !data) return { ok: false, error: error?.message ?? "Não foi possível preparar o upload." };
+
+    return { ok: true, path: caminho, token: data.token, versao: proximaVersao };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/** Passo 2/2 — depois que o navegador já subiu o arquivo pro Storage (via `criarUploadAssinadoVersao`), grava a linha da versão e coloca a tarefa em "Preview Cliente". */
+export async function confirmarVersaoArquivo(
+  tarefaId: string,
+  entregaId: string,
+  input: { path: string; versao: number; nomeArquivo: string; tamanhoBytes: number; tipoMime: string | null }
+): Promise<UploadResult> {
+  try {
+    const { supabase, user } = await requireModulo("producao");
 
     const { data, error } = await supabase
       .from("prod_entrega_versoes")
       .insert({
         entrega_id: entregaId,
-        versao: proximaVersao,
+        versao: input.versao,
         tipo: "arquivo",
-        storage_path: caminho,
-        nome_arquivo: file.name,
-        tamanho_bytes: file.size,
-        tipo_mime: file.type || null,
+        storage_path: input.path,
+        nome_arquivo: input.nomeArquivo,
+        tamanho_bytes: input.tamanhoBytes,
+        tipo_mime: input.tipoMime,
         enviado_por: user.id,
       })
       .select("id")
@@ -287,7 +324,7 @@ export async function enviarVersaoArquivo(tarefaId: string, entregaId: string, f
   }
 }
 
-/** Mesma lógica de `enviarVersaoArquivo`, mas pra um LINK externo (Vimeo/Drive/Frame.io) em vez de upload. */
+/** Mesma lógica de `confirmarVersaoArquivo`, mas pra um LINK externo (Vimeo/Drive/Frame.io) em vez de upload. */
 export async function enviarVersaoLink(
   tarefaId: string,
   entregaId: string,

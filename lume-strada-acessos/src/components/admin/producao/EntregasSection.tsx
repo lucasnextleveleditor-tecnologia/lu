@@ -4,19 +4,23 @@ import { useRef, useState, useTransition } from "react";
 import type { EntregaComVersoes } from "@/lib/types/producao";
 import {
   aprovarVersao,
+  confirmarVersaoArquivo,
   criarEntrega,
-  enviarVersaoArquivo,
+  criarUploadAssinadoVersao,
   enviarVersaoLink,
   getUrlDownload,
   removerEntrega,
   solicitarAlteracaoVersao,
 } from "@/app/admin/producao/actions";
-import { STATUS_APROVACAO_META, fmtTamanhoArquivo } from "@/lib/utils/producao";
+import { ENTREGA_TAMANHO_MAX_BYTES, STATUS_APROVACAO_META, fmtTamanhoArquivo } from "@/lib/utils/producao";
 import { fmtDataHora } from "@/lib/utils/status";
+import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { IconCheck, IconExternalLink, IconPaperclip, IconRotateCcw } from "@/components/ui/icons";
+
+const BUCKET_PRODUCAO = "producao";
 
 interface EntregasSectionProps {
   tarefaId: string;
@@ -80,10 +84,42 @@ function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: Entrega
     e.target.value = "";
     if (!file) return;
     setError(null);
-    const formData = new FormData();
-    formData.append("file", file);
+
+    if (file.size > ENTREGA_TAMANHO_MAX_BYTES) {
+      setError("Arquivo muito grande (máximo 50MB).");
+      return;
+    }
+
     startTransition(async () => {
-      const result = await enviarVersaoArquivo(tarefaId, entrega.id, formData);
+      // 1/3 — pede uma signed upload URL (checa permissão do módulo e já
+      // reserva o path/versão no servidor).
+      const assinado = await criarUploadAssinadoVersao(entrega.id, file.name);
+      if (!assinado.ok) {
+        setError(assinado.error);
+        return;
+      }
+
+      // 2/3 — sobe o arquivo DIRETO pro Supabase Storage a partir do
+      // navegador, sem passar pela Server Action (ver comentário em
+      // `criarUploadAssinadoVersao` — é o que permite arquivo grande de
+      // verdade em produção, contornando o limite de corpo da Vercel).
+      const supabase = createClient();
+      const { error: erroUpload } = await supabase.storage
+        .from(BUCKET_PRODUCAO)
+        .uploadToSignedUrl(assinado.path, assinado.token, file, { contentType: file.type || undefined });
+      if (erroUpload) {
+        setError(erroUpload.message);
+        return;
+      }
+
+      // 3/3 — confirma o envio: grava a linha da versão e move a tarefa pra "Preview Cliente".
+      const result = await confirmarVersaoArquivo(tarefaId, entrega.id, {
+        path: assinado.path,
+        versao: assinado.versao,
+        nomeArquivo: file.name,
+        tamanhoBytes: file.size,
+        tipoMime: file.type || null,
+      });
       if (!result.ok) setError(result.error);
       else setModoEnvio("nenhum");
     });

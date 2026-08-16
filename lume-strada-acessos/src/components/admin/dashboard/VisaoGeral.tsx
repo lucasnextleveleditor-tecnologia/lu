@@ -11,7 +11,8 @@ interface VisaoGeralProps {
   tarefasAtrasadas: number;
   leadsEmAberto: number;
   followUpsAtrasados: number;
-  saldoConsolidado: number;
+  /** `null` quando o usuário logado não tem permissão do módulo Financeiro — o card some, em vez de mostrar saldo pra quem não devia ver (ver `src/app/admin/dashboard/page.tsx`). */
+  saldoConsolidado: number | null;
   agendaHoje: {
     captacoes: TarefaAgendaItem[];
     entregas: TarefaAgendaItem[];
@@ -48,7 +49,9 @@ export function VisaoGeral({
           tone={followUpsAtrasados > 0 ? "warning" : "neutral"}
           hint="Próximo contato já venceu"
         />
-        <StatTile icon={IconWallet} label="Saldo Consolidado" value={fmtBRL(saldoConsolidado)} hint="Soma de todas as contas" />
+        {saldoConsolidado !== null && (
+          <StatTile icon={IconWallet} label="Saldo Consolidado" value={fmtBRL(saldoConsolidado)} hint="Soma das contas profissionais" />
+        )}
       </div>
 
       <AgendaDoDia

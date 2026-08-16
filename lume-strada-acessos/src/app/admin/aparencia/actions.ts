@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { BRANDING_CONFIG_ID } from "@/lib/branding/constants";
+import { ehImagemPermitida } from "@/lib/utils/upload";
 import type { LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -26,7 +27,7 @@ export async function uploadBrandingAsset(campo: CampoUpload, formData: FormData
 
     if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Selecione um arquivo." };
     if (file.size > TAMANHO_MAX_BYTES) return { ok: false, error: "Arquivo muito grande (máximo 3MB)." };
-    if (!file.type.startsWith("image/")) return { ok: false, error: "Envie um arquivo de imagem." };
+    if (!ehImagemPermitida(file.type)) return { ok: false, error: "Envie um arquivo de imagem (PNG, JPG, WEBP ou GIF). SVG não é permitido." };
 
     const extensao = file.name.split(".").pop()?.toLowerCase() || "png";
     const caminho = `${campo}/${Date.now()}.${extensao}`;

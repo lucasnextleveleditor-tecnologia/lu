@@ -1,5 +1,15 @@
 import type { Tone } from "@/lib/utils/tone";
 
+/**
+ * Aviso de tamanho pro criativo do anúncio, ANTES de começar o upload — o
+ * upload de verdade vai direto do navegador pro Supabase Storage via signed
+ * URL (ver `criarUploadAssinadoCriativo` em
+ * `src/app/admin/trafego/infoprodutos-actions.ts`); quem garante o limite
+ * de fato é o `file_size_limit` do bucket "infoprodutos" (ver
+ * `supabase/correcoes-auditoria.sql`). Mantenha os dois valores em sincronia.
+ */
+export const CRIATIVO_TAMANHO_MAX_BYTES = 80 * 1024 * 1024; // 80MB — criativo de anúncio pode ser vídeo MP4
+
 // ----------------------------------------------------------------------------
 // Semana (segunda a domingo) — a unidade do "Fechamento". Matemática de data
 // em UTC (mesmo padrão de `lib/utils/dashboard.ts`) pra nunca escorregar de
