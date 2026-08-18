@@ -144,6 +144,7 @@ export interface ProducaoDict {
   funcionarioPlaceholder: string;
   tiposServicoTitulo: string;
   tipoServicoPlaceholder: string;
+  gerenciar: string;
 }
 
 export const producao: ProducaoDict = {
@@ -264,4 +265,5 @@ export const producao: ProducaoDict = {
   funcionarioPlaceholder: "Ex: Ana Paula",
   tiposServicoTitulo: "Tipos de Serviço",
   tipoServicoPlaceholder: "Ex: Edição de Vídeo",
+  gerenciar: "Gerenciar",
 };

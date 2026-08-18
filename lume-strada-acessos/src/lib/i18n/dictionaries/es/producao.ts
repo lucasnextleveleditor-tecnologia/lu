@@ -118,4 +118,5 @@ export const producao: ProducaoDict = {
   funcionarioPlaceholder: "Ej: Ana Paula",
   tiposServicoTitulo: "Tipos de Servicio",
   tipoServicoPlaceholder: "Ej: Edición de Video",
+  gerenciar: "Gestionar",
 };

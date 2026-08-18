@@ -104,10 +104,15 @@ create policy "clientes_staff_all" on public.clientes
 
 -- ----------------------------------------------------------------------------
 -- 3. EQUIPE_MEMBROS — cadastro completo de RH/acesso da equipe.
--- INTENCIONALMENTE separado de `prod_funcionarios` (o dropdown simples
--- "Responsável" das tarefas de Produção, que continua existindo do jeito
--- que está — são conceitos diferentes, ver comentário no tipo TS
--- `EquipeMembroRow`).
+-- Continua sendo uma tabela SEPARADA de `prod_funcionarios` (o dropdown
+-- simples "Responsável" das tarefas de Produção — são conceitos diferentes,
+-- ver comentário no tipo TS `EquipeMembroRow`), mas desde
+-- `producao-sync-funcionarios.sql` os dois ficam SINCRONIZADOS: todo membro
+-- criado/renomeado aqui gera (via trigger) um espelho automático em
+-- `prod_funcionarios`, então cadastrar alguém em Cadastros → Equipe já basta
+-- pra essa pessoa aparecer como opção de Responsável em Produção — não é
+-- mais preciso cadastrar o nome de novo nas Configurações de Produção. Rode
+-- esse script DEPOIS deste arquivo (precisa de `equipe_membros` já existindo).
 -- ----------------------------------------------------------------------------
 create table if not exists public.equipe_membros (
   id uuid primary key default gen_random_uuid(),

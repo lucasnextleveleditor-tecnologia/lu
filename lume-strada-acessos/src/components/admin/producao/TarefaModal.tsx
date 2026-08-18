@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
+import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -39,6 +40,7 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
   const [dataEntrega, setDataEntrega] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [gerenciarServicosAberto, setGerenciarServicosAberto] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -96,7 +98,16 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
               </Select>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.tipoServicoLabel}</label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-medium text-ink-secondary">{dict.producao.tipoServicoLabel}</label>
+                <button
+                  type="button"
+                  onClick={() => setGerenciarServicosAberto(true)}
+                  className="text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
+                >
+                  {dict.producao.gerenciar}
+                </button>
+              </div>
               <Select value={tipoServicoId} onChange={(e) => setTipoServicoId(e.target.value)}>
                 <option value="">{dict.common.semCategoria}</option>
                 {tiposServico.map((t) => (
@@ -168,6 +179,10 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
           </div>
         </form>
       </div>
+
+      {gerenciarServicosAberto && (
+        <GerenciarTiposServicoModal tiposServico={tiposServico} onClose={() => setGerenciarServicosAberto(false)} />
+      )}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/Badge";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
 import { SubtarefasChecklist } from "@/components/admin/producao/SubtarefasChecklist";
 import { EntregasSection } from "@/components/admin/producao/EntregasSection";
+import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -54,6 +55,7 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
+  const [gerenciarServicosAberto, setGerenciarServicosAberto] = useState(false);
 
   const atrasada = isTarefaAtrasada(tarefa);
 
@@ -154,7 +156,16 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
               </Select>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.tipoServicoLabel}</label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-medium text-ink-secondary">{dict.producao.tipoServicoLabel}</label>
+                <button
+                  type="button"
+                  onClick={() => setGerenciarServicosAberto(true)}
+                  className="text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
+                >
+                  {dict.producao.gerenciar}
+                </button>
+              </div>
               <Select value={tipoServicoId} onChange={(e) => setTipoServicoId(e.target.value)}>
                 <option value="">{dict.common.semCategoria}</option>
                 {tiposServico.map((t) => (
@@ -247,6 +258,10 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
           <EntregasSection tarefaId={tarefa.id} entregas={entregas} />
         </div>
       </div>
+
+      {gerenciarServicosAberto && (
+        <GerenciarTiposServicoModal tiposServico={tiposServico} onClose={() => setGerenciarServicosAberto(false)} />
+      )}
     </div>
   );
 }
