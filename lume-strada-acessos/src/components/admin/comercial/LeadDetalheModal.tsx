@@ -8,6 +8,7 @@ import { STATUS_LEAD_ORDEM } from "@/lib/utils/comercial";
 import { fmtDataHora } from "@/lib/utils/status";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { IconCheck } from "@/components/ui/icons";
@@ -247,7 +248,7 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.comercial.previsaoFechamentoLabel}</label>
-              <Input type="date" value={dataPrevistaFechamento} onChange={(e) => setDataPrevistaFechamento(e.target.value)} />
+              <DatePicker value={dataPrevistaFechamento} onChange={setDataPrevistaFechamento} clearable />
             </div>
           </div>
 

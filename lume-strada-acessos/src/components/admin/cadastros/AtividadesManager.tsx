@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { IconCheck, IconTrash, IconClipboardList } from "@/components/ui/icons";
 
@@ -92,7 +93,7 @@ export function AtividadesManager({ clienteId }: { clienteId: string }) {
         </div>
         {tipo === "tarefa" && (
           <div className="w-36">
-            <Input type="date" value={dataPrevista} onChange={(e) => setDataPrevista(e.target.value)} />
+            <DatePicker value={dataPrevista} onChange={setDataPrevista} />
           </div>
         )}
         <Button type="button" onClick={handleAdicionar} disabled={pending || !titulo.trim()} className="px-4 py-2 text-sm">

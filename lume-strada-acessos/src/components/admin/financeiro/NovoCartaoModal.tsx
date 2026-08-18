@@ -1,20 +1,27 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { FinContexto } from "@/lib/types/financeiro";
-import { criarCartao } from "@/app/admin/financeiro/actions";
+import type { CartaoRow, FinContexto } from "@/lib/types/financeiro";
+import { atualizarCartao, criarCartao } from "@/app/admin/financeiro/actions";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
-export function NovoCartaoModal({ onClose }: { onClose: () => void }) {
+interface NovoCartaoModalProps {
+  onClose: () => void;
+  /** Presente = modo edição (pré-preenche os campos e chama `atualizarCartao` em vez de `criarCartao`). */
+  cartao?: CartaoRow;
+}
+
+export function NovoCartaoModal({ onClose, cartao }: NovoCartaoModalProps) {
   const { dict } = useLocale();
-  const [nome, setNome] = useState("");
-  const [limite, setLimite] = useState("");
-  const [diaFechamento, setDiaFechamento] = useState("1");
-  const [diaVencimento, setDiaVencimento] = useState("10");
-  const [contexto, setContexto] = useState<FinContexto>("profissional");
+  const editando = !!cartao;
+  const [nome, setNome] = useState(cartao?.nome ?? "");
+  const [limite, setLimite] = useState(cartao ? String(cartao.limite) : "");
+  const [diaFechamento, setDiaFechamento] = useState(String(cartao?.dia_fechamento ?? 1));
+  const [diaVencimento, setDiaVencimento] = useState(String(cartao?.dia_vencimento ?? 10));
+  const [contexto, setContexto] = useState<FinContexto>(cartao?.contexto ?? "profissional");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,13 +30,14 @@ export function NovoCartaoModal({ onClose }: { onClose: () => void }) {
     setLoading(true);
     setError(null);
 
-    const result = await criarCartao({
+    const input = {
       nome,
       limite: Number(limite) || 0,
       diaFechamento: Number(diaFechamento) || 1,
       diaVencimento: Number(diaVencimento) || 1,
       contexto,
-    });
+    };
+    const result = editando ? await atualizarCartao(cartao.id, input) : await criarCartao(input);
 
     setLoading(false);
     if (!result.ok) {
@@ -43,7 +51,7 @@ export function NovoCartaoModal({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl border border-base-700 bg-base-900 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-base font-semibold">{dict.financeiro.novoCartaoTitulo}</h3>
+          <h3 className="text-base font-semibold">{editando ? dict.financeiro.editarCartaoTitulo : dict.financeiro.novoCartaoTitulo}</h3>
           <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
             ×
           </button>
@@ -87,7 +95,7 @@ export function NovoCartaoModal({ onClose }: { onClose: () => void }) {
               {dict.common.cancelar}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? dict.common.salvando : dict.financeiro.criarCartaoBtn}
+              {loading ? dict.common.salvando : editando ? dict.common.salvarAlteracoes : dict.financeiro.criarCartaoBtn}
             </Button>
           </div>
         </form>

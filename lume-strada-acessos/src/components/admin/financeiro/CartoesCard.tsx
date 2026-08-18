@@ -22,6 +22,7 @@ interface CartoesCardProps {
 export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
   const { dict } = useLocale();
   const [modalAberto, setModalAberto] = useState(false);
+  const [cartaoEditando, setCartaoEditando] = useState<CartaoComLimite | null>(null);
   const [cartaoFatura, setCartaoFatura] = useState<CartaoComLimite | null>(null);
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -84,14 +85,24 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => setConfirmando(cartao.id)}
-                      className="shrink-0 text-ink-muted transition hover:text-danger"
-                      aria-label={dict.financeiro.excluirCartaoAria}
-                      title={dict.financeiro.excluirCartaoTitle}
-                    >
-                      ×
-                    </button>
+                    <div className="flex shrink-0 items-center gap-2.5">
+                      <button
+                        onClick={() => setCartaoEditando(cartao)}
+                        className="text-xs font-medium text-ink-muted transition hover:text-ink-primary"
+                        aria-label={dict.financeiro.editarCartaoAria}
+                        title={dict.financeiro.editarCartaoAria}
+                      >
+                        {dict.common.editar}
+                      </button>
+                      <button
+                        onClick={() => setConfirmando(cartao.id)}
+                        className="text-ink-muted transition hover:text-danger"
+                        aria-label={dict.financeiro.excluirCartaoAria}
+                        title={dict.financeiro.excluirCartaoTitle}
+                      >
+                        ×
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -124,6 +135,7 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
       )}
 
       {modalAberto && <NovoCartaoModal onClose={() => setModalAberto(false)} />}
+      {cartaoEditando && <NovoCartaoModal cartao={cartaoEditando} onClose={() => setCartaoEditando(null)} />}
       {cartaoFatura && (
         <PagarFaturaModal cartao={cartaoFatura} contas={contas} referencia={referencia} onClose={() => setCartaoFatura(null)} />
       )}

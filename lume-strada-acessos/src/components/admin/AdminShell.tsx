@@ -200,9 +200,6 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permi
               {nome || email}
             </p>
           )}
-          <div className={cn("mb-2 flex", colapsado && "justify-center")}>
-            <LanguageSwitcher compact={colapsado} />
-          </div>
           <div className={cn("flex items-center gap-2", colapsado && "flex-col")}>
             <LogoutButton iconOnly={colapsado} className={colapsado ? undefined : "flex-1"} />
             <button
@@ -216,6 +213,13 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permi
           </div>
         </div>
       </aside>
+
+      {/* Fixo no canto superior direito da VIEWPORT (não da sidebar/main), pra
+          ficar sempre no mesmo lugar em toda tela do painel — mesmo padrão de
+          posição usado na tela de login e no portal do cliente. */}
+      <div className="fixed right-4 top-4 z-30">
+        <LanguageSwitcher />
+      </div>
 
       <main className={cn("min-h-screen transition-[padding] duration-200", colapsado ? "pl-[72px]" : "pl-64")}>
         <div className="mx-auto max-w-6xl px-6 py-8">

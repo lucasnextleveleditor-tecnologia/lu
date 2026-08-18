@@ -9,6 +9,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { AcessoStatusControls } from "@/components/admin/cadastros/AcessoStatusControls";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Switch } from "@/components/ui/Switch";
 
 interface AcessoFuncionarioModalProps {
@@ -130,7 +131,7 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.dataExpiracaoLabel}</label>
-              <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
+              <DatePicker value={expiresAt} onChange={setExpiresAt} clearable />
             </div>
           </div>
         )}

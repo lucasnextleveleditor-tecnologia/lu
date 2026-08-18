@@ -42,6 +42,8 @@ export interface CommonDict {
   categoria: string;
   todos: string;
   idioma: string;
+  limpar: string;
+  dataPlaceholder: string;
 }
 
 export const common: CommonDict = {
@@ -81,4 +83,6 @@ export const common: CommonDict = {
   categoria: "Categoria",
   todos: "Todos",
   idioma: "Idioma",
+  limpar: "Limpar",
+  dataPlaceholder: "dd/mm/aaaa",
 };

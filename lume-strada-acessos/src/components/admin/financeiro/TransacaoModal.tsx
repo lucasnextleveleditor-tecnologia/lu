@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { fmtBRL, fmtMoedaEstrangeira } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -27,6 +28,8 @@ interface TransacaoModalProps {
   contextoInicial: "todos" | FinContexto;
   /** Quando presente, o modal abre em modo edição pré-preenchido com essa transação (ver `TransacoesManager`). */
   transacaoParaEditar?: TransacaoComRelacoes | null;
+  /** Tipo pré-selecionado ao ABRIR pra lançar uma nova transação (ex: telas de detalhe de Receitas/Despesas, que só listam um tipo) — ignorado em modo edição, onde o tipo vem sempre da transação. */
+  tipoInicial?: FinTipoTransacao;
   onClose: () => void;
 }
 
@@ -34,7 +37,15 @@ type MoedaSelecionada = "BRL" | MoedaEstrangeira;
 
 const PREFIXO_MOEDA: Record<MoedaSelecionada, string> = { BRL: "R$", USD: "US$", EUR: "€" };
 
-export function TransacaoModal({ contas, cartoes, categorias, contextoInicial, transacaoParaEditar, onClose }: TransacaoModalProps) {
+export function TransacaoModal({
+  contas,
+  cartoes,
+  categorias,
+  contextoInicial,
+  transacaoParaEditar,
+  tipoInicial,
+  onClose,
+}: TransacaoModalProps) {
   const { dict } = useLocale();
   const TIPO_OPCOES: { value: FinTipoTransacao; label: string }[] = [
     { value: "despesa", label: dict.financeiro.despesaLabel },
@@ -42,7 +53,7 @@ export function TransacaoModal({ contas, cartoes, categorias, contextoInicial, t
     { value: "transferencia", label: dict.financeiro.transferenciaLabel },
   ];
   const editando = transacaoParaEditar ?? null;
-  const [tipo, setTipo] = useState<FinTipoTransacao>(editando?.tipo ?? "despesa");
+  const [tipo, setTipo] = useState<FinTipoTransacao>(editando?.tipo ?? tipoInicial ?? "despesa");
   const [descricao, setDescricao] = useState(editando?.descricao ?? "");
   const [valorDigitado, setValorDigitado] = useState(editando?.valor_original ?? editando?.valor ?? 0);
   const [contexto, setContexto] = useState<FinContexto>(
@@ -460,7 +471,7 @@ export function TransacaoModal({ contas, cartoes, categorias, contextoInicial, t
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
                 {parcelado ? dict.financeiro.dataPrimeiraParcelaLabel : dict.financeiro.dataVencimentoLabel}
               </label>
-              <Input required type="date" value={dataVencimento} onChange={(e) => setDataVencimento(e.target.value)} />
+              <DatePicker required value={dataVencimento} onChange={setDataVencimento} />
             </div>
             {!parcelado && (
               <div className="flex items-end pb-2">

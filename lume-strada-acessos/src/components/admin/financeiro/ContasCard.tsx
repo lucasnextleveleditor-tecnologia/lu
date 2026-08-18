@@ -13,6 +13,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 export function ContasCard({ contas }: { contas: ContaComSaldo[] }) {
   const { dict } = useLocale();
   const [modalAberto, setModalAberto] = useState(false);
+  const [contaEditando, setContaEditando] = useState<ContaComSaldo | null>(null);
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -80,14 +81,24 @@ export function ContasCard({ contas }: { contas: ContaComSaldo[] }) {
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => setConfirmando(conta.id)}
-                    className="text-ink-muted transition hover:text-danger"
-                    aria-label={dict.financeiro.excluirContaAria}
-                    title={dict.financeiro.excluirContaTitle}
-                  >
-                    ×
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setContaEditando(conta)}
+                      className="text-xs font-medium text-ink-muted transition hover:text-ink-primary"
+                      aria-label={dict.financeiro.editarContaAria}
+                      title={dict.financeiro.editarContaAria}
+                    >
+                      {dict.common.editar}
+                    </button>
+                    <button
+                      onClick={() => setConfirmando(conta.id)}
+                      className="text-ink-muted transition hover:text-danger"
+                      aria-label={dict.financeiro.excluirContaAria}
+                      title={dict.financeiro.excluirContaTitle}
+                    >
+                      ×
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -96,6 +107,7 @@ export function ContasCard({ contas }: { contas: ContaComSaldo[] }) {
       )}
 
       {modalAberto && <NovaContaModal onClose={() => setModalAberto(false)} />}
+      {contaEditando && <NovaContaModal conta={contaEditando} onClose={() => setContaEditando(null)} />}
     </Card>
   );
 }

@@ -7,6 +7,7 @@ import { criarTarefa } from "@/app/admin/producao/actions";
 import { PRIORIDADE_TAREFA_ORDEM } from "@/lib/utils/producao";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
 import { cn } from "@/lib/utils/cn";
@@ -122,12 +123,12 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.dataCaptacaoLabel}</label>
-              <Input type="date" value={dataCaptacao} onChange={(e) => setDataCaptacao(e.target.value)} />
+              <DatePicker value={dataCaptacao} onChange={setDataCaptacao} required />
               <p className="mt-1 text-[11px] text-ink-muted">{dict.producao.dataCaptacaoAjuda}</p>
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.prazoEntregaLabel}</label>
-              <Input type="date" value={dataEntrega} onChange={(e) => setDataEntrega(e.target.value)} />
+              <DatePicker value={dataEntrega} onChange={setDataEntrega} required />
             </div>
           </div>
 

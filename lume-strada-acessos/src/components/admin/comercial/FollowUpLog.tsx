@@ -6,7 +6,7 @@ import { criarAnotacao } from "@/app/admin/comercial/actions";
 import { CADENCIA_FOLLOWUP_DIAS, sugerirProximoContato } from "@/lib/utils/comercial";
 import { fmtDataHora } from "@/lib/utils/status";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function FollowUpLog({ leadId, anotacoes }: { leadId: string; anotacoes: AnotacaoRow[] }) {
@@ -62,7 +62,7 @@ export function FollowUpLog({ leadId, anotacoes }: { leadId: string; anotacoes: 
                 {dict.comercial.sugestaoContato.replace("{numero}", String(numeroContato)).replace("{dias}", String(diasSugeridos))}
               </span>
             </label>
-            <Input type="date" value={proximoContato} onChange={(e) => setProximoContato(e.target.value)} className="text-xs" />
+            <DatePicker value={proximoContato} onChange={setProximoContato} className="text-xs" />
           </div>
           <Button type="submit" disabled={pending} className="shrink-0 self-end px-3 py-2 text-xs">
             {pending ? dict.common.salvando : dict.comercial.registrar}

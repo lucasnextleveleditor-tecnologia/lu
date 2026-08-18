@@ -7,6 +7,7 @@ import { criarLead } from "@/app/admin/comercial/actions";
 import { ORIGEM_LEAD_META } from "@/lib/utils/comercial";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { GerenciarServicosModal } from "@/components/admin/comercial/GerenciarServicosModal";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -143,7 +144,7 @@ export function LeadModal({ tiposServico, onClose }: LeadModalProps) {
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.comercial.previsaoFechamentoLabel}</label>
-              <Input type="date" value={dataPrevistaFechamento} onChange={(e) => setDataPrevistaFechamento(e.target.value)} />
+              <DatePicker value={dataPrevistaFechamento} onChange={setDataPrevistaFechamento} clearable />
             </div>
           </div>
 

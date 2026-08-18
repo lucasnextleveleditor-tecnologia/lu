@@ -13,6 +13,18 @@ export interface FinanceiroDict {
   // Geral / reaproveitado em vários componentes do módulo
   tituloPagina: string;
   subtituloPagina: string;
+
+  // Telas de detalhe por categoria (StatTiles clicáveis: /receitas, /despesas, /contas, /cartoes)
+  voltarParaFinanceiro: string;
+  receitasTituloPagina: string;
+  receitasSubtituloPagina: string;
+  despesasTituloPagina: string;
+  despesasSubtituloPagina: string;
+  contasTituloPagina: string;
+  contasSubtituloPagina: string;
+  cartoesTituloPagina: string;
+  cartoesSubtituloPagina: string;
+  statMesAnterior: string;
   contextoPessoal: string;
   contextoProfissional: string;
   contextoLabel: string;
@@ -83,20 +95,24 @@ export interface FinanceiroDict {
 
   // NovaContaModal
   novaContaTitulo: string;
+  editarContaTitulo: string;
   placeholderNomeConta: string;
   tipoOpcionalLabel: string;
   placeholderTipoConta: string;
   saldoInicialLabel: string;
   saldoInicialHint: string;
   criarContaBtn: string;
+  editarContaAria: string;
 
   // NovoCartaoModal
   novoCartaoTitulo: string;
+  editarCartaoTitulo: string;
   placeholderNomeCartao: string;
   limiteTotalLabel: string;
   diaFechamentoLabel: string;
   diaVencimentoLabel: string;
   criarCartaoBtn: string;
+  editarCartaoAria: string;
 
   // PagarFaturaModal
   selecioneContaPagamentoErro: string;
@@ -167,6 +183,17 @@ export interface FinanceiroDict {
 export const financeiro: FinanceiroDict = {
   tituloPagina: "Financeiro",
   subtituloPagina: "Contas, cartões e lançamentos da agência.",
+
+  voltarParaFinanceiro: "Voltar pro Financeiro",
+  receitasTituloPagina: "Receitas",
+  receitasSubtituloPagina: "Todas as receitas lançadas no período, com opção de editar, cadastrar novas e comparar com o mês anterior.",
+  despesasTituloPagina: "Despesas",
+  despesasSubtituloPagina: "Todas as despesas lançadas no período, com opção de editar, cadastrar novas e comparar com o mês anterior.",
+  contasTituloPagina: "Contas & Carteiras",
+  contasSubtituloPagina: "Todas as contas e carteiras cadastradas, com o saldo sempre atualizado.",
+  cartoesTituloPagina: "Cartões de Crédito",
+  cartoesSubtituloPagina: "Todos os cartões cadastrados, com limite disponível e fatura.",
+  statMesAnterior: "Mês Anterior",
   contextoPessoal: "Pessoal",
   contextoProfissional: "Profissional",
   contextoLabel: "Contexto",
@@ -230,19 +257,23 @@ export const financeiro: FinanceiroDict = {
   criarCategoriaBtn: "Criar Categoria",
 
   novaContaTitulo: "Nova Conta / Carteira",
+  editarContaTitulo: "Editar Conta / Carteira",
   placeholderNomeConta: "Ex: Conta Corrente Nubank",
   tipoOpcionalLabel: "Tipo (opcional)",
   placeholderTipoConta: "Corrente, Poupança...",
   saldoInicialLabel: "Saldo Inicial (R$)",
   saldoInicialHint: "O saldo atual é sempre recalculado a partir das transações lançadas.",
   criarContaBtn: "Criar Conta",
+  editarContaAria: "Editar conta",
 
   novoCartaoTitulo: "Novo Cartão de Crédito",
+  editarCartaoTitulo: "Editar Cartão de Crédito",
   placeholderNomeCartao: "Ex: Nubank Empresarial",
   limiteTotalLabel: "Limite Total (R$) *",
   diaFechamentoLabel: "Dia do Fechamento *",
   diaVencimentoLabel: "Dia do Vencimento *",
   criarCartaoBtn: "Criar Cartão",
+  editarCartaoAria: "Editar cartão",
 
   selecioneContaPagamentoErro: "Selecione a conta de onde vai sair o pagamento.",
   pagarFaturaTitulo: "Pagar Fatura — {nome}",

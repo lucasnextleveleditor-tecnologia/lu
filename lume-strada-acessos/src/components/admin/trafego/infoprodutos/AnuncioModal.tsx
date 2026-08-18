@@ -7,6 +7,7 @@ import { criarAnuncio, atualizarAnuncio } from "@/app/admin/trafego/infoprodutos
 import { calcularReceitaBruta } from "@/lib/utils/infoprodutos";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -96,7 +97,7 @@ export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: Anuncio
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.dataObrigatoriaLabel}</label>
-              <Input type="date" required value={data} onChange={(e) => setData(e.target.value)} />
+              <DatePicker required value={data} onChange={setData} />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.nomeAnuncioLabel}</label>

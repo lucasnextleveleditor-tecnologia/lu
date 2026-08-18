@@ -26,6 +26,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen">
+      {/* Fixo no canto superior direito da viewport — mesma posição em toda
+          tela do sistema (login, painel admin e portal do cliente). */}
+      <div className="fixed right-4 top-4 z-30">
+        <LanguageSwitcher />
+      </div>
+
       <header className="border-b border-base-800">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2.5">
@@ -33,7 +39,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <p className="text-sm font-semibold tracking-tight">Lume Strada Filmes</p>
           </div>
           <div className="flex items-center gap-3">
-            <LanguageSwitcher />
             <span className="text-xs text-ink-muted">{profile?.full_name || profile?.email}</span>
             <LogoutButton />
           </div>

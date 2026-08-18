@@ -33,6 +33,31 @@ export async function criarConta(input: { nome: string; tipo: string | null; sal
   }
 }
 
+export async function atualizarConta(
+  id: string,
+  input: { nome: string; tipo: string | null; saldoInicial: number; contexto: FinContexto }
+): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+    if (!input.nome.trim()) return { ok: false, error: "Informe o nome da conta." };
+
+    const { error } = await supabase
+      .from("fin_contas")
+      .update({
+        nome: input.nome.trim(),
+        tipo: input.tipo?.trim() || null,
+        saldo_inicial: input.saldoInicial,
+        contexto: input.contexto,
+      })
+      .eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
 export async function removerConta(id: string): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("financeiro");
@@ -70,6 +95,32 @@ export async function criarCartao(input: {
       dia_vencimento: input.diaVencimento,
       contexto: input.contexto,
     });
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+export async function atualizarCartao(
+  id: string,
+  input: { nome: string; limite: number; diaFechamento: number; diaVencimento: number; contexto: FinContexto }
+): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+    if (!input.nome.trim()) return { ok: false, error: "Informe o nome do cartão." };
+
+    const { error } = await supabase
+      .from("fin_cartoes")
+      .update({
+        nome: input.nome.trim(),
+        limite: input.limite,
+        dia_fechamento: input.diaFechamento,
+        dia_vencimento: input.diaVencimento,
+        contexto: input.contexto,
+      })
+      .eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
     return { ok: true };

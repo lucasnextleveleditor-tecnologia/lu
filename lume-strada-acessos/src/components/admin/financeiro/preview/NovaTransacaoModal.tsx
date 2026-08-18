@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { IconTrendingDown, IconTrendingUp } from "@/components/ui/icons";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 interface NovaTransacaoModalProps {
   contaPadraoId?: string;
@@ -178,11 +179,11 @@ export function NovaTransacaoModal({ contaPadraoId, onClose, onCriar }: NovaTran
                 Outros...
               </button>
               {atalhoData === "outros" && (
-                <input
-                  type="date"
+                <DatePicker
                   value={dataCustom}
-                  onChange={(e) => setDataCustom(e.target.value)}
-                  className="rounded-full border border-base-600 bg-base-900 px-3 py-1.5 text-xs text-ink-primary focus:outline-none focus:border-accent/60"
+                  onChange={setDataCustom}
+                  aria-label="Data personalizada"
+                  className="w-[136px]"
                 />
               )}
             </div>

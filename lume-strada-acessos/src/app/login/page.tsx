@@ -35,7 +35,7 @@ export default async function LoginPage() {
       {/* Imagem de fundo customizada precisa de um véu escuro por cima pra caixa de login continuar legível — os padrões prontos já nascem escuros. */}
       {branding.login_bg_url && <div className="absolute inset-0 bg-base-950/70" />}
 
-      <div className="absolute right-4 top-4 z-20">
+      <div className="fixed right-4 top-4 z-30">
         <LanguageSwitcher />
       </div>
 

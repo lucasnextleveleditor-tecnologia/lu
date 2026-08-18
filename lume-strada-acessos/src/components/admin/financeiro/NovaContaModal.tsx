@@ -1,19 +1,26 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { FinContexto } from "@/lib/types/financeiro";
-import { criarConta } from "@/app/admin/financeiro/actions";
+import type { ContaRow, FinContexto } from "@/lib/types/financeiro";
+import { atualizarConta, criarConta } from "@/app/admin/financeiro/actions";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
-export function NovaContaModal({ onClose }: { onClose: () => void }) {
+interface NovaContaModalProps {
+  onClose: () => void;
+  /** Presente = modo edição (pré-preenche os campos e chama `atualizarConta` em vez de `criarConta`). */
+  conta?: ContaRow;
+}
+
+export function NovaContaModal({ onClose, conta }: NovaContaModalProps) {
   const { dict } = useLocale();
-  const [nome, setNome] = useState("");
-  const [tipo, setTipo] = useState("");
-  const [saldoInicial, setSaldoInicial] = useState("0");
-  const [contexto, setContexto] = useState<FinContexto>("profissional");
+  const editando = !!conta;
+  const [nome, setNome] = useState(conta?.nome ?? "");
+  const [tipo, setTipo] = useState(conta?.tipo ?? "");
+  const [saldoInicial, setSaldoInicial] = useState(String(conta?.saldo_inicial ?? 0));
+  const [contexto, setContexto] = useState<FinContexto>(conta?.contexto ?? "profissional");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,12 +29,13 @@ export function NovaContaModal({ onClose }: { onClose: () => void }) {
     setLoading(true);
     setError(null);
 
-    const result = await criarConta({
+    const input = {
       nome,
       tipo: tipo || null,
       saldoInicial: Number(saldoInicial) || 0,
       contexto,
-    });
+    };
+    const result = editando ? await atualizarConta(conta.id, input) : await criarConta(input);
 
     setLoading(false);
     if (!result.ok) {
@@ -41,7 +49,7 @@ export function NovaContaModal({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl border border-base-700 bg-base-900 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-base font-semibold">{dict.financeiro.novaContaTitulo}</h3>
+          <h3 className="text-base font-semibold">{editando ? dict.financeiro.editarContaTitulo : dict.financeiro.novaContaTitulo}</h3>
           <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
             ×
           </button>
@@ -80,7 +88,7 @@ export function NovaContaModal({ onClose }: { onClose: () => void }) {
               {dict.common.cancelar}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? dict.common.salvando : dict.financeiro.criarContaBtn}
+              {loading ? dict.common.salvando : editando ? dict.common.salvarAlteracoes : dict.financeiro.criarContaBtn}
             </Button>
           </div>
         </form>

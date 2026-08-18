@@ -7,6 +7,7 @@ import { atualizarTarefa, moverStatusTarefa, removerTarefa } from "@/app/admin/p
 import { PRIORIDADE_TAREFA_ORDEM, STATUS_TAREFA_ORDEM, isTarefaAtrasada } from "@/lib/utils/producao";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
@@ -180,12 +181,12 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.dataCaptacaoLabel}</label>
-              <Input type="date" value={dataCaptacao} onChange={(e) => setDataCaptacao(e.target.value)} />
+              <DatePicker value={dataCaptacao} onChange={setDataCaptacao} required />
               <p className="mt-1 text-[11px] text-ink-muted">{dict.producao.dataCaptacaoAjuda}</p>
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.prazoEntregaLabel}</label>
-              <Input type="date" value={dataEntrega} onChange={(e) => setDataEntrega(e.target.value)} />
+              <DatePicker value={dataEntrega} onChange={setDataEntrega} required />
             </div>
           </div>
 

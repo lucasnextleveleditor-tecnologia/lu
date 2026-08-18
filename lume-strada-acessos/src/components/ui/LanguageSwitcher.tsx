@@ -1,65 +1,101 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { definirIdioma } from "@/lib/i18n/actions";
 import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n/locales";
-import { IconGlobe } from "@/components/ui/icons";
+import { FlagBR, FlagUS, FlagES } from "@/components/ui/flags";
 import { cn } from "@/lib/utils/cn";
+
+const FLAGS: Record<Locale, typeof FlagBR> = { pt: FlagBR, en: FlagUS, es: FlagES };
 
 interface LanguageSwitcherProps {
   className?: string;
-  /** Modo compacto (sidebar recolhida do admin) — só o ícone + `<select>` nativo sem rótulo ao lado. */
+  /** Modo compacto — só a bandeira no gatilho, sem o nome do idioma ao lado (usado quando o espaço é curto). */
   compact?: boolean;
 }
 
 /**
- * Seletor de idioma — usa um `<select>` nativo (não um dropdown customizado)
- * de propósito: acessível por teclado/leitor de tela de graça, e não precisa
- * de nenhuma lib extra só pra isso. Ao trocar, grava o cookie
- * (`definirIdioma`, Server Action) e chama `router.refresh()` — os Server
- * Components (páginas) recarregam com o dicionário novo; os componentes
- * cliente já reagem sozinhos porque `LocaleProvider` recebe um `dict` novo
- * do layout raiz nesse mesmo refresh.
+ * Seletor de idioma — dropdown próprio (não `<select>` nativo) porque
+ * precisa mostrar a BANDEIRA de cada idioma, algo que um `<select>` nativo
+ * não deixa customizar dentro das `<option>` de forma confiável entre
+ * navegadores. Ao trocar, grava o cookie (`definirIdioma`, Server Action) e
+ * chama `router.refresh()` — Server Components recarregam com o dicionário
+ * novo; componentes cliente reagem sozinhos porque `LocaleProvider` recebe
+ * um `dict` novo do layout raiz nesse mesmo refresh.
  */
 export function LanguageSwitcher({ className, compact = false }: LanguageSwitcherProps) {
-  const { locale } = useLocale();
+  const { locale, dict } = useLocale();
   const router = useRouter();
+  const [aberto, setAberto] = useState(false);
   const [pending, startTransition] = useTransition();
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  function handleChange(novoLocale: Locale) {
+  useEffect(() => {
+    if (!aberto) return;
+    function handlePointerDown(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setAberto(false);
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setAberto(false);
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [aberto]);
+
+  function escolher(novoLocale: Locale) {
+    setAberto(false);
     startTransition(async () => {
       await definirIdioma(novoLocale);
       router.refresh();
     });
   }
 
+  const FlagAtual = FLAGS[locale];
+
   return (
-    <div
-      className={cn(
-        "flex items-center gap-1.5 rounded-lg border border-base-600 bg-base-900 px-2 text-ink-muted transition hover:text-ink-primary",
-        pending && "opacity-60",
-        className
-      )}
-    >
-      <IconGlobe className="h-3.5 w-3.5 shrink-0" />
-      <select
-        value={locale}
+    <div ref={wrapperRef} className={cn("relative", className)}>
+      <button
+        type="button"
+        onClick={() => setAberto((v) => !v)}
         disabled={pending}
-        onChange={(e) => handleChange(e.target.value as Locale)}
-        aria-label="Idioma / Language / Idioma"
+        aria-label={dict.common.idioma}
         className={cn(
-          "cursor-pointer appearance-none bg-transparent py-1.5 pr-1 text-xs font-medium text-ink-primary focus:outline-none",
-          compact && "w-0 opacity-0" // no modo compacto o texto some, só o globo fica visível — o <select> continua clicável cobrindo o ícone
+          "flex items-center gap-1.5 rounded-full border border-base-600 bg-base-900/90 px-2.5 py-1.5 text-ink-primary shadow-[0_8px_20px_-10px_rgba(0,0,0,0.8)] backdrop-blur-sm transition hover:border-ink-muted",
+          pending && "opacity-60"
         )}
       >
-        {LOCALES.map((l) => (
-          <option key={l} value={l} className="bg-base-900 text-ink-primary">
-            {LOCALE_LABELS[l]}
-          </option>
-        ))}
-      </select>
+        <FlagAtual className="h-3.5 w-5 shrink-0 rounded-[2px]" />
+        {!compact && <span className="text-xs font-medium">{LOCALE_LABELS[locale]}</span>}
+      </button>
+
+      {aberto && (
+        <div className="absolute right-0 top-[calc(100%+6px)] z-50 min-w-[150px] overflow-hidden rounded-xl border border-base-700 bg-base-900 py-1 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.8)]">
+          {LOCALES.map((l) => {
+            const Flag = FLAGS[l];
+            const ativo = l === locale;
+            return (
+              <button
+                key={l}
+                type="button"
+                onClick={() => escolher(l)}
+                className={cn(
+                  "flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs font-medium transition",
+                  ativo ? "bg-base-800 text-ink-primary" : "text-ink-secondary hover:bg-base-800 hover:text-ink-primary"
+                )}
+              >
+                <Flag className="h-3.5 w-5 shrink-0 rounded-[2px]" />
+                {LOCALE_LABELS[l]}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

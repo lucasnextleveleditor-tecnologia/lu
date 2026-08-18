@@ -7,6 +7,7 @@ import { STATUS_ITEM_META, STATUS_ITEM_OPCOES, calcularDepreciacao } from "@/lib
 import { fmtBRL, fmtPercent } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -134,7 +135,7 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
 
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.inventario.campoDataAquisicao}</label>
-              <Input required type="date" value={dataAquisicao} onChange={(e) => setDataAquisicao(e.target.value)} />
+              <DatePicker required value={dataAquisicao} onChange={setDataAquisicao} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">

@@ -18,6 +18,16 @@ export const relatorios: RelatoriosDict = {
   leadsLabel: "Leads",
   diasSufixo: "day(s)",
 
+  periodoLabel: "Period",
+  presetHoje: "Today",
+  preset7Dias: "7 days",
+  preset30Dias: "30 days",
+  presetEsteMes: "This month",
+  presetEsteAno: "This year",
+  dataInicialAria: "Start date",
+  dataFinalAria: "End date",
+  ateLabel: "to",
+
   comercialErroTitulo: "Couldn't load Sales",
   comercialVazioTitulo: "No leads created in this period",
   comercialVazioDescricao: "Adjust the date range above or add leads in CRM & Sales.",

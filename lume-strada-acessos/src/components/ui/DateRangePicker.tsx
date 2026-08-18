@@ -3,6 +3,8 @@
 import { fmtDataCurta, todayISO, addDaysISO } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { IconCalendar } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 interface DateRangePickerProps {
   inicio: string; // ISO date
@@ -26,24 +28,25 @@ function inicioDoAnoISO(): string {
   return `${todayISO().slice(0, 4)}-01-01`;
 }
 
-const PRESETS: Preset[] = [
-  { label: "Hoje", calcular: () => ({ inicio: todayISO(), fim: todayISO() }) },
-  { label: "7 dias", calcular: () => ({ inicio: addDaysISO(todayISO(), -6), fim: todayISO() }) },
-  { label: "30 dias", calcular: () => ({ inicio: addDaysISO(todayISO(), -29), fim: todayISO() }) },
-  { label: "Este mês", calcular: () => ({ inicio: inicioDoMesISO(), fim: todayISO() }) },
-  { label: "Este ano", calcular: () => ({ inicio: inicioDoAnoISO(), fim: todayISO() }) },
-];
-
 /**
  * Seletor global de período — usado no topo do Hub de Relatórios pra
  * filtrar TODOS os gráficos de uma vez (nenhum módulo tem seletor de data
  * próprio dentro do Hub, de propósito: um único período pro Comercial, pro
  * Financeiro, pro Tráfego etc., pra dar pra comparar os números todos
- * olhando pra mesma janela de tempo). Presets rápidos + dois campos de data
- * nativos (`<input type="date">`, sem dependência de biblioteca de
- * calendário) pro período customizado.
+ * olhando pra mesma janela de tempo). Presets rápidos + dois `DatePicker`
+ * (calendário próprio do sistema) pro período customizado.
  */
 export function DateRangePicker({ inicio, fim, onChange, className }: DateRangePickerProps) {
+  const { dict } = useLocale();
+
+  const PRESETS: Preset[] = [
+    { label: dict.relatorios.presetHoje, calcular: () => ({ inicio: todayISO(), fim: todayISO() }) },
+    { label: dict.relatorios.preset7Dias, calcular: () => ({ inicio: addDaysISO(todayISO(), -6), fim: todayISO() }) },
+    { label: dict.relatorios.preset30Dias, calcular: () => ({ inicio: addDaysISO(todayISO(), -29), fim: todayISO() }) },
+    { label: dict.relatorios.presetEsteMes, calcular: () => ({ inicio: inicioDoMesISO(), fim: todayISO() }) },
+    { label: dict.relatorios.presetEsteAno, calcular: () => ({ inicio: inicioDoAnoISO(), fim: todayISO() }) },
+  ];
+
   const presetAtivo = PRESETS.find((p) => {
     const { inicio: pi, fim: pf } = p.calcular();
     return pi === inicio && pf === fim;
@@ -59,7 +62,7 @@ export function DateRangePicker({ inicio, fim, onChange, className }: DateRangeP
     >
       <div className="flex items-center gap-1.5 pl-1 text-ink-muted">
         <IconCalendar className="h-4 w-4" />
-        <span className="hidden text-xs font-semibold uppercase tracking-wide sm:inline">Período</span>
+        <span className="hidden text-xs font-semibold uppercase tracking-wide sm:inline">{dict.relatorios.periodoLabel}</span>
       </div>
 
       <div className="inline-flex flex-wrap gap-1 rounded-lg border border-base-700 bg-base-950/60 p-1">
@@ -83,23 +86,21 @@ export function DateRangePicker({ inicio, fim, onChange, className }: DateRangeP
       </div>
 
       <div className="flex items-center gap-2">
-        <input
-          type="date"
+        <DatePicker
           value={inicio}
           max={fim}
-          onChange={(e) => onChange(e.target.value, fim)}
-          aria-label="Data inicial"
-          className="rounded-lg border border-base-700 bg-base-950/60 px-2.5 py-1.5 text-xs text-ink-primary [color-scheme:dark] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+          onChange={(v) => onChange(v, fim)}
+          aria-label={dict.relatorios.dataInicialAria}
+          className="w-[136px]"
         />
-        <span className="text-xs text-ink-muted">até</span>
-        <input
-          type="date"
+        <span className="text-xs text-ink-muted">{dict.relatorios.ateLabel}</span>
+        <DatePicker
           value={fim}
           min={inicio}
           max={todayISO()}
-          onChange={(e) => onChange(inicio, e.target.value)}
-          aria-label="Data final"
-          className="rounded-lg border border-base-700 bg-base-950/60 px-2.5 py-1.5 text-xs text-ink-primary [color-scheme:dark] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+          onChange={(v) => onChange(inicio, v)}
+          aria-label={dict.relatorios.dataFinalAria}
+          className="w-[136px]"
         />
       </div>
 

@@ -3,8 +3,15 @@ import { cn } from "@/lib/utils/cn";
 import { mesParam } from "@/lib/utils/financeiro";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 
+interface ContextoToggleProps {
+  referencia: Date;
+  contexto: string;
+  /** Rota base — ver mesmo comentário em `MesNav`. */
+  basePath?: string;
+}
+
 /** Alterna o filtro Pessoal/Profissional/Todos — mesmo padrão de navegação por link (sem JS no cliente). */
-export async function ContextoToggle({ referencia, contexto }: { referencia: Date; contexto: string }) {
+export async function ContextoToggle({ referencia, contexto, basePath = "/admin/financeiro" }: ContextoToggleProps) {
   const { dict } = await getDictionary();
   const OPCOES = [
     { value: "todos", label: dict.common.todos },
@@ -16,7 +23,7 @@ export async function ContextoToggle({ referencia, contexto }: { referencia: Dat
     <div className="inline-flex rounded-lg border border-base-700 bg-base-900/60 p-1">
       {OPCOES.map((opcao) => {
         const active = contexto === opcao.value;
-        const href = `/admin/financeiro?mes=${mesParam(referencia)}${opcao.value !== "todos" ? `&contexto=${opcao.value}` : ""}`;
+        const href = `${basePath}?mes=${mesParam(referencia)}${opcao.value !== "todos" ? `&contexto=${opcao.value}` : ""}`;
         return (
           <Link
             key={opcao.value}

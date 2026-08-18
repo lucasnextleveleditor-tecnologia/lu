@@ -22,15 +22,17 @@ interface TransacoesManagerProps {
   cartoes: CartaoComLimite[];
   categorias: CategoriaRow[];
   contexto: "todos" | "pessoal" | "profissional";
+  /** Presente nas telas de detalhe de Receitas/Despesas (`/admin/financeiro/receitas|despesas`) — trava o filtro nesse tipo (esconde o seletor de Tipo, já que a lista inteira é só daquele tipo) e pré-seleciona o mesmo tipo ao lançar uma transação nova. */
+  tipoFixo?: "receita" | "despesa";
 }
 
 const TODOS = "todos";
 
-export function TransacoesManager({ transacoes, contas, cartoes, categorias, contexto }: TransacoesManagerProps) {
+export function TransacoesManager({ transacoes, contas, cartoes, categorias, contexto, tipoFixo }: TransacoesManagerProps) {
   const { dict } = useLocale();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
-  const [filtroTipo, setFiltroTipo] = useState<string>(TODOS);
+  const [filtroTipo, setFiltroTipo] = useState<string>(tipoFixo ?? TODOS);
   const [modalAberto, setModalAberto] = useState(false);
   const [transacaoEditando, setTransacaoEditando] = useState<TransacaoComRelacoes | null>(null);
   const [confirmando, setConfirmando] = useState<string | null>(null);
@@ -112,23 +114,25 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
             ))}
           </Select>
         </div>
-        <div className="w-40">
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.tipoLabel}</label>
-          <Select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
-            <option value={TODOS}>{dict.common.todos}</option>
-            <option value="receita">{dict.financeiro.receitaLabel}</option>
-            <option value="despesa">{dict.financeiro.despesaLabel}</option>
-            <option value="transferencia">{dict.financeiro.transferenciaLabel}</option>
-          </Select>
-        </div>
-        {(filtroStatus !== TODOS || filtroTipo !== TODOS || busca) && (
+        {!tipoFixo && (
+          <div className="w-40">
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.tipoLabel}</label>
+            <Select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+              <option value={TODOS}>{dict.common.todos}</option>
+              <option value="receita">{dict.financeiro.receitaLabel}</option>
+              <option value="despesa">{dict.financeiro.despesaLabel}</option>
+              <option value="transferencia">{dict.financeiro.transferenciaLabel}</option>
+            </Select>
+          </div>
+        )}
+        {(filtroStatus !== TODOS || (!tipoFixo && filtroTipo !== TODOS) || busca) && (
           <Button
             variant="ghost"
             className="px-3 py-2 text-xs"
             onClick={() => {
               setBusca("");
               setFiltroStatus(TODOS);
-              setFiltroTipo(TODOS);
+              setFiltroTipo(tipoFixo ?? TODOS);
             }}
           >
             {dict.common.limparFiltros}
@@ -276,6 +280,7 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
           categorias={categorias}
           contextoInicial={contexto}
           transacaoParaEditar={transacaoEditando}
+          tipoInicial={tipoFixo}
           onClose={() => {
             setModalAberto(false);
             setTransacaoEditando(null);

@@ -6,6 +6,7 @@ import { gerarAcessoCliente } from "@/app/admin/actions";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: ClienteRow; onClose: () => void }) {
   const { dict } = useLocale();
@@ -47,7 +48,7 @@ export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: Cliente
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.dataExpiracaoLabel}</label>
-            <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
+            <DatePicker value={expiresAt} onChange={setExpiresAt} clearable />
             <p className="mt-1 text-xs text-ink-muted">{dict.cadastros.semExpiracaoAjuda}</p>
           </div>
 

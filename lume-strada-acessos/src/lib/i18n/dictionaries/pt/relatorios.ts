@@ -27,6 +27,17 @@ export interface RelatoriosDict {
   /** Sufixo usado após um número de dias (ex: "3 {diasSufixo}"). */
   diasSufixo: string;
 
+  // DateRangePicker (seletor de período no topo do Hub)
+  periodoLabel: string;
+  presetHoje: string;
+  preset7Dias: string;
+  preset30Dias: string;
+  presetEsteMes: string;
+  presetEsteAno: string;
+  dataInicialAria: string;
+  dataFinalAria: string;
+  ateLabel: string;
+
   // Comercial
   comercialErroTitulo: string;
   comercialVazioTitulo: string;
@@ -141,6 +152,16 @@ export const relatorios: RelatoriosDict = {
 
   leadsLabel: "Leads",
   diasSufixo: "dia(s)",
+
+  periodoLabel: "Período",
+  presetHoje: "Hoje",
+  preset7Dias: "7 dias",
+  preset30Dias: "30 dias",
+  presetEsteMes: "Este mês",
+  presetEsteAno: "Este ano",
+  dataInicialAria: "Data inicial",
+  dataFinalAria: "Data final",
+  ateLabel: "até",
 
   comercialErroTitulo: "Não foi possível carregar o Comercial",
   comercialVazioTitulo: "Nenhum lead criado no período",

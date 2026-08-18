@@ -37,4 +37,6 @@ export const common: CommonDict = {
   categoria: "Categoría",
   todos: "Todos",
   idioma: "Idioma",
+  limpar: "Limpiar",
+  dataPlaceholder: "dd/mm/aaaa",
 };

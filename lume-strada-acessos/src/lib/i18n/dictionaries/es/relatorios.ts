@@ -18,6 +18,16 @@ export const relatorios: RelatoriosDict = {
   leadsLabel: "Leads",
   diasSufixo: "día(s)",
 
+  periodoLabel: "Período",
+  presetHoje: "Hoy",
+  preset7Dias: "7 días",
+  preset30Dias: "30 días",
+  presetEsteMes: "Este mes",
+  presetEsteAno: "Este año",
+  dataInicialAria: "Fecha inicial",
+  dataFinalAria: "Fecha final",
+  ateLabel: "hasta",
+
   comercialErroTitulo: "No se pudo cargar Comercial",
   comercialVazioTitulo: "Ningún lead creado en el período",
   comercialVazioDescricao: "Ajusta el rango de fechas arriba o registra leads en CRM y Ventas.",

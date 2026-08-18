@@ -7,7 +7,7 @@ import { atualizarExpiracao, alternarAtivo } from "@/app/admin/actions";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 /** yyyy-mm-dd para o <input type="date"> — vazio se não houver expiração. */
 function paraInputDate(iso: string | null): string {
@@ -59,13 +59,13 @@ export function AcessoStatusControls({ profile, editavel }: AcessoStatusControls
       <div className="flex flex-wrap items-end gap-3">
         <div>
           <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.expiraEmLabel}</label>
-          <Input
-            type="date"
+          <DatePicker
             value={expiresAtInput}
-            onChange={(e) => setExpiresAtInput(e.target.value)}
+            onChange={setExpiresAtInput}
             onBlur={handleExpiracaoBlur}
             disabled={pending || !editavel}
             className="w-40"
+            clearable
           />
         </div>
         {editavel && (
