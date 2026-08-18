@@ -7,8 +7,10 @@ import { CADENCIA_FOLLOWUP_DIAS, sugerirProximoContato } from "@/lib/utils/comer
 import { fmtDataHora } from "@/lib/utils/status";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function FollowUpLog({ leadId, anotacoes }: { leadId: string; anotacoes: AnotacaoRow[] }) {
+  const { dict } = useLocale();
   const [nota, setNota] = useState("");
   // Pré-preenchido com a sugestão da cadência (ver `sugerirProximoContato`)
   // pra não depender de ninguém lembrar de calcular/digitar a data — mas
@@ -42,32 +44,35 @@ export function FollowUpLog({ leadId, anotacoes }: { leadId: string; anotacoes: 
 
   return (
     <div>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">Anotações &amp; Histórico</p>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.comercial.anotacoesHistorico}</p>
 
       <form onSubmit={handleAdicionar} className="mb-3 space-y-2 rounded-lg border border-base-700 bg-base-950/40 p-3">
         <textarea
           value={nota}
           onChange={(e) => setNota(e.target.value)}
-          placeholder="Resumo da reunião/contato..."
+          placeholder={dict.comercial.placeholderNota}
           rows={3}
           className="w-full rounded-lg border border-base-600 bg-base-900 px-3 py-2 text-sm text-ink-primary placeholder:text-ink-muted focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/30 transition"
         />
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex-1">
             <label className="mb-1 block text-[11px] text-ink-muted">
-              Próximo contato <span className="text-ink-muted/70">(sugestão: {numeroContato}º contato, +{diasSugeridos}d)</span>
+              {dict.comercial.proximoContatoLabel}{" "}
+              <span className="text-ink-muted/70">
+                {dict.comercial.sugestaoContato.replace("{numero}", String(numeroContato)).replace("{dias}", String(diasSugeridos))}
+              </span>
             </label>
             <Input type="date" value={proximoContato} onChange={(e) => setProximoContato(e.target.value)} className="text-xs" />
           </div>
           <Button type="submit" disabled={pending} className="shrink-0 self-end px-3 py-2 text-xs">
-            {pending ? "Salvando..." : "Registrar"}
+            {pending ? dict.common.salvando : dict.comercial.registrar}
           </Button>
         </div>
         {error && <p className="text-xs text-danger">{error}</p>}
       </form>
 
       {anotacoes.length === 0 ? (
-        <p className="text-xs text-ink-muted">Nenhum contato registrado ainda.</p>
+        <p className="text-xs text-ink-muted">{dict.comercial.semContatos}</p>
       ) : (
         <div className="space-y-2">
           {anotacoes.map((a) => (
@@ -75,7 +80,12 @@ export function FollowUpLog({ leadId, anotacoes }: { leadId: string; anotacoes: 
               <p className="text-sm text-ink-primary">{a.nota}</p>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-ink-muted">
                 <span>{fmtDataHora(a.created_at)}</span>
-                {a.proximo_contato_em && <span className="text-ink-secondary">Próx. contato agendado: {a.proximo_contato_em.split("-").reverse().join("/")}</span>}
+                {a.proximo_contato_em && (
+                  <span className="text-ink-secondary">
+                    {dict.comercial.proximoContatoAgendado}
+                    {a.proximo_contato_em.split("-").reverse().join("/")}
+                  </span>
+                )}
               </div>
             </div>
           ))}

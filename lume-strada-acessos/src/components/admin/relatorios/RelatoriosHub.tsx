@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ComponentType, type SVGProps } from "react";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { todayISO, addDaysISO } from "@/lib/utils/format";
 import { DateRangePicker } from "@/components/ui/DateRangePicker";
 import {
@@ -65,6 +66,7 @@ interface RelatoriosHubProps {
  * é uma query relativamente pesada).
  */
 export function RelatoriosHub({ modulosPermitidos }: RelatoriosHubProps) {
+  const { dict } = useLocale();
   const [abaAtiva, setAbaAtiva] = useState<ChaveRelatorio | null>(modulosPermitidos[0]?.chave ?? null);
   const [dataInicio, setDataInicio] = useState(() => addDaysISO(todayISO(), -29));
   const [dataFim, setDataFim] = useState(() => todayISO());
@@ -121,7 +123,7 @@ export function RelatoriosHub({ modulosPermitidos }: RelatoriosHubProps) {
   if (modulosPermitidos.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-base-700 p-10 text-center text-sm text-ink-muted">
-        Nenhum relatório liberado pro seu usuário ainda — fale com o administrador pra ajustar em Cadastros → Equipe.
+        {dict.relatorios.hubSemPermissao}
       </div>
     );
   }

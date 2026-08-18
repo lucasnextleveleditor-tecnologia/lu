@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { BannerTone } from "@/lib/types/database";
 import { cn } from "@/lib/utils/cn";
 import { IconMegaphone, IconExternalLink } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 /** Conteúdo já resolvido do banner — usado por `AdminShell`/`dashboard/layout.tsx` pra tipar a prop `banner` que recebem prontas do Server Component (`null` quando `banner_ativo_*` daquela superfície é falso ou o título está vazio). */
 export interface BannerConfig {
@@ -56,6 +57,7 @@ export function AnnouncementBanner({
   chaveDispensa,
   className,
 }: AnnouncementBannerProps) {
+  const { dict } = useLocale();
   const [hidratado, setHidratado] = useState(false);
   const [dispensado, setDispensado] = useState(false);
 
@@ -104,7 +106,7 @@ export function AnnouncementBanner({
           <button
             type="button"
             onClick={handleDispensar}
-            aria-label="Fechar banner"
+            aria-label={dict.aparencia.fecharBannerAriaLabel}
             className="ml-3 shrink-0 rounded-lg p-1 text-xl leading-none text-white/70 transition hover:bg-white/10 hover:text-white"
           >
             ×

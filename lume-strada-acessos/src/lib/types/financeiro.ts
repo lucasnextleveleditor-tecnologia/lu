@@ -1,6 +1,8 @@
 export type FinContexto = "pessoal" | "profissional";
 export type FinTipoTransacao = "receita" | "despesa" | "transferencia";
 export type FinRecorrencia = "semanal" | "mensal" | "anual";
+/** Moeda estrangeira suportada na conversão automática pra BRL (ver `buscarCotacao`). BRL não entra aqui de propósito — `moeda_original = null` já significa "nasceu em BRL". */
+export type MoedaEstrangeira = "USD" | "EUR";
 
 export interface ContaRow {
   id: string;
@@ -64,6 +66,14 @@ export interface TransacaoRow {
   data_pagamento: string | null;
   fatura_paga: boolean;
   created_at: string;
+  /** Parcelamento — as três colunas ficam `null` numa transação avulsa (ver `supabase/financeiro-parcelamento-moeda.sql`). */
+  parcela_grupo_id: string | null;
+  parcela_numero: number | null;
+  parcela_total: number | null;
+  /** Multi-moeda — `valor` acima é sempre BRL; estes três campos são só o registro informativo de origem (ver comentário no SQL). */
+  moeda_original: MoedaEstrangeira | null;
+  valor_original: number | null;
+  taxa_cambio: number | null;
 }
 
 export type TransacaoComRelacoes = TransacaoRow & {

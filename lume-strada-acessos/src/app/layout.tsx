@@ -12,6 +12,8 @@ import "@fontsource/outfit/600.css";
 import "@fontsource/outfit/700.css";
 import "@fontsource/outfit/800.css";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 
 export async function generateMetadata(): Promise<Metadata> {
   const branding = await getBrandingConfig();
@@ -29,10 +31,20 @@ export async function generateMetadata(): Promise<Metadata> {
 // logotipo, aplicada seletivamente em `app/admin/layout.tsx` e
 // `app/dashboard/layout.tsx` (nunca aqui, nunca em `app/login/page.tsx`).
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Idioma da interface (cookie `lsf_locale`, sem prefixo de URL — ver
+  // `src/lib/i18n/`) resolvido UMA vez aqui e propagado pro app inteiro via
+  // `LocaleProvider`: login, área admin e portal do cliente ficam todos
+  // aninhados dentro deste layout raiz.
+  const { locale, dict } = await getDictionary();
+
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang={locale} className="dark">
       {/* Fundo liso/sólido — sem textura de grão (era um efeito "cinematográfico" antigo, removido a pedido). */}
-      <body className="min-h-screen bg-base-950 text-ink-primary antialiased">{children}</body>
+      <body className="min-h-screen bg-base-950 text-ink-primary antialiased">
+        <LocaleProvider locale={locale} dict={dict}>
+          {children}
+        </LocaleProvider>
+      </body>
     </html>
   );
 }

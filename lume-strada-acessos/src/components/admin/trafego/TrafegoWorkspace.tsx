@@ -9,6 +9,7 @@ import { ClientesTrafegoTab } from "@/components/admin/trafego/ClientesTrafegoTa
 import { InfoProdutosWorkspace } from "@/components/admin/trafego/infoprodutos/InfoProdutosWorkspace";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
 import { IconUsers, IconBarChart2 } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type ClienteResumido = Pick<ProfileRow, "id" | "full_name" | "email">;
 
@@ -33,6 +34,7 @@ type Aba = "clientes" | "info_produtos";
  * líquido e fechamento semanal com reembolsos).
  */
 export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
+  const { dict } = useLocale();
   const [aba, setAba] = useState<Aba>("clientes");
 
   // CSV muda de forma conforme a aba ativa — cada uma tem colunas bem
@@ -59,8 +61,8 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">Tráfego & Metas</h1>
-          <p className="mt-0.5 text-sm text-ink-muted">Tráfego por cliente e o tracking de anúncios dos seus próprios infoprodutos.</p>
+          <h1 className="text-lg font-semibold tracking-tight">{dict.trafego.tituloPagina}</h1>
+          <p className="mt-0.5 text-sm text-ink-muted">{dict.trafego.subtituloPagina}</p>
         </div>
         {aba === "clientes" ? (
           <ExportMenuButton
@@ -68,10 +70,10 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
             nomeArquivo={`trafego-clientes-${props.data}`}
             dadosCSV={csvClientes}
             colunasCSV={[
-              { chave: "cliente", rotulo: "Cliente" },
-              { chave: "investido", rotulo: "Investido (R$)" },
-              { chave: "leadsGerados", rotulo: "Leads Gerados" },
-              { chave: "metaInvestimento", rotulo: "Meta de Investimento (R$)" },
+              { chave: "cliente", rotulo: dict.trafego.csvColCliente },
+              { chave: "investido", rotulo: dict.trafego.csvColInvestido },
+              { chave: "leadsGerados", rotulo: dict.trafego.csvColLeadsGerados },
+              { chave: "metaInvestimento", rotulo: dict.trafego.csvColMetaInvestimento },
             ]}
           />
         ) : (
@@ -80,11 +82,11 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
             nomeArquivo="trafego-infoprodutos"
             dadosCSV={csvAnuncios}
             colunasCSV={[
-              { chave: "data", rotulo: "Data" },
-              { chave: "anuncio", rotulo: "Anúncio" },
-              { chave: "investimento", rotulo: "Investimento (R$)" },
-              { chave: "receitaBruta", rotulo: "Receita Bruta (R$)" },
-              { chave: "vendas", rotulo: "Vendas" },
+              { chave: "data", rotulo: dict.common.data },
+              { chave: "anuncio", rotulo: dict.trafego.csvColAnuncio },
+              { chave: "investimento", rotulo: dict.trafego.csvColInvestimento },
+              { chave: "receitaBruta", rotulo: dict.trafego.csvColReceitaBruta },
+              { chave: "vendas", rotulo: dict.trafego.csvColVendas },
             ]}
           />
         )}
@@ -98,7 +100,7 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
             aba === "clientes" ? "border-accent text-ink-primary" : "border-transparent text-ink-muted hover:text-ink-secondary"
           )}
         >
-          <IconUsers className="h-4 w-4" /> Clientes
+          <IconUsers className="h-4 w-4" /> {dict.trafego.abaClientes}
         </button>
         <button
           onClick={() => setAba("info_produtos")}
@@ -107,7 +109,7 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
             aba === "info_produtos" ? "border-accent text-ink-primary" : "border-transparent text-ink-muted hover:text-ink-secondary"
           )}
         >
-          <IconBarChart2 className="h-4 w-4" /> Info-Produtos
+          <IconBarChart2 className="h-4 w-4" /> {dict.trafego.abaInfoProdutos}
         </button>
       </div>
 

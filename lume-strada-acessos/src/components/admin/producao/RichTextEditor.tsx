@@ -2,20 +2,13 @@
 
 import { useRef } from "react";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface RichTextEditorProps {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
 }
-
-const BOTOES = [
-  { comando: "bold", label: "B", className: "font-bold" },
-  { comando: "italic", label: "I", className: "italic" },
-  { comando: "underline", label: "S", className: "underline" },
-  { comando: "insertUnorderedList", label: "• Lista" },
-  { comando: "insertOrderedList", label: "1. Lista" },
-] as const;
 
 /**
  * Editor de texto rico minimalista — sem biblioteca externa de propósito
@@ -28,7 +21,16 @@ const BOTOES = [
  * qualquer outro campo de texto administrativo do sistema.
  */
 export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
+  const { dict } = useLocale();
   const ref = useRef<HTMLDivElement>(null);
+
+  const BOTOES = [
+    { comando: "bold", label: dict.producao.rtNegrito, className: "font-bold" },
+    { comando: "italic", label: dict.producao.rtItalico, className: "italic" },
+    { comando: "underline", label: dict.producao.rtSublinhado, className: "underline" },
+    { comando: "insertUnorderedList", label: dict.producao.rtListaNaoOrdenada },
+    { comando: "insertOrderedList", label: dict.producao.rtListaOrdenada },
+  ] as const;
 
   function exec(comando: string) {
     ref.current?.focus();

@@ -5,10 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { dict } = useLocale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,11 +25,7 @@ export function LoginForm() {
     const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
 
     if (signInError) {
-      setError(
-        signInError.message === "Invalid login credentials"
-          ? "E-mail ou senha incorretos."
-          : signInError.message
-      );
+      setError(signInError.message === "Invalid login credentials" ? dict.login.credenciaisInvalidas : signInError.message);
       setLoading(false);
       return;
     }
@@ -42,7 +40,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">E-mail</label>
+        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.login.emailLabel}</label>
         <Input
           type="email"
           autoComplete="email"
@@ -50,25 +48,25 @@ export function LoginForm() {
           autoFocus
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="voce@lumestrada.com"
+          placeholder={dict.login.emailPlaceholder}
         />
       </div>
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Senha</label>
+        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.login.senhaLabel}</label>
         <Input
           type="password"
           autoComplete="current-password"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
+          placeholder={dict.login.senhaPlaceholder}
         />
       </div>
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
       <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Entrando..." : "Entrar"}
+        {loading ? dict.login.entrando : dict.login.entrar}
       </Button>
     </form>
   );

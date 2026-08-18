@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import { FinanceiroPreviewWorkspace } from "@/components/admin/financeiro/preview/FinanceiroPreviewWorkspace";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +14,12 @@ export const dynamic = "force-dynamic";
  */
 export default async function FinanceiroPreviewPage() {
   await requireModuloOuRedirect("financeiro");
+  const { dict } = await getDictionary();
 
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-xs text-ink-secondary">
-        <span className="font-semibold text-ink-primary">Preview do novo Financeiro.</span> Layout final com dados fictícios — nada aqui
-        é salvo no banco ainda. A página em uso continua em{" "}
+        <span className="font-semibold text-ink-primary">{dict.financeiro.previewAvisoTitulo}</span> {dict.financeiro.previewAvisoTexto}{" "}
         <Link href="/admin/financeiro" className="text-accent hover:underline">
           /admin/financeiro
         </Link>

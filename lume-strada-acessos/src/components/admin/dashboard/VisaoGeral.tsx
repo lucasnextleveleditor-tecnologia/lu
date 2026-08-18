@@ -22,6 +22,7 @@ import {
   IconMessageCircle,
   IconColumns,
 } from "@/components/ui/icons";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 interface VisaoGeralProps {
   // Todo card aqui é `| null` por DOIS motivos possíveis, nunca misturados
@@ -84,7 +85,7 @@ function SecaoDashboard({
   );
 }
 
-export function VisaoGeral({
+export async function VisaoGeral({
   captacoesHoje,
   entregasHoje,
   tarefasAtrasadas,
@@ -100,6 +101,7 @@ export function VisaoGeral({
   whatsapp,
   agendaHoje,
 }: VisaoGeralProps) {
+  const { dict } = await getDictionary();
   const mostrarProducao = captacoesHoje !== null || entregasHoje !== null || tarefasAtrasadas !== null || entregasAguardandoAprovacao !== null;
   const mostrarComercial = leadsEmAberto !== null || followUpsAtrasados !== null || valorPropostasAbertas !== null;
   const mostrarFinanceiro = saldoConsolidado !== null || contasVencidas !== null || financeiroDoMes !== null;
@@ -114,7 +116,7 @@ export function VisaoGeral({
   if (nenhumaSecaoVisivel) {
     return (
       <div className="rounded-2xl border border-dashed border-base-700 p-10 text-center text-sm text-ink-muted">
-        Nenhum card liberado pro seu usuário ainda — fale com o administrador pra ajustar em Cadastros → Equipe.
+        {dict.dashboard.nenhumCardLiberado}
       </div>
     );
   }
@@ -122,30 +124,40 @@ export function VisaoGeral({
   return (
     <div className="space-y-10">
       {mostrarProducao && (
-        <SecaoDashboard icon={IconColumns} titulo="Produção">
+        <SecaoDashboard icon={IconColumns} titulo={dict.dashboard.secaoProducao}>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {captacoesHoje !== null && (
-              <StatTile icon={IconCamera} label="Captações Hoje" value={captacoesHoje} hint="Gravações agendadas pra hoje" />
+              <StatTile
+                icon={IconCamera}
+                label={dict.dashboard.captacoesHojeLabel}
+                value={captacoesHoje}
+                hint={dict.dashboard.captacoesHojeHint}
+              />
             )}
             {entregasHoje !== null && (
-              <StatTile icon={IconExternalLink} label="Entregas Hoje" value={entregasHoje} hint="Prazos de entrega vencendo hoje" />
+              <StatTile
+                icon={IconExternalLink}
+                label={dict.dashboard.entregasHojeLabel}
+                value={entregasHoje}
+                hint={dict.dashboard.entregasHojeHint}
+              />
             )}
             {tarefasAtrasadas !== null && (
               <StatTile
                 icon={IconAlertTriangle}
-                label="Tarefas Atrasadas"
+                label={dict.dashboard.tarefasAtrasadasLabel}
                 value={tarefasAtrasadas}
                 tone={tarefasAtrasadas > 0 ? "critical" : "neutral"}
-                hint="Prazo vencido, ainda não concluídas"
+                hint={dict.dashboard.tarefasAtrasadasHint}
               />
             )}
             {entregasAguardandoAprovacao !== null && (
               <StatTile
                 icon={IconCheckCircle}
-                label="Aguardando Aprovação"
+                label={dict.dashboard.aguardandoAprovacaoLabel}
                 value={entregasAguardandoAprovacao}
                 tone={entregasAguardandoAprovacao > 0 ? "warning" : "neutral"}
-                hint="Versões de entrega esperando o cliente"
+                hint={dict.dashboard.aguardandoAprovacaoHint}
               />
             )}
           </div>
@@ -153,26 +165,31 @@ export function VisaoGeral({
       )}
 
       {mostrarComercial && (
-        <SecaoDashboard icon={IconTarget} titulo="Comercial">
+        <SecaoDashboard icon={IconTarget} titulo={dict.dashboard.secaoComercial}>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {leadsEmAberto !== null && (
-              <StatTile icon={IconTarget} label="Leads em Aberto" value={leadsEmAberto} hint="Ainda no funil comercial" />
+              <StatTile
+                icon={IconTarget}
+                label={dict.dashboard.leadsEmAbertoLabel}
+                value={leadsEmAberto}
+                hint={dict.dashboard.leadsEmAbertoHint}
+              />
             )}
             {followUpsAtrasados !== null && (
               <StatTile
                 icon={IconActivity}
-                label="Follow-ups Atrasados"
+                label={dict.dashboard.followUpsAtrasadosLabel}
                 value={followUpsAtrasados}
                 tone={followUpsAtrasados > 0 ? "warning" : "neutral"}
-                hint="Próximo contato já venceu"
+                hint={dict.dashboard.followUpsAtrasadosHint}
               />
             )}
             {valorPropostasAbertas !== null && (
               <StatTile
                 icon={IconDollarSign}
-                label="Propostas Abertas"
+                label={dict.dashboard.propostasAbertasLabel}
                 value={fmtBRL(valorPropostasAbertas)}
-                hint="Valor estimado, leads em aberto"
+                hint={dict.dashboard.propostasAbertasHint}
               />
             )}
           </div>
@@ -180,20 +197,25 @@ export function VisaoGeral({
       )}
 
       {mostrarFinanceiro && (
-        <SecaoDashboard icon={IconWallet} titulo="Financeiro">
+        <SecaoDashboard icon={IconWallet} titulo={dict.dashboard.secaoFinanceiro}>
           <div className="space-y-4">
             {(saldoConsolidado !== null || contasVencidas !== null) && (
               <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {saldoConsolidado !== null && (
-                  <StatTile icon={IconWallet} label="Saldo Consolidado" value={fmtBRL(saldoConsolidado)} hint="Soma das contas profissionais" />
+                  <StatTile
+                    icon={IconWallet}
+                    label={dict.dashboard.saldoConsolidadoLabel}
+                    value={fmtBRL(saldoConsolidado)}
+                    hint={dict.dashboard.saldoConsolidadoHint}
+                  />
                 )}
                 {contasVencidas !== null && (
                   <StatTile
                     icon={IconCreditCard}
-                    label="Contas Vencidas"
+                    label={dict.dashboard.contasVencidasLabel}
                     value={contasVencidas}
                     tone={contasVencidas > 0 ? "critical" : "neutral"}
-                    hint="Não pagas, com vencimento já passado"
+                    hint={dict.dashboard.contasVencidasHint}
                   />
                 )}
               </div>
@@ -208,32 +230,40 @@ export function VisaoGeral({
       )}
 
       {(mostrarInventario || mostrarTrafego || mostrarWhatsapp) && (
-        <SecaoDashboard icon={IconBox} titulo="Outros Módulos">
+        <SecaoDashboard icon={IconBox} titulo={dict.dashboard.secaoOutrosModulos}>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {resumoInventario !== null && (
               <StatTile
                 icon={IconBox}
-                label="Itens em Manutenção"
+                label={dict.dashboard.itensEmManutencaoLabel}
                 value={resumoInventario.manutencao}
                 tone={resumoInventario.manutencao > 0 ? "warning" : "neutral"}
-                hint={resumoInventario.emprestados > 0 ? `${resumoInventario.emprestados} emprestado(s) no momento` : "Nenhum item emprestado"}
+                hint={
+                  resumoInventario.emprestados > 0
+                    ? dict.dashboard.emprestadosNoMomento.replace("{n}", String(resumoInventario.emprestados))
+                    : dict.dashboard.nenhumItemEmprestado
+                }
               />
             )}
             {resumoTrafegoHoje !== null && (
               <StatTile
                 icon={IconTrendingUp}
-                label="Investido em Ads Hoje"
+                label={dict.dashboard.investidoAdsHojeLabel}
                 value={fmtBRL(resumoTrafegoHoje.totalInvestido)}
-                hint={`${resumoTrafegoHoje.totalLeads} leads gerados hoje`}
+                hint={dict.dashboard.leadsGeradosHoje.replace("{n}", String(resumoTrafegoHoje.totalLeads))}
               />
             )}
             {whatsapp !== null && (
               <StatTile
                 icon={IconMessageCircle}
-                label="WhatsApp"
-                value={whatsapp.status ? STATUS_SESSAO_META[whatsapp.status].label : "Não configurado"}
+                label={dict.dashboard.whatsappLabel}
+                value={whatsapp.status ? STATUS_SESSAO_META[whatsapp.status].label : dict.dashboard.naoConfigurado}
                 tone={whatsapp.status ? STATUS_SESSAO_META[whatsapp.status].tone : "neutral"}
-                hint={whatsapp.status ? `${whatsapp.conversasHoje} conversas hoje` : "Conecte em Admin → WhatsApp"}
+                hint={
+                  whatsapp.status
+                    ? dict.dashboard.conversasHoje.replace("{n}", String(whatsapp.conversasHoje))
+                    : dict.dashboard.conecteEmAdminWhatsapp
+                }
               />
             )}
           </div>
@@ -243,7 +273,7 @@ export function VisaoGeral({
       {mostrarAgenda && (
         <AgendaDoDia
           data={hojeISO()}
-          titulo="Agenda de Hoje"
+          titulo={dict.dashboard.agendaDeHojeTitulo}
           captacoes={agendaHoje.captacoes}
           entregas={agendaHoje.entregas}
           followUps={agendaHoje.followUps}

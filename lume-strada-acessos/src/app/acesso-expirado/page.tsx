@@ -2,14 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import type { ProfileRow } from "@/lib/types/database";
 import { calcularStatus, fmtData } from "@/lib/utils/status";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export default async function AcessoExpiradoPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const { dict } = await getDictionary();
 
-  let mensagem = "Seu acesso não está disponível no momento.";
+  let mensagem = dict.login.acessoExpiradoPadrao;
 
   if (user) {
     const { data: profile } = await supabase
@@ -22,9 +24,9 @@ export default async function AcessoExpiradoPage() {
     if (profile) {
       const status = calcularStatus(profile);
       if (status === "expirado") {
-        mensagem = `Seu acesso expirou em ${fmtData(profile.expires_at)}.`;
+        mensagem = dict.login.acessoExpiradoData.replace("{data}", fmtData(profile.expires_at));
       } else if (status === "inativo") {
-        mensagem = "Seu acesso foi suspenso pela agência.";
+        mensagem = dict.login.acessoSuspenso;
       }
     }
   }
@@ -35,11 +37,9 @@ export default async function AcessoExpiradoPage() {
         <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-status-critical/30 bg-status-critical/10">
           <div className="h-3 w-3 rotate-45 bg-status-critical" />
         </div>
-        <h1 className="text-lg font-semibold tracking-tight">Acesso Expirado</h1>
+        <h1 className="text-lg font-semibold tracking-tight">{dict.login.acessoExpiradoTitulo}</h1>
         <p className="mt-2 text-sm text-ink-secondary">{mensagem}</p>
-        <p className="mt-4 text-xs text-ink-muted">
-          Fale com a sua produtora, a Lume Strada Filmes, para renovar ou reativar o acesso.
-        </p>
+        <p className="mt-4 text-xs text-ink-muted">{dict.login.faleComAgencia}</p>
         <div className="mt-6 flex justify-center">
           <LogoutButton />
         </div>

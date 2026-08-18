@@ -11,6 +11,7 @@ import { Meter } from "@/components/ui/Meter";
 import { IconCreditCard } from "@/components/ui/icons";
 import { NovoCartaoModal } from "@/components/admin/financeiro/NovoCartaoModal";
 import { PagarFaturaModal } from "@/components/admin/financeiro/PagarFaturaModal";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface CartoesCardProps {
   cartoes: CartaoComLimite[];
@@ -19,6 +20,7 @@ interface CartoesCardProps {
 }
 
 export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
+  const { dict } = useLocale();
   const [modalAberto, setModalAberto] = useState(false);
   const [cartaoFatura, setCartaoFatura] = useState<CartaoComLimite | null>(null);
   const [confirmando, setConfirmando] = useState<string | null>(null);
@@ -39,10 +41,10 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <IconCreditCard className="h-4 w-4 text-ink-muted" />
-          <h2 className="text-sm font-semibold">Cartões de Crédito</h2>
+          <h2 className="text-sm font-semibold">{dict.financeiro.cartoesCreditoTitulo}</h2>
         </div>
         <Button variant="ghost" className="px-3 py-1.5 text-xs" onClick={() => setModalAberto(true)}>
-          + Novo
+          {dict.financeiro.btnNovoCartao}
         </Button>
       </div>
 
@@ -50,7 +52,7 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
 
       {cartoes.length === 0 ? (
         <p className="rounded-lg border border-dashed border-base-700 p-4 text-center text-xs text-ink-muted">
-          Nenhum cartão cadastrado ainda.
+          {dict.financeiro.cartoesVazio}
         </p>
       ) : (
         <div className="space-y-3">
@@ -63,7 +65,9 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-ink-primary">{cartao.nome}</p>
                     <p className="text-xs text-ink-muted">
-                      Fecha dia {cartao.dia_fechamento} · Vence dia {cartao.dia_vencimento}
+                      {dict.financeiro.fechaDiaVenceDia
+                        .replace("{fechamento}", String(cartao.dia_fechamento))
+                        .replace("{vencimento}", String(cartao.dia_vencimento))}
                     </p>
                   </div>
                   {confirmando === cartao.id ? (
@@ -73,18 +77,18 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
                         disabled={pending}
                         className="text-xs font-medium text-danger hover:underline"
                       >
-                        Sim
+                        {dict.common.sim}
                       </button>
                       <button onClick={() => setConfirmando(null)} disabled={pending} className="text-xs text-ink-muted hover:text-ink-primary">
-                        Não
+                        {dict.common.nao}
                       </button>
                     </div>
                   ) : (
                     <button
                       onClick={() => setConfirmando(cartao.id)}
                       className="shrink-0 text-ink-muted transition hover:text-danger"
-                      aria-label="Excluir cartão"
-                      title="Excluir cartão (remove também as transações vinculadas)"
+                      aria-label={dict.financeiro.excluirCartaoAria}
+                      title={dict.financeiro.excluirCartaoTitle}
                     >
                       ×
                     </button>
@@ -93,8 +97,8 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
 
                 <div className="mb-1 flex items-center justify-between text-xs text-ink-secondary">
                   <span>
-                    Usado: <span className="font-medium text-ink-primary">{fmtBRL(cartao.limite_consumido)}</span> de{" "}
-                    {fmtBRL(cartao.limite)}
+                    {dict.financeiro.usadoLabel} <span className="font-medium text-ink-primary">{fmtBRL(cartao.limite_consumido)}</span>{" "}
+                    {dict.financeiro.deLabel} {fmtBRL(cartao.limite)}
                   </span>
                   <span className="font-medium text-ink-primary">{fmtPercent(pct)}</span>
                 </div>
@@ -102,7 +106,7 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
 
                 <div className="mt-2.5 flex items-center justify-between">
                   <span className="text-xs text-ink-secondary">
-                    Disponível: <span className="font-medium text-ink-primary">{fmtBRL(cartao.limite_disponivel)}</span>
+                    {dict.financeiro.disponivelLabel} <span className="font-medium text-ink-primary">{fmtBRL(cartao.limite_disponivel)}</span>
                   </span>
                   <Button
                     variant="ghost"
@@ -110,7 +114,7 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
                     onClick={() => setCartaoFatura(cartao)}
                     disabled={cartao.limite_consumido <= 0}
                   >
-                    Pagar Fatura
+                    {dict.financeiro.pagarFaturaBtn}
                   </Button>
                 </div>
               </div>

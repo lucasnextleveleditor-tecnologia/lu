@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
 import { TONE_GLOW } from "@/components/admin/trafego/tone-glow";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface MetaCardProps {
   cliente: Pick<ProfileRow, "id" | "full_name" | "email">;
@@ -23,6 +24,7 @@ interface MetaCardProps {
 const EMPTY_REGISTRO = { nomeCampanha: "", valorInvestido: "", leadsGerados: "" };
 
 export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
+  const { dict } = useLocale();
   const [valorMeta, setValorMeta] = useState(String(meta?.valor_investido_meta ?? 0));
   const [leadsMeta, setLeadsMeta] = useState(meta?.leads_meta != null ? String(meta.leads_meta) : "");
   const [objetivo, setObjetivo] = useState(meta?.objetivo ?? "");
@@ -81,7 +83,7 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
       <Card className="overflow-hidden bg-gradient-to-br from-base-800/30 via-transparent to-transparent">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
         <div>
-          <p className="text-sm font-semibold text-ink-primary">{cliente.full_name || "Sem nome"}</p>
+          <p className="text-sm font-semibold text-ink-primary">{cliente.full_name || dict.trafego.semNome}</p>
           <p className="text-xs text-ink-muted">{cliente.email}</p>
         </div>
         <Badge tone={statusMeta.tone} label={statusMeta.label} />
@@ -90,7 +92,7 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
       {/* Meta do dia — editável pelo admin */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Meta de investimento (R$/dia)</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.metaInvestimentoLabel}</label>
           <Input
             type="number"
             min="0"
@@ -102,7 +104,7 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Meta de leads (opcional)</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.metaLeadsLabel}</label>
           <Input
             type="number"
             min="0"
@@ -115,13 +117,13 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Objetivo do dia (opcional)</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.objetivoDiaLabel}</label>
           <Input
             value={objetivo}
             onChange={(e) => setObjetivo(e.target.value)}
             onBlur={salvarMetaAtual}
             disabled={pendingMeta}
-            placeholder="Ex: Lançamento da campanha X"
+            placeholder={dict.trafego.objetivoDiaPlaceholder}
           />
         </div>
       </div>
@@ -130,8 +132,13 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
       <div className="mb-5 rounded-xl border border-base-700/70 bg-gradient-to-b from-base-800/40 to-base-950/60 p-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
         <div className="flex items-center justify-between mb-2 text-xs text-ink-secondary">
           <span>
-            Investido: <span className="font-medium text-ink-primary">{fmtBRL(resumo.totalInvestido)}</span>
-            {meta && meta.valor_investido_meta > 0 && <> de {fmtBRL(meta.valor_investido_meta)}</>}
+            {dict.trafego.investidoLabel} <span className="font-medium text-ink-primary">{fmtBRL(resumo.totalInvestido)}</span>
+            {meta && meta.valor_investido_meta > 0 && (
+              <>
+                {" "}
+                {dict.trafego.deTexto} {fmtBRL(meta.valor_investido_meta)}
+              </>
+            )}
           </span>
           {resumo.pctInvestido !== null && <span className="font-medium text-ink-primary">{fmtPercent(resumo.pctInvestido)}</span>}
         </div>
@@ -139,14 +146,19 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
           <Meter pct={resumo.pctInvestido ?? 0} tone={statusMeta.tone === "neutral" ? "neutral" : statusMeta.tone} />
         </div>
         <p className="mt-2 text-xs text-ink-secondary">
-          Leads: <span className="font-medium text-ink-primary">{resumo.totalLeads}</span>
-          {meta?.leads_meta != null && <> de {meta.leads_meta}</>}
+          {dict.trafego.leadsLabel} <span className="font-medium text-ink-primary">{resumo.totalLeads}</span>
+          {meta?.leads_meta != null && (
+            <>
+              {" "}
+              {dict.trafego.deTexto} {meta.leads_meta}
+            </>
+          )}
         </p>
       </div>
 
       {/* Campanhas / lançamentos do dia */}
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">Lançamentos do dia</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.trafego.lancamentosDoDia}</p>
         {registros.length > 0 && (
           <div className="mb-3 space-y-2">
             {registros.map((r) => (
@@ -155,16 +167,16 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
                 className="flex items-center justify-between gap-2 rounded-lg border border-base-700/70 bg-gradient-to-r from-base-800/40 to-base-950/40 px-3 py-2 text-sm transition-colors hover:border-base-600"
               >
                 <div className="min-w-0">
-                  <p className="truncate font-medium">{r.nome_campanha || "Lançamento sem nome"}</p>
+                  <p className="truncate font-medium">{r.nome_campanha || dict.trafego.lancamentoSemNome}</p>
                   <p className="text-xs text-ink-muted">
-                    {fmtBRL(r.valor_investido)} · {r.leads_gerados} lead(s)
+                    {fmtBRL(r.valor_investido)} · {r.leads_gerados} {dict.trafego.leadsSufixo}
                   </p>
                 </div>
                 <button
                   onClick={() => handleRemoverRegistro(r.id)}
                   disabled={pendingRegistro}
                   className="shrink-0 text-ink-muted transition hover:text-danger"
-                  aria-label="Remover lançamento"
+                  aria-label={dict.trafego.removerLancamento}
                 >
                   ×
                 </button>
@@ -177,7 +189,7 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
           <Input
             value={novoRegistro.nomeCampanha}
             onChange={(e) => setNovoRegistro((f) => ({ ...f, nomeCampanha: e.target.value }))}
-            placeholder="Campanha (opcional)"
+            placeholder={dict.trafego.campanhaPlaceholder}
             className="flex-1 min-w-[140px]"
           />
           <Input
@@ -186,7 +198,7 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
             step="0.01"
             value={novoRegistro.valorInvestido}
             onChange={(e) => setNovoRegistro((f) => ({ ...f, valorInvestido: e.target.value }))}
-            placeholder="R$ investido"
+            placeholder={dict.trafego.valorInvestidoPlaceholder}
             className="w-32"
           />
           <Input
@@ -195,11 +207,11 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
             step="1"
             value={novoRegistro.leadsGerados}
             onChange={(e) => setNovoRegistro((f) => ({ ...f, leadsGerados: e.target.value }))}
-            placeholder="Leads"
+            placeholder={dict.trafego.leadsPlaceholder}
             className="w-24"
           />
           <Button type="submit" variant="ghost" disabled={pendingRegistro} className="shrink-0">
-            {pendingRegistro ? "..." : "+ Lançar"}
+            {pendingRegistro ? "..." : `+ ${dict.trafego.lancarBotao}`}
           </Button>
         </form>
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}

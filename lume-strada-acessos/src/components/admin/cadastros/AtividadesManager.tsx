@@ -5,6 +5,7 @@ import type { ClienteAtividadeRow, TipoAtividadeCliente } from "@/lib/types/cada
 import { listarAtividades, criarAtividade, alternarConcluida, removerAtividade } from "@/app/admin/actions";
 import { fmtData, fmtDataHora } from "@/lib/utils/status";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -18,6 +19,7 @@ import { IconCheck, IconTrash, IconClipboardList } from "@/components/ui/icons";
  * detalhe é aberto, mesmo padrão de `listarMensagens` no Inbox do WhatsApp.
  */
 export function AtividadesManager({ clienteId }: { clienteId: string }) {
+  const { dict } = useLocale();
   const [atividades, setAtividades] = useState<ClienteAtividadeRow[] | null>(null);
   const [tipo, setTipo] = useState<TipoAtividadeCliente>("tarefa");
   const [titulo, setTitulo] = useState("");
@@ -79,13 +81,13 @@ export function AtividadesManager({ clienteId }: { clienteId: string }) {
     <div>
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end">
         <div className="flex-1">
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Nova atividade / tarefa</label>
-          <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex: Ligar sobre renovação" />
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.novaAtividadeLabel}</label>
+          <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder={dict.cadastros.novaAtividadePlaceholder} />
         </div>
         <div className="w-28">
           <Select value={tipo} onChange={(e) => setTipo(e.target.value as TipoAtividadeCliente)}>
-            <option value="tarefa">Tarefa</option>
-            <option value="nota">Nota</option>
+            <option value="tarefa">{dict.cadastros.tarefa}</option>
+            <option value="nota">{dict.cadastros.nota}</option>
           </Select>
         </div>
         {tipo === "tarefa" && (
@@ -94,18 +96,18 @@ export function AtividadesManager({ clienteId }: { clienteId: string }) {
           </div>
         )}
         <Button type="button" onClick={handleAdicionar} disabled={pending || !titulo.trim()} className="px-4 py-2 text-sm">
-          + Adicionar
+          + {dict.common.adicionar}
         </Button>
       </div>
 
       {error && <p className="mb-2 text-xs text-danger">{error}</p>}
 
       {atividades === null ? (
-        <p className="py-4 text-center text-xs text-ink-muted">Carregando...</p>
+        <p className="py-4 text-center text-xs text-ink-muted">{dict.common.carregando}</p>
       ) : atividades.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-base-700 py-8 text-center">
           <IconClipboardList className="h-6 w-6 text-ink-muted" />
-          <p className="text-xs text-ink-muted">Nenhuma atividade registrada ainda.</p>
+          <p className="text-xs text-ink-muted">{dict.cadastros.nenhumaAtividade}</p>
         </div>
       ) : (
         <ul className="space-y-2">
@@ -125,7 +127,7 @@ export function AtividadesManager({ clienteId }: { clienteId: string }) {
                         ? "border-accent bg-accent text-base-950"
                         : "border-base-600 text-transparent hover:border-ink-muted"
                     )}
-                    aria-label={atividade.concluida ? "Marcar como pendente" : "Marcar como concluída"}
+                    aria-label={atividade.concluida ? dict.cadastros.marcarComoPendente : dict.cadastros.marcarComoConcluida}
                   >
                     <IconCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
                   </button>
@@ -137,8 +139,8 @@ export function AtividadesManager({ clienteId }: { clienteId: string }) {
                     {atividade.titulo}
                   </p>
                   <p className="mt-0.5 text-[11px] text-ink-muted">
-                    {atividade.tipo === "tarefa" ? "Tarefa" : "Nota"}
-                    {atividade.data_prevista && ` · Prevista para ${fmtData(atividade.data_prevista)}`}
+                    {atividade.tipo === "tarefa" ? dict.cadastros.tarefa : dict.cadastros.nota}
+                    {atividade.data_prevista && ` · ${dict.cadastros.previstaParaLabel} ${fmtData(atividade.data_prevista)}`}
                     {` · ${fmtDataHora(atividade.created_at)}`}
                   </p>
                 </div>
@@ -147,7 +149,7 @@ export function AtividadesManager({ clienteId }: { clienteId: string }) {
                 onClick={() => handleRemover(atividade.id)}
                 disabled={pending}
                 className="shrink-0 text-ink-muted transition hover:text-danger"
-                aria-label="Remover"
+                aria-label={dict.common.remover}
               >
                 <IconTrash className="h-4 w-4" />
               </button>

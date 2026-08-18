@@ -6,6 +6,7 @@ import { criarProduto, atualizarProduto } from "@/app/admin/trafego/infoprodutos
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface ProdutoModalProps {
   produto?: ProdutoRow | null;
@@ -13,6 +14,7 @@ interface ProdutoModalProps {
 }
 
 export function ProdutoModal({ produto, onClose }: ProdutoModalProps) {
+  const { dict } = useLocale();
   const [nome, setNome] = useState(produto?.nome ?? "");
   const [tipo, setTipo] = useState<TipoProduto>(produto?.tipo ?? "principal");
   const [valor, setValor] = useState(String(produto?.valor ?? ""));
@@ -41,27 +43,27 @@ export function ProdutoModal({ produto, onClose }: ProdutoModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl border border-base-700 bg-base-900 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-base font-semibold">{editando ? "Editar Produto" : "Novo Produto"}</h3>
-          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label="Fechar">
+          <h3 className="text-base font-semibold">{editando ? dict.trafego.editarProdutoTitulo : dict.trafego.novoProdutoTitulo}</h3>
+          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
             ×
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Nome do Produto *</label>
-            <Input required value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Pack de Presets Cinema" />
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.nomeProdutoLabel}</label>
+            <Input required value={nome} onChange={(e) => setNome(e.target.value)} placeholder={dict.trafego.nomeProdutoPlaceholder} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Tipo *</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.tipoLabel}</label>
               <Select value={tipo} onChange={(e) => setTipo(e.target.value as TipoProduto)}>
-                <option value="principal">Produto Principal</option>
-                <option value="order_bump">Order Bump</option>
+                <option value="principal">{dict.trafego.produtoPrincipalLabel}</option>
+                <option value="order_bump">{dict.trafego.orderBumpOpcao}</option>
               </Select>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Valor (R$) *</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.valorReaisLabel}</label>
               <Input type="number" min="0" step="0.01" required value={valor} onChange={(e) => setValor(e.target.value)} placeholder="97.00" />
             </div>
           </div>
@@ -70,10 +72,10 @@ export function ProdutoModal({ produto, onClose }: ProdutoModalProps) {
 
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" onClick={onClose}>
-              Cancelar
+              {dict.common.cancelar}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Salvando..." : editando ? "Salvar Alterações" : "Criar Produto"}
+              {loading ? dict.common.salvando : editando ? dict.common.salvarAlteracoes : dict.trafego.criarProdutoBotao}
             </Button>
           </div>
         </form>

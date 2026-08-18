@@ -9,6 +9,9 @@ import { BrandingLogo } from "@/components/branding/BrandingLogo";
 import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
 import type { BannerConfig } from "@/components/branding/AnnouncementBanner";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { NavDict } from "@/lib/i18n/dictionaries/pt/nav";
 import {
   IconUsers,
   IconActivity,
@@ -37,9 +40,9 @@ import {
 // todas as outras permissões ligadas — mesma regra do guard no servidor.
 const NAV_GRUPOS = [
   {
-    titulo: "Visão Geral",
+    tituloKey: "grupoVisaoGeral",
     itens: [
-      { href: "/admin/dashboard", label: "Dashboard", icon: IconLayoutGrid, chave: null },
+      { href: "/admin/dashboard", labelKey: "dashboard", icon: IconLayoutGrid, chave: null },
       // Mesmo espírito do Dashboard (chave: null — visível pra qualquer
       // membro da equipe, sem checagem de módulo aqui no menu): a checagem
       // FINA de quais relatórios cada um vê mora dentro da própria página
@@ -47,28 +50,37 @@ const NAV_GRUPOS = [
       // usado no Dashboard) — um funcionário sem nenhuma permissão extra
       // simplesmente vê o Hub vazio, com uma orientação pra falar com o
       // admin, em vez do link sumir do menu.
-      { href: "/admin/relatorios", label: "Relatórios", icon: IconBarChart2, chave: null },
+      { href: "/admin/relatorios", labelKey: "relatorios", icon: IconBarChart2, chave: null },
     ],
   },
   {
-    titulo: "Comercial",
+    tituloKey: "grupoComercial",
     itens: [
-      { href: "/admin/comercial", label: "CRM & Vendas", icon: IconTarget, chave: "comercial" },
-      { href: "/admin/whatsapp", label: "WhatsApp", icon: IconMessageCircle, chave: "whatsapp" },
-      { href: "/admin", label: "Cadastros", icon: IconUsers, chave: "clientes" },
+      { href: "/admin/comercial", labelKey: "crmVendas", icon: IconTarget, chave: "comercial" },
+      { href: "/admin/whatsapp", labelKey: "whatsapp", icon: IconMessageCircle, chave: "whatsapp" },
+      { href: "/admin", labelKey: "cadastros", icon: IconUsers, chave: "clientes" },
     ],
   },
   {
-    titulo: "Gestão",
+    tituloKey: "grupoGestao",
     itens: [
-      { href: "/admin/financeiro", label: "Financeiro", icon: IconWallet, chave: "financeiro" },
-      { href: "/admin/producao", label: "Produção & Tarefas", icon: IconColumns, chave: "producao" },
-      { href: "/admin/trafego", label: "Tráfego & Metas", icon: IconActivity, chave: "trafego" },
-      { href: "/admin/inventario", label: "Inventário & Patrimônio", icon: IconBox, chave: "inventario" },
-      { href: "/admin/aparencia", label: "Aparência", icon: IconPalette, chave: null, adminOnly: true },
+      { href: "/admin/financeiro", labelKey: "financeiro", icon: IconWallet, chave: "financeiro" },
+      { href: "/admin/producao", labelKey: "producaoTarefas", icon: IconColumns, chave: "producao" },
+      { href: "/admin/trafego", labelKey: "trafegoMetas", icon: IconActivity, chave: "trafego" },
+      { href: "/admin/inventario", labelKey: "inventarioPatrimonio", icon: IconBox, chave: "inventario" },
+      { href: "/admin/aparencia", labelKey: "aparencia", icon: IconPalette, chave: null, adminOnly: true },
     ],
   },
-] as const;
+] as const satisfies ReadonlyArray<{
+  tituloKey: keyof NavDict;
+  itens: ReadonlyArray<{
+    href: string;
+    labelKey: keyof NavDict;
+    icon: typeof IconUsers;
+    chave: string | null;
+    adminOnly?: boolean;
+  }>;
+}>;
 
 /** Preferência é por navegador (localStorage), não por conta — o valor salvo no branding é só o PADRÃO inicial de cada sessão nova. */
 const STORAGE_KEY = "lsf_admin_sidebar_colapsada";
@@ -87,6 +99,7 @@ interface AdminShellProps {
 
 export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permissoes, banner, children }: AdminShellProps) {
   const pathname = usePathname();
+  const { dict } = useLocale();
   const [colapsado, setColapsado] = useState(colapsadoPadrao);
 
   // Mesma regra de autorização do servidor (`requireModulo`/`requireAdmin`),
@@ -136,24 +149,29 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permi
           {!colapsado && (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold tracking-tight">Lume Strada Filmes</p>
-              <p className="truncate text-[11px] text-ink-muted">Painel Administrativo</p>
+              <p className="truncate text-[11px] text-ink-muted">{dict.nav.painelAdministrativo}</p>
             </div>
           )}
         </div>
 
         <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
           {gruposVisiveis.map((grupo, i) => (
-            <div key={grupo.titulo} className={cn(i > 0 && colapsado && "border-t border-base-800 pt-3")}>
-              {!colapsado && <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{grupo.titulo}</p>}
+            <div key={grupo.tituloKey} className={cn(i > 0 && colapsado && "border-t border-base-800 pt-3")}>
+              {!colapsado && (
+                <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+                  {dict.nav[grupo.tituloKey]}
+                </p>
+              )}
               <div className="space-y-1">
                 {grupo.itens.map((item) => {
                   const active = item.href === "/admin" ? pathname === "/admin" : pathname?.startsWith(item.href);
                   const Icon = item.icon;
+                  const label = dict.nav[item.labelKey];
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      title={colapsado ? item.label : undefined}
+                      title={colapsado ? label : undefined}
                       className={cn(
                         "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition",
                         colapsado && "justify-center px-0",
@@ -167,7 +185,7 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permi
                       )}
                     >
                       <Icon className={cn("h-[18px] w-[18px] shrink-0", active ? "text-base-950" : undefined)} />
-                      {!colapsado && <span className="truncate">{item.label}</span>}
+                      {!colapsado && <span className="truncate">{label}</span>}
                     </Link>
                   );
                 })}
@@ -182,13 +200,16 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permi
               {nome || email}
             </p>
           )}
+          <div className={cn("mb-2 flex", colapsado && "justify-center")}>
+            <LanguageSwitcher compact={colapsado} />
+          </div>
           <div className={cn("flex items-center gap-2", colapsado && "flex-col")}>
             <LogoutButton iconOnly={colapsado} className={colapsado ? undefined : "flex-1"} />
             <button
               onClick={alternar}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-base-600 text-ink-muted transition hover:border-ink-muted hover:text-ink-primary"
-              aria-label={colapsado ? "Expandir menu" : "Recolher menu"}
-              title={colapsado ? "Expandir menu" : "Recolher menu"}
+              aria-label={colapsado ? dict.nav.expandirMenu : dict.nav.recolherMenu}
+              title={colapsado ? dict.nav.expandirMenu : dict.nav.recolherMenu}
             >
               {colapsado ? <IconChevronsRight className="h-4 w-4" /> : <IconChevronsLeft className="h-4 w-4" />}
             </button>

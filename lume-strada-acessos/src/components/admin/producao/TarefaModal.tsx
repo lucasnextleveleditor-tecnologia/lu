@@ -4,12 +4,13 @@ import { useState, type FormEvent } from "react";
 import type { ProfileRow } from "@/lib/types/database";
 import type { FuncionarioRow, PrioridadeTarefa, TipoServicoRow } from "@/lib/types/producao";
 import { criarTarefa } from "@/app/admin/producao/actions";
-import { PRIORIDADE_TAREFA_META, PRIORIDADE_TAREFA_ORDEM } from "@/lib/utils/producao";
+import { PRIORIDADE_TAREFA_ORDEM } from "@/lib/utils/producao";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface TarefaModalProps {
   clientes: Pick<ProfileRow, "id" | "email" | "full_name">[];
@@ -20,6 +21,13 @@ interface TarefaModalProps {
 
 /** Criação de uma nova tarefa. Edição completa (+ subtarefas/entregas) acontece no painel de detalhe, depois de criada. */
 export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: TarefaModalProps) {
+  const { dict } = useLocale();
+  const prioridadeLabel: Record<string, string> = {
+    baixa: dict.producao.prioridadeBaixa,
+    normal: dict.producao.prioridadeNormal,
+    alta: dict.producao.prioridadeAlta,
+    urgente: dict.producao.prioridadeUrgente,
+  };
   const [titulo, setTitulo] = useState("");
   const [briefing, setBriefing] = useState("");
   const [clienteId, setClienteId] = useState("");
@@ -62,23 +70,23 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-base font-semibold">Nova Tarefa</h3>
-          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label="Fechar">
+          <h3 className="text-base font-semibold">{dict.producao.novaTarefa}</h3>
+          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
             ×
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Título *</label>
-            <Input required value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex: Edição do vídeo institucional" />
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.tituloCampoLabel}</label>
+            <Input required value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder={dict.producao.tituloPlaceholder} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Cliente</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.clienteLabel}</label>
               <Select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
-                <option value="">Sem cliente vinculado</option>
+                <option value="">{dict.producao.clienteSemVinculo}</option>
                 {clientes.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.full_name || c.email}
@@ -87,9 +95,9 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
               </Select>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Tipo de Serviço</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.tipoServicoLabel}</label>
               <Select value={tipoServicoId} onChange={(e) => setTipoServicoId(e.target.value)}>
-                <option value="">Sem categoria</option>
+                <option value="">{dict.common.semCategoria}</option>
                 {tiposServico.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.nome}
@@ -100,9 +108,9 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Responsável</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.responsavelLabel}</label>
             <Select value={responsavelId} onChange={(e) => setResponsavelId(e.target.value)}>
-              <option value="">Sem responsável</option>
+              <option value="">{dict.producao.responsavelSemVinculo}</option>
               {funcionarios.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.nome}
@@ -113,18 +121,18 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data de Captação</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.dataCaptacaoLabel}</label>
               <Input type="date" value={dataCaptacao} onChange={(e) => setDataCaptacao(e.target.value)} />
-              <p className="mt-1 text-[11px] text-ink-muted">Dia da gravação/filmagem.</p>
+              <p className="mt-1 text-[11px] text-ink-muted">{dict.producao.dataCaptacaoAjuda}</p>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Prazo de Entrega</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.prazoEntregaLabel}</label>
               <Input type="date" value={dataEntrega} onChange={(e) => setDataEntrega(e.target.value)} />
             </div>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Prioridade</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.prioridadeLabel}</label>
             <div className="inline-flex w-full rounded-lg border border-base-700 bg-base-950/60 p-1">
               {PRIORIDADE_TAREFA_ORDEM.map((p) => (
                 <button
@@ -136,25 +144,25 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
                     prioridade === p ? "bg-accent text-base-950" : "text-ink-muted hover:text-ink-primary"
                   )}
                 >
-                  {PRIORIDADE_TAREFA_META[p].label}
+                  {prioridadeLabel[p]}
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Briefing</label>
-            <RichTextEditor value={briefing} onChange={setBriefing} placeholder="Detalhes completos da tarefa..." />
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.briefingLabel}</label>
+            <RichTextEditor value={briefing} onChange={setBriefing} placeholder={dict.producao.briefingPlaceholder} />
           </div>
 
           {error && <p className="text-sm text-danger">{error}</p>}
 
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" onClick={onClose}>
-              Cancelar
+              {dict.common.cancelar}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Criando..." : "Criar Tarefa"}
+              {loading ? dict.producao.criando : dict.producao.criarTarefa}
             </Button>
           </div>
         </form>

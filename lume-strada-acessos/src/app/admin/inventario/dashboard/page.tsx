@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { ItemInventarioRow } from "@/lib/types/database";
 import { DashboardPatrimonio, type DistribuicaoCategoria } from "@/components/admin/inventario/DashboardPatrimonio";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,7 @@ type ItemComCategoriaNome = Pick<ItemInventarioRow, "id" | "categoria_id" | "sta
 
 export default async function InventarioDashboardPage() {
   const supabase = await createClient();
+  const { dict } = await getDictionary();
 
   // Só o mínimo de colunas pra essa página — os totais são calculados aqui
   // mesmo (em memória), sem precisar de uma VIEW dedicada no banco: o
@@ -25,7 +27,12 @@ export default async function InventarioDashboardPage() {
     .overrideTypes<ItemComCategoriaNome[], { merge: false }>();
 
   if (error) {
-    return <p className="text-sm text-danger">Erro ao carregar o dashboard: {error.message}</p>;
+    return (
+      <p className="text-sm text-danger">
+        {dict.inventario.erroCarregarDashboard}
+        {error.message}
+      </p>
+    );
   }
 
   const itens = itensRaw ?? [];
@@ -40,7 +47,7 @@ export default async function InventarioDashboardPage() {
 
   const somaPorCategoria = new Map<string, { nome: string; valor: number }>();
   for (const item of comDados) {
-    const nome = item.categorias_inventario?.nome ?? "Sem categoria";
+    const nome = item.categorias_inventario?.nome ?? dict.common.semCategoria;
     const atual = somaPorCategoria.get(item.categoria_id);
     if (atual) atual.valor += item.valor_atual ?? 0;
     else somaPorCategoria.set(item.categoria_id, { nome, valor: item.valor_atual ?? 0 });

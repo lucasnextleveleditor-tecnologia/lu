@@ -5,6 +5,7 @@ import type { EquipeMembroRow } from "@/lib/types/cadastros";
 import type { ProfileRow } from "@/lib/types/database";
 import { removerMembroEquipe } from "@/app/admin/actions";
 import { calcularStatus } from "@/lib/utils/status";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -22,6 +23,7 @@ interface EquipeManagerProps {
 
 /** Aba Equipe — inteira admin-only (chamada só quando `souAdmin`, ver `CadastrosWorkspace`); RLS de `equipe_membros` reforça isso de novo no banco. */
 export function EquipeManager({ equipeMembros, profilesPorId }: EquipeManagerProps) {
+  const { dict } = useLocale();
   const [busca, setBusca] = useState("");
   const [modalCriacaoAberto, setModalCriacaoAberto] = useState(false);
   const [membroEditando, setMembroEditando] = useState<EquipeMembroRow | null>(null);
@@ -56,17 +58,29 @@ export function EquipeManager({ equipeMembros, profilesPorId }: EquipeManagerPro
     <div>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 sm:max-w-xs">
-          <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome, cargo ou e-mail..." />
+          <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={dict.cadastros.buscarEquipePlaceholder} />
         </div>
         <Button onClick={() => setModalCriacaoAberto(true)} className="shrink-0">
-          + Novo Membro
+          + {dict.cadastros.novoMembroBotao}
         </Button>
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
-        <StatTile icon={IconBriefcase} label="Total na Equipe" value={equipeMembros.length} hint="Cadastrados na base" />
-        <StatTile icon={IconShieldCheck} label="Com Acesso" value={resumo.comAcesso} tone="good" hint="Já podem logar no painel" />
-        <StatTile icon={IconPauseCircle} label="Sem Acesso" value={resumo.semAcesso} tone="neutral" hint="Só cadastro, sem login" />
+        <StatTile icon={IconBriefcase} label={dict.cadastros.totalNaEquipe} value={equipeMembros.length} hint={dict.cadastros.cadastradosNaBase} />
+        <StatTile
+          icon={IconShieldCheck}
+          label={dict.cadastros.comAcesso}
+          value={resumo.comAcesso}
+          tone="good"
+          hint={dict.cadastros.jaPodemLogarNoPainel}
+        />
+        <StatTile
+          icon={IconPauseCircle}
+          label={dict.cadastros.semAcesso}
+          value={resumo.semAcesso}
+          tone="neutral"
+          hint={dict.cadastros.soCadastroSemLogin}
+        />
       </div>
 
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
@@ -74,17 +88,17 @@ export function EquipeManager({ equipeMembros, profilesPorId }: EquipeManagerPro
       <Card className="overflow-x-auto p-0">
         {filtrados.length === 0 ? (
           <div className="p-10 text-center text-sm text-ink-muted">
-            {equipeMembros.length === 0 ? "Nenhum membro da equipe cadastrado ainda." : "Nenhum membro encontrado pra essa busca."}
+            {equipeMembros.length === 0 ? dict.cadastros.nenhumMembroCadastrado : dict.cadastros.nenhumMembroEncontrado}
           </div>
         ) : (
           <table className="w-full min-w-[780px] text-left">
             <thead>
               <tr className="border-b border-base-800 text-xs uppercase tracking-wide text-ink-muted">
-                <th className="px-6 py-3 font-medium">Nome</th>
-                <th className="px-0 py-3 font-medium">Cargo</th>
-                <th className="px-0 py-3 font-medium">Contato</th>
-                <th className="px-0 py-3 font-medium">Acesso</th>
-                <th className="px-6 py-3 font-medium text-right">Ações</th>
+                <th className="px-6 py-3 font-medium">{dict.common.nome}</th>
+                <th className="px-0 py-3 font-medium">{dict.cadastros.colunaCargo}</th>
+                <th className="px-0 py-3 font-medium">{dict.cadastros.colunaContato}</th>
+                <th className="px-0 py-3 font-medium">{dict.cadastros.colunaAcesso}</th>
+                <th className="px-6 py-3 font-medium text-right">{dict.common.acoes}</th>
               </tr>
             </thead>
             <tbody className="[&>tr>td:first-child]:pl-6 [&>tr>td:last-child]:pr-6">
@@ -103,34 +117,34 @@ export function EquipeManager({ equipeMembros, profilesPorId }: EquipeManagerPro
                       <p className="text-xs text-ink-muted">{membro.telefone || "—"}</p>
                     </td>
                     <td className="py-3 pr-4">
-                      {profile ? <StatusBadge status={calcularStatus(profile)} /> : <Badge tone="neutral" label="Sem acesso" />}
+                      {profile ? <StatusBadge status={calcularStatus(profile)} /> : <Badge tone="neutral" label={dict.cadastros.semAcessoBadge} />}
                     </td>
                     <td className="py-3 text-right">
                       {confirmandoExclusao === membro.id ? (
                         <div className="flex justify-end gap-2">
-                          <span className="text-xs text-ink-secondary">Excluir?</span>
+                          <span className="text-xs text-ink-secondary">{dict.common.confirmarExclusao}</span>
                           <button
                             onClick={() => handleExcluir(membro.id)}
                             disabled={pending}
                             className="text-xs font-medium text-danger hover:underline"
                           >
-                            Sim
+                            {dict.common.sim}
                           </button>
                           <button
                             onClick={() => setConfirmandoExclusao(null)}
                             disabled={pending}
                             className="text-xs text-ink-muted hover:text-ink-primary"
                           >
-                            Não
+                            {dict.common.nao}
                           </button>
                         </div>
                       ) : (
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" onClick={() => setMembroAcesso(membro)} className="px-3 py-1.5 text-xs">
-                            {membro.profile_id ? "Permissões" : "Gerar Acesso"}
+                            {membro.profile_id ? dict.cadastros.permissoes : dict.cadastros.gerarAcesso}
                           </Button>
                           <Button variant="ghost" onClick={() => setMembroEditando(membro)} className="px-3 py-1.5 text-xs">
-                            Editar
+                            {dict.common.editar}
                           </Button>
                           <Button
                             variant="danger"
@@ -138,7 +152,7 @@ export function EquipeManager({ equipeMembros, profilesPorId }: EquipeManagerPro
                             disabled={pending}
                             className="px-3 py-1.5 text-xs"
                           >
-                            Excluir
+                            {dict.common.excluir}
                           </Button>
                         </div>
                       )}

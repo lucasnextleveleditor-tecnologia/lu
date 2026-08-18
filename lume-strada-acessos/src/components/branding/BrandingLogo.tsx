@@ -1,4 +1,7 @@
+"use client";
+
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface BrandingLogoProps {
   /** URL da logo enviada no painel de Aparência — `null` cai no losango padrão da Lume. */
@@ -9,10 +12,12 @@ interface BrandingLogoProps {
 }
 
 export function BrandingLogo({ logoUrl, sizeClassName = "h-8", className }: BrandingLogoProps) {
+  const { dict } = useLocale();
+
   if (logoUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- logo vem de um bucket Supabase arbitrário (domínio do projeto do cliente), sem domínio fixo pra configurar em next/image.
-      <img src={logoUrl} alt="Logo" className={cn("w-auto shrink-0 object-contain", sizeClassName, className)} />
+      <img src={logoUrl} alt={dict.aparencia.logoAlt} className={cn("w-auto shrink-0 object-contain", sizeClassName, className)} />
     );
   }
 

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import type { TarefaAgendaItem, LeadAgendaItem } from "@/lib/types/dashboard";
 import { STATUS_TAREFA_META } from "@/lib/utils/producao";
@@ -6,6 +8,7 @@ import { fmtDiaSemanaEData } from "@/lib/utils/dashboard";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { IconCamera, IconExternalLink, IconTarget } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface AgendaDoDiaProps {
   data: string; // ISO yyyy-mm-dd
@@ -23,6 +26,7 @@ interface AgendaDoDiaProps {
  * acontecendo no board de cada módulo.
  */
 export function AgendaDoDia({ data, captacoes, entregas, followUps, titulo }: AgendaDoDiaProps) {
+  const { dict } = useLocale();
   const vazio = captacoes.length === 0 && entregas.length === 0 && followUps.length === 0;
 
   return (
@@ -30,13 +34,13 @@ export function AgendaDoDia({ data, captacoes, entregas, followUps, titulo }: Ag
       <p className="mb-4 text-sm font-semibold capitalize text-ink-primary">{titulo ?? fmtDiaSemanaEData(data)}</p>
 
       {vazio ? (
-        <p className="text-sm text-ink-muted">Nada agendado pra esse dia.</p>
+        <p className="text-sm text-ink-muted">{dict.dashboard.nadaAgendado}</p>
       ) : (
         <div className="space-y-5">
           {captacoes.length > 0 && (
             <div>
               <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                <IconCamera className="h-3.5 w-3.5" /> Captações
+                <IconCamera className="h-3.5 w-3.5" /> {dict.dashboard.captacoes}
               </p>
               <div className="space-y-1.5">
                 {captacoes.map((t) => (
@@ -59,7 +63,7 @@ export function AgendaDoDia({ data, captacoes, entregas, followUps, titulo }: Ag
           {entregas.length > 0 && (
             <div>
               <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                <IconExternalLink className="h-3.5 w-3.5" /> Entregas
+                <IconExternalLink className="h-3.5 w-3.5" /> {dict.dashboard.entregas}
               </p>
               <div className="space-y-1.5">
                 {entregas.map((t) => (
@@ -82,7 +86,7 @@ export function AgendaDoDia({ data, captacoes, entregas, followUps, titulo }: Ag
           {followUps.length > 0 && (
             <div>
               <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                <IconTarget className="h-3.5 w-3.5" /> Follow-ups (Comercial)
+                <IconTarget className="h-3.5 w-3.5" /> {dict.dashboard.followUpsComercial}
               </p>
               <div className="space-y-1.5">
                 {followUps.map((lead) => (

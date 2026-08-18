@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import type { CategoriaInventarioRow } from "@/lib/types/database";
 import { CategoriasManager } from "@/components/admin/inventario/CategoriasManager";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 
 export default async function InventarioCategoriasPage() {
   const supabase = await createClient();
+  const { dict } = await getDictionary();
 
   const { data: categorias, error } = await supabase
     .from("categorias_inventario")
@@ -14,7 +16,12 @@ export default async function InventarioCategoriasPage() {
     .overrideTypes<CategoriaInventarioRow[], { merge: false }>();
 
   if (error) {
-    return <p className="text-sm text-danger">Erro ao carregar categorias: {error.message}</p>;
+    return (
+      <p className="text-sm text-danger">
+        {dict.inventario.erroCarregarCategorias}
+        {error.message}
+      </p>
+    );
   }
 
   // Contagem de itens por categoria — só pra mostrar na tabela; busca

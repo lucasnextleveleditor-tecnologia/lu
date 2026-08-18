@@ -7,11 +7,12 @@ import { IconColumns, IconList, IconPlus } from "@/components/ui/icons";
 import { Button } from "@/components/ui/Button";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
 import { cn } from "@/lib/utils/cn";
-import { STATUS_LEAD_META } from "@/lib/utils/comercial";
 import { LeadKanbanBoard } from "@/components/admin/comercial/LeadKanbanBoard";
 import { ListaLeads } from "@/components/admin/comercial/ListaLeads";
 import { LeadModal } from "@/components/admin/comercial/LeadModal";
 import { LeadDetalheModal } from "@/components/admin/comercial/LeadDetalheModal";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { ComercialDict } from "@/lib/i18n/dictionaries/pt/comercial";
 
 type Visao = "kanban" | "lista";
 
@@ -21,17 +22,34 @@ interface ComercialWorkspaceProps {
   tiposServico: TipoServicoRow[];
 }
 
-const VISOES: { value: Visao; label: string; icon: ComponentType<{ className?: string }> }[] = [
-  { value: "kanban", label: "Funil", icon: IconColumns },
-  { value: "lista", label: "Lista", icon: IconList },
-];
+function etapaLabel(dict: ComercialDict, status: LeadComRelacoes["status"]): string {
+  const MAPA: Record<LeadComRelacoes["status"], string> = {
+    lead_frio: dict.etapaLeadFrio,
+    contato_inicial: dict.etapaContatoInicial,
+    reuniao_realizada: dict.etapaReuniaoRealizada,
+    proposta_enviada: dict.etapaPropostaEnviada,
+    negociacao: dict.etapaNegociacao,
+    fechado_ganha: dict.etapaFechadoGanha,
+    perdido: dict.etapaPerdido,
+  };
+  return MAPA[status];
+}
+
+function buildVisoes(dict: ComercialDict): { value: Visao; label: string; icon: ComponentType<{ className?: string }> }[] {
+  return [
+    { value: "kanban", label: dict.visaoFunil, icon: IconColumns },
+    { value: "lista", label: dict.visaoLista, icon: IconList },
+  ];
+}
 
 export function ComercialWorkspace({ leads, anotacoesPorLead, tiposServico }: ComercialWorkspaceProps) {
+  const { dict } = useLocale();
   const [visao, setVisao] = useState<Visao>("kanban");
   const [modalNovoAberto, setModalNovoAberto] = useState(false);
   const [leadDetalheId, setLeadDetalheId] = useState<string | null>(null);
 
   const leadDetalhe = leads.find((l) => l.id === leadDetalheId) ?? null;
+  const VISOES = buildVisoes(dict.comercial);
 
   return (
     <div className="space-y-4">
@@ -57,24 +75,24 @@ export function ComercialWorkspace({ leads, anotacoesPorLead, tiposServico }: Co
             nomeArquivo="comercial-leads"
             dadosCSV={leads.map((l) => ({
               nome: l.nome,
-              status: STATUS_LEAD_META[l.status].label,
+              status: etapaLabel(dict.comercial, l.status),
               origem: l.origem ?? "",
               valorEstimado: (l.valor_estimado ?? 0).toFixed(2),
               proximoContato: l.proximo_contato_em ?? "",
               criadoEm: l.created_at.slice(0, 10),
             }))}
             colunasCSV={[
-              { chave: "nome", rotulo: "Nome" },
-              { chave: "status", rotulo: "Etapa do Funil" },
-              { chave: "origem", rotulo: "Origem" },
-              { chave: "valorEstimado", rotulo: "Valor Estimado (R$)" },
-              { chave: "proximoContato", rotulo: "Próximo Contato" },
-              { chave: "criadoEm", rotulo: "Criado em" },
+              { chave: "nome", rotulo: dict.common.nome },
+              { chave: "status", rotulo: dict.comercial.colEtapaFunil },
+              { chave: "origem", rotulo: dict.comercial.origem },
+              { chave: "valorEstimado", rotulo: dict.comercial.valorEstimadoLabel },
+              { chave: "proximoContato", rotulo: dict.comercial.colProximoContatoCsv },
+              { chave: "criadoEm", rotulo: dict.comercial.colCriadoEm },
             ]}
           />
           <Button onClick={() => setModalNovoAberto(true)}>
             <IconPlus className="h-4 w-4" />
-            Novo Lead
+            {dict.comercial.novoLead}
           </Button>
         </div>
       </div>

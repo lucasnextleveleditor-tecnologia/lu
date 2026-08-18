@@ -1,5 +1,6 @@
 import { listarAprovacoesPendentes } from "@/app/dashboard/actions";
 import { AprovacoesPendentes } from "@/components/dashboard/AprovacoesPendentes";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 
@@ -14,14 +15,13 @@ export const dynamic = "force-dynamic";
  */
 export default async function DashboardPage() {
   const aprovacoes = await listarAprovacoesPendentes();
+  const { dict } = await getDictionary();
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold tracking-tight">Materiais para Aprovação</h1>
-        <p className="mt-0.5 text-sm text-ink-muted">
-          Arquivos e links enviados pela Lume Strada Filmes, esperando sua revisão.
-        </p>
+        <h1 className="text-lg font-semibold tracking-tight">{dict.cliente.tituloPagina}</h1>
+        <p className="mt-0.5 text-sm text-ink-muted">{dict.cliente.subtituloPagina}</p>
       </div>
 
       <AprovacoesPendentes aprovacoes={aprovacoes} />

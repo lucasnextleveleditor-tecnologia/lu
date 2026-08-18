@@ -2,6 +2,7 @@ import { fmtBRL, fmtPercent } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
 import { Card } from "@/components/ui/Card";
 import { IconWallet, IconBarChart2, IconTrendingDown, IconTrendingUp } from "@/components/ui/icons";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export interface DistribuicaoCategoria {
   categoriaId: string;
@@ -30,7 +31,7 @@ interface DashboardPatrimonioProps {
  * Recebe os números já calculados pelo server component da página — este
  * componente é só apresentação.
  */
-export function DashboardPatrimonio({
+export async function DashboardPatrimonio({
   totalInvestido,
   patrimonioAtual,
   depreciacaoTotal,
@@ -39,48 +40,54 @@ export function DashboardPatrimonio({
   itensExcluidos,
   distribuicao,
 }: DashboardPatrimonioProps) {
+  const { dict } = await getDictionary();
   const apreciou = depreciacaoTotal < 0;
   const maiorValor = distribuicao.reduce((max, d) => Math.max(max, d.valorAtual), 0);
+
+  const itemLabelInvestido = itensConsiderados === 1 ? dict.inventario.itemAtivoSingular : dict.inventario.itensAtivosPlural;
+  const itemLabelExcluidos = itensExcluidos === 1 ? dict.inventario.itemNaoEntraSingular : dict.inventario.itensNaoEntramPlural;
+  const itemArtigoExcluidos = itensExcluidos === 1 ? dict.inventario.oItemSingular : dict.inventario.osItensPlural;
 
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <StatTile
           icon={IconWallet}
-          label="Valor Total Investido"
+          label={dict.inventario.statValorInvestido}
           value={fmtBRL(totalInvestido)}
-          hint={`Soma do valor pago — ${itensConsiderados} ${itensConsiderados === 1 ? "item ativo" : "itens ativos"}`}
+          hint={dict.inventario.hintValorInvestido
+            .replace("{count}", String(itensConsiderados))
+            .replace("{itemLabel}", itemLabelInvestido)}
         />
         <StatTile
           icon={IconBarChart2}
-          label="Patrimônio Atual"
+          label={dict.inventario.statPatrimonioAtual}
           value={fmtBRL(patrimonioAtual)}
-          hint="Valor de mercado hoje dos bens ativos"
+          hint={dict.inventario.hintPatrimonioAtual}
         />
         <StatTile
           icon={apreciou ? IconTrendingUp : IconTrendingDown}
-          label={apreciou ? "Valorização Total" : "Depreciação Total"}
+          label={apreciou ? dict.inventario.valorizacaoTotal : dict.inventario.depreciacaoTotalLabel}
           value={fmtBRL(Math.abs(depreciacaoTotal))}
           tone={apreciou ? "good" : "neutral"}
-          hint={`${apreciou ? "+" : "-"}${fmtPercent(Math.abs(percentualMedio))} de desvalorização média`}
+          hint={`${apreciou ? "+" : "-"}${fmtPercent(Math.abs(percentualMedio))} ${dict.inventario.sufixoDesvalorizacaoMedia}`}
         />
       </div>
 
       {itensExcluidos > 0 && (
         <p className="text-xs text-ink-muted">
-          {itensExcluidos} {itensExcluidos === 1 ? "item ativo não entra" : "itens ativos não entram"} nesses números por falta de
-          valor pago e/ou valor atual — edite {itensExcluidos === 1 ? "o item" : "os itens"} na aba{" "}
-          <span className="font-medium text-ink-secondary">Itens &amp; Etiquetas</span> pra completar.
+          {dict.inventario.itensExcluidosAviso
+            .replace("{count}", String(itensExcluidos))
+            .replace("{itemLabel}", itemLabelExcluidos)
+            .replace("{itemArtigo}", itemArtigoExcluidos)
+            .replace("{tab}", dict.inventario.tabItensEtiquetas)}
         </p>
       )}
 
       <Card className="p-5">
-        <p className="mb-4 text-sm font-semibold text-ink-primary">Patrimônio Atual por Categoria</p>
+        <p className="mb-4 text-sm font-semibold text-ink-primary">{dict.inventario.tituloDistribuicaoCategoria}</p>
         {distribuicao.length === 0 ? (
-          <p className="text-sm text-ink-muted">
-            Nenhum item ativo com valor pago e valor atual preenchidos ainda — cadastre os dois valores nos itens pra ver a
-            distribuição aqui.
-          </p>
+          <p className="text-sm text-ink-muted">{dict.inventario.distribuicaoVazia}</p>
         ) : (
           <div className="space-y-3">
             {distribuicao.map((d, i) => {

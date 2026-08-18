@@ -6,8 +6,10 @@ import { criarSubtarefa, removerSubtarefa, toggleSubtarefa } from "@/app/admin/p
 import { calcularProgressoSubtarefas } from "@/lib/utils/producao";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function SubtarefasChecklist({ tarefaId, subtarefas }: { tarefaId: string; subtarefas: SubtarefaRow[] }) {
+  const { dict } = useLocale();
   const [novoTitulo, setNovoTitulo] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export function SubtarefasChecklist({ tarefaId, subtarefas }: { tarefaId: string
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Subtarefas</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.producao.subtarefas}</p>
         {progresso.total > 0 && (
           <span className="text-xs text-ink-secondary">
             {progresso.concluidas}/{progresso.total}
@@ -66,7 +68,7 @@ export function SubtarefasChecklist({ tarefaId, subtarefas }: { tarefaId: string
               <span className={s.concluida ? "flex-1 text-sm text-ink-muted line-through" : "flex-1 text-sm text-ink-primary"}>
                 {s.titulo}
               </span>
-              <button onClick={() => handleRemover(s.id)} disabled={pending} className="shrink-0 text-ink-muted transition hover:text-danger" aria-label="Remover subtarefa">
+              <button onClick={() => handleRemover(s.id)} disabled={pending} className="shrink-0 text-ink-muted transition hover:text-danger" aria-label={dict.producao.removerSubtarefaAria}>
                 ×
               </button>
             </div>
@@ -78,11 +80,11 @@ export function SubtarefasChecklist({ tarefaId, subtarefas }: { tarefaId: string
         <Input
           value={novoTitulo}
           onChange={(e) => setNovoTitulo(e.target.value)}
-          placeholder="Ex: Decupagem"
+          placeholder={dict.producao.subtarefaPlaceholder}
           className="flex-1"
         />
         <Button type="submit" variant="ghost" disabled={pending} className="shrink-0 px-3 py-2 text-xs">
-          + Add
+          {dict.producao.adicionarAbrev}
         </Button>
       </form>
       {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}

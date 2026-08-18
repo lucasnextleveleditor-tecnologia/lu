@@ -6,11 +6,13 @@ import { fmtBRL } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
 import { IconTarget, IconTrendingUp, IconCheckCircle, IconAlertTriangle } from "@/components/ui/icons";
 import { ComercialWorkspace } from "@/components/admin/comercial/ComercialWorkspace";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 
 export default async function ComercialPage() {
   const { supabase } = await requireModuloOuRedirect("comercial");
+  const { dict } = await getDictionary();
 
   const [leadsRes, anotacoesRes, tiposServicoRes] = await Promise.all([
     supabase.from("crm_leads").select("*").order("created_at", { ascending: false }).overrideTypes<LeadRow[], { merge: false }>(),
@@ -50,26 +52,37 @@ export default async function ComercialPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold tracking-tight">CRM &amp; Vendas</h1>
-        <p className="mt-0.5 text-sm text-ink-muted">Funil de pré-vendas, follow-up e conversão de leads em clientes.</p>
+        <h1 className="text-lg font-semibold tracking-tight">{dict.comercial.tituloPagina}</h1>
+        <p className="mt-0.5 text-sm text-ink-muted">{dict.comercial.subtituloPagina}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={IconTarget} label="Em Negociação" value={fmtBRL(totalEmNegociacao)} hint={`${leadsAbertos.length} lead(s) em aberto`} />
+        <StatTile
+          icon={IconTarget}
+          label={dict.comercial.statEmNegociacao}
+          value={fmtBRL(totalEmNegociacao)}
+          hint={dict.comercial.hintLeadsAbertos.replace("{count}", String(leadsAbertos.length))}
+        />
         <StatTile
           icon={IconTrendingUp}
-          label="Taxa de Conversão"
+          label={dict.comercial.statTaxaConversao}
           value={taxaConversao != null ? `${Math.round(taxaConversao * 100)}%` : "—"}
           tone={taxaConversao != null && taxaConversao >= 0.5 ? "good" : "neutral"}
-          hint={`${fechados.length} ganhos · ${perdidos.length} perdidos`}
+          hint={dict.comercial.hintTaxaConversao.replace("{ganhos}", String(fechados.length)).replace("{perdidos}", String(perdidos.length))}
         />
-        <StatTile icon={IconCheckCircle} label="Fechados no Mês" value={fechadosNoMes.length} tone="good" hint="Negócios ganhos" />
+        <StatTile
+          icon={IconCheckCircle}
+          label={dict.comercial.statFechadosMes}
+          value={fechadosNoMes.length}
+          tone="good"
+          hint={dict.comercial.hintFechadosMes}
+        />
         <StatTile
           icon={IconAlertTriangle}
-          label="Follow-ups Atrasados"
+          label={dict.comercial.statFollowupsAtrasados}
           value={leadsAbertos.filter((l) => l.proximo_contato_em && l.proximo_contato_em < new Date().toISOString().slice(0, 10)).length}
           tone="warning"
-          hint="Precisam de contato"
+          hint={dict.comercial.hintFollowupsAtrasados}
         />
       </div>
 

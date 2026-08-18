@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { IconCheck, IconExternalLink, IconPaperclip, IconRotateCcw } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface AprovacoesPendentesProps {
   aprovacoes: AprovacaoPendente[];
@@ -24,11 +25,13 @@ interface AprovacoesPendentesProps {
  * mexer em qualquer linha.
  */
 export function AprovacoesPendentes({ aprovacoes }: AprovacoesPendentesProps) {
+  const { dict } = useLocale();
+
   if (aprovacoes.length === 0) {
     return (
       <Card>
         <div className="rounded-xl border border-dashed border-base-700 py-14 text-center text-sm text-ink-muted">
-          Nada esperando sua aprovação no momento.
+          {dict.cliente.nenhumaAprovacaoPendente}
         </div>
       </Card>
     );
@@ -44,6 +47,7 @@ export function AprovacoesPendentes({ aprovacoes }: AprovacoesPendentesProps) {
 }
 
 function VersaoCard({ item }: { item: AprovacaoPendente }) {
+  const { dict } = useLocale();
   const [observacao, setObservacao] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -103,20 +107,20 @@ function VersaoCard({ item }: { item: AprovacaoPendente }) {
         </div>
         <p className="text-xs text-ink-muted">
           {item.temArquivo && item.tamanhoBytes != null && `${fmtTamanhoArquivo(item.tamanhoBytes)} · `}
-          Enviado em {fmtDataHora(item.criadoEm)}
+          {dict.cliente.enviadoEm.replace("{data}", fmtDataHora(item.criadoEm))}
         </p>
       </div>
 
       <div className="space-y-2">
         <Button onClick={handleAprovar} disabled={pending} className="w-full">
           <IconCheck className="h-4 w-4" />
-          Aprovar
+          {dict.cliente.aprovar}
         </Button>
         <form onSubmit={handleSolicitarAlteracao} className="flex gap-1.5">
-          <Input value={observacao} onChange={(e) => setObservacao(e.target.value)} placeholder="O que precisa mudar?" className="flex-1 text-sm" />
+          <Input value={observacao} onChange={(e) => setObservacao(e.target.value)} placeholder={dict.cliente.placeholderAlteracao} className="flex-1 text-sm" />
           <Button type="submit" variant="danger" disabled={pending} className="shrink-0 px-3 text-sm">
             <IconRotateCcw className="h-3.5 w-3.5" />
-            Solicitar Alteração
+            {dict.cliente.solicitarAlteracao}
           </Button>
         </form>
       </div>

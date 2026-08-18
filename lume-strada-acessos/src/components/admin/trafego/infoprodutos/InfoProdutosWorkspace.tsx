@@ -8,6 +8,7 @@ import { AnunciosManager } from "@/components/admin/trafego/infoprodutos/Anuncio
 import { CalendarioMetas } from "@/components/admin/trafego/infoprodutos/CalendarioMetas";
 import { ProdutosManager } from "@/components/admin/trafego/infoprodutos/ProdutosManager";
 import { IconBarChart2, IconFilm, IconCalendar, IconTag } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface InfoProdutosWorkspaceProps {
   produtos: ProdutoRow[];
@@ -18,16 +19,17 @@ interface InfoProdutosWorkspaceProps {
 
 type SubAba = "visao_geral" | "anuncios" | "calendario" | "produtos";
 
-const SUB_ABAS: { chave: SubAba; label: string; icon: typeof IconBarChart2 }[] = [
-  { chave: "visao_geral", label: "Visão Geral", icon: IconBarChart2 },
-  { chave: "anuncios", label: "Anúncios", icon: IconFilm },
-  { chave: "calendario", label: "Calendário de Metas", icon: IconCalendar },
-  { chave: "produtos", label: "Produtos", icon: IconTag },
-];
-
 /** Tracking de anúncios dos infoprodutos da própria agência — Lucro Líquido é sempre (Receita Bruta - Investimento) - Reembolsos, nunca faturamento bruto. */
 export function InfoProdutosWorkspace({ produtos, anuncios, metasCalendario, fechamentos }: InfoProdutosWorkspaceProps) {
+  const { dict } = useLocale();
   const [subAba, setSubAba] = useState<SubAba>("visao_geral");
+
+  const SUB_ABAS: { chave: SubAba; label: string; icon: typeof IconBarChart2 }[] = [
+    { chave: "visao_geral", label: dict.trafego.visaoGeralAba, icon: IconBarChart2 },
+    { chave: "anuncios", label: dict.trafego.anunciosAba, icon: IconFilm },
+    { chave: "calendario", label: dict.trafego.calendarioMetasAba, icon: IconCalendar },
+    { chave: "produtos", label: dict.trafego.produtosAba, icon: IconTag },
+  ];
 
   return (
     <div className="space-y-5">

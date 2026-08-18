@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { uploadBrandingAsset, removerBrandingAsset, type CampoUpload } from "@/app/admin/aparencia/actions";
 import { Button } from "@/components/ui/Button";
 import { IconUpload } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface UploadFieldProps {
   label: string;
@@ -16,6 +17,7 @@ interface UploadFieldProps {
 }
 
 export function UploadField({ label, hint, campo, valorAtual, onChange, formato = "square" }: UploadFieldProps) {
+  const { dict } = useLocale();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -72,11 +74,11 @@ export function UploadField({ label, hint, campo, valorAtual, onChange, formato 
         <div className="flex flex-col gap-1.5">
           <div className="flex gap-2">
             <Button type="button" variant="ghost" className="px-3 py-1.5 text-xs" onClick={() => inputRef.current?.click()} disabled={pending}>
-              {pending ? "Enviando..." : valorAtual ? "Trocar" : "Enviar imagem"}
+              {pending ? dict.aparencia.enviando : valorAtual ? dict.aparencia.trocar : dict.aparencia.enviarImagem}
             </Button>
             {valorAtual && (
               <Button type="button" variant="danger" className="px-3 py-1.5 text-xs" onClick={handleRemover} disabled={pending}>
-                Remover
+                {dict.common.remover}
               </Button>
             )}
           </div>

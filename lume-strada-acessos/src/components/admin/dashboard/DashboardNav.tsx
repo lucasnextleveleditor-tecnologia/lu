@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { DashboardDict } from "@/lib/i18n/dictionaries/pt/dashboard";
 
 const TABS = [
-  { href: "/admin/dashboard", label: "Visão Geral" },
-  { href: "/admin/dashboard/calendario", label: "Calendário" },
-];
+  { href: "/admin/dashboard", labelKey: "tabVisaoGeral" },
+  { href: "/admin/dashboard/calendario", labelKey: "tabCalendario" },
+] as const satisfies ReadonlyArray<{ href: string; labelKey: keyof DashboardDict }>;
 
 export function DashboardNav() {
   const pathname = usePathname();
+  const { dict } = useLocale();
 
   return (
     <div className="flex items-center gap-1 border-b border-base-800">
@@ -25,7 +28,7 @@ export function DashboardNav() {
               active ? "border-accent text-ink-primary" : "border-transparent text-ink-muted hover:text-ink-secondary"
             )}
           >
-            {tab.label}
+            {dict.dashboard[tab.labelKey]}
           </Link>
         );
       })}

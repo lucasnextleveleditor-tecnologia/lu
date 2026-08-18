@@ -8,8 +8,10 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { IconWallet } from "@/components/ui/icons";
 import { NovaContaModal } from "@/components/admin/financeiro/NovaContaModal";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function ContasCard({ contas }: { contas: ContaComSaldo[] }) {
+  const { dict } = useLocale();
   const [modalAberto, setModalAberto] = useState(false);
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -29,10 +31,10 @@ export function ContasCard({ contas }: { contas: ContaComSaldo[] }) {
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <IconWallet className="h-4 w-4 text-ink-muted" />
-          <h2 className="text-sm font-semibold">Contas &amp; Carteiras</h2>
+          <h2 className="text-sm font-semibold">{dict.financeiro.contasCarteirasTitulo}</h2>
         </div>
         <Button variant="ghost" className="px-3 py-1.5 text-xs" onClick={() => setModalAberto(true)}>
-          + Nova
+          {dict.financeiro.btnNovaConta}
         </Button>
       </div>
 
@@ -40,7 +42,7 @@ export function ContasCard({ contas }: { contas: ContaComSaldo[] }) {
 
       {contas.length === 0 ? (
         <p className="rounded-lg border border-dashed border-base-700 p-4 text-center text-xs text-ink-muted">
-          Nenhuma conta cadastrada ainda.
+          {dict.financeiro.contasVazio}
         </p>
       ) : (
         <div className="space-y-2">
@@ -52,7 +54,8 @@ export function ContasCard({ contas }: { contas: ContaComSaldo[] }) {
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-ink-primary">{conta.nome}</p>
                 <p className="truncate text-xs text-ink-muted">
-                  {conta.tipo || "Conta"} · {conta.contexto === "pessoal" ? "Pessoal" : "Profissional"}
+                  {conta.tipo || dict.financeiro.contaGenerica} ·{" "}
+                  {conta.contexto === "pessoal" ? dict.financeiro.contextoPessoal : dict.financeiro.contextoProfissional}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-3">
@@ -70,18 +73,18 @@ export function ContasCard({ contas }: { contas: ContaComSaldo[] }) {
                       disabled={pending}
                       className="text-xs font-medium text-danger hover:underline"
                     >
-                      Sim
+                      {dict.common.sim}
                     </button>
                     <button onClick={() => setConfirmando(null)} disabled={pending} className="text-xs text-ink-muted hover:text-ink-primary">
-                      Não
+                      {dict.common.nao}
                     </button>
                   </div>
                 ) : (
                   <button
                     onClick={() => setConfirmando(conta.id)}
                     className="text-ink-muted transition hover:text-danger"
-                    aria-label="Excluir conta"
-                    title="Excluir conta (remove também as transações vinculadas)"
+                    aria-label={dict.financeiro.excluirContaAria}
+                    title={dict.financeiro.excluirContaTitle}
                   >
                     ×
                   </button>

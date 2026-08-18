@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { ItemModal } from "@/components/admin/inventario/ItemModal";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface ItensManagerProps {
   itens: ItemInventarioComCategoria[];
@@ -21,6 +22,7 @@ interface ItensManagerProps {
 const TODOS = "todos";
 
 export function ItensManager({ itens, categorias }: ItensManagerProps) {
+  const { dict } = useLocale();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
   const [filtroCategoria, setFiltroCategoria] = useState<string>(TODOS);
@@ -70,26 +72,28 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-muted">
-          {itensFiltrados.length} de {itens.length} item(ns)
+          {dict.inventario.itensContagem
+            .replace("{filtrados}", String(itensFiltrados.length))
+            .replace("{total}", String(itens.length))}
         </p>
         <Button onClick={() => setModalAberto(true)} disabled={categorias.length === 0}>
-          + Nova Etiqueta
+          {dict.inventario.novaEtiquetaBotao}
         </Button>
       </div>
 
       <Card className="mb-4 flex flex-wrap items-end gap-3 p-4">
         <div className="min-w-[200px] flex-1">
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Buscar</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.buscar}</label>
           <Input
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Etiqueta, item, responsável ou localização..."
+            placeholder={dict.inventario.placeholderBuscaItens}
           />
         </div>
         <div className="w-44">
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Status</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.status}</label>
           <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
-            <option value={TODOS}>Todos os status</option>
+            <option value={TODOS}>{dict.inventario.todosStatus}</option>
             {STATUS_ITEM_OPCOES.map((opcao) => (
               <option key={opcao} value={opcao}>
                 {STATUS_ITEM_META[opcao].label}
@@ -98,9 +102,9 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
           </Select>
         </div>
         <div className="w-52">
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Categoria</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.categoria}</label>
           <Select value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)}>
-            <option value={TODOS}>Todas as categorias</option>
+            <option value={TODOS}>{dict.inventario.todasCategorias}</option>
             {categorias.map((categoria) => (
               <option key={categoria.id} value={categoria.id}>
                 {categoria.nome}
@@ -118,7 +122,7 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
               setFiltroCategoria(TODOS);
             }}
           >
-            Limpar filtros
+            {dict.common.limparFiltros}
           </Button>
         )}
       </Card>
@@ -127,26 +131,24 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
 
       <Card className="overflow-x-auto p-0">
         {categorias.length === 0 ? (
-          <div className="p-10 text-center text-sm text-ink-muted">
-            Cadastre uma categoria primeiro para começar a lançar itens de inventário.
-          </div>
+          <div className="p-10 text-center text-sm text-ink-muted">{dict.inventario.cadastreCategoriaParaItens}</div>
         ) : itensFiltrados.length === 0 ? (
           <div className="p-10 text-center text-sm text-ink-muted">
-            {itens.length === 0 ? "Nenhum item cadastrado ainda." : "Nenhum item corresponde aos filtros atuais."}
+            {itens.length === 0 ? dict.inventario.nenhumItemCadastrado : dict.inventario.nenhumItemComFiltros}
           </div>
         ) : (
           <table className="w-full min-w-[1080px] text-left">
             <thead>
               <tr className="border-b border-base-800 text-xs uppercase tracking-wide text-ink-muted">
-                <th className="px-6 py-3 font-medium">Etiqueta</th>
-                <th className="px-0 py-3 font-medium">Categoria</th>
-                <th className="px-0 py-3 font-medium">Status</th>
-                <th className="px-0 py-3 font-medium">Localização</th>
-                <th className="px-0 py-3 font-medium">Responsável</th>
-                <th className="px-0 py-3 font-medium">Aquisição</th>
-                <th className="px-0 py-3 font-medium">Pago / Atual</th>
-                <th className="px-0 py-3 font-medium">Depreciação</th>
-                <th className="px-6 py-3 font-medium text-right">Ações</th>
+                <th className="px-6 py-3 font-medium">{dict.inventario.colunaEtiqueta}</th>
+                <th className="px-0 py-3 font-medium">{dict.common.categoria}</th>
+                <th className="px-0 py-3 font-medium">{dict.common.status}</th>
+                <th className="px-0 py-3 font-medium">{dict.inventario.colunaLocalizacao}</th>
+                <th className="px-0 py-3 font-medium">{dict.inventario.colunaResponsavel}</th>
+                <th className="px-0 py-3 font-medium">{dict.inventario.colunaAquisicao}</th>
+                <th className="px-0 py-3 font-medium">{dict.inventario.colunaPagoAtual}</th>
+                <th className="px-0 py-3 font-medium">{dict.inventario.colunaDepreciacao}</th>
+                <th className="px-6 py-3 font-medium text-right">{dict.common.acoes}</th>
               </tr>
             </thead>
             <tbody className="[&>tr>td:first-child]:pl-6 [&>tr>td:last-child]:pr-6">
@@ -191,32 +193,32 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
                           label={`${depreciacao.apreciou ? "+" : "-"}${fmtBRL(Math.abs(depreciacao.delta))} (${fmtPercent(Math.abs(depreciacao.percentual))})`}
                         />
                       ) : (
-                        <span className="text-xs text-ink-muted">Sem dados</span>
+                        <span className="text-xs text-ink-muted">{dict.inventario.semDados}</span>
                       )}
                     </td>
                     <td className="py-3 text-right">
                       {confirmandoExclusao === item.id ? (
                         <div className="flex justify-end gap-2">
-                          <span className="text-xs text-ink-secondary">Excluir?</span>
+                          <span className="text-xs text-ink-secondary">{dict.common.confirmarExclusao}</span>
                           <button
                             onClick={() => handleExcluir(item.id)}
                             disabled={pending}
                             className="text-xs font-medium text-danger hover:underline"
                           >
-                            Sim
+                            {dict.common.sim}
                           </button>
                           <button
                             onClick={() => setConfirmandoExclusao(null)}
                             disabled={pending}
                             className="text-xs text-ink-muted hover:text-ink-primary"
                           >
-                            Não
+                            {dict.common.nao}
                           </button>
                         </div>
                       ) : (
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" onClick={() => abrirEdicao(item)} className="px-3 py-1.5 text-xs">
-                            Editar
+                            {dict.common.editar}
                           </Button>
                           <Button
                             variant="danger"
@@ -224,7 +226,7 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
                             disabled={pending}
                             className="px-3 py-1.5 text-xs"
                           >
-                            Excluir
+                            {dict.common.excluir}
                           </Button>
                         </div>
                       )}

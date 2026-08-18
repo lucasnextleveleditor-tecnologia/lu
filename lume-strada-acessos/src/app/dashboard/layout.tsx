@@ -5,6 +5,7 @@ import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
 import { BrandingLogo } from "@/components/branding/BrandingLogo";
 import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -32,6 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <p className="text-sm font-semibold tracking-tight">Lume Strada Filmes</p>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <span className="text-xs text-ink-muted">{profile?.full_name || profile?.email}</span>
             <LogoutButton />
           </div>

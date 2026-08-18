@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils/cn";
 import { IconChevronLeft, IconChevronRight } from "@/components/ui/icons";
-
-const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 /** Calendário interativo pra digitar a Meta de Lucro Líquido de cada dia — clica no dia, digita, salva. */
 export function CalendarioMetas({ metasCalendario }: { metasCalendario: MetaCalendarioRow[] }) {
+  const { dict } = useLocale();
+  const DIAS_SEMANA = dict.trafego.diasSemanaAbrev;
   const [referencia, setReferencia] = useState(() => {
     const hoje = new Date();
     return new Date(Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), 1));
@@ -63,7 +64,7 @@ export function CalendarioMetas({ metasCalendario }: { metasCalendario: MetaCale
             <button
               onClick={() => setReferencia((r) => addMeses(r, -1))}
               className="flex h-7 w-7 items-center justify-center rounded-lg border border-base-600 text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
-              aria-label="Mês anterior"
+              aria-label={dict.trafego.mesAnteriorAria}
             >
               <IconChevronLeft className="h-3.5 w-3.5" />
             </button>
@@ -74,12 +75,12 @@ export function CalendarioMetas({ metasCalendario }: { metasCalendario: MetaCale
               }}
               className="rounded-lg border border-base-600 px-2.5 py-1 text-xs text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
             >
-              Hoje
+              {dict.trafego.hoje}
             </button>
             <button
               onClick={() => setReferencia((r) => addMeses(r, 1))}
               className="flex h-7 w-7 items-center justify-center rounded-lg border border-base-600 text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
-              aria-label="Próximo mês"
+              aria-label={dict.trafego.proximoMesAria}
             >
               <IconChevronRight className="h-3.5 w-3.5" />
             </button>
@@ -122,17 +123,24 @@ export function CalendarioMetas({ metasCalendario }: { metasCalendario: MetaCale
       </Card>
 
       <Card className="h-fit p-4">
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">Meta de Lucro do Dia</p>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.trafego.metaLucroDoDiaTitulo}</p>
         <p className="mb-4 text-sm text-ink-primary">{diaSelecionado.split("-").reverse().join("/")}</p>
 
-        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Meta de lucro líquido (R$)</label>
-        <Input type="number" min="0" step="0.01" value={metaInput} onChange={(e) => setMetaInput(e.target.value)} placeholder="0,00" />
+        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.metaLucroLiquidoLabel}</label>
+        <Input
+          type="number"
+          min="0"
+          step="0.01"
+          value={metaInput}
+          onChange={(e) => setMetaInput(e.target.value)}
+          placeholder={dict.trafego.valorPlaceholder}
+        />
 
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}
-        {salvo && <p className="mt-2 text-xs text-ink-secondary">Meta salva.</p>}
+        {salvo && <p className="mt-2 text-xs text-ink-secondary">{dict.trafego.metaSalva}</p>}
 
         <Button onClick={handleSalvar} disabled={pending} className="mt-3 w-full">
-          {pending ? "Salvando..." : "Salvar Meta"}
+          {pending ? dict.common.salvando : dict.trafego.salvarMetaBotao}
         </Button>
       </Card>
     </div>

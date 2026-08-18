@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import type { ProfileRow } from "@/lib/types/database";
 import { calcularStatus, fmtDataHora } from "@/lib/utils/status";
 import { atualizarExpiracao, alternarAtivo } from "@/app/admin/actions";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -22,6 +23,7 @@ interface AcessoStatusControlsProps {
 
 /** Bloco reaproveitado tanto no detalhe de um Cliente quanto no modal de Acesso de um Funcionário — mesma lógica que já existia em `UserRow`, extraída pra um componente só (agora usado nos dois lugares). */
 export function AcessoStatusControls({ profile, editavel }: AcessoStatusControlsProps) {
+  const { dict } = useLocale();
   const [expiresAtInput, setExpiresAtInput] = useState(paraInputDate(profile.expires_at));
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -49,12 +51,14 @@ export function AcessoStatusControls({ profile, editavel }: AcessoStatusControls
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
         <StatusBadge status={status} />
-        <span className="text-xs text-ink-muted">Login: {profile.email}</span>
+        <span className="text-xs text-ink-muted">
+          {dict.cadastros.loginLabel} {profile.email}
+        </span>
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Expira em</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.expiraEmLabel}</label>
           <Input
             type="date"
             value={expiresAtInput}
@@ -66,12 +70,14 @@ export function AcessoStatusControls({ profile, editavel }: AcessoStatusControls
         </div>
         {editavel && (
           <Button variant={profile.active ? "danger" : "ghost"} onClick={handleToggleAtivo} disabled={pending} className="px-3 py-2 text-xs">
-            {pending ? "..." : profile.active ? "Suspender Acesso" : "Reativar Acesso"}
+            {pending ? "..." : profile.active ? dict.cadastros.suspenderAcesso : dict.cadastros.reativarAcesso}
           </Button>
         )}
       </div>
 
-      <p className="text-xs text-ink-muted">Cadastrado em {fmtDataHora(profile.created_at)}</p>
+      <p className="text-xs text-ink-muted">
+        {dict.cadastros.cadastradoEmLabel} {fmtDataHora(profile.created_at)}
+      </p>
       {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );

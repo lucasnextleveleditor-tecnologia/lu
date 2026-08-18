@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { WhatsappDict } from "@/lib/i18n/dictionaries/pt/whatsapp";
 
 const TABS = [
-  { href: "/admin/whatsapp", label: "Inbox" },
-  { href: "/admin/whatsapp/conexao", label: "Conexão" },
-];
+  { href: "/admin/whatsapp", labelKey: "abaInbox" },
+  { href: "/admin/whatsapp/conexao", labelKey: "abaConexao" },
+] as const satisfies ReadonlyArray<{ href: string; labelKey: keyof WhatsappDict }>;
 
 export function WhatsappNav() {
   const pathname = usePathname();
+  const { dict } = useLocale();
 
   return (
     <div className="flex items-center gap-1 border-b border-base-800">
@@ -25,7 +28,7 @@ export function WhatsappNav() {
               active ? "border-accent text-ink-primary" : "border-transparent text-ink-muted hover:text-ink-secondary"
             )}
           >
-            {tab.label}
+            {dict.whatsapp[tab.labelKey]}
           </Link>
         );
       })}

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { addMeses, fmtMesAno, mesParam } from "@/lib/utils/financeiro";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 /** Navegação de mês — mesmo padrão de `DateNav` (lume-strada-acessos): pura navegação por link, sem JS no cliente. */
-export function MesNav({ referencia, contexto }: { referencia: Date; contexto: string }) {
+export async function MesNav({ referencia, contexto }: { referencia: Date; contexto: string }) {
+  const { dict } = await getDictionary();
   const anterior = addMeses(referencia, -1);
   const proximo = addMeses(referencia, 1);
   const hoje = new Date();
@@ -17,7 +19,7 @@ export function MesNav({ referencia, contexto }: { referencia: Date; contexto: s
       <Link
         href={hrefFor(anterior)}
         className="flex h-8 w-8 items-center justify-center rounded-lg border border-base-600 text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
-        aria-label="Mês anterior"
+        aria-label={dict.financeiro.mesAnteriorAria}
       >
         ‹
       </Link>
@@ -28,14 +30,14 @@ export function MesNav({ referencia, contexto }: { referencia: Date; contexto: s
             href={`/admin/financeiro${contexto !== "todos" ? `?contexto=${contexto}` : ""}`}
             className="text-xs text-accent hover:underline"
           >
-            Voltar para hoje
+            {dict.financeiro.voltarParaHoje}
           </Link>
         )}
       </div>
       <Link
         href={hrefFor(proximo)}
         className="flex h-8 w-8 items-center justify-center rounded-lg border border-base-600 text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
-        aria-label="Próximo mês"
+        aria-label={dict.financeiro.proximoMesAria}
       >
         ›
       </Link>

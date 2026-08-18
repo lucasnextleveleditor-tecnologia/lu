@@ -6,6 +6,7 @@ import type { ProfileRow } from "@/lib/types/database";
 import { removerCliente } from "@/app/admin/actions";
 import { calcularStatus } from "@/lib/utils/status";
 import { temAcessoGerado } from "@/lib/utils/cadastros";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -24,6 +25,7 @@ interface ClientesManagerProps {
 }
 
 export function ClientesManager({ clientes, profilesPorId, souAdmin }: ClientesManagerProps) {
+  const { dict } = useLocale();
   const [busca, setBusca] = useState("");
   const [modalCriacaoAberto, setModalCriacaoAberto] = useState(false);
   const [clienteEditando, setClienteEditando] = useState<ClienteRow | null>(null);
@@ -67,18 +69,30 @@ export function ClientesManager({ clientes, profilesPorId, souAdmin }: ClientesM
     <div>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 sm:max-w-xs">
-          <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome, CNPJ/CPF ou e-mail..." />
+          <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={dict.cadastros.buscarClientesPlaceholder} />
         </div>
         <Button onClick={() => setModalCriacaoAberto(true)} className="shrink-0">
-          + Novo Cliente
+          + {dict.cadastros.novoCliente}
         </Button>
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={IconUsers} label="Total de Clientes" value={clientes.length} hint="Cadastrados na base" />
-        <StatTile icon={IconCheckCircle} label="Com Acesso Ativo" value={resumo.ativos} tone="good" hint="Dashboard liberado agora" />
-        <StatTile icon={IconKey} label="Acesso Gerado" value={resumo.comAcesso} hint="Já receberam convite" />
-        <StatTile icon={IconPauseCircle} label="Sem Acesso" value={resumo.semAcesso} tone="neutral" hint="Só cadastro, sem login" />
+        <StatTile icon={IconUsers} label={dict.cadastros.totalClientes} value={clientes.length} hint={dict.cadastros.cadastradosNaBase} />
+        <StatTile
+          icon={IconCheckCircle}
+          label={dict.cadastros.comAcessoAtivo}
+          value={resumo.ativos}
+          tone="good"
+          hint={dict.cadastros.dashboardLiberadoAgora}
+        />
+        <StatTile icon={IconKey} label={dict.cadastros.acessoGerado} value={resumo.comAcesso} hint={dict.cadastros.jaReceberamConvite} />
+        <StatTile
+          icon={IconPauseCircle}
+          label={dict.cadastros.semAcesso}
+          value={resumo.semAcesso}
+          tone="neutral"
+          hint={dict.cadastros.soCadastroSemLogin}
+        />
       </div>
 
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
@@ -86,17 +100,17 @@ export function ClientesManager({ clientes, profilesPorId, souAdmin }: ClientesM
       <Card className="overflow-x-auto p-0">
         {filtrados.length === 0 ? (
           <div className="p-10 text-center text-sm text-ink-muted">
-            {clientes.length === 0 ? "Nenhum cliente cadastrado ainda." : "Nenhum cliente encontrado pra essa busca."}
+            {clientes.length === 0 ? dict.cadastros.nenhumClienteCadastrado : dict.cadastros.nenhumClienteEncontrado}
           </div>
         ) : (
           <table className="w-full min-w-[860px] text-left">
             <thead>
               <tr className="border-b border-base-800 text-xs uppercase tracking-wide text-ink-muted">
-                <th className="px-6 py-3 font-medium">Cliente</th>
-                <th className="px-0 py-3 font-medium">Documento</th>
-                <th className="px-0 py-3 font-medium">Contato</th>
-                <th className="px-0 py-3 font-medium">Acesso</th>
-                <th className="px-6 py-3 font-medium text-right">Ações</th>
+                <th className="px-6 py-3 font-medium">{dict.cadastros.colunaCliente}</th>
+                <th className="px-0 py-3 font-medium">{dict.cadastros.colunaDocumento}</th>
+                <th className="px-0 py-3 font-medium">{dict.cadastros.colunaContato}</th>
+                <th className="px-0 py-3 font-medium">{dict.cadastros.colunaAcesso}</th>
+                <th className="px-6 py-3 font-medium text-right">{dict.common.acoes}</th>
               </tr>
             </thead>
             <tbody className="[&>tr>td:first-child]:pl-6 [&>tr>td:last-child]:pr-6">
@@ -106,7 +120,11 @@ export function ClientesManager({ clientes, profilesPorId, souAdmin }: ClientesM
                   <tr key={cliente.id} className="border-b border-base-800 last:border-0">
                     <td className="py-3 pr-4">
                       <p className="text-sm font-medium text-ink-primary">{cliente.nome}</p>
-                      {cliente.nome_responsavel && <p className="text-xs text-ink-muted">Resp.: {cliente.nome_responsavel}</p>}
+                      {cliente.nome_responsavel && (
+                        <p className="text-xs text-ink-muted">
+                          {dict.cadastros.respLabel} {cliente.nome_responsavel}
+                        </p>
+                      )}
                     </td>
                     <td className="py-3 pr-4">
                       <span className="text-xs text-ink-secondary">{cliente.documento || "—"}</span>
@@ -116,39 +134,39 @@ export function ClientesManager({ clientes, profilesPorId, souAdmin }: ClientesM
                       <p className="text-xs text-ink-muted">{cliente.telefone || "—"}</p>
                     </td>
                     <td className="py-3 pr-4">
-                      {profile ? <StatusBadge status={calcularStatus(profile)} /> : <Badge tone="neutral" label="Sem acesso" />}
+                      {profile ? <StatusBadge status={calcularStatus(profile)} /> : <Badge tone="neutral" label={dict.cadastros.semAcessoBadge} />}
                     </td>
                     <td className="py-3 text-right">
                       {confirmandoExclusao === cliente.id ? (
                         <div className="flex justify-end gap-2">
-                          <span className="text-xs text-ink-secondary">Excluir?</span>
+                          <span className="text-xs text-ink-secondary">{dict.common.confirmarExclusao}</span>
                           <button
                             onClick={() => handleExcluir(cliente.id)}
                             disabled={pending}
                             className="text-xs font-medium text-danger hover:underline"
                           >
-                            Sim
+                            {dict.common.sim}
                           </button>
                           <button
                             onClick={() => setConfirmandoExclusao(null)}
                             disabled={pending}
                             className="text-xs text-ink-muted hover:text-ink-primary"
                           >
-                            Não
+                            {dict.common.nao}
                           </button>
                         </div>
                       ) : (
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" onClick={() => setClienteDetalhe(cliente)} className="px-3 py-1.5 text-xs">
-                            Abrir
+                            {dict.cadastros.abrir}
                           </Button>
                           {!cliente.profile_id && souAdmin && (
                             <Button variant="ghost" onClick={() => setClienteGerandoAcesso(cliente)} className="px-3 py-1.5 text-xs">
-                              Gerar Acesso
+                              {dict.cadastros.gerarAcesso}
                             </Button>
                           )}
                           <Button variant="ghost" onClick={() => setClienteEditando(cliente)} className="px-3 py-1.5 text-xs">
-                            Editar
+                            {dict.common.editar}
                           </Button>
                           <Button
                             variant="danger"
@@ -156,7 +174,7 @@ export function ClientesManager({ clientes, profilesPorId, souAdmin }: ClientesM
                             disabled={pending}
                             className="px-3 py-1.5 text-xs"
                           >
-                            Excluir
+                            {dict.common.excluir}
                           </Button>
                         </div>
                       )}

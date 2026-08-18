@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { CategoriaInventarioRow, ItemInventarioComCategoria, ItemInventarioRow } from "@/lib/types/database";
 import { ItensManager } from "@/components/admin/inventario/ItensManager";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,7 @@ type ItemComRelacao = ItemInventarioRow & { categorias_inventario: { nome: strin
 
 export default async function InventarioItensPage() {
   const supabase = await createClient();
+  const { dict } = await getDictionary();
 
   const { data: categorias, error: erroCategorias } = await supabase
     .from("categorias_inventario")
@@ -16,7 +18,12 @@ export default async function InventarioItensPage() {
     .overrideTypes<CategoriaInventarioRow[], { merge: false }>();
 
   if (erroCategorias) {
-    return <p className="text-sm text-danger">Erro ao carregar categorias: {erroCategorias.message}</p>;
+    return (
+      <p className="text-sm text-danger">
+        {dict.inventario.erroCarregarCategorias}
+        {erroCategorias.message}
+      </p>
+    );
   }
 
   // Join com a categoria já resolvido na própria query (evita cruzar
@@ -28,12 +35,17 @@ export default async function InventarioItensPage() {
     .overrideTypes<ItemComRelacao[], { merge: false }>();
 
   if (erroItens) {
-    return <p className="text-sm text-danger">Erro ao carregar itens: {erroItens.message}</p>;
+    return (
+      <p className="text-sm text-danger">
+        {dict.inventario.erroCarregarItens}
+        {erroItens.message}
+      </p>
+    );
   }
 
   const itens: ItemInventarioComCategoria[] = (itensRaw ?? []).map(({ categorias_inventario, ...item }) => ({
     ...item,
-    categoria_nome: categorias_inventario?.nome ?? "Sem categoria",
+    categoria_nome: categorias_inventario?.nome ?? dict.common.semCategoria,
   }));
 
   return <ItensManager itens={itens} categorias={categorias ?? []} />;

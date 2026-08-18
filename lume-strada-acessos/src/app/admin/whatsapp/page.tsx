@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import type { ContatoWhatsappRow } from "@/lib/types/whatsapp";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 import { InboxWorkspace } from "@/components/admin/whatsapp/InboxWorkspace";
 
 export const dynamic = "force-dynamic";
 
 export default async function WhatsappInboxPage() {
   const supabase = await createClient();
+  const { dict } = await getDictionary();
 
   const { data: contatos, error } = await supabase
     .from("whatsapp_contatos")
@@ -14,7 +16,11 @@ export default async function WhatsappInboxPage() {
     .overrideTypes<ContatoWhatsappRow[], { merge: false }>();
 
   if (error) {
-    return <p className="text-sm text-danger">Erro ao carregar as conversas: {error.message}</p>;
+    return (
+      <p className="text-sm text-danger">
+        {dict.whatsapp.erroCarregarConversas} {error.message}
+      </p>
+    );
   }
 
   return <InboxWorkspace contatosIniciais={contatos ?? []} />;

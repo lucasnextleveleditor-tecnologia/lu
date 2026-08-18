@@ -1,8 +1,10 @@
 "use server";
 
+import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
-import type { FinContexto, FinRecorrencia, FinTipoTransacao } from "@/lib/types/financeiro";
+import type { FinContexto, FinRecorrencia, FinTipoTransacao, MoedaEstrangeira } from "@/lib/types/financeiro";
+import { addMonthsISO } from "@/lib/utils/format";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
@@ -131,6 +133,7 @@ export async function removerCategoria(id: string): Promise<ActionResult> {
 export interface CriarTransacaoInput {
   tipo: FinTipoTransacao;
   descricao: string;
+  /** Sempre em BRL — se a transação foi lançada em moeda estrangeira, já vem convertida (ver `moedaOriginal`/`taxaCambio` abaixo). */
   valor: number;
   categoriaId: string | null;
   contexto: FinContexto;
@@ -141,6 +144,10 @@ export interface CriarTransacaoInput {
   recorrenciaIntervalo: FinRecorrencia | null;
   dataVencimento: string; // ISO date
   jaPaga: boolean;
+  /** `null`/ausente = a transação nasceu direto em BRL, sem conversão nenhuma. */
+  moedaOriginal?: MoedaEstrangeira | null;
+  valorOriginal?: number | null;
+  taxaCambio?: number | null;
 }
 
 export async function criarTransacao(input: CriarTransacaoInput): Promise<ActionResult> {
@@ -171,6 +178,9 @@ export async function criarTransacao(input: CriarTransacaoInput): Promise<Action
       data_vencimento: input.dataVencimento,
       pago: input.jaPaga,
       data_pagamento: input.jaPaga ? new Date().toISOString() : null,
+      moeda_original: input.moedaOriginal ?? null,
+      valor_original: input.valorOriginal ?? null,
+      taxa_cambio: input.taxaCambio ?? null,
     });
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -216,6 +226,9 @@ export async function atualizarTransacao(id: string, input: CriarTransacaoInput)
         data_vencimento: input.dataVencimento,
         pago: input.jaPaga,
         data_pagamento: input.jaPaga ? new Date().toISOString() : null,
+        moeda_original: input.moedaOriginal ?? null,
+        valor_original: input.valorOriginal ?? null,
+        taxa_cambio: input.taxaCambio ?? null,
       })
       .eq("id", id);
     if (error) return { ok: false, error: error.message };
@@ -267,6 +280,120 @@ export async function pagarFatura(input: { cartaoId: string; contaPagamentoId: s
       p_conta_pagamento_id: input.contaPagamentoId,
       p_periodo_referencia: input.periodoReferencia,
     });
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Multi-moeda — cotação em tempo real
+// ----------------------------------------------------------------------------
+export type CotacaoResult = { ok: true; taxa: number; dataCotacao: string } | { ok: false; error: string };
+
+/**
+ * Busca a cotação do dia (moeda estrangeira -> BRL) na Frankfurter API
+ * (referência do Banco Central Europeu — https://frankfurter.dev),
+ * gratuita e sem chave/cadastro. Chamada toda vez que o admin muda a moeda
+ * no formulário de transação ou clica em "Atualizar cotação" — NUNCA
+ * cacheada no banco; `fin_transacoes.taxa_cambio` guarda só a taxa usada
+ * naquele lançamento específico, como registro histórico.
+ */
+export async function buscarCotacao(moeda: MoedaEstrangeira): Promise<CotacaoResult> {
+  try {
+    await requireModulo("financeiro");
+    const resposta = await fetch(`https://api.frankfurter.dev/v1/latest?from=${moeda}&to=BRL`, { cache: "no-store" });
+    if (!resposta.ok) return { ok: false, error: "Não foi possível buscar a cotação agora. Tente de novo em instantes." };
+    const dados = (await resposta.json()) as { rates?: Record<string, number>; date?: string };
+    const taxa = dados.rates?.BRL;
+    if (typeof taxa !== "number") return { ok: false, error: "Cotação indisponível no momento." };
+    return { ok: true, taxa, dataCotacao: dados.date ?? new Date().toISOString().slice(0, 10) };
+  } catch {
+    return { ok: false, error: "Não foi possível buscar a cotação — verifique sua conexão e tente de novo." };
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Parcelamento
+// ----------------------------------------------------------------------------
+export interface CriarTransacaoParceladaInput {
+  descricao: string;
+  /** Valor TOTAL da compra, sempre em BRL (já convertido, se a moeda original não era BRL). */
+  valorTotal: number;
+  numParcelas: number;
+  categoriaId: string | null;
+  contexto: FinContexto;
+  contaId: string | null;
+  cartaoId: string | null;
+  dataPrimeiraParcela: string; // ISO date
+  moedaOriginal: MoedaEstrangeira | null;
+  valorOriginalTotal: number | null;
+  taxaCambio: number | null;
+}
+
+/**
+ * Lança uma compra parcelada — insere as N parcelas de uma vez, todas
+ * PENDENTES (nenhuma nasce paga; o admin dá baixa em cada uma no seu
+ * vencimento, igual qualquer outra transação — decisão deliberada, não
+ * fatura fictícia sendo "pré-paga" no lançamento).
+ *
+ * Trabalha em CENTAVOS (inteiros) pra nunca perder/sobrar um centavo por
+ * arredondamento de ponto flutuante ao dividir o total por N — a ÚLTIMA
+ * parcela absorve o resto da divisão, igual a prática comum de qualquer
+ * fatura de cartão parcelada de verdade.
+ */
+export async function criarTransacaoParcelada(input: CriarTransacaoParceladaInput): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+
+    if (!input.descricao.trim()) return { ok: false, error: "Informe uma descrição." };
+    if (input.valorTotal <= 0) return { ok: false, error: "O valor total precisa ser maior que zero." };
+    if (!Number.isInteger(input.numParcelas) || input.numParcelas < 2 || input.numParcelas > 60) {
+      return { ok: false, error: "Número de parcelas inválido — use um valor entre 2 e 60." };
+    }
+    if (!input.contaId && !input.cartaoId) return { ok: false, error: "Selecione a conta ou o cartão dessa compra." };
+
+    const grupoId = randomUUID();
+    const n = input.numParcelas;
+
+    const totalCentavos = Math.round(input.valorTotal * 100);
+    const baseCentavos = Math.floor(totalCentavos / n);
+    const restoCentavos = totalCentavos - baseCentavos * n;
+
+    const totalOriginalCentavos = input.valorOriginalTotal !== null ? Math.round(input.valorOriginalTotal * 100) : null;
+    const baseOriginalCentavos = totalOriginalCentavos !== null ? Math.floor(totalOriginalCentavos / n) : null;
+    const restoOriginalCentavos = totalOriginalCentavos !== null ? totalOriginalCentavos - baseOriginalCentavos! * n : null;
+
+    const linhas = Array.from({ length: n }, (_, i) => {
+      const centavosParcela = baseCentavos + (i === n - 1 ? restoCentavos : 0);
+      const centavosOriginalParcela =
+        baseOriginalCentavos !== null ? baseOriginalCentavos + (i === n - 1 ? restoOriginalCentavos! : 0) : null;
+      return {
+        tipo: "despesa" as const,
+        descricao: input.descricao.trim(),
+        valor: centavosParcela / 100,
+        categoria_id: input.categoriaId,
+        contexto: input.contexto,
+        conta_id: input.cartaoId ? null : input.contaId,
+        conta_destino_id: null,
+        cartao_id: input.cartaoId,
+        recorrente: false,
+        recorrencia_intervalo: null,
+        data_vencimento: addMonthsISO(input.dataPrimeiraParcela, i),
+        pago: false,
+        data_pagamento: null,
+        parcela_grupo_id: grupoId,
+        parcela_numero: i + 1,
+        parcela_total: n,
+        moeda_original: input.moedaOriginal,
+        valor_original: centavosOriginalParcela !== null ? centavosOriginalParcela / 100 : null,
+        taxa_cambio: input.taxaCambio,
+      };
+    });
+
+    const { error } = await supabase.from("fin_transacoes").insert(linhas);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
     return { ok: true };

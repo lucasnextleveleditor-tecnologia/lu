@@ -6,6 +6,7 @@ import type { EntregaComVersoes, FuncionarioRow, SubtarefaRow, TarefaComRelacoes
 import { IconCalendar, IconColumns, IconList, IconPlus, IconSettings } from "@/components/ui/icons";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { KanbanBoard } from "@/components/admin/producao/KanbanBoard";
 import { ListaTarefas } from "@/components/admin/producao/ListaTarefas";
 import { CalendarioTarefas } from "@/components/admin/producao/CalendarioTarefas";
@@ -24,12 +25,6 @@ interface ProducaoWorkspaceProps {
   tiposServico: TipoServicoRow[];
 }
 
-const VISOES: { value: Visao; label: string; icon: ComponentType<{ className?: string }> }[] = [
-  { value: "kanban", label: "Kanban", icon: IconColumns },
-  { value: "lista", label: "Lista", icon: IconList },
-  { value: "calendario", label: "Calendário", icon: IconCalendar },
-];
-
 export function ProducaoWorkspace({
   tarefas,
   subtarefasPorTarefa,
@@ -38,6 +33,12 @@ export function ProducaoWorkspace({
   funcionarios,
   tiposServico,
 }: ProducaoWorkspaceProps) {
+  const { dict } = useLocale();
+  const VISOES: { value: Visao; label: string; icon: ComponentType<{ className?: string }> }[] = [
+    { value: "kanban", label: dict.producao.visaoKanban, icon: IconColumns },
+    { value: "lista", label: dict.producao.visaoLista, icon: IconList },
+    { value: "calendario", label: dict.producao.visaoCalendario, icon: IconCalendar },
+  ];
   const [visao, setVisao] = useState<Visao>("kanban");
   const [modalNovaAberto, setModalNovaAberto] = useState(false);
   const [modalConfigAberto, setModalConfigAberto] = useState(false);
@@ -66,12 +67,12 @@ export function ProducaoWorkspace({
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" onClick={() => setModalConfigAberto(true)} className="px-3 py-2 text-xs" title="Funcionários e Tipos de Serviço">
+          <Button variant="ghost" onClick={() => setModalConfigAberto(true)} className="px-3 py-2 text-xs" title={dict.producao.configuracaoBotaoTitle}>
             <IconSettings className="h-4 w-4" />
           </Button>
           <Button onClick={() => setModalNovaAberto(true)} className="shadow-[0_0_18px_-4px_rgba(255,255,255,0.35)]">
             <IconPlus className="h-4 w-4" />
-            Nova Tarefa
+            {dict.producao.novaTarefa}
           </Button>
         </div>
       </div>

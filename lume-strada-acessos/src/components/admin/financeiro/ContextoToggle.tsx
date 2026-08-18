@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { mesParam } from "@/lib/utils/financeiro";
-
-const OPCOES = [
-  { value: "todos", label: "Todos" },
-  { value: "profissional", label: "Profissional" },
-  { value: "pessoal", label: "Pessoal" },
-] as const;
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 /** Alterna o filtro Pessoal/Profissional/Todos — mesmo padrão de navegação por link (sem JS no cliente). */
-export function ContextoToggle({ referencia, contexto }: { referencia: Date; contexto: string }) {
+export async function ContextoToggle({ referencia, contexto }: { referencia: Date; contexto: string }) {
+  const { dict } = await getDictionary();
+  const OPCOES = [
+    { value: "todos", label: dict.common.todos },
+    { value: "profissional", label: dict.financeiro.contextoProfissional },
+    { value: "pessoal", label: dict.financeiro.contextoPessoal },
+  ] as const;
+
   return (
     <div className="inline-flex rounded-lg border border-base-700 bg-base-900/60 p-1">
       {OPCOES.map((opcao) => {

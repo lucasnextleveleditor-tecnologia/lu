@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ContatoWhatsappRow, MensagemWhatsappRow } from "@/lib/types/whatsapp";
 import { fmtHoraOuData, fmtPreviewMensagem, fmtTelefoneExibicao, iniciaisContato } from "@/lib/utils/whatsapp";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -26,6 +27,7 @@ interface JanelaChatProps {
  * de marca nova.
  */
 export function JanelaChat({ contato, mensagens, carregandoMensagens, onEnviar, onAdicionarAoCrm }: JanelaChatProps) {
+  const { dict } = useLocale();
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [convertendo, setConvertendo] = useState(false);
@@ -47,7 +49,7 @@ export function JanelaChat({ contato, mensagens, carregandoMensagens, onEnviar, 
     const result = await onEnviar(conteudo);
     setEnviando(false);
     if (!result.ok) {
-      setError(result.error ?? "Falha ao enviar.");
+      setError(result.error ?? dict.whatsapp.falhaAoEnviar);
       return;
     }
     setTexto("");
@@ -58,14 +60,14 @@ export function JanelaChat({ contato, mensagens, carregandoMensagens, onEnviar, 
     setError(null);
     const result = await onAdicionarAoCrm();
     setConvertendo(false);
-    if (!result.ok) setError(result.error ?? "Falha ao criar o lead.");
+    if (!result.ok) setError(result.error ?? dict.whatsapp.falhaAoCriarLead);
   }
 
   if (!contato) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-ink-muted">
         <IconTarget className="h-8 w-8" />
-        <p className="text-sm">Selecione uma conversa pra começar.</p>
+        <p className="text-sm">{dict.whatsapp.selecioneConversa}</p>
       </div>
     );
   }
@@ -90,10 +92,10 @@ export function JanelaChat({ contato, mensagens, carregandoMensagens, onEnviar, 
         </div>
 
         {contato.lead_id ? (
-          <Badge tone="good" label="Já é um Lead" className="shrink-0" />
+          <Badge tone="good" label={dict.whatsapp.jaEhLead} className="shrink-0" />
         ) : (
           <Button onClick={handleAdicionarAoCrm} disabled={convertendo} className="shrink-0 px-3 py-1.5 text-xs">
-            {convertendo ? "Adicionando..." : "+ Adicionar ao CRM"}
+            {convertendo ? dict.whatsapp.adicionando : `+ ${dict.whatsapp.adicionarAoCrm}`}
           </Button>
         )}
       </div>
@@ -101,9 +103,9 @@ export function JanelaChat({ contato, mensagens, carregandoMensagens, onEnviar, 
       {/* Mensagens */}
       <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
         {carregandoMensagens ? (
-          <p className="text-center text-xs text-ink-muted">Carregando conversa...</p>
+          <p className="text-center text-xs text-ink-muted">{dict.whatsapp.carregandoConversa}</p>
         ) : mensagens.length === 0 ? (
-          <p className="text-center text-xs text-ink-muted">Nenhuma mensagem nesta conversa ainda.</p>
+          <p className="text-center text-xs text-ink-muted">{dict.whatsapp.nenhumaMensagem}</p>
         ) : (
           mensagens.map((msg) => {
             const enviada = msg.direcao === "enviada";
@@ -117,8 +119,8 @@ export function JanelaChat({ contato, mensagens, carregandoMensagens, onEnviar, 
                 >
                   <p className="whitespace-pre-wrap break-words">{fmtPreviewMensagem(msg)}</p>
                   <div className="mt-1 flex items-center justify-end gap-1.5 text-[10px] text-ink-muted">
-                    {enviada && msg.status_entrega === "falhou" && <span className="text-danger">Falhou</span>}
-                    {enviada && msg.status_entrega === "enviando" && <span>Enviando...</span>}
+                    {enviada && msg.status_entrega === "falhou" && <span className="text-danger">{dict.whatsapp.falhouEnvio}</span>}
+                    {enviada && msg.status_entrega === "enviando" && <span>{dict.whatsapp.enviandoMensagem}</span>}
                     <span>{fmtHoraOuData(msg.created_at)}</span>
                   </div>
                 </div>
@@ -135,7 +137,7 @@ export function JanelaChat({ contato, mensagens, carregandoMensagens, onEnviar, 
         <button
           type="button"
           disabled
-          title="Envio de anexos depende do provedor de mensageria configurado — ver src/lib/whatsapp/provider.ts"
+          title={dict.whatsapp.anexoIndisponivel}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-base-700 text-ink-muted disabled:cursor-not-allowed disabled:opacity-40"
         >
           <IconPaperclip className="h-4 w-4" />
@@ -143,7 +145,7 @@ export function JanelaChat({ contato, mensagens, carregandoMensagens, onEnviar, 
         <Input
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
-          placeholder="Digite uma mensagem..."
+          placeholder={dict.whatsapp.digiteMensagem}
           className="flex-1"
           disabled={enviando}
         />

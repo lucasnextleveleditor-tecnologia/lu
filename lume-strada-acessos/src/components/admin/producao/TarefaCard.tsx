@@ -1,11 +1,12 @@
 "use client";
 
-import type { TarefaComRelacoes } from "@/lib/types/producao";
+import type { TarefaComRelacoes, PrioridadeTarefa } from "@/lib/types/producao";
 import { PRIORIDADE_TAREFA_META, calcularProgressoSubtarefas, isTarefaAtrasada } from "@/lib/utils/producao";
 import { fmtData } from "@/lib/utils/status";
 import { Meter } from "@/components/ui/Meter";
 import { PillTag } from "@/components/admin/producao/PillTag";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface TarefaCardProps {
   tarefa: TarefaComRelacoes;
@@ -28,6 +29,13 @@ function iniciais(nome: string): string {
  * única pista (cor nunca carrega sozinha o significado).
  */
 export function TarefaCard({ tarefa, onClick, className }: TarefaCardProps) {
+  const { dict } = useLocale();
+  const prioridadeLabel: Record<PrioridadeTarefa, string> = {
+    baixa: dict.producao.prioridadeBaixa,
+    normal: dict.producao.prioridadeNormal,
+    alta: dict.producao.prioridadeAlta,
+    urgente: dict.producao.prioridadeUrgente,
+  };
   const prioridadeMeta = PRIORIDADE_TAREFA_META[tarefa.prioridade];
   const atrasada = isTarefaAtrasada(tarefa);
   const progresso = calcularProgressoSubtarefas(
@@ -52,7 +60,7 @@ export function TarefaCard({ tarefa, onClick, className }: TarefaCardProps) {
     >
       <div className="mb-2.5 flex items-start justify-between gap-2">
         <p className="text-sm font-medium leading-snug text-ink-primary">{tarefa.titulo}</p>
-        <PillTag tone={prioridadeMeta.tone} label={prioridadeMeta.label} />
+        <PillTag tone={prioridadeMeta.tone} label={prioridadeLabel[tarefa.prioridade]} />
       </div>
 
       {(tarefa.cliente_nome || tarefa.tipo_servico_nome) && (
@@ -65,7 +73,7 @@ export function TarefaCard({ tarefa, onClick, className }: TarefaCardProps) {
       {tarefa.subtarefas_total > 0 && (
         <div className="mb-2.5">
           <div className="mb-1 flex items-center justify-between text-[11px] text-ink-muted">
-            <span>Subtarefas</span>
+            <span>{dict.producao.subtarefas}</span>
             <span>
               {progresso.concluidas}/{progresso.total}
             </span>
@@ -76,10 +84,15 @@ export function TarefaCard({ tarefa, onClick, className }: TarefaCardProps) {
 
       <div className="flex items-center justify-between gap-2 border-t border-base-800/70 pt-2.5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-ink-muted">
-          {tarefa.data_captacao && <span>Captação: {fmtData(tarefa.data_captacao)}</span>}
+          {tarefa.data_captacao && (
+            <span>
+              {dict.producao.captacaoPrefixo}
+              {fmtData(tarefa.data_captacao)}
+            </span>
+          )}
           {tarefa.data_entrega && (
             <span className={atrasada ? "font-semibold text-danger" : ""}>
-              {atrasada ? "Atrasada · " : "Prazo: "}
+              {atrasada ? dict.producao.atrasadaPrefixo : dict.producao.prazoPrefixo}
               {fmtData(tarefa.data_entrega)}
             </span>
           )}

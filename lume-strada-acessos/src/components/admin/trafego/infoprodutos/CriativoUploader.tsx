@@ -5,6 +5,7 @@ import { confirmarCriativo, criarUploadAssinadoCriativo, removerCriativo } from 
 import { CRIATIVO_TAMANHO_MAX_BYTES } from "@/lib/utils/infoprodutos";
 import { createClient } from "@/lib/supabase/client";
 import { IconUpload, IconTrash } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 const BUCKET_INFOPRODUTOS = "infoprodutos";
 
@@ -16,6 +17,7 @@ interface CriativoUploaderProps {
 
 /** Mesmo padrão de upload de `EntregasSection` (Produção): input escondido disparado por um botão, sem preview intermediário — aqui a diferença é que TEM preview, porque o criativo é justamente pra visualização rápida no card. */
 export function CriativoUploader({ anuncioId, criativoUrl, criativoTipo }: CriativoUploaderProps) {
+  const { dict } = useLocale();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export function CriativoUploader({ anuncioId, criativoUrl, criativoTipo }: Criat
     setError(null);
 
     if (file.size > CRIATIVO_TAMANHO_MAX_BYTES) {
-      setError("Arquivo muito grande (máximo 80MB).");
+      setError(dict.trafego.arquivoMuitoGrande);
       return;
     }
 
@@ -74,13 +76,13 @@ export function CriativoUploader({ anuncioId, criativoUrl, criativoTipo }: Criat
             <video src={criativoUrl} controls className="aspect-video w-full object-cover" />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={criativoUrl} alt="Criativo do anúncio" className="aspect-video w-full object-cover" />
+            <img src={criativoUrl} alt={dict.trafego.criativoAltTexto} className="aspect-video w-full object-cover" />
           )}
           <button
             onClick={handleRemover}
             disabled={pending}
             className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg bg-black/70 text-white opacity-0 transition group-hover:opacity-100"
-            aria-label="Remover criativo"
+            aria-label={dict.trafego.removerCriativoAria}
           >
             <IconTrash className="h-3.5 w-3.5" />
           </button>
@@ -93,7 +95,7 @@ export function CriativoUploader({ anuncioId, criativoUrl, criativoTipo }: Criat
           className="flex aspect-video w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-base-700 text-ink-muted transition hover:border-ink-muted hover:text-ink-secondary"
         >
           <IconUpload className="h-5 w-5" />
-          <span className="text-xs">{pending ? "Enviando..." : "Enviar Print ou MP4"}</span>
+          <span className="text-xs">{pending ? dict.trafego.enviandoTexto : dict.trafego.enviarPrintOuMp4}</span>
         </button>
       )}
       {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}

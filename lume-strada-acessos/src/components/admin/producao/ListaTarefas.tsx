@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { TarefaComRelacoes } from "@/lib/types/producao";
+import type { TarefaComRelacoes, StatusTarefa, PrioridadeTarefa } from "@/lib/types/producao";
 import { PRIORIDADE_TAREFA_META, STATUS_TAREFA_META, STATUS_TAREFA_ORDEM, isTarefaAtrasada } from "@/lib/utils/producao";
 import { fmtData } from "@/lib/utils/status";
 import { Card } from "@/components/ui/Card";
@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { PillTag } from "@/components/admin/producao/PillTag";
 import { IconClipboardList } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface ListaTarefasProps {
   tarefas: TarefaComRelacoes[];
@@ -20,6 +21,23 @@ const TODOS = "todos";
 type CampoOrdenacao = "data_entrega" | "responsavel_nome";
 
 export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
+  const { dict } = useLocale();
+
+  const statusLabel: Record<StatusTarefa, string> = {
+    backlog: dict.producao.statusBacklog,
+    a_fazer: dict.producao.statusAFazer,
+    em_producao: dict.producao.statusEmProducao,
+    revisao_interna: dict.producao.statusRevisaoInterna,
+    preview_cliente: dict.producao.statusPreviewCliente,
+    concluida: dict.producao.statusConcluida,
+  };
+  const prioridadeLabel: Record<PrioridadeTarefa, string> = {
+    baixa: dict.producao.prioridadeBaixa,
+    normal: dict.producao.prioridadeNormal,
+    alta: dict.producao.prioridadeAlta,
+    urgente: dict.producao.prioridadeUrgente,
+  };
+
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
   const [filtroPrioridade, setFiltroPrioridade] = useState<string>(TODOS);
@@ -65,28 +83,28 @@ export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
     <Card className="overflow-hidden bg-gradient-to-b from-base-800/30 to-transparent p-0">
       <div className="flex flex-wrap items-end gap-3 border-b border-base-800/70 bg-gradient-to-b from-base-800/30 to-transparent p-5">
         <div className="min-w-[180px] flex-1">
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Buscar</label>
-          <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Título, cliente, responsável..." />
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.buscar}</label>
+          <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={dict.producao.buscarPlaceholder} />
         </div>
         <div className="w-44">
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Status</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.status}</label>
           <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
-            <option value={TODOS}>Todos</option>
+            <option value={TODOS}>{dict.common.todos}</option>
             {STATUS_TAREFA_ORDEM.map((status) => (
               <option key={status} value={status}>
-                {STATUS_TAREFA_META[status].label}
+                {statusLabel[status]}
               </option>
             ))}
           </Select>
         </div>
         <div className="w-36">
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Prioridade</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.prioridadeLabel}</label>
           <Select value={filtroPrioridade} onChange={(e) => setFiltroPrioridade(e.target.value)}>
-            <option value={TODOS}>Todas</option>
-            <option value="urgente">Urgente</option>
-            <option value="alta">Alta</option>
-            <option value="normal">Normal</option>
-            <option value="baixa">Baixa</option>
+            <option value={TODOS}>{dict.producao.todasPrioridades}</option>
+            <option value="urgente">{dict.producao.prioridadeUrgente}</option>
+            <option value="alta">{dict.producao.prioridadeAlta}</option>
+            <option value="normal">{dict.producao.prioridadeNormal}</option>
+            <option value="baixa">{dict.producao.prioridadeBaixa}</option>
           </Select>
         </div>
         {(filtroStatus !== TODOS || filtroPrioridade !== TODOS || busca) && (
@@ -99,7 +117,7 @@ export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
               setFiltroPrioridade(TODOS);
             }}
           >
-            Limpar filtros
+            {dict.common.limparFiltros}
           </Button>
         )}
       </div>
@@ -109,27 +127,27 @@ export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
           <div className="flex flex-col items-center gap-2 p-14 text-center">
             <IconClipboardList className="h-6 w-6 text-ink-muted/60" />
             <p className="text-sm text-ink-muted">
-              {tarefas.length === 0 ? "Nenhuma tarefa cadastrada ainda." : "Nenhuma tarefa corresponde aos filtros atuais."}
+              {tarefas.length === 0 ? dict.producao.listaVazia : dict.producao.listaSemResultados}
             </p>
           </div>
         ) : (
           <table className="w-full min-w-[900px] text-left">
             <thead>
               <tr className="border-b border-base-800/70 text-xs uppercase tracking-wide text-ink-muted">
-                <th className="px-5 py-3 font-medium">Tarefa</th>
-                <th className="px-0 py-3 font-medium">Cliente</th>
+                <th className="px-5 py-3 font-medium">{dict.producao.colTarefa}</th>
+                <th className="px-0 py-3 font-medium">{dict.producao.colCliente}</th>
                 <th className="px-0 py-3 font-medium">
                   <button onClick={() => alternarOrdenacao("responsavel_nome")} className="flex items-center gap-1 hover:text-ink-primary">
-                    Responsável {ordenarPor === "responsavel_nome" && (ordemAsc ? "↑" : "↓")}
+                    {dict.producao.colResponsavel} {ordenarPor === "responsavel_nome" && (ordemAsc ? "↑" : "↓")}
                   </button>
                 </th>
                 <th className="px-0 py-3 font-medium">
                   <button onClick={() => alternarOrdenacao("data_entrega")} className="flex items-center gap-1 hover:text-ink-primary">
-                    Prazo {ordenarPor === "data_entrega" && (ordemAsc ? "↑" : "↓")}
+                    {dict.producao.colPrazo} {ordenarPor === "data_entrega" && (ordemAsc ? "↑" : "↓")}
                   </button>
                 </th>
-                <th className="px-0 py-3 font-medium">Prioridade</th>
-                <th className="px-5 py-3 font-medium text-right">Status</th>
+                <th className="px-0 py-3 font-medium">{dict.producao.prioridadeLabel}</th>
+                <th className="px-5 py-3 font-medium text-right">{dict.common.status}</th>
               </tr>
             </thead>
             <tbody className="[&>tr>td:first-child]:pl-5 [&>tr>td:last-child]:pr-5">
@@ -159,10 +177,10 @@ export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
                       </span>
                     </td>
                     <td className="py-3 pr-4">
-                      <PillTag tone={prioridadeMeta.tone} label={prioridadeMeta.label} />
+                      <PillTag tone={prioridadeMeta.tone} label={prioridadeLabel[t.prioridade]} />
                     </td>
                     <td className="py-3 text-right">
-                      <PillTag tone={statusMeta.tone} label={statusMeta.label} />
+                      <PillTag tone={statusMeta.tone} label={statusLabel[t.status]} />
                     </td>
                   </tr>
                 );

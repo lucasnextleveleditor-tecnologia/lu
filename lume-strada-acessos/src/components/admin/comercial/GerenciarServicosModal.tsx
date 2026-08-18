@@ -3,6 +3,7 @@
 import type { TipoServicoRow } from "@/lib/types/producao";
 import { criarTipoServico, removerTipoServico } from "@/app/admin/producao/actions";
 import { ListaCadastroSimples } from "@/components/ui/ListaCadastroSimples";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 /**
  * Gerencia os "Serviços Oferecidos" direto do Comercial — sem precisar ir
@@ -13,6 +14,7 @@ import { ListaCadastroSimples } from "@/components/ui/ListaCadastroSimples";
  * padrão de `GerarAcessoClienteModal`, aberto de dentro de `ClienteDetalheModal`).
  */
 export function GerenciarServicosModal({ tiposServico, onClose }: { tiposServico: TipoServicoRow[]; onClose: () => void }) {
+  const { dict } = useLocale();
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div
@@ -20,14 +22,20 @@ export function GerenciarServicosModal({ tiposServico, onClose }: { tiposServico
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold">Serviços Oferecidos</h3>
-          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label="Fechar">
+          <h3 className="text-base font-semibold">{dict.comercial.servicosOferecidosTitulo}</h3>
+          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
             ×
           </button>
         </div>
-        <p className="mb-4 text-xs text-ink-muted">Essa lista também é usada em Produção — adicionar ou remover aqui vale pros dois módulos.</p>
+        <p className="mb-4 text-xs text-ink-muted">{dict.comercial.servicosDescricao}</p>
 
-        <ListaCadastroSimples titulo="Serviços" itens={tiposServico} aoCriar={criarTipoServico} aoRemover={removerTipoServico} placeholder="Ex: Edição de Vídeo" />
+        <ListaCadastroSimples
+          titulo={dict.comercial.servicosListaTitulo}
+          itens={tiposServico}
+          aoCriar={criarTipoServico}
+          aoRemover={removerTipoServico}
+          placeholder={dict.comercial.placeholderServico}
+        />
       </div>
     </div>
   );

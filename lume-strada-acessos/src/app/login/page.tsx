@@ -2,7 +2,9 @@ import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { BrandingLogo } from "@/components/branding/BrandingLogo";
 import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 import { LOGIN_BG_PRESETS } from "@/lib/branding/constants";
 import { cn } from "@/lib/utils/cn";
 
@@ -14,6 +16,7 @@ const POSICAO_CLASSES = {
 
 export default async function LoginPage() {
   const branding = await getBrandingConfig();
+  const { dict } = await getDictionary();
   const preset = LOGIN_BG_PRESETS.find((p) => p.key === branding.login_bg_preset) ?? LOGIN_BG_PRESETS[0]!;
 
   return (
@@ -31,6 +34,10 @@ export default async function LoginPage() {
     >
       {/* Imagem de fundo customizada precisa de um véu escuro por cima pra caixa de login continuar legível — os padrões prontos já nascem escuros. */}
       {branding.login_bg_url && <div className="absolute inset-0 bg-base-950/70" />}
+
+      <div className="absolute right-4 top-4 z-20">
+        <LanguageSwitcher />
+      </div>
 
       {branding.banner_ativo_login && (
         <div className="absolute inset-x-0 top-0 z-10 p-4">
@@ -65,9 +72,7 @@ export default async function LoginPage() {
           </Suspense>
         </div>
 
-        <p className="mt-6 text-center text-xs text-ink-muted">
-          Recebeu um convite por e-mail? Abra o link da mensagem para definir sua senha antes do primeiro acesso.
-        </p>
+        <p className="mt-6 text-center text-xs text-ink-muted">{dict.login.convitePrompt}</p>
       </div>
     </div>
   );

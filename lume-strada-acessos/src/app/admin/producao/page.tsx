@@ -12,11 +12,13 @@ import type {
 } from "@/lib/types/producao";
 import { ProducaoWorkspace } from "@/components/admin/producao/ProducaoWorkspace";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProducaoPage() {
   const { supabase } = await requireModuloOuRedirect("producao");
+  const { dict } = await getDictionary();
 
   const [tarefasRes, subtarefasRes, entregasRes, versoesRes, clientesRes, funcionariosRes, tiposServicoRes] = await Promise.all([
     supabase.from("prod_tarefas").select("*").order("data_entrega", { ascending: true }).overrideTypes<TarefaRow[], { merge: false }>(),
@@ -82,8 +84,8 @@ export default async function ProducaoPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">Produção &amp; Tarefas</h1>
-          <p className="mt-0.5 text-sm text-ink-muted">Board de produção, subtarefas e entregas com controle de versão e aprovação.</p>
+          <h1 className="text-lg font-semibold tracking-tight">{dict.producao.titulo}</h1>
+          <p className="mt-0.5 text-sm text-ink-muted">{dict.producao.subtitulo}</p>
         </div>
         <ExportMenuButton
           targetId="producao-export-area"
@@ -97,12 +99,12 @@ export default async function ProducaoPage() {
             dataEntrega: t.data_entrega ?? "",
           }))}
           colunasCSV={[
-            { chave: "titulo", rotulo: "Título" },
-            { chave: "status", rotulo: "Status" },
-            { chave: "responsavel", rotulo: "Responsável" },
-            { chave: "cliente", rotulo: "Cliente" },
-            { chave: "prioridade", rotulo: "Prioridade" },
-            { chave: "dataEntrega", rotulo: "Data de Entrega" },
+            { chave: "titulo", rotulo: dict.producao.csvTitulo },
+            { chave: "status", rotulo: dict.producao.csvStatus },
+            { chave: "responsavel", rotulo: dict.producao.csvResponsavel },
+            { chave: "cliente", rotulo: dict.producao.csvCliente },
+            { chave: "prioridade", rotulo: dict.producao.csvPrioridade },
+            { chave: "dataEntrega", rotulo: dict.producao.csvDataEntrega },
           ]}
         />
       </div>

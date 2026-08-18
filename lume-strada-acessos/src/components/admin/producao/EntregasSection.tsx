@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { IconCheck, IconExternalLink, IconPaperclip, IconRotateCcw } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 const BUCKET_PRODUCAO = "producao";
 
@@ -28,6 +29,7 @@ interface EntregasSectionProps {
 }
 
 export function EntregasSection({ tarefaId, entregas }: EntregasSectionProps) {
+  const { dict } = useLocale();
   const [novoNome, setNovoNome] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -45,9 +47,9 @@ export function EntregasSection({ tarefaId, entregas }: EntregasSectionProps) {
 
   return (
     <div>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">Entregas &amp; Aprovação</p>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.producao.entregasTitulo}</p>
 
-      {entregas.length === 0 && <p className="mb-3 text-xs text-ink-muted">Nenhuma entrega criada ainda — crie um slot pra enviar arquivos ou links (ex: &quot;Vídeo Final&quot;).</p>}
+      {entregas.length === 0 && <p className="mb-3 text-xs text-ink-muted">{dict.producao.entregasVazia}</p>}
 
       <div className="mb-3 space-y-3">
         {entregas.map((entrega) => (
@@ -56,9 +58,9 @@ export function EntregasSection({ tarefaId, entregas }: EntregasSectionProps) {
       </div>
 
       <form onSubmit={handleCriarEntrega} className="flex gap-2">
-        <Input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Nome da entrega (ex: Vídeo Final)" className="flex-1" />
+        <Input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder={dict.producao.entregaNomePlaceholder} className="flex-1" />
         <Button type="submit" variant="ghost" disabled={pending} className="shrink-0 px-3 py-2 text-xs">
-          + Nova Entrega
+          {dict.producao.novaEntregaBotao}
         </Button>
       </form>
       {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}

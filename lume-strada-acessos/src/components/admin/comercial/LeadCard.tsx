@@ -6,6 +6,7 @@ import { fmtBRL } from "@/lib/utils/format";
 import { fmtData } from "@/lib/utils/status";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface LeadCardProps {
   lead: LeadComRelacoes;
@@ -14,6 +15,7 @@ interface LeadCardProps {
 }
 
 export function LeadCard({ lead, onClick, className }: LeadCardProps) {
+  const { dict } = useLocale();
   const atrasado = isFollowUpAtrasado(lead);
 
   return (
@@ -27,7 +29,7 @@ export function LeadCard({ lead, onClick, className }: LeadCardProps) {
     >
       <div className="mb-1.5 flex items-start justify-between gap-2">
         <p className="truncate text-sm font-medium text-ink-primary">{lead.nome}</p>
-        {lead.contrato_assinado && <Badge tone="good" label="Contrato" className="shrink-0" />}
+        {lead.contrato_assinado && <Badge tone="good" label={dict.comercial.badgeContrato} className="shrink-0" />}
       </div>
 
       {lead.tipo_servico_nome && <p className="mb-1 truncate text-xs text-ink-secondary">{lead.tipo_servico_nome}</p>}
@@ -37,7 +39,7 @@ export function LeadCard({ lead, onClick, className }: LeadCardProps) {
       <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
         {lead.proximo_contato_em && (
           <span className={atrasado ? "font-medium text-danger" : ""}>
-            {atrasado ? "Atrasado · " : "Próx. contato: "}
+            {atrasado ? dict.comercial.atrasadoPrefixo : dict.comercial.proximoContatoPrefixo}
             {fmtData(lead.proximo_contato_em)}
           </span>
         )}

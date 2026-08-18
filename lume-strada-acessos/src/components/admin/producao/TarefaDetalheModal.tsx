@@ -4,7 +4,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import type { ProfileRow } from "@/lib/types/database";
 import type { EntregaComVersoes, FuncionarioRow, PrioridadeTarefa, StatusTarefa, SubtarefaRow, TarefaComRelacoes, TipoServicoRow } from "@/lib/types/producao";
 import { atualizarTarefa, moverStatusTarefa, removerTarefa } from "@/app/admin/producao/actions";
-import { PRIORIDADE_TAREFA_META, PRIORIDADE_TAREFA_ORDEM, STATUS_TAREFA_META, STATUS_TAREFA_ORDEM, isTarefaAtrasada } from "@/lib/utils/producao";
+import { PRIORIDADE_TAREFA_ORDEM, STATUS_TAREFA_ORDEM, isTarefaAtrasada } from "@/lib/utils/producao";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -13,6 +13,7 @@ import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
 import { SubtarefasChecklist } from "@/components/admin/producao/SubtarefasChecklist";
 import { EntregasSection } from "@/components/admin/producao/EntregasSection";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface TarefaDetalheModalProps {
   tarefa: TarefaComRelacoes;
@@ -25,6 +26,21 @@ interface TarefaDetalheModalProps {
 }
 
 export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, funcionarios, tiposServico, onClose }: TarefaDetalheModalProps) {
+  const { dict } = useLocale();
+  const statusLabel: Record<StatusTarefa, string> = {
+    backlog: dict.producao.statusBacklog,
+    a_fazer: dict.producao.statusAFazer,
+    em_producao: dict.producao.statusEmProducao,
+    revisao_interna: dict.producao.statusRevisaoInterna,
+    preview_cliente: dict.producao.statusPreviewCliente,
+    concluida: dict.producao.statusConcluida,
+  };
+  const prioridadeLabel: Record<string, string> = {
+    baixa: dict.producao.prioridadeBaixa,
+    normal: dict.producao.prioridadeNormal,
+    alta: dict.producao.prioridadeAlta,
+    urgente: dict.producao.prioridadeUrgente,
+  };
   const [titulo, setTitulo] = useState(tarefa.titulo);
   const [briefing, setBriefing] = useState(tarefa.briefing ?? "");
   const [clienteId, setClienteId] = useState(tarefa.cliente_id ?? "");
@@ -96,9 +112,9 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
               onChange={(e) => setTitulo(e.target.value)}
               className="border-none bg-transparent px-0 text-base font-semibold focus:ring-0"
             />
-            {atrasada && <p className="mt-1 text-xs font-medium text-danger">Tarefa atrasada</p>}
+            {atrasada && <p className="mt-1 text-xs font-medium text-danger">{dict.producao.tarefaAtrasada}</p>}
           </div>
-          <button onClick={onClose} className="shrink-0 text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label="Fechar">
+          <button onClick={onClose} className="shrink-0 text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
             ×
           </button>
         </div>
@@ -106,7 +122,6 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
         {/* Status — colunas do Kanban, clicáveis direto daqui */}
         <div className="mb-5 flex flex-wrap gap-1.5">
           {STATUS_TAREFA_ORDEM.map((status) => {
-            const meta = STATUS_TAREFA_META[status];
             const ativo = tarefa.status === status;
             return (
               <button
@@ -118,7 +133,7 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
                   ativo ? "border-accent bg-accent text-base-950" : "border-base-700 text-ink-secondary hover:border-ink-muted hover:text-ink-primary"
                 )}
               >
-                {meta.label}
+                {statusLabel[status]}
               </button>
             );
           })}
@@ -127,9 +142,9 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
         <form onSubmit={handleSalvar} className="mb-6 space-y-4 border-b border-base-800 pb-6">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Cliente</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.clienteLabel}</label>
               <Select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
-                <option value="">Sem cliente vinculado</option>
+                <option value="">{dict.producao.clienteSemVinculo}</option>
                 {clientes.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.full_name || c.email}
@@ -138,9 +153,9 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
               </Select>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Tipo de Serviço</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.tipoServicoLabel}</label>
               <Select value={tipoServicoId} onChange={(e) => setTipoServicoId(e.target.value)}>
-                <option value="">Sem categoria</option>
+                <option value="">{dict.common.semCategoria}</option>
                 {tiposServico.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.nome}
@@ -151,9 +166,9 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Responsável</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.responsavelLabel}</label>
             <Select value={responsavelId} onChange={(e) => setResponsavelId(e.target.value)}>
-              <option value="">Sem responsável</option>
+              <option value="">{dict.producao.responsavelSemVinculo}</option>
               {funcionarios.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.nome}
@@ -164,18 +179,18 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data de Captação</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.dataCaptacaoLabel}</label>
               <Input type="date" value={dataCaptacao} onChange={(e) => setDataCaptacao(e.target.value)} />
-              <p className="mt-1 text-[11px] text-ink-muted">Dia da gravação/filmagem.</p>
+              <p className="mt-1 text-[11px] text-ink-muted">{dict.producao.dataCaptacaoAjuda}</p>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Prazo de Entrega</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.prazoEntregaLabel}</label>
               <Input type="date" value={dataEntrega} onChange={(e) => setDataEntrega(e.target.value)} />
             </div>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Prioridade</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.prioridadeLabel}</label>
             <div className="inline-flex w-full rounded-lg border border-base-700 bg-base-950/60 p-1">
               {PRIORIDADE_TAREFA_ORDEM.map((p) => (
                 <button
@@ -187,39 +202,39 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
                     prioridade === p ? "bg-accent text-base-950" : "text-ink-muted hover:text-ink-primary"
                   )}
                 >
-                  {PRIORIDADE_TAREFA_META[p].label}
+                  {prioridadeLabel[p]}
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Briefing</label>
-            <RichTextEditor value={briefing} onChange={setBriefing} placeholder="Detalhes completos da tarefa..." />
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.briefingLabel}</label>
+            <RichTextEditor value={briefing} onChange={setBriefing} placeholder={dict.producao.briefingPlaceholder} />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
               {confirmandoExclusao ? (
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="text-ink-secondary">Excluir esta tarefa?</span>
+                  <span className="text-ink-secondary">{dict.producao.confirmarExclusaoTarefa}</span>
                   <button type="button" onClick={handleExcluir} disabled={pending} className="font-medium text-danger hover:underline">
-                    Sim, excluir
+                    {dict.producao.simExcluir}
                   </button>
                   <button type="button" onClick={() => setConfirmandoExclusao(false)} disabled={pending} className="text-ink-muted hover:text-ink-primary">
-                    Cancelar
+                    {dict.common.cancelar}
                   </button>
                 </div>
               ) : (
                 <Button type="button" variant="danger" onClick={() => setConfirmandoExclusao(true)} className="px-3 py-1.5 text-xs">
-                  Excluir Tarefa
+                  {dict.producao.excluirTarefaBotao}
                 </Button>
               )}
             </div>
             <div className="flex items-center gap-3">
-              {salvo && <Badge tone="good" label="Salvo" />}
+              {salvo && <Badge tone="good" label={dict.producao.salvo} />}
               <Button type="submit" disabled={pending} className="px-4 py-1.5 text-xs">
-                {pending ? "Salvando..." : "Salvar Alterações"}
+                {pending ? dict.common.salvando : dict.common.salvarAlteracoes}
               </Button>
             </div>
           </div>

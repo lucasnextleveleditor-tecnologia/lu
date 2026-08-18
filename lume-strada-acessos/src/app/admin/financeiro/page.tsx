@@ -21,6 +21,7 @@ import { ContasCard } from "@/components/admin/financeiro/ContasCard";
 import { CartoesCard } from "@/components/admin/financeiro/CartoesCard";
 import { CategoriasCard } from "@/components/admin/financeiro/CategoriasCard";
 import { TransacoesManager } from "@/components/admin/financeiro/TransacoesManager";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ interface FinanceiroPageProps {
 
 export default async function FinanceiroPage({ searchParams }: FinanceiroPageProps) {
   const { supabase } = await requireModuloOuRedirect("financeiro");
+  const { dict } = await getDictionary();
   const params = await searchParams;
   const referencia = parseMesParam(params.mes);
   const contexto: "todos" | FinContexto =
@@ -97,8 +99,8 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">Financeiro</h1>
-          <p className="mt-0.5 text-sm text-ink-muted">Contas, cartões e lançamentos da agência.</p>
+          <h1 className="text-lg font-semibold tracking-tight">{dict.financeiro.tituloPagina}</h1>
+          <p className="mt-0.5 text-sm text-ink-muted">{dict.financeiro.subtituloPagina}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <ContextoToggle referencia={referencia} contexto={contexto} />
@@ -114,35 +116,50 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
               status: STATUS_TRANSACAO_META[calcularStatusTransacao(t)].label,
               categoria: t.categoria_nome ?? "",
               conta: t.conta_nome ?? t.cartao_nome ?? "",
+              parcela: t.parcela_total ? `${t.parcela_numero}/${t.parcela_total}` : "",
+              moedaOriginal: t.moeda_original ? `${t.moeda_original} ${(t.valor_original ?? 0).toFixed(2)}` : "",
             }))}
             colunasCSV={[
-              { chave: "data", rotulo: "Vencimento" },
-              { chave: "descricao", rotulo: "Descrição" },
-              { chave: "tipo", rotulo: "Tipo" },
-              { chave: "valor", rotulo: "Valor (R$)" },
-              { chave: "status", rotulo: "Status" },
-              { chave: "categoria", rotulo: "Categoria" },
-              { chave: "conta", rotulo: "Conta/Cartão" },
+              { chave: "data", rotulo: dict.financeiro.vencimentoLabel },
+              { chave: "descricao", rotulo: dict.common.descricao },
+              { chave: "tipo", rotulo: dict.financeiro.tipoLabel },
+              { chave: "valor", rotulo: dict.financeiro.valorReaisLabel },
+              { chave: "status", rotulo: dict.common.status },
+              { chave: "categoria", rotulo: dict.common.categoria },
+              { chave: "conta", rotulo: dict.financeiro.contaCartaoLabel },
+              { chave: "parcela", rotulo: dict.financeiro.parcelaLabel },
+              { chave: "moedaOriginal", rotulo: dict.financeiro.moedaOriginalLabel },
             ]}
           />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={IconWallet} label="Saldo em Contas" value={fmtBRL(saldoTotal)} hint={`${contasFiltradas.length} conta(s)`} />
+        <StatTile
+          icon={IconWallet}
+          label={dict.financeiro.statSaldoContas}
+          value={fmtBRL(saldoTotal)}
+          hint={dict.financeiro.hintContasQtd.replace("{n}", String(contasFiltradas.length))}
+        />
         <StatTile
           icon={IconCreditCard}
-          label="Limite Disponível"
+          label={dict.financeiro.statLimiteDisponivel}
           value={fmtBRL(limiteDisponivelTotal)}
-          hint={`${cartoesFiltrados.length} cartão(ões)`}
+          hint={dict.financeiro.hintCartoesQtd.replace("{n}", String(cartoesFiltrados.length))}
         />
-        <StatTile icon={IconTrendingUp} label="Receitas do Mês" value={fmtBRL(receitasDoMes)} tone="good" hint="Lançadas no período" />
+        <StatTile
+          icon={IconTrendingUp}
+          label={dict.financeiro.statReceitasMes}
+          value={fmtBRL(receitasDoMes)}
+          tone="good"
+          hint={dict.financeiro.hintLancadasNoPeriodo}
+        />
         <StatTile
           icon={IconAlertTriangle}
-          label="Despesas do Mês"
+          label={dict.financeiro.statDespesasMes}
           value={fmtBRL(despesasDoMes)}
           tone={despesasDoMes > receitasDoMes ? "warning" : "neutral"}
-          hint="Lançadas no período"
+          hint={dict.financeiro.hintLancadasNoPeriodo}
         />
       </div>
 

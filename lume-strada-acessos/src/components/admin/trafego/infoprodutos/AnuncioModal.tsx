@@ -8,6 +8,7 @@ import { calcularReceitaBruta } from "@/lib/utils/infoprodutos";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface AnuncioModalProps {
   anuncio?: AnuncioComRelacoes | null;
@@ -19,6 +20,7 @@ interface AnuncioModalProps {
 const SEM_ORDER_BUMP = "__nenhum__";
 
 export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: AnuncioModalProps) {
+  const { dict } = useLocale();
   const principais = produtos.filter((p) => p.tipo === "principal");
   const orderBumps = produtos.filter((p) => p.tipo === "order_bump");
 
@@ -84,8 +86,8 @@ export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: Anuncio
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-base font-semibold">{editando ? "Editar Anúncio" : "Novo Anúncio do Dia"}</h3>
-          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label="Fechar">
+          <h3 className="text-base font-semibold">{editando ? dict.trafego.editarAnuncioTitulo : dict.trafego.novoAnuncioTitulo}</h3>
+          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
             ×
           </button>
         </div>
@@ -93,18 +95,18 @@ export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: Anuncio
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data *</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.dataObrigatoriaLabel}</label>
               <Input type="date" required value={data} onChange={(e) => setData(e.target.value)} />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Nome do Anúncio / Criativo</label>
-              <Input value={nomeAnuncio} onChange={(e) => setNomeAnuncio(e.target.value)} placeholder="Ex: Criativo A - Depoimento" />
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.nomeAnuncioLabel}</label>
+              <Input value={nomeAnuncio} onChange={(e) => setNomeAnuncio(e.target.value)} placeholder={dict.trafego.nomeAnuncioPlaceholder} />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Produto Principal</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.produtoPrincipalLabel}</label>
               <Select
                 value={produtoPrincipalId}
                 onChange={(e) => {
@@ -112,7 +114,7 @@ export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: Anuncio
                   recalcularReceita({ principalId: e.target.value });
                 }}
               >
-                <option value="">Selecione...</option>
+                <option value="">{dict.common.selecione}</option>
                 {principais.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.nome}
@@ -121,7 +123,7 @@ export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: Anuncio
               </Select>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Order Bump (opcional)</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.orderBumpOpcionalLabel}</label>
               <Select
                 value={orderBumpId}
                 onChange={(e) => {
@@ -129,7 +131,7 @@ export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: Anuncio
                   recalcularReceita({ bumpId: e.target.value });
                 }}
               >
-                <option value={SEM_ORDER_BUMP}>Nenhum</option>
+                <option value={SEM_ORDER_BUMP}>{dict.trafego.nenhumOrderBump}</option>
                 {orderBumps.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.nome}
@@ -140,24 +142,31 @@ export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: Anuncio
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Investimento do Dia (R$)</label>
-            <Input type="number" min="0" step="0.01" value={investimento} onChange={(e) => setInvestimento(e.target.value)} placeholder="0,00" />
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.investimentoDiaLabel}</label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={investimento}
+              onChange={(e) => setInvestimento(e.target.value)}
+              placeholder={dict.trafego.valorPlaceholder}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Visualizações</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.visualizacoesLabel}</label>
               <Input type="number" min="0" step="1" value={visualizacoes} onChange={(e) => setVisualizacoes(e.target.value)} placeholder="0" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Cliques</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.cliquesLabel}</label>
               <Input type="number" min="0" step="1" value={cliques} onChange={(e) => setCliques(e.target.value)} placeholder="0" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Vendas — Produto Principal</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.vendasPrincipalLabel}</label>
               <Input
                 type="number"
                 min="0"
@@ -171,7 +180,7 @@ export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: Anuncio
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Vendas — Order Bump</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.vendasOrderBumpLabel}</label>
               <Input
                 type="number"
                 min="0"
@@ -187,7 +196,7 @@ export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: Anuncio
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Receita Bruta Gerada (R$)</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.receitaBrutaLabel}</label>
             <Input
               type="number"
               min="0"
@@ -198,19 +207,17 @@ export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: Anuncio
                 setReceitaBruta(e.target.value);
               }}
             />
-            <p className="mt-1 text-xs text-ink-muted">
-              Calculado automaticamente pelas vendas × valor do produto — edite aqui se a plataforma (Hotmart/Kiwify) mostrar um valor diferente.
-            </p>
+            <p className="mt-1 text-xs text-ink-muted">{dict.trafego.receitaBrutaHint}</p>
           </div>
 
           {error && <p className="text-sm text-danger">{error}</p>}
 
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" onClick={onClose}>
-              Cancelar
+              {dict.common.cancelar}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Salvando..." : editando ? "Salvar Alterações" : "Criar Anúncio"}
+              {loading ? dict.common.salvando : editando ? dict.common.salvarAlteracoes : dict.trafego.criarAnuncioBotao}
             </Button>
           </div>
         </form>

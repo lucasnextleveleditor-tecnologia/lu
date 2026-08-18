@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { ContatoWhatsappRow, MensagemWhatsappRow } from "@/lib/types/whatsapp";
 import { criarLeadDoContato, enviarMensagem, listarMensagens } from "@/app/admin/whatsapp/actions";
 import { createClient } from "@/lib/supabase/client";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Card } from "@/components/ui/Card";
 import { ListaConversas } from "@/components/admin/whatsapp/ListaConversas";
 import { JanelaChat } from "@/components/admin/whatsapp/JanelaChat";
@@ -31,6 +32,7 @@ function ordenarPorUltimaMensagem(contatos: ContatoWhatsappRow[]): ContatoWhatsa
  * atendente) aparece na hora, e a lista de conversas se reordena sozinha.
  */
 export function InboxWorkspace({ contatosIniciais }: InboxWorkspaceProps) {
+  const { dict } = useLocale();
   const [contatos, setContatos] = useState(() => ordenarPorUltimaMensagem(contatosIniciais));
   const [contatoSelecionadoId, setContatoSelecionadoId] = useState<string | null>(contatosIniciais[0]?.id ?? null);
   const [mensagensPorContato, setMensagensPorContato] = useState<Record<string, MensagemWhatsappRow[]>>({});
@@ -78,14 +80,14 @@ export function InboxWorkspace({ contatosIniciais }: InboxWorkspaceProps) {
   }, []);
 
   async function handleEnviar(conteudo: string): Promise<{ ok: boolean; error?: string }> {
-    if (!contatoSelecionadoId) return { ok: false, error: "Nenhuma conversa selecionada." };
+    if (!contatoSelecionadoId) return { ok: false, error: dict.whatsapp.nenhumaConversaSelecionada };
     const result = await enviarMensagem(contatoSelecionadoId, conteudo);
     if (result.ok) await carregarMensagens(contatoSelecionadoId); // garante consistência mesmo se o Realtime atrasar/falhar
     return result.ok ? { ok: true } : { ok: false, error: result.error };
   }
 
   async function handleAdicionarAoCrm(): Promise<{ ok: boolean; error?: string }> {
-    if (!contatoSelecionadoId) return { ok: false, error: "Nenhuma conversa selecionada." };
+    if (!contatoSelecionadoId) return { ok: false, error: dict.whatsapp.nenhumaConversaSelecionada };
     const result = await criarLeadDoContato(contatoSelecionadoId);
     if (result.ok) {
       setContatos((atual) => atual.map((c) => (c.id === contatoSelecionadoId ? { ...c, lead_id: result.id } : c)));

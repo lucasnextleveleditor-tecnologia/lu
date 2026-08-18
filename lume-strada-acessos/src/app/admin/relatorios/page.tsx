@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
 import { RelatoriosHub, type ModuloRelatorio } from "@/components/admin/relatorios/RelatoriosHub";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 
@@ -20,17 +21,18 @@ export default async function RelatoriosPage() {
     data: { user },
   } = await supabase.auth.getUser();
   const perfil = user ? await buscarPerfilComPermissoes(supabase, user.id) : null;
+  const { dict } = await getDictionary();
 
   function temModulo(chave: "financeiro" | "comercial" | "producao" | "trafego" | "inventario"): boolean {
     return perfil?.role === "admin" || perfil?.permissoes?.[chave] === true;
   }
 
   const TODOS_OS_MODULOS: ModuloRelatorio[] = [
-    { chave: "comercial", label: "Comercial & CRM", hint: "Funil de vendas, conversão e tempo de fechamento" },
-    { chave: "financeiro", label: "Financeiro", hint: "Fluxo de caixa, DRE simplificado e despesas por categoria" },
-    { chave: "producao", label: "Produção & Tarefas", hint: "Produtividade por funcionário e gargalos" },
-    { chave: "trafego", label: "Tráfego & Metas", hint: "ROI, ROAS, lucro líquido e reembolsos" },
-    { chave: "inventario", label: "Inventário", hint: "Depreciação total do patrimônio" },
+    { chave: "comercial", label: dict.relatorios.moduloComercialLabel, hint: dict.relatorios.moduloComercialHint },
+    { chave: "financeiro", label: dict.relatorios.moduloFinanceiroLabel, hint: dict.relatorios.moduloFinanceiroHint },
+    { chave: "producao", label: dict.relatorios.moduloProducaoLabel, hint: dict.relatorios.moduloProducaoHint },
+    { chave: "trafego", label: dict.relatorios.moduloTrafegoLabel, hint: dict.relatorios.moduloTrafegoHint },
+    { chave: "inventario", label: dict.relatorios.moduloInventarioLabel, hint: dict.relatorios.moduloInventarioHint },
   ];
 
   const modulosPermitidos = TODOS_OS_MODULOS.filter((m) => temModulo(m.chave));
@@ -38,8 +40,8 @@ export default async function RelatoriosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-semibold tracking-tight">Relatórios</h1>
-        <p className="mt-0.5 text-sm text-ink-muted">Central de Business Intelligence — um período só, todos os módulos comparáveis.</p>
+        <h1 className="text-lg font-semibold tracking-tight">{dict.nav.relatorios}</h1>
+        <p className="mt-0.5 text-sm text-ink-muted">{dict.relatorios.subtituloPagina}</p>
       </div>
 
       <RelatoriosHub modulosPermitidos={modulosPermitidos} />

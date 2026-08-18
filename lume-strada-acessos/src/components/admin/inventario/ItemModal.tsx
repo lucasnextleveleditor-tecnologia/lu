@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface ItemModalProps {
   item?: ItemInventarioRow | null;
@@ -17,6 +18,7 @@ interface ItemModalProps {
 }
 
 export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
+  const { dict } = useLocale();
   const [codigoEtiqueta, setCodigoEtiqueta] = useState(item?.codigo_etiqueta ?? "");
   const [categoriaId, setCategoriaId] = useState(item?.categoria_id ?? categorias[0]?.id ?? "");
   const [nomeItem, setNomeItem] = useState(item?.nome_item ?? "");
@@ -74,31 +76,30 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-base font-semibold">{editando ? "Editar Item" : "Nova Etiqueta / Item"}</h3>
-          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label="Fechar">
+          <h3 className="text-base font-semibold">{editando ? dict.inventario.editarItem : dict.inventario.novaEtiquetaItem}</h3>
+          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
             ×
           </button>
         </div>
 
         {categorias.length === 0 ? (
           <p className="text-sm text-ink-secondary">
-            Cadastre ao menos uma categoria na aba <span className="font-medium text-ink-primary">Categorias</span> antes de
-            adicionar itens.
+            {dict.inventario.cadastreCategoriaPrimeiro.replace("{tab}", dict.inventario.tabCategorias)}
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Número da Etiqueta / Código *</label>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.inventario.campoNumeroEtiqueta}</label>
                 <Input
                   required
                   value={codigoEtiqueta}
                   onChange={(e) => setCodigoEtiqueta(e.target.value)}
-                  placeholder="Ex: LSF-0042"
+                  placeholder={dict.inventario.placeholderEtiqueta}
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Categoria *</label>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.inventario.campoCategoriaObrigatorio}</label>
                 <Select required value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)}>
                   {categorias.map((categoria) => (
                     <option key={categoria.id} value={categoria.id}>
@@ -110,13 +111,13 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Nome do Item *</label>
-              <Input required value={nomeItem} onChange={(e) => setNomeItem(e.target.value)} placeholder="Ex: Câmera Sony FX3" />
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.inventario.campoNomeItem}</label>
+              <Input required value={nomeItem} onChange={(e) => setNomeItem(e.target.value)} placeholder={dict.inventario.placeholderNomeItem} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Status</label>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.status}</label>
                 <Select value={status} onChange={(e) => setStatus(e.target.value as StatusItemInventario)}>
                   {STATUS_ITEM_OPCOES.map((opcao) => (
                     <option key={opcao} value={opcao}>
@@ -126,19 +127,19 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
                 </Select>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Localização</label>
-                <Input value={localizacao} onChange={(e) => setLocalizacao(e.target.value)} placeholder="Ex: Matriz Araras" />
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.inventario.campoLocalizacao}</label>
+                <Input value={localizacao} onChange={(e) => setLocalizacao(e.target.value)} placeholder={dict.inventario.placeholderLocalizacao} />
               </div>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data de Aquisição *</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.inventario.campoDataAquisicao}</label>
               <Input required type="date" value={dataAquisicao} onChange={(e) => setDataAquisicao(e.target.value)} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Valor Pago (R$) *</label>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.inventario.campoValorPago}</label>
                 <Input
                   required
                   type="number"
@@ -148,10 +149,10 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
                   onChange={(e) => setValorPago(e.target.value)}
                   placeholder="0,00"
                 />
-                <p className="mt-1 text-[11px] text-ink-muted">Quanto foi investido na aquisição.</p>
+                <p className="mt-1 text-[11px] text-ink-muted">{dict.inventario.hintValorPago}</p>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Valor Atual (R$) *</label>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.inventario.campoValorAtual}</label>
                 <Input
                   required
                   type="number"
@@ -161,13 +162,15 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
                   onChange={(e) => setValorAtual(e.target.value)}
                   placeholder="0,00"
                 />
-                <p className="mt-1 text-[11px] text-ink-muted">Valor de mercado hoje.</p>
+                <p className="mt-1 text-[11px] text-ink-muted">{dict.inventario.hintValorAtual}</p>
               </div>
             </div>
 
             {depreciacaoPreview && (
               <div className="flex items-center justify-between rounded-lg border border-base-700 bg-base-950/40 px-3.5 py-2.5">
-                <span className="text-xs text-ink-secondary">{depreciacaoPreview.apreciou ? "Valorização" : "Depreciação"}</span>
+                <span className="text-xs text-ink-secondary">
+                  {depreciacaoPreview.apreciou ? dict.inventario.valorizacaoLabel : dict.inventario.depreciacaoLabel}
+                </span>
                 <Badge
                   tone={depreciacaoPreview.apreciou ? "good" : "neutral"}
                   label={`${depreciacaoPreview.apreciou ? "+" : "-"}${fmtBRL(Math.abs(depreciacaoPreview.delta))} (${fmtPercent(Math.abs(depreciacaoPreview.percentual))})`}
@@ -176,11 +179,11 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
             )}
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Responsável Atual</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.inventario.campoResponsavelAtual}</label>
               <Input
                 value={responsavelAtual}
                 onChange={(e) => setResponsavelAtual(e.target.value)}
-                placeholder="Colaborador ou setor — Ex: Estúdio A"
+                placeholder={dict.inventario.placeholderResponsavel}
               />
             </div>
 
@@ -188,10 +191,10 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
 
             <div className="flex justify-end gap-2 pt-1">
               <Button type="button" variant="ghost" onClick={onClose}>
-                Cancelar
+                {dict.common.cancelar}
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? "Salvando..." : editando ? "Salvar Alterações" : "Cadastrar Item"}
+                {loading ? dict.common.salvando : editando ? dict.common.salvarAlteracoes : dict.inventario.cadastrarItem}
               </Button>
             </div>
           </form>

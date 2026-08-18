@@ -3,15 +3,30 @@
 import { useEffect, useState, useTransition } from "react";
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd";
 import type { LeadComRelacoes, StatusLead } from "@/lib/types/comercial";
-import { STATUS_LEAD_META, STATUS_LEAD_ORDEM } from "@/lib/utils/comercial";
+import { STATUS_LEAD_ORDEM } from "@/lib/utils/comercial";
 import { fmtBRL } from "@/lib/utils/format";
 import { moverStatusLead } from "@/app/admin/comercial/actions";
 import { LeadCard } from "@/components/admin/comercial/LeadCard";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import type { ComercialDict } from "@/lib/i18n/dictionaries/pt/comercial";
 
 interface LeadKanbanBoardProps {
   leads: LeadComRelacoes[];
   onAbrirLead: (id: string) => void;
+}
+
+function etapaLabel(dict: ComercialDict, status: StatusLead): string {
+  const MAPA: Record<StatusLead, string> = {
+    lead_frio: dict.etapaLeadFrio,
+    contato_inicial: dict.etapaContatoInicial,
+    reuniao_realizada: dict.etapaReuniaoRealizada,
+    proposta_enviada: dict.etapaPropostaEnviada,
+    negociacao: dict.etapaNegociacao,
+    fechado_ganha: dict.etapaFechadoGanha,
+    perdido: dict.etapaPerdido,
+  };
+  return MAPA[status];
 }
 
 /**
@@ -21,6 +36,7 @@ interface LeadKanbanBoardProps {
  * drag-and-drop por baixo).
  */
 export function LeadKanbanBoard({ leads, onAbrirLead }: LeadKanbanBoardProps) {
+  const { dict } = useLocale();
   const [leadsLocais, setLeadsLocais] = useState(leads);
   const [, startTransition] = useTransition();
 
@@ -43,7 +59,6 @@ export function LeadKanbanBoard({ leads, onAbrirLead }: LeadKanbanBoardProps) {
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-2">
         {STATUS_LEAD_ORDEM.map((status) => {
-          const meta = STATUS_LEAD_META[status];
           const leadsDaColuna = leadsLocais.filter((l) => l.status === status);
           const totalColuna = leadsDaColuna.reduce((acc, l) => acc + (l.valor_estimado ?? 0), 0);
           return (
@@ -58,7 +73,7 @@ export function LeadKanbanBoard({ leads, onAbrirLead }: LeadKanbanBoardProps) {
                   )}
                 >
                   <div className="mb-1 flex items-center justify-between px-1">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{meta.label}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{etapaLabel(dict.comercial, status)}</p>
                     <span className="rounded-full bg-base-800 px-2 py-0.5 text-[11px] font-medium text-ink-secondary">
                       {leadsDaColuna.length}
                     </span>
@@ -83,7 +98,7 @@ export function LeadKanbanBoard({ leads, onAbrirLead }: LeadKanbanBoardProps) {
                     {provided.placeholder}
                     {leadsDaColuna.length === 0 && (
                       <p className="rounded-lg border border-dashed border-base-800 p-4 text-center text-xs text-ink-muted">
-                        Nenhum lead aqui.
+                        {dict.comercial.colunaVazia}
                       </p>
                     )}
                   </div>

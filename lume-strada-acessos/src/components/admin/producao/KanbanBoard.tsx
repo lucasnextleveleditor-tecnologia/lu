@@ -9,6 +9,7 @@ import { moverStatusTarefa } from "@/app/admin/producao/actions";
 import { TarefaCard } from "@/components/admin/producao/TarefaCard";
 import { IconClipboardList, IconColumns, IconLayoutGrid } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface KanbanBoardProps {
   tarefas: TarefaComRelacoes[];
@@ -32,9 +33,19 @@ const STORAGE_KEY_LAYOUT = "lsf_producao_kanban_layout";
  * horizontalmente). A escolha fica salva no navegador.
  */
 export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
+  const { dict } = useLocale();
   const [tarefasLocais, setTarefasLocais] = useState(tarefas);
   const [, startTransition] = useTransition();
   const [layout, setLayout] = useState<LayoutKanban>("linha");
+
+  const statusLabel: Record<StatusTarefa, string> = {
+    backlog: dict.producao.statusBacklog,
+    a_fazer: dict.producao.statusAFazer,
+    em_producao: dict.producao.statusEmProducao,
+    revisao_interna: dict.producao.statusRevisaoInterna,
+    preview_cliente: dict.producao.statusPreviewCliente,
+    concluida: dict.producao.statusConcluida,
+  };
 
   useEffect(() => setTarefasLocais(tarefas), [tarefas]);
 
@@ -69,7 +80,7 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
         <div className="inline-flex rounded-lg border border-base-700/70 bg-gradient-to-b from-base-900 to-base-950 p-1 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
           <button
             onClick={() => alternarLayout("linha")}
-            title="Colunas em linha (rola pro lado)"
+            title={dict.producao.kanbanLayoutLinha}
             className={cn(
               "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all duration-200",
               layout === "linha" ? "bg-accent text-base-950" : "text-ink-muted hover:text-ink-primary"
@@ -79,7 +90,7 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
           </button>
           <button
             onClick={() => alternarLayout("grade")}
-            title="Colunas em grade (sem rolar pro lado)"
+            title={dict.producao.kanbanLayoutGrade}
             className={cn(
               "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all duration-200",
               layout === "grade" ? "bg-accent text-base-950" : "text-ink-muted hover:text-ink-primary"
@@ -112,7 +123,7 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
                     <div className="mb-3 flex items-center justify-between px-1">
                       <div className="flex items-center gap-1.5">
                         <span className={cn("h-1.5 w-1.5 rounded-full", TONE_META[meta.tone].dotClassName)} />
-                        <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{meta.label}</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{statusLabel[status]}</p>
                       </div>
                       <span className="rounded-full border border-base-700/60 bg-gradient-to-b from-base-800 to-base-900 px-2 py-0.5 text-[11px] font-medium text-ink-secondary">
                         {tarefasDaColuna.length}
@@ -141,7 +152,7 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
                       {tarefasDaColuna.length === 0 && (
                         <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl bg-base-900/40 py-8 text-center">
                           <IconClipboardList className="h-5 w-5 text-ink-muted/60" />
-                          <p className="text-xs text-ink-muted">Nenhuma tarefa aqui</p>
+                          <p className="text-xs text-ink-muted">{dict.producao.nenhumaTarefaColuna}</p>
                         </div>
                       )}
                     </div>

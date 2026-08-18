@@ -5,7 +5,7 @@ import type { CartaoComLimite, CategoriaRow, ContaComSaldo, StatusTransacao, Tra
 import { marcarPago, removerTransacao } from "@/app/admin/financeiro/actions";
 import { calcularStatusTransacao } from "@/lib/types/financeiro";
 import { STATUS_TRANSACAO_META } from "@/lib/utils/financeiro";
-import { fmtBRL } from "@/lib/utils/format";
+import { fmtBRL, fmtMoedaEstrangeira } from "@/lib/utils/format";
 import { fmtData } from "@/lib/utils/status";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { IconArrowRightLeft, IconPlus } from "@/components/ui/icons";
 import { TransacaoModal } from "@/components/admin/financeiro/TransacaoModal";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface TransacoesManagerProps {
   transacoes: TransacaoComRelacoes[];
@@ -26,6 +27,7 @@ interface TransacoesManagerProps {
 const TODOS = "todos";
 
 export function TransacoesManager({ transacoes, contas, cartoes, categorias, contexto }: TransacoesManagerProps) {
+  const { dict } = useLocale();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
   const [filtroTipo, setFiltroTipo] = useState<string>(TODOS);
@@ -72,32 +74,37 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
     <Card className="p-0">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-base-800 p-5">
         <div>
-          <h2 className="text-sm font-semibold">Transações do Mês</h2>
+          <h2 className="text-sm font-semibold">{dict.financeiro.transacoesDoMesTitulo}</h2>
           <p className="mt-0.5 text-xs text-ink-muted">
-            {transacoesFiltradas.length} de {transacoes.length} lançamento(s)
+            {dict.financeiro.lancamentosContagem
+              .replace("{filtradas}", String(transacoesFiltradas.length))
+              .replace("{total}", String(transacoes.length))}
             {vencidas > 0 && (
               <>
                 {" "}
-                · <span className="font-medium text-danger">{vencidas} vencida(s)</span>
+                ·{" "}
+                <span className="font-medium text-danger">
+                  {dict.financeiro.vencidasContagem.replace("{vencidas}", String(vencidas))}
+                </span>
               </>
             )}
           </p>
         </div>
         <Button onClick={() => setModalAberto(true)} disabled={contas.length === 0 && cartoes.length === 0}>
           <IconPlus className="h-4 w-4" />
-          Nova Transação
+          {dict.financeiro.novaTransacaoTitulo}
         </Button>
       </div>
 
       <div className="flex flex-wrap items-end gap-3 border-b border-base-800 p-5">
         <div className="min-w-[180px] flex-1">
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Buscar</label>
-          <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Descrição, categoria, conta..." />
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.buscar}</label>
+          <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={dict.financeiro.placeholderBusca} />
         </div>
         <div className="w-40">
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Status</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.status}</label>
           <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
-            <option value={TODOS}>Todos</option>
+            <option value={TODOS}>{dict.common.todos}</option>
             {(Object.keys(STATUS_TRANSACAO_META) as StatusTransacao[]).map((status) => (
               <option key={status} value={status}>
                 {STATUS_TRANSACAO_META[status].label}
@@ -106,12 +113,12 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
           </Select>
         </div>
         <div className="w-40">
-          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Tipo</label>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.tipoLabel}</label>
           <Select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
-            <option value={TODOS}>Todos</option>
-            <option value="receita">Receita</option>
-            <option value="despesa">Despesa</option>
-            <option value="transferencia">Transferência</option>
+            <option value={TODOS}>{dict.common.todos}</option>
+            <option value="receita">{dict.financeiro.receitaLabel}</option>
+            <option value="despesa">{dict.financeiro.despesaLabel}</option>
+            <option value="transferencia">{dict.financeiro.transferenciaLabel}</option>
           </Select>
         </div>
         {(filtroStatus !== TODOS || filtroTipo !== TODOS || busca) && (
@@ -124,7 +131,7 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
               setFiltroTipo(TODOS);
             }}
           >
-            Limpar filtros
+            {dict.common.limparFiltros}
           </Button>
         )}
       </div>
@@ -134,22 +141,22 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
       <div className="overflow-x-auto">
         {contas.length === 0 && cartoes.length === 0 ? (
           <div className="p-10 text-center text-sm text-ink-muted">
-            Cadastre uma conta ou cartão primeiro para começar a lançar transações.
+            {dict.financeiro.semContaOuCartaoVazio}
           </div>
         ) : transacoesFiltradas.length === 0 ? (
           <div className="p-10 text-center text-sm text-ink-muted">
-            {transacoes.length === 0 ? "Nenhuma transação lançada nesse mês." : "Nenhuma transação corresponde aos filtros atuais."}
+            {transacoes.length === 0 ? dict.financeiro.semTransacoesMes : dict.financeiro.semTransacoesFiltro}
           </div>
         ) : (
           <table className="w-full min-w-[860px] text-left">
             <thead>
               <tr className="border-b border-base-800 text-xs uppercase tracking-wide text-ink-muted">
-                <th className="px-5 py-3 font-medium">Descrição</th>
-                <th className="px-0 py-3 font-medium">Origem</th>
-                <th className="px-0 py-3 font-medium">Vencimento</th>
-                <th className="px-0 py-3 font-medium">Status</th>
-                <th className="px-0 py-3 font-medium text-right">Valor</th>
-                <th className="px-5 py-3 font-medium text-right">Ações</th>
+                <th className="px-5 py-3 font-medium">{dict.common.descricao}</th>
+                <th className="px-0 py-3 font-medium">{dict.financeiro.origemLabel}</th>
+                <th className="px-0 py-3 font-medium">{dict.financeiro.vencimentoLabel}</th>
+                <th className="px-0 py-3 font-medium">{dict.common.status}</th>
+                <th className="px-0 py-3 font-medium text-right">{dict.common.valor}</th>
+                <th className="px-5 py-3 font-medium text-right">{dict.common.acoes}</th>
               </tr>
             </thead>
             <tbody className="[&>tr>td:first-child]:pl-5 [&>tr>td:last-child]:pr-5">
@@ -164,8 +171,21 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
                       <p className="flex items-center gap-1.5 text-sm font-medium text-ink-primary">
                         {isTransferencia && <IconArrowRightLeft className="h-3.5 w-3.5 shrink-0 text-ink-muted" />}
                         {t.descricao}
+                        {t.parcela_total && t.parcela_total > 1 && (
+                          <span className="rounded-full border border-base-600 px-1.5 py-0.5 text-[10px] font-medium text-ink-secondary">
+                            {t.parcela_numero}/{t.parcela_total}
+                          </span>
+                        )}
                       </p>
-                      {t.categoria_nome && <p className="text-xs text-ink-muted">{t.categoria_nome}</p>}
+                      <p className="text-xs text-ink-muted">
+                        {t.categoria_nome}
+                        {t.categoria_nome && t.moeda_original && " · "}
+                        {t.moeda_original && t.valor_original !== null && (
+                          <>
+                            {dict.financeiro.lancadoEmLabel} {fmtMoedaEstrangeira(t.valor_original, t.moeda_original)}
+                          </>
+                        )}
+                      </p>
                     </td>
                     <td className="py-3 pr-4">
                       <span className="text-xs text-ink-secondary">
@@ -195,20 +215,20 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
                     <td className="py-3 text-right">
                       {confirmando === t.id ? (
                         <div className="flex justify-end gap-2">
-                          <span className="text-xs text-ink-secondary">Excluir?</span>
+                          <span className="text-xs text-ink-secondary">{dict.common.confirmarExclusao}</span>
                           <button
                             onClick={() => handleExcluir(t.id)}
                             disabled={pending}
                             className="text-xs font-medium text-danger hover:underline"
                           >
-                            Sim
+                            {dict.common.sim}
                           </button>
                           <button
                             onClick={() => setConfirmando(null)}
                             disabled={pending}
                             className="text-xs text-ink-muted hover:text-ink-primary"
                           >
-                            Não
+                            {dict.common.nao}
                           </button>
                         </div>
                       ) : (
@@ -219,16 +239,16 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
                             disabled={pending}
                             className="px-3 py-1.5 text-xs"
                           >
-                            Editar
+                            {dict.common.editar}
                           </Button>
                           <Button
                             variant="ghost"
                             onClick={() => handleTogglePago(t)}
                             disabled={pending}
                             className="px-3 py-1.5 text-xs"
-                            title="Baixa Inteligente — marca como paga/pendente"
+                            title={dict.financeiro.baixaInteligenteTitle}
                           >
-                            {t.pago ? "Reabrir" : "Dar Baixa"}
+                            {t.pago ? dict.financeiro.reabrirBtn : dict.financeiro.darBaixaBtn}
                           </Button>
                           <Button
                             variant="danger"
@@ -236,7 +256,7 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
                             disabled={pending}
                             className="px-3 py-1.5 text-xs"
                           >
-                            Excluir
+                            {dict.common.excluir}
                           </Button>
                         </div>
                       )}

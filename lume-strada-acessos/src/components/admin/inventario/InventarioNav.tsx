@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
-
-const TABS = [
-  { href: "/admin/inventario", label: "Categorias" },
-  { href: "/admin/inventario/itens", label: "Itens & Etiquetas" },
-  { href: "/admin/inventario/dashboard", label: "Dashboard Financeiro" },
-];
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function InventarioNav() {
   const pathname = usePathname();
+  const { dict } = useLocale();
+
+  const TABS = [
+    { href: "/admin/inventario", label: dict.inventario.tabCategorias },
+    { href: "/admin/inventario/itens", label: dict.inventario.tabItensEtiquetas },
+    { href: "/admin/inventario/dashboard", label: dict.inventario.tabDashboardFinanceiro },
+  ];
 
   return (
     <div className="flex items-center gap-1 border-b border-base-800">

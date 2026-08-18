@@ -13,14 +13,16 @@ import { Switch } from "@/components/ui/Switch";
 import { UploadField } from "@/components/admin/aparencia/UploadField";
 import { LoginPreview } from "@/components/admin/aparencia/LoginPreview";
 import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
-
-const POSICOES: { value: LoginBoxPosition; label: string }[] = [
-  { value: "esquerda", label: "Esquerda" },
-  { value: "centro", label: "Centralizada" },
-  { value: "direita", label: "Direita" },
-];
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function AparenciaForm({ initialBranding }: { initialBranding: BrandingConfigRow }) {
+  const { dict } = useLocale();
+
+  const POSICOES: { value: LoginBoxPosition; label: string }[] = [
+    { value: "esquerda", label: dict.aparencia.posicaoEsquerda },
+    { value: "centro", label: dict.aparencia.posicaoCentro },
+    { value: "direita", label: dict.aparencia.posicaoDireita },
+  ];
   // Uploads salvam sozinhos (ver UploadField/uploadBrandingAsset) — o estado
   // local só espelha o resultado pra atualizar sidebar/preview na hora.
   const [logoUrl, setLogoUrl] = useState(initialBranding.logo_url);
@@ -89,51 +91,53 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
       <div className="space-y-6">
         <Card>
-          <h2 className="mb-1 text-sm font-semibold">Logotipo & Favicon</h2>
-          <p className="mb-4 text-xs text-ink-muted">
-            Usados no menu lateral do admin e no header do cliente (área de membros) — a tela de login sempre exibe a marca
-            padrão da Lume Strada, por design. O app hoje é fixo em Dark Mode — a versão &ldquo;clara&rdquo; fica pronta pra
-            quando existir um modo claro.
-          </p>
+          <h2 className="mb-1 text-sm font-semibold">{dict.aparencia.logoCardTitulo}</h2>
+          <p className="mb-4 text-xs text-ink-muted">{dict.aparencia.logoCardDescricao}</p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <UploadField label="Logo principal" campo="logo_url" valorAtual={logoUrl} onChange={setLogoUrl} />
-            <UploadField label="Favicon" campo="favicon_url" valorAtual={faviconUrl} onChange={setFaviconUrl} hint="Aba do navegador." />
+            <UploadField label={dict.aparencia.logoPrincipalLabel} campo="logo_url" valorAtual={logoUrl} onChange={setLogoUrl} />
             <UploadField
-              label="Logo — versão Dark Mode"
+              label={dict.aparencia.faviconLabel}
+              campo="favicon_url"
+              valorAtual={faviconUrl}
+              onChange={setFaviconUrl}
+              hint={dict.aparencia.faviconHint}
+            />
+            <UploadField
+              label={dict.aparencia.logoDarkLabel}
               campo="logo_dark_url"
               valorAtual={logoDarkUrl}
               onChange={setLogoDarkUrl}
-              hint="Versão clara/branca — usada agora (app é dark)."
+              hint={dict.aparencia.logoDarkHint}
             />
             <UploadField
-              label="Logo — versão Light Mode"
+              label={dict.aparencia.logoLightLabel}
               campo="logo_light_url"
               valorAtual={logoLightUrl}
               onChange={setLogoLightUrl}
-              hint="Versão escura/preta — reservada p/ um modo claro futuro."
+              hint={dict.aparencia.logoLightHint}
             />
           </div>
         </Card>
 
         <Card>
-          <h2 className="mb-1 text-sm font-semibold">Tela de Login</h2>
-          <p className="mb-4 text-xs text-ink-muted">Título, subtítulo, fundo e posição da caixa de login — veja o preview ao lado.</p>
+          <h2 className="mb-1 text-sm font-semibold">{dict.aparencia.loginCardTitulo}</h2>
+          <p className="mb-4 text-xs text-ink-muted">{dict.aparencia.loginCardDescricao}</p>
 
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Título</label>
-                <Input value={loginTitle} onChange={(e) => setLoginTitle(e.target.value)} placeholder="Ex: Área Exclusiva - Lume Strada" />
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.tituloLabel}</label>
+                <Input value={loginTitle} onChange={(e) => setLoginTitle(e.target.value)} placeholder={dict.aparencia.tituloPlaceholder} />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Subtítulo</label>
-                <Input value={loginSubtitle} onChange={(e) => setLoginSubtitle(e.target.value)} placeholder="Ex: Acesso a clientes e projetos" />
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.subtituloLabel}</label>
+                <Input value={loginSubtitle} onChange={(e) => setLoginSubtitle(e.target.value)} placeholder={dict.aparencia.subtituloPlaceholder} />
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Posição da caixa de login</label>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.posicaoLabel}</label>
                 <Select value={loginBoxPosition} onChange={(e) => setLoginBoxPosition(e.target.value as LoginBoxPosition)}>
                   {POSICOES.map((p) => (
                     <option key={p.value} value={p.value}>
@@ -143,7 +147,7 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
                 </Select>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Fundo — padrão cinematográfico</label>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.fundoLabel}</label>
                 <Select
                   value={loginBgPreset}
                   onChange={(e) => setLoginBgPreset(e.target.value as LoginBgPreset)}
@@ -155,75 +159,71 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
                     </option>
                   ))}
                 </Select>
-                {loginBgUrl && <p className="mt-1 text-xs text-ink-muted">Desative removendo a imagem de fundo abaixo pra usar um padrão.</p>}
+                {loginBgUrl && <p className="mt-1 text-xs text-ink-muted">{dict.aparencia.fundoDesativeHint}</p>}
               </div>
             </div>
 
             <UploadField
-              label="Ou envie uma imagem de fundo customizada"
+              label={dict.aparencia.fundoCustomLabel}
               campo="login_bg_url"
               valorAtual={loginBgUrl}
               onChange={setLoginBgUrl}
               formato="wide"
-              hint="Tem prioridade sobre o padrão cinematográfico escolhido acima."
+              hint={dict.aparencia.fundoCustomHint}
             />
           </div>
         </Card>
 
         <Card>
-          <h2 className="mb-1 text-sm font-semibold">Banner de Destaque</h2>
-          <p className="mb-4 text-xs text-ink-muted">
-            Um aviso no topo da tela — pra anunciar novidade, manutenção programada, campanha etc. Mesmo conteúdo em
-            qualquer lugar que você ligar abaixo; cada pessoa pode fechar (se você permitir) e ele só volta a aparecer
-            pra ela se você editar o texto depois.
-          </p>
+          <h2 className="mb-1 text-sm font-semibold">{dict.aparencia.bannerCardTitulo}</h2>
+          <p className="mb-4 text-xs text-ink-muted">{dict.aparencia.bannerCardDescricao}</p>
 
           <div className="mb-4 divide-y divide-base-800 rounded-xl border border-base-800">
             <div className="flex items-center justify-between gap-3 px-4 py-3">
               <div>
-                <p className="text-sm text-ink-primary">Exibir na Tela de Login</p>
-                <p className="text-xs text-ink-muted">Antes de qualquer um entrar — visível pra quem ainda não é cliente/equipe.</p>
+                <p className="text-sm text-ink-primary">{dict.aparencia.bannerLoginTitulo}</p>
+                <p className="text-xs text-ink-muted">{dict.aparencia.bannerLoginDescricao}</p>
               </div>
-              <Switch checked={bannerAtivoLogin} onChange={setBannerAtivoLogin} label="Exibir na Tela de Login" />
+              <Switch checked={bannerAtivoLogin} onChange={setBannerAtivoLogin} label={dict.aparencia.bannerLoginTitulo} />
             </div>
             <div className="flex items-center justify-between gap-3 px-4 py-3">
               <div>
-                <p className="text-sm text-ink-primary">Exibir na Área Admin/Funcionário</p>
-                <p className="text-xs text-ink-muted">No topo de toda página de dentro de /admin — Dashboard e todos os módulos.</p>
+                <p className="text-sm text-ink-primary">{dict.aparencia.bannerAdminTitulo}</p>
+                <p className="text-xs text-ink-muted">{dict.aparencia.bannerAdminDescricao}</p>
               </div>
-              <Switch checked={bannerAtivoAdmin} onChange={setBannerAtivoAdmin} label="Exibir na Área Admin/Funcionário" />
+              <Switch checked={bannerAtivoAdmin} onChange={setBannerAtivoAdmin} label={dict.aparencia.bannerAdminTitulo} />
             </div>
             <div className="flex items-center justify-between gap-3 px-4 py-3">
               <div>
-                <p className="text-sm text-ink-primary">Exibir no Portal do Cliente</p>
-                <p className="text-xs text-ink-muted">No topo do portal (área de membros) que os clientes acessam.</p>
+                <p className="text-sm text-ink-primary">{dict.aparencia.bannerClienteTitulo}</p>
+                <p className="text-xs text-ink-muted">{dict.aparencia.bannerClienteDescricao}</p>
               </div>
-              <Switch checked={bannerAtivoCliente} onChange={setBannerAtivoCliente} label="Exibir no Portal do Cliente" />
+              <Switch checked={bannerAtivoCliente} onChange={setBannerAtivoCliente} label={dict.aparencia.bannerClienteTitulo} />
             </div>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Título</label>
-              <Input value={bannerTitulo} onChange={(e) => setBannerTitulo(e.target.value)} placeholder="Ex: Manutenção programada no sábado" />
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.tituloLabel}</label>
+              <Input value={bannerTitulo} onChange={(e) => setBannerTitulo(e.target.value)} placeholder={dict.aparencia.bannerTituloPlaceholder} />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Descrição (opcional)</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.bannerDescricaoLabel}</label>
               <Textarea
                 rows={2}
                 value={bannerDescricao}
                 onChange={(e) => setBannerDescricao(e.target.value)}
-                placeholder="Ex: O sistema fica indisponível das 2h às 4h pra atualização."
+                placeholder={dict.aparencia.bannerDescricaoPlaceholder}
               />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Texto do link (opcional)</label>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.bannerLinkLabelLabel}</label>
                 <Input value={bannerLinkLabel} onChange={(e) => setBannerLinkLabel(e.target.value)} placeholder="Saiba mais" />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">URL do link (opcional)</label>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.bannerLinkUrlLabel}</label>
                 <Input
                   type="url"
                   value={bannerLinkUrl}
@@ -235,7 +235,7 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Tom</label>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.bannerTomLabel}</label>
                 <Select value={bannerTone} onChange={(e) => setBannerTone(e.target.value as BannerTone)}>
                   {(Object.keys(BANNER_TONE_LABELS) as BannerTone[]).map((tone) => (
                     <option key={tone} value={tone}>
@@ -243,33 +243,30 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
                     </option>
                   ))}
                 </Select>
-                <p className="mt-1 text-xs text-ink-muted">Só afeta o ícone — texto continua sempre legível, nunca colorido.</p>
+                <p className="mt-1 text-xs text-ink-muted">{dict.aparencia.bannerTomHint}</p>
               </div>
               <div className="flex items-end pb-2.5">
                 <label className="flex items-center gap-2.5 text-sm text-ink-secondary">
-                  <Switch checked={bannerDispensavel} onChange={setBannerDispensavel} label="Permitir fechar o banner" />
-                  Permitir que a pessoa feche o banner (×)
+                  <Switch checked={bannerDispensavel} onChange={setBannerDispensavel} label={dict.aparencia.bannerPermitirFechar} />
+                  {dict.aparencia.bannerPermitirFecharTexto}
                 </label>
               </div>
             </div>
 
             <UploadField
-              label="Ou envie uma imagem de fundo pro banner (opcional)"
+              label={dict.aparencia.bannerImgLabel}
               campo="banner_img_url"
               valorAtual={bannerImgUrl}
               onChange={setBannerImgUrl}
               formato="wide"
-              hint="Quando enviada, o banner vira uma faixa com essa imagem de fundo em vez do cartão simples."
+              hint={dict.aparencia.bannerImgHint}
             />
           </div>
         </Card>
 
         <Card>
-          <h2 className="mb-1 text-sm font-semibold">Menu Lateral</h2>
-          <p className="mb-4 text-xs text-ink-muted">
-            Cada admin pode expandir/recolher a própria sidebar a qualquer momento (botão no rodapé do menu) — isto só define o
-            estado inicial de uma sessão nova.
-          </p>
+          <h2 className="mb-1 text-sm font-semibold">{dict.aparencia.sidebarCardTitulo}</h2>
+          <p className="mb-4 text-xs text-ink-muted">{dict.aparencia.sidebarCardDescricao}</p>
           <label className="flex items-center gap-2.5 text-sm text-ink-secondary">
             <input
               type="checkbox"
@@ -277,27 +274,27 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
               onChange={(e) => setSidebarCompactoPadrao(e.target.checked)}
               className="h-4 w-4 rounded border-base-600 bg-base-900 accent-accent"
             />
-            Iniciar com o menu lateral recolhido (mini sidebar) por padrão
+            {dict.aparencia.sidebarCheckboxLabel}
           </label>
         </Card>
 
         <div className="flex items-center gap-3">
           <Button onClick={handleSalvar} disabled={pending}>
-            {pending ? "Salvando..." : "Salvar Alterações"}
+            {pending ? dict.common.salvando : dict.common.salvarAlteracoes}
           </Button>
-          {salvoRecentemente && !pending && <span className="text-xs text-status-good">Alterações salvas.</span>}
+          {salvoRecentemente && !pending && <span className="text-xs text-status-good">{dict.aparencia.alteracoesSalvas}</span>}
           {error && <span className="text-xs text-danger">{error}</span>}
         </div>
       </div>
 
       <div className="lg:sticky lg:top-8 lg:self-start">
         <Card>
-          <h2 className="mb-1 text-sm font-semibold">Pré-visualização em Tempo Real</h2>
-          <p className="mb-4 text-xs text-ink-muted">Reflete os textos ainda não salvos — os uploads já são reais.</p>
+          <h2 className="mb-1 text-sm font-semibold">{dict.aparencia.previewCardTitulo}</h2>
+          <p className="mb-4 text-xs text-ink-muted">{dict.aparencia.previewCardDescricao}</p>
 
           <div className="space-y-4">
             <div>
-              <p className="mb-2 text-xs font-medium text-ink-secondary">Tela de Login</p>
+              <p className="mb-2 text-xs font-medium text-ink-secondary">{dict.aparencia.previewLoginLabel}</p>
               {/* A logotipo do login é sempre a marca padrão (nunca a
                   customizada) — o preview usa `logoUrl={null}` de propósito,
                   pra refletir exatamente o que aparece na tela real. */}
@@ -312,7 +309,7 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-medium text-ink-secondary">Banner de Destaque</p>
+              <p className="mb-2 text-xs font-medium text-ink-secondary">{dict.aparencia.bannerCardTitulo}</p>
               {bannerTitulo.trim() ? (
                 // `dispensavel={false}` de propósito só aqui no preview — evita
                 // que um clique no × durante a configuração grave uma dispensa
@@ -329,26 +326,26 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
                 />
               ) : (
                 <div className="rounded-xl border border-dashed border-base-700 p-4 text-center text-xs text-ink-muted">
-                  Preencha o título do banner pra ver o preview.
+                  {dict.aparencia.previewBannerPlaceholder}
                 </div>
               )}
               {bannerTitulo.trim() && !bannerAtivoLogin && !bannerAtivoAdmin && !bannerAtivoCliente && (
-                <p className="mt-2 text-xs text-status-warning">Nenhum toggle ligado acima — o banner não vai aparecer em lugar nenhum ainda.</p>
+                <p className="mt-2 text-xs text-status-warning">{dict.aparencia.previewBannerAvisoNenhumToggle}</p>
               )}
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-medium text-ink-secondary">Botões & Destaques (fixos em toda a plataforma)</p>
+              <p className="mb-2 text-xs font-medium text-ink-secondary">{dict.aparencia.previewBotoesLabel}</p>
               <div className="space-y-2 rounded-xl border border-base-700 bg-base-950/60 p-4">
                 <div className="flex flex-wrap gap-2">
-                  <Button className="px-3 py-1.5 text-xs">Ação Primária</Button>
+                  <Button className="px-3 py-1.5 text-xs">{dict.aparencia.previewAcaoPrimaria}</Button>
                   <Button variant="ghost" className="px-3 py-1.5 text-xs">
-                    Secundária
+                    {dict.aparencia.previewSecundaria}
                   </Button>
                 </div>
-                <a className="block text-xs text-accent hover:underline">Um link de destaque</a>
+                <a className="block text-xs text-accent hover:underline">{dict.aparencia.previewLinkDestaque}</a>
                 <div className="rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-xs text-ink-primary">
-                  Card com borda de destaque
+                  {dict.aparencia.previewCardDestaque}
                 </div>
               </div>
             </div>

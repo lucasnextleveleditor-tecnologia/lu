@@ -6,6 +6,7 @@ import { desconectarSessao, gerarQrCode } from "@/app/admin/whatsapp/actions";
 import { STATUS_SESSAO_META } from "@/lib/utils/whatsapp";
 import { fmtDataHora } from "@/lib/utils/status";
 import { createClient } from "@/lib/supabase/client";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -19,6 +20,7 @@ import { IconQrCode, IconCheckCircle, IconBattery } from "@/components/ui/icons"
  * e re-renderiza sem precisar de F5 — mesmo em outra aba/dispositivo.
  */
 export function ConexaoWhatsapp({ sessaoInicial }: { sessaoInicial: SessaoWhatsappRow }) {
+  const { dict } = useLocale();
   const [sessao, setSessao] = useState(sessaoInicial);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -68,15 +70,15 @@ export function ConexaoWhatsapp({ sessaoInicial }: { sessaoInicial: SessaoWhatsa
           {sessao.status === "conectado" ? (
             <div className="flex flex-col items-center gap-2 px-6 text-center text-ink-secondary">
               <IconCheckCircle className="h-10 w-10 text-status-good" />
-              <p className="text-sm">Sessão conectada</p>
+              <p className="text-sm">{dict.whatsapp.sessaoConectada}</p>
             </div>
           ) : sessao.status === "aguardando_leitura" && sessao.qr_code_base64 ? (
             // eslint-disable-next-line @next/next/no-img-element -- data URL vinda do provedor, não faz sentido passar por next/image
-            <img src={sessao.qr_code_base64} alt="QR Code do WhatsApp" className="h-full w-full object-contain p-2" />
+            <img src={sessao.qr_code_base64} alt={dict.whatsapp.altQrCode} className="h-full w-full object-contain p-2" />
           ) : (
             <div className="flex flex-col items-center gap-2 px-6 text-center text-ink-muted">
               <IconQrCode className="h-10 w-10" />
-              <p className="text-xs">Gere um QR Code pra conectar o número da empresa</p>
+              <p className="text-xs">{dict.whatsapp.qrCodeInstrucao}</p>
             </div>
           )}
         </div>
@@ -87,7 +89,7 @@ export function ConexaoWhatsapp({ sessaoInicial }: { sessaoInicial: SessaoWhatsa
             {sessao.bateria_percentual != null && (
               <p className="flex items-center justify-center gap-1.5 text-xs text-ink-muted">
                 <IconBattery className="h-3.5 w-3.5" />
-                {sessao.bateria_percentual}% de bateria no aparelho
+                {dict.whatsapp.baterianoAparelho.replace("{pct}", String(sessao.bateria_percentual))}
               </p>
             )}
           </div>
@@ -98,17 +100,19 @@ export function ConexaoWhatsapp({ sessaoInicial }: { sessaoInicial: SessaoWhatsa
         <div className="flex justify-center gap-2">
           {sessao.status === "conectado" ? (
             <Button variant="danger" onClick={handleDesconectar} disabled={pending}>
-              {pending ? "Desconectando..." : "Desconectar"}
+              {pending ? dict.whatsapp.desconectando : dict.whatsapp.desconectar}
             </Button>
           ) : (
             <Button onClick={handleGerarQrCode} disabled={pending}>
-              {pending ? "Gerando..." : "Gerar QR Code"}
+              {pending ? dict.whatsapp.gerando : dict.whatsapp.gerarQrCode}
             </Button>
           )}
         </div>
 
         {sessao.ultima_atualizacao && (
-          <p className="mt-4 text-[11px] text-ink-muted">Última atualização: {fmtDataHora(sessao.ultima_atualizacao)}</p>
+          <p className="mt-4 text-[11px] text-ink-muted">
+            {dict.whatsapp.ultimaAtualizacao} {fmtDataHora(sessao.ultima_atualizacao)}
+          </p>
         )}
       </Card>
     </div>

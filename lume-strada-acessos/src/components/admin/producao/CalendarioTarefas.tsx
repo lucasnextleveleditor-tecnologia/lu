@@ -6,17 +6,19 @@ import { addMeses, fmtMesAno, gradeDoMes } from "@/lib/utils/producao";
 import { Card } from "@/components/ui/Card";
 import { IconChevronLeft, IconChevronRight } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface CalendarioTarefasProps {
   tarefas: TarefaComRelacoes[];
   onAbrirTarefa: (id: string) => void;
 }
 
-const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MAX_VISIVEIS_POR_DIA = 3;
 
 /** Grade mensal por prazo de entrega — navegação de mês fica só no estado do componente (o dataset inteiro já veio do servidor de uma vez). */
 export function CalendarioTarefas({ tarefas, onAbrirTarefa }: CalendarioTarefasProps) {
+  const { dict } = useLocale();
+  const DIAS_SEMANA = dict.producao.diasSemana;
   const [referencia, setReferencia] = useState(() => {
     const hoje = new Date();
     return new Date(Date.UTC(hoje.getFullYear(), hoje.getMonth(), 1));
@@ -39,7 +41,7 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa }: CalendarioTarefasP
           <button
             onClick={() => setReferencia((r) => addMeses(r, -1))}
             className="flex h-7 w-7 items-center justify-center rounded-lg border border-base-600 text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
-            aria-label="Mês anterior"
+            aria-label={dict.producao.mesAnterior}
           >
             <IconChevronLeft className="h-4 w-4" />
           </button>
@@ -50,12 +52,12 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa }: CalendarioTarefasP
             }}
             className="rounded-lg border border-base-600 px-2.5 py-1 text-xs text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
           >
-            Hoje
+            {dict.producao.irParaHoje}
           </button>
           <button
             onClick={() => setReferencia((r) => addMeses(r, 1))}
             className="flex h-7 w-7 items-center justify-center rounded-lg border border-base-600 text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
-            aria-label="Próximo mês"
+            aria-label={dict.producao.proximoMes}
           >
             <IconChevronRight className="h-4 w-4" />
           </button>
@@ -104,7 +106,9 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa }: CalendarioTarefasP
                         {t.titulo}
                       </button>
                     ))}
-                    {restantes > 0 && <p className="px-1.5 text-[10px] text-ink-muted">+{restantes} mais</p>}
+                    {restantes > 0 && (
+                      <p className="px-1.5 text-[10px] text-ink-muted">{dict.producao.maisTarefas.replace("{n}", String(restantes))}</p>
+                    )}
                   </div>
                 </div>
               );
@@ -115,10 +119,10 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa }: CalendarioTarefasP
 
       <div className="mt-4 flex items-center gap-4 text-[11px] text-ink-muted">
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-status-critical/60" /> Alta/Urgente
+          <span className="h-2 w-2 rounded-full bg-status-critical/60" /> {dict.producao.legendaAltaUrgente}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-base-700" /> Normal/Baixa
+          <span className="h-2 w-2 rounded-full bg-base-700" /> {dict.producao.legendaNormalBaixa}
         </span>
       </div>
     </Card>

@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function SetPasswordForm() {
   const router = useRouter();
+  const { dict } = useLocale();
   const [password, setPassword] = useState("");
   const [confirmacao, setConfirmacao] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,11 +20,11 @@ export function SetPasswordForm() {
     setError(null);
 
     if (password.length < 8) {
-      setError("A senha precisa ter pelo menos 8 caracteres.");
+      setError(dict.login.senhaMinimoCaracteres);
       return;
     }
     if (password !== confirmacao) {
-      setError("As senhas não coincidem.");
+      setError(dict.login.senhasNaoCoincidem);
       return;
     }
 
@@ -43,7 +45,7 @@ export function SetPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Nova senha</label>
+        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.login.novaSenha}</label>
         <Input
           type="password"
           autoComplete="new-password"
@@ -51,25 +53,25 @@ export function SetPasswordForm() {
           autoFocus
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Mínimo de 8 caracteres"
+          placeholder={dict.login.novaSenhaPlaceholder}
         />
       </div>
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Confirmar senha</label>
+        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.login.confirmarSenha}</label>
         <Input
           type="password"
           autoComplete="new-password"
           required
           value={confirmacao}
           onChange={(e) => setConfirmacao(e.target.value)}
-          placeholder="Repita a senha"
+          placeholder={dict.login.confirmarSenhaPlaceholder}
         />
       </div>
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
       <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Salvando..." : "Definir senha e entrar"}
+        {loading ? dict.common.salvando : dict.login.definirSenhaBotao}
       </Button>
     </form>
   );

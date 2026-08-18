@@ -1,0 +1,28 @@
+import type { LoginDict } from "../pt/login";
+
+export const login: LoginDict = {
+  convitePrompt: "¿Recibiste una invitación por correo? Abre el enlace del mensaje para definir tu contraseña antes del primer acceso.",
+  emailLabel: "Correo electrónico",
+  senhaLabel: "Contraseña",
+  emailPlaceholder: "tu@lumestrada.com",
+  senhaPlaceholder: "••••••••",
+  entrar: "Entrar",
+  entrando: "Entrando...",
+  sair: "Salir",
+  saindo: "Saliendo...",
+  credenciaisInvalidas: "Correo o contraseña incorrectos.",
+  acessoExpiradoTitulo: "Acceso Expirado",
+  acessoExpiradoPadrao: "Tu acceso no está disponible en este momento.",
+  acessoExpiradoData: "Tu acceso expiró el {data}.",
+  acessoSuspenso: "Tu acceso fue suspendido por la agencia.",
+  faleComAgencia: "Contacta a tu productora, Lume Strada Filmes, para renovar o reactivar el acceso.",
+  definirSenhaTitulo: "Bienvenido(a) a Lume Strada",
+  definirSenhaSubtitulo: "Define una contraseña para completar tu registro",
+  novaSenha: "Nueva contraseña",
+  confirmarSenha: "Confirmar contraseña",
+  novaSenhaPlaceholder: "Mínimo 8 caracteres",
+  confirmarSenhaPlaceholder: "Repite la contraseña",
+  definirSenhaBotao: "Definir contraseña y entrar",
+  senhaMinimoCaracteres: "La contraseña debe tener al menos 8 caracteres.",
+  senhasNaoCoincidem: "Las contraseñas no coinciden.",
+};

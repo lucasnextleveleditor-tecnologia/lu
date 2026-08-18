@@ -5,6 +5,7 @@ import type { EquipeMembroRow } from "@/lib/types/cadastros";
 import type { ProfileRow, PermissoesFuncionario, PreferenciasDashboard, DashboardCardChave } from "@/lib/types/database";
 import { gerarAcessoFuncionario, atualizarPermissoes, atualizarDashboardConfig } from "@/app/admin/actions";
 import { MODULOS_PERMISSAO, CARDS_DASHBOARD } from "@/lib/utils/cadastros";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { AcessoStatusControls } from "@/components/admin/cadastros/AcessoStatusControls";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -25,6 +26,7 @@ interface AcessoFuncionarioModalProps {
  * já é admin-only por inteiro.
  */
 export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFuncionarioModalProps) {
+  const { dict } = useLocale();
   const [email, setEmail] = useState(membro.email ?? "");
   const [expiresAt, setExpiresAt] = useState("");
   const [permissoes, setPermissoes] = useState<PermissoesFuncionario>(profile?.permissoes ?? {});
@@ -55,7 +57,7 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
 
   async function handleGerarAcesso() {
     if (!email.trim()) {
-      setError("Informe um e-mail para o acesso.");
+      setError(dict.cadastros.informeEmailErro);
       return;
     }
     setLoading(true);
@@ -100,9 +102,9 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
       >
         <div className="mb-5 flex items-center justify-between">
           <h3 className="text-base font-semibold">
-            {jaTemAcesso ? "Permissões" : "Gerar Acesso"} — {membro.nome}
+            {jaTemAcesso ? dict.cadastros.permissoes : dict.cadastros.gerarAcesso} — {membro.nome}
           </h3>
-          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label="Fechar">
+          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
             ×
           </button>
         </div>
@@ -116,22 +118,26 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
         {!jaTemAcesso && (
           <div className="mb-5 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">E-mail de login *</label>
-              <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="funcionario@agencia.com" />
-              <p className="mt-1 text-xs text-ink-muted">Um convite com senha vai ser enviado pra esse e-mail.</p>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.emailLoginLabel}</label>
+              <Input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={dict.cadastros.emailFuncionarioPlaceholder}
+              />
+              <p className="mt-1 text-xs text-ink-muted">{dict.cadastros.conviteFuncionarioAjuda}</p>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data de expiração (opcional)</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.dataExpiracaoLabel}</label>
               <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
             </div>
           </div>
         )}
 
         <div className="mb-5">
-          <p className="mb-1 text-sm font-semibold text-ink-primary">Módulos Liberados</p>
-          <p className="mb-3 text-xs text-ink-muted">
-            Bloqueie ou libere cada área do menu pra esse funcionário — ex: &quot;Bloquear Financeiro, Liberar Tarefas&quot;.
-          </p>
+          <p className="mb-1 text-sm font-semibold text-ink-primary">{dict.cadastros.modulosLiberadosTitulo}</p>
+          <p className="mb-3 text-xs text-ink-muted">{dict.cadastros.modulosLiberadosAjuda}</p>
           <div className="divide-y divide-base-800 rounded-xl border border-base-800">
             {MODULOS_PERMISSAO.map((modulo) => (
               <div key={modulo.chave} className="flex items-center justify-between gap-3 px-4 py-3">

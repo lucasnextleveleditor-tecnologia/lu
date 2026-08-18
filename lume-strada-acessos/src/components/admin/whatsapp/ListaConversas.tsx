@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { ContatoWhatsappRow } from "@/lib/types/whatsapp";
 import { fmtHoraOuData, fmtTelefoneExibicao, iniciaisContato } from "@/lib/utils/whatsapp";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Input } from "@/components/ui/Input";
 import { IconSearch } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
@@ -19,6 +20,7 @@ interface ListaConversasProps {
  * `foto_url` (a grande maioria: o provedor raramente manda foto).
  */
 export function ListaConversas({ contatos, contatoSelecionadoId, onSelecionar }: ListaConversasProps) {
+  const { dict } = useLocale();
   const [busca, setBusca] = useState("");
 
   const filtrados = useMemo(() => {
@@ -32,14 +34,19 @@ export function ListaConversas({ contatos, contatoSelecionadoId, onSelecionar }:
       <div className="border-b border-base-800 p-3">
         <div className="relative">
           <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
-          <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar conversa..." className="pl-9" />
+          <Input
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder={dict.whatsapp.buscarConversaPlaceholder}
+            className="pl-9"
+          />
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
         {filtrados.length === 0 ? (
           <p className="p-6 text-center text-xs text-ink-muted">
-            {contatos.length === 0 ? "Nenhuma conversa ainda." : "Nenhuma conversa corresponde à busca."}
+            {contatos.length === 0 ? dict.whatsapp.nenhumaConversaAinda : dict.whatsapp.nenhumaConversaBusca}
           </p>
         ) : (
           filtrados.map((contato) => {
@@ -70,7 +77,7 @@ export function ListaConversas({ contatos, contatoSelecionadoId, onSelecionar }:
                       <span className="shrink-0 text-[11px] text-ink-muted">{fmtHoraOuData(contato.ultima_mensagem_em)}</span>
                     )}
                   </div>
-                  <p className="truncate text-xs text-ink-muted">{contato.ultima_mensagem_preview || "Sem mensagens ainda"}</p>
+                  <p className="truncate text-xs text-ink-muted">{contato.ultima_mensagem_preview || dict.whatsapp.semMensagensAinda}</p>
                 </div>
               </button>
             );

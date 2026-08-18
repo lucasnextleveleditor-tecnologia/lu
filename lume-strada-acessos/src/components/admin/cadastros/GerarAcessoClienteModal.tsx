@@ -3,10 +3,12 @@
 import { useState, type FormEvent } from "react";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import { gerarAcessoCliente } from "@/app/admin/actions";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: ClienteRow; onClose: () => void }) {
+  const { dict } = useLocale();
   const [email, setEmail] = useState(cliente.email ?? "");
   const [expiresAt, setExpiresAt] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,34 +31,34 @@ export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: Cliente
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl border border-base-700 bg-base-900 p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-base font-semibold">Gerar Acesso — {cliente.nome}</h3>
-          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label="Fechar">
+          <h3 className="text-base font-semibold">
+            {dict.cadastros.gerarAcesso} — {cliente.nome}
+          </h3>
+          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
             ×
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">E-mail de login *</label>
-            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="cliente@empresa.com" />
-            <p className="mt-1 text-xs text-ink-muted">
-              O cliente recebe um convite nesse e-mail pra definir a senha e passa a ver só os dashboards dele (Tráfego, Aprovações, Boletos).
-            </p>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.emailLoginLabel}</label>
+            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={dict.cadastros.emailClientePlaceholder} />
+            <p className="mt-1 text-xs text-ink-muted">{dict.cadastros.conviteClienteAjuda}</p>
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data de expiração (opcional)</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.dataExpiracaoLabel}</label>
             <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
-            <p className="mt-1 text-xs text-ink-muted">Deixe em branco para acesso sem prazo definido.</p>
+            <p className="mt-1 text-xs text-ink-muted">{dict.cadastros.semExpiracaoAjuda}</p>
           </div>
 
           {error && <p className="text-sm text-danger">{error}</p>}
 
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" onClick={onClose}>
-              Cancelar
+              {dict.common.cancelar}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Enviando..." : "Gerar Acesso e Enviar Convite"}
+              {loading ? dict.cadastros.enviando : dict.cadastros.gerarAcessoEnviarConvite}
             </Button>
           </div>
         </form>

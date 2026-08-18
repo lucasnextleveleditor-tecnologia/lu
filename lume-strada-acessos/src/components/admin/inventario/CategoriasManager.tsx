@@ -7,6 +7,7 @@ import { fmtDataHora } from "@/lib/utils/status";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CategoriaModal } from "@/components/admin/inventario/CategoriaModal";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface CategoriasManagerProps {
   categorias: CategoriaInventarioRow[];
@@ -14,6 +15,7 @@ interface CategoriasManagerProps {
 }
 
 export function CategoriasManager({ categorias, totalItensPorCategoria }: CategoriasManagerProps) {
+  const { dict } = useLocale();
   const [modalAberto, setModalAberto] = useState(false);
   const [categoriaEditando, setCategoriaEditando] = useState<CategoriaInventarioRow | null>(null);
   const [confirmandoExclusao, setConfirmandoExclusao] = useState<string | null>(null);
@@ -42,24 +44,24 @@ export function CategoriasManager({ categorias, totalItensPorCategoria }: Catego
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <p className="text-sm text-ink-muted">{categorias.length} categoria(s) cadastrada(s)</p>
-        <Button onClick={() => setModalAberto(true)}>+ Nova Categoria</Button>
+        <p className="text-sm text-ink-muted">{dict.inventario.categoriasCadastradas.replace("{count}", String(categorias.length))}</p>
+        <Button onClick={() => setModalAberto(true)}>{dict.inventario.novaCategoriaBotao}</Button>
       </div>
 
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
 
       <Card className="overflow-x-auto p-0">
         {categorias.length === 0 ? (
-          <div className="p-10 text-center text-sm text-ink-muted">Nenhuma categoria cadastrada ainda.</div>
+          <div className="p-10 text-center text-sm text-ink-muted">{dict.inventario.nenhumaCategoriaCadastrada}</div>
         ) : (
           <table className="w-full min-w-[720px] text-left">
             <thead>
               <tr className="border-b border-base-800 text-xs uppercase tracking-wide text-ink-muted">
-                <th className="px-6 py-3 font-medium">Categoria</th>
-                <th className="px-0 py-3 font-medium">Código</th>
-                <th className="px-0 py-3 font-medium">Itens</th>
-                <th className="px-0 py-3 font-medium">Criada em</th>
-                <th className="px-6 py-3 font-medium text-right">Ações</th>
+                <th className="px-6 py-3 font-medium">{dict.common.categoria}</th>
+                <th className="px-0 py-3 font-medium">{dict.inventario.colunaCodigo}</th>
+                <th className="px-0 py-3 font-medium">{dict.inventario.colunaItens}</th>
+                <th className="px-0 py-3 font-medium">{dict.inventario.colunaCriadaEm}</th>
+                <th className="px-6 py-3 font-medium text-right">{dict.common.acoes}</th>
               </tr>
             </thead>
             <tbody className="[&>tr>td:first-child]:pl-6 [&>tr>td:last-child]:pr-6">
@@ -83,26 +85,26 @@ export function CategoriasManager({ categorias, totalItensPorCategoria }: Catego
                   <td className="py-3 text-right">
                     {confirmandoExclusao === categoria.id ? (
                       <div className="flex justify-end gap-2">
-                        <span className="text-xs text-ink-secondary">Excluir?</span>
+                        <span className="text-xs text-ink-secondary">{dict.common.confirmarExclusao}</span>
                         <button
                           onClick={() => handleExcluir(categoria.id)}
                           disabled={pending}
                           className="text-xs font-medium text-danger hover:underline"
                         >
-                          Sim
+                          {dict.common.sim}
                         </button>
                         <button
                           onClick={() => setConfirmandoExclusao(null)}
                           disabled={pending}
                           className="text-xs text-ink-muted hover:text-ink-primary"
                         >
-                          Não
+                          {dict.common.nao}
                         </button>
                       </div>
                     ) : (
                       <div className="flex justify-end gap-2">
                         <Button variant="ghost" onClick={() => abrirEdicao(categoria)} className="px-3 py-1.5 text-xs">
-                          Editar
+                          {dict.common.editar}
                         </Button>
                         <Button
                           variant="danger"
@@ -110,7 +112,7 @@ export function CategoriasManager({ categorias, totalItensPorCategoria }: Catego
                           disabled={pending}
                           className="px-3 py-1.5 text-xs"
                         >
-                          Excluir
+                          {dict.common.excluir}
                         </Button>
                       </div>
                     )}
