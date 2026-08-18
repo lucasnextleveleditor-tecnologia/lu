@@ -84,6 +84,9 @@ export interface FinanceiroDict {
   mesAnteriorAria: string;
   proximoMesAria: string;
   voltarParaHoje: string;
+  abrirCalendarioMesAria: string;
+  anoAnteriorAria: string;
+  proximoAnoAria: string;
 
   // NovaCategoriaModal
   novaCategoriaTitulo: string;
@@ -248,6 +251,9 @@ export const financeiro: FinanceiroDict = {
   mesAnteriorAria: "Mês anterior",
   proximoMesAria: "Próximo mês",
   voltarParaHoje: "Voltar para hoje",
+  abrirCalendarioMesAria: "Abrir calendário de mês/ano",
+  anoAnteriorAria: "Ano anterior",
+  proximoAnoAria: "Próximo ano",
 
   novaCategoriaTitulo: "Nova Categoria",
   placeholderNomeCategoria: "Ex: Software & Assinaturas",

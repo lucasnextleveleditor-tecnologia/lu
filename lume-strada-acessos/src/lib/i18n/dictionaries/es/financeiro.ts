@@ -68,6 +68,9 @@ export const financeiro: FinanceiroDict = {
   mesAnteriorAria: "Mes anterior",
   proximoMesAria: "Mes siguiente",
   voltarParaHoje: "Volver a hoy",
+  abrirCalendarioMesAria: "Abrir calendario de mes/año",
+  anoAnteriorAria: "Año anterior",
+  proximoAnoAria: "Año siguiente",
 
   novaCategoriaTitulo: "Nueva Categoría",
   placeholderNomeCategoria: "Ej: Software y Suscripciones",

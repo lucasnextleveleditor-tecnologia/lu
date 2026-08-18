@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { addMeses, fmtMesAno, mesParam } from "@/lib/utils/financeiro";
+import { addMeses, mesParam } from "@/lib/utils/financeiro";
 import { getDictionary } from "@/lib/i18n/getDictionary";
+import { MesAnoPopover } from "@/components/admin/financeiro/MesAnoPopover";
 
 interface MesNavProps {
   referencia: Date;
@@ -9,7 +10,7 @@ interface MesNavProps {
   basePath?: string;
 }
 
-/** Navegação de mês — mesmo padrão de `DateNav` (lume-strada-acessos): pura navegação por link, sem JS no cliente. */
+/** Navegação de mês — setas ‹ › continuam pura navegação por link (mesmo padrão de `DateNav`); o rótulo central agora abre o `MesAnoPopover` (client, ver esse arquivo) pra pular direto pra qualquer mês/ano. */
 export async function MesNav({ referencia, contexto, basePath = "/admin/financeiro" }: MesNavProps) {
   const { dict } = await getDictionary();
   const anterior = addMeses(referencia, -1);
@@ -31,7 +32,7 @@ export async function MesNav({ referencia, contexto, basePath = "/admin/financei
         ‹
       </Link>
       <div className="w-40 text-center">
-        <p className="text-sm font-medium capitalize">{fmtMesAno(referencia)}</p>
+        <MesAnoPopover referencia={referencia} contexto={contexto} basePath={basePath} />
         {!isMesAtual && (
           <Link
             href={`${basePath}${contexto !== "todos" ? `?contexto=${contexto}` : ""}`}
