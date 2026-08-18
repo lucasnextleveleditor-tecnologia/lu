@@ -5,24 +5,33 @@ import type { TarefaComRelacoes } from "@/lib/types/producao";
 import { addMeses, fmtMesAno, gradeDoMes } from "@/lib/utils/producao";
 import { Card } from "@/components/ui/Card";
 import { IconChevronLeft, IconChevronRight } from "@/components/ui/icons";
+import { DiaTarefasModal } from "@/components/admin/producao/DiaTarefasModal";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface CalendarioTarefasProps {
   tarefas: TarefaComRelacoes[];
   onAbrirTarefa: (id: string) => void;
+  onNovaTarefa: (data: string) => void;
 }
 
 const MAX_VISIVEIS_POR_DIA = 3;
 
-/** Grade mensal por prazo de entrega — navegação de mês fica só no estado do componente (o dataset inteiro já veio do servidor de uma vez). */
-export function CalendarioTarefas({ tarefas, onAbrirTarefa }: CalendarioTarefasProps) {
+/**
+ * Grade mensal por prazo de entrega — navegação de mês fica só no estado do
+ * componente (o dataset inteiro já veio do servidor de uma vez). Clicar na
+ * área vazia de uma célula (fora dos cards de tarefa) cria uma tarefa nova
+ * já com aquele dia como Prazo de Entrega; "+n mais" abre a visão "grande"
+ * do dia (`DiaTarefasModal`), que também permite criar por lá.
+ */
+export function CalendarioTarefas({ tarefas, onAbrirTarefa, onNovaTarefa }: CalendarioTarefasProps) {
   const { dict } = useLocale();
   const DIAS_SEMANA = dict.producao.diasSemana;
   const [referencia, setReferencia] = useState(() => {
     const hoje = new Date();
     return new Date(Date.UTC(hoje.getFullYear(), hoje.getMonth(), 1));
   });
+  const [diaExpandido, setDiaExpandido] = useState<string | null>(null);
 
   const hojeIso = new Date().toISOString().slice(0, 10);
   const semanas = gradeDoMes(referencia);
@@ -84,8 +93,18 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa }: CalendarioTarefasP
               return (
                 <div
                   key={j}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onNovaTarefa(dia)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onNovaTarefa(dia);
+                    }
+                  }}
+                  title={dict.producao.novaTarefa}
                   className={cn(
-                    "min-h-[92px] rounded-lg border p-1.5",
+                    "min-h-[92px] cursor-pointer rounded-lg border p-1.5 text-left transition hover:border-ink-muted",
                     isHoje ? "border-accent/50 bg-base-900/60" : "border-base-800 bg-base-950/40"
                   )}
                 >
@@ -96,7 +115,10 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa }: CalendarioTarefasP
                     {visiveis.map((t) => (
                       <button
                         key={t.id}
-                        onClick={() => onAbrirTarefa(t.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAbrirTarefa(t.id);
+                        }}
                         className={cn(
                           "block w-full truncate rounded px-1.5 py-1 text-left text-[11px] font-medium text-ink-primary transition hover:opacity-80",
                           t.prioridade === "urgente" || t.prioridade === "alta" ? "bg-status-critical/20" : "bg-base-800"
@@ -107,7 +129,16 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa }: CalendarioTarefasP
                       </button>
                     ))}
                     {restantes > 0 && (
-                      <p className="px-1.5 text-[10px] text-ink-muted">{dict.producao.maisTarefas.replace("{n}", String(restantes))}</p>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDiaExpandido(dia);
+                        }}
+                        className="block w-full px-1.5 text-left text-[10px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
+                      >
+                        {dict.producao.maisTarefas.replace("{n}", String(restantes))}
+                      </button>
                     )}
                   </div>
                 </div>
@@ -125,6 +156,22 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa }: CalendarioTarefasP
           <span className="h-2 w-2 rounded-full bg-base-700" /> {dict.producao.legendaNormalBaixa}
         </span>
       </div>
+
+      {diaExpandido && (
+        <DiaTarefasModal
+          data={diaExpandido}
+          tarefas={tarefasPorDia.get(diaExpandido) ?? []}
+          onAbrirTarefa={(id) => {
+            setDiaExpandido(null);
+            onAbrirTarefa(id);
+          }}
+          onNovaTarefa={(data) => {
+            setDiaExpandido(null);
+            onNovaTarefa(data);
+          }}
+          onClose={() => setDiaExpandido(null)}
+        />
+      )}
     </Card>
   );
 }

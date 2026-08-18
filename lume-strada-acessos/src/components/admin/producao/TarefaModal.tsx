@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import type { ProfileRow } from "@/lib/types/database";
+import type { ClienteRow } from "@/lib/types/cadastros";
 import type { FuncionarioRow, PrioridadeTarefa, TipoServicoRow } from "@/lib/types/producao";
 import { criarTarefa } from "@/app/admin/producao/actions";
 import { PRIORIDADE_TAREFA_ORDEM } from "@/lib/utils/producao";
@@ -11,18 +12,21 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
 import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
+import { GerenciarClientesAcessoModal } from "@/components/admin/producao/GerenciarClientesAcessoModal";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface TarefaModalProps {
   clientes: Pick<ProfileRow, "id" | "email" | "full_name">[];
+  clientesCadastro: ClienteRow[];
   funcionarios: FuncionarioRow[];
   tiposServico: TipoServicoRow[];
+  dataEntregaInicial?: string;
   onClose: () => void;
 }
 
 /** Criação de uma nova tarefa. Edição completa (+ subtarefas/entregas) acontece no painel de detalhe, depois de criada. */
-export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: TarefaModalProps) {
+export function TarefaModal({ clientes, clientesCadastro, funcionarios, tiposServico, dataEntregaInicial, onClose }: TarefaModalProps) {
   const { dict } = useLocale();
   const prioridadeLabel: Record<string, string> = {
     baixa: dict.producao.prioridadeBaixa,
@@ -37,10 +41,11 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
   const [tipoServicoId, setTipoServicoId] = useState("");
   const [prioridade, setPrioridade] = useState<PrioridadeTarefa>("normal");
   const [dataCaptacao, setDataCaptacao] = useState("");
-  const [dataEntrega, setDataEntrega] = useState("");
+  const [dataEntrega, setDataEntrega] = useState(dataEntregaInicial ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [gerenciarServicosAberto, setGerenciarServicosAberto] = useState(false);
+  const [gerenciarClientesAberto, setGerenciarClientesAberto] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -87,7 +92,16 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.clienteLabel}</label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-medium text-ink-secondary">{dict.producao.clienteLabel}</label>
+                <button
+                  type="button"
+                  onClick={() => setGerenciarClientesAberto(true)}
+                  className="text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
+                >
+                  {dict.producao.gerenciar}
+                </button>
+              </div>
               <Select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
                 <option value="">{dict.producao.clienteSemVinculo}</option>
                 {clientes.map((c) => (
@@ -182,6 +196,9 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, onClose }: T
 
       {gerenciarServicosAberto && (
         <GerenciarTiposServicoModal tiposServico={tiposServico} onClose={() => setGerenciarServicosAberto(false)} />
+      )}
+      {gerenciarClientesAberto && (
+        <GerenciarClientesAcessoModal clientes={clientesCadastro} onClose={() => setGerenciarClientesAberto(false)} />
       )}
     </div>
   );

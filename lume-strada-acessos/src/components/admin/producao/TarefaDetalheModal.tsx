@@ -2,6 +2,7 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 import type { ProfileRow } from "@/lib/types/database";
+import type { ClienteRow } from "@/lib/types/cadastros";
 import type { EntregaComVersoes, FuncionarioRow, PrioridadeTarefa, StatusTarefa, SubtarefaRow, TarefaComRelacoes, TipoServicoRow } from "@/lib/types/producao";
 import { atualizarTarefa, moverStatusTarefa, removerTarefa } from "@/app/admin/producao/actions";
 import { PRIORIDADE_TAREFA_ORDEM, STATUS_TAREFA_ORDEM, isTarefaAtrasada } from "@/lib/utils/producao";
@@ -14,6 +15,7 @@ import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
 import { SubtarefasChecklist } from "@/components/admin/producao/SubtarefasChecklist";
 import { EntregasSection } from "@/components/admin/producao/EntregasSection";
 import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
+import { GerenciarClientesAcessoModal } from "@/components/admin/producao/GerenciarClientesAcessoModal";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -22,12 +24,13 @@ interface TarefaDetalheModalProps {
   subtarefas: SubtarefaRow[];
   entregas: EntregaComVersoes[];
   clientes: Pick<ProfileRow, "id" | "email" | "full_name">[];
+  clientesCadastro: ClienteRow[];
   funcionarios: FuncionarioRow[];
   tiposServico: TipoServicoRow[];
   onClose: () => void;
 }
 
-export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, funcionarios, tiposServico, onClose }: TarefaDetalheModalProps) {
+export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, clientesCadastro, funcionarios, tiposServico, onClose }: TarefaDetalheModalProps) {
   const { dict } = useLocale();
   const statusLabel: Record<StatusTarefa, string> = {
     backlog: dict.producao.statusBacklog,
@@ -56,6 +59,7 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
   const [error, setError] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
   const [gerenciarServicosAberto, setGerenciarServicosAberto] = useState(false);
+  const [gerenciarClientesAberto, setGerenciarClientesAberto] = useState(false);
 
   const atrasada = isTarefaAtrasada(tarefa);
 
@@ -145,7 +149,16 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
         <form onSubmit={handleSalvar} className="mb-6 space-y-4 border-b border-base-800 pb-6">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.clienteLabel}</label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-medium text-ink-secondary">{dict.producao.clienteLabel}</label>
+                <button
+                  type="button"
+                  onClick={() => setGerenciarClientesAberto(true)}
+                  className="text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
+                >
+                  {dict.producao.gerenciar}
+                </button>
+              </div>
               <Select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
                 <option value="">{dict.producao.clienteSemVinculo}</option>
                 {clientes.map((c) => (
@@ -261,6 +274,9 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
 
       {gerenciarServicosAberto && (
         <GerenciarTiposServicoModal tiposServico={tiposServico} onClose={() => setGerenciarServicosAberto(false)} />
+      )}
+      {gerenciarClientesAberto && (
+        <GerenciarClientesAcessoModal clientes={clientesCadastro} onClose={() => setGerenciarClientesAberto(false)} />
       )}
     </div>
   );

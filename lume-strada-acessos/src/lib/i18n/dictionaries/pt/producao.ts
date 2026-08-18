@@ -145,6 +145,11 @@ export interface ProducaoDict {
   tiposServicoTitulo: string;
   tipoServicoPlaceholder: string;
   gerenciar: string;
+
+  // Atalho "Gerenciar" do campo Cliente (`GerenciarClientesAcessoModal.tsx`).
+  clientesPendentesTitulo: string;
+  clientesPendentesAjuda: string;
+  clientesPendentesVazio: string;
 }
 
 export const producao: ProducaoDict = {
@@ -266,4 +271,9 @@ export const producao: ProducaoDict = {
   tiposServicoTitulo: "Tipos de Serviço",
   tipoServicoPlaceholder: "Ex: Edição de Vídeo",
   gerenciar: "Gerenciar",
+
+  clientesPendentesTitulo: "Liberar Acesso de Cliente",
+  clientesPendentesAjuda:
+    "Só clientes com acesso liberado aparecem pra selecionar aqui — o portal de cada cliente usa esse login pra mostrar só os dados dele. Gere o acesso de um cliente já cadastrado (Cadastros → Clientes) e ele passa a aparecer no campo Cliente em todo o sistema.",
+  clientesPendentesVazio: "Todos os clientes cadastrados já têm acesso liberado.",
 };

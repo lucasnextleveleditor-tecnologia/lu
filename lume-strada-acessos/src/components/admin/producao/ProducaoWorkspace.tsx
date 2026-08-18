@@ -2,6 +2,7 @@
 
 import { useState, type ComponentType } from "react";
 import type { ProfileRow } from "@/lib/types/database";
+import type { ClienteRow } from "@/lib/types/cadastros";
 import type { EntregaComVersoes, FuncionarioRow, SubtarefaRow, TarefaComRelacoes, TipoServicoRow } from "@/lib/types/producao";
 import { IconCalendar, IconColumns, IconList, IconPlus, IconSettings } from "@/components/ui/icons";
 import { Button } from "@/components/ui/Button";
@@ -21,6 +22,7 @@ interface ProducaoWorkspaceProps {
   subtarefasPorTarefa: Record<string, SubtarefaRow[]>;
   entregasPorTarefa: Record<string, EntregaComVersoes[]>;
   clientes: Pick<ProfileRow, "id" | "email" | "full_name">[];
+  clientesCadastro: ClienteRow[];
   funcionarios: FuncionarioRow[];
   tiposServico: TipoServicoRow[];
 }
@@ -30,6 +32,7 @@ export function ProducaoWorkspace({
   subtarefasPorTarefa,
   entregasPorTarefa,
   clientes,
+  clientesCadastro,
   funcionarios,
   tiposServico,
 }: ProducaoWorkspaceProps) {
@@ -41,8 +44,14 @@ export function ProducaoWorkspace({
   ];
   const [visao, setVisao] = useState<Visao>("kanban");
   const [modalNovaAberto, setModalNovaAberto] = useState(false);
+  const [novaTarefaData, setNovaTarefaData] = useState<string | undefined>(undefined);
   const [modalConfigAberto, setModalConfigAberto] = useState(false);
   const [tarefaDetalheId, setTarefaDetalheId] = useState<string | null>(null);
+
+  function abrirNovaTarefa(data?: string) {
+    setNovaTarefaData(data);
+    setModalNovaAberto(true);
+  }
 
   const tarefaDetalhe = tarefas.find((t) => t.id === tarefaDetalheId) ?? null;
 
@@ -70,7 +79,7 @@ export function ProducaoWorkspace({
           <Button variant="ghost" onClick={() => setModalConfigAberto(true)} className="px-3 py-2 text-xs" title={dict.producao.configuracaoBotaoTitle}>
             <IconSettings className="h-4 w-4" />
           </Button>
-          <Button onClick={() => setModalNovaAberto(true)} className="shadow-[0_0_18px_-4px_rgba(255,255,255,0.35)]">
+          <Button onClick={() => abrirNovaTarefa()} className="shadow-[0_0_18px_-4px_rgba(255,255,255,0.35)]">
             <IconPlus className="h-4 w-4" />
             {dict.producao.novaTarefa}
           </Button>
@@ -79,13 +88,15 @@ export function ProducaoWorkspace({
 
       {visao === "kanban" && <KanbanBoard tarefas={tarefas} onAbrirTarefa={setTarefaDetalheId} />}
       {visao === "lista" && <ListaTarefas tarefas={tarefas} onAbrirTarefa={setTarefaDetalheId} />}
-      {visao === "calendario" && <CalendarioTarefas tarefas={tarefas} onAbrirTarefa={setTarefaDetalheId} />}
+      {visao === "calendario" && <CalendarioTarefas tarefas={tarefas} onAbrirTarefa={setTarefaDetalheId} onNovaTarefa={abrirNovaTarefa} />}
 
       {modalNovaAberto && (
         <TarefaModal
           clientes={clientes}
+          clientesCadastro={clientesCadastro}
           funcionarios={funcionarios}
           tiposServico={tiposServico}
+          dataEntregaInicial={novaTarefaData}
           onClose={() => setModalNovaAberto(false)}
         />
       )}
@@ -100,6 +111,7 @@ export function ProducaoWorkspace({
           subtarefas={subtarefasPorTarefa[tarefaDetalhe.id] ?? []}
           entregas={entregasPorTarefa[tarefaDetalhe.id] ?? []}
           clientes={clientes}
+          clientesCadastro={clientesCadastro}
           funcionarios={funcionarios}
           tiposServico={tiposServico}
           onClose={() => setTarefaDetalheId(null)}

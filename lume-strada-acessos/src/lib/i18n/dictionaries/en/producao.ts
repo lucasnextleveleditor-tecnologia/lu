@@ -119,4 +119,9 @@ export const producao: ProducaoDict = {
   tiposServicoTitulo: "Service Types",
   tipoServicoPlaceholder: "E.g.: Video Editing",
   gerenciar: "Manage",
+
+  clientesPendentesTitulo: "Grant Client Access",
+  clientesPendentesAjuda:
+    "Only clients with access already granted show up to select here — each client's portal uses that login to show only their own data. Grant access to an already-registered client (Cadastros → Clientes) and they'll show up in the Client field everywhere in the system.",
+  clientesPendentesVazio: "All registered clients already have access granted.",
 };

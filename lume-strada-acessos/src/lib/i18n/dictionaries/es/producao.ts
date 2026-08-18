@@ -119,4 +119,9 @@ export const producao: ProducaoDict = {
   tiposServicoTitulo: "Tipos de Servicio",
   tipoServicoPlaceholder: "Ej: Edición de Video",
   gerenciar: "Gestionar",
+
+  clientesPendentesTitulo: "Liberar Acceso de Cliente",
+  clientesPendentesAjuda:
+    "Solo los clientes con acceso liberado aparecen para seleccionar aquí — el portal de cada cliente usa ese login para mostrar solo sus propios datos. Genere el acceso de un cliente ya registrado (Cadastros → Clientes) y pasará a aparecer en el campo Cliente en todo el sistema.",
+  clientesPendentesVazio: "Todos los clientes registrados ya tienen acceso liberado.",
 };
