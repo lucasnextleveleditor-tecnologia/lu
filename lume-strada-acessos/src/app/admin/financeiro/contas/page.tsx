@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { fmtBRL } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
+import { ValorPrivado } from "@/components/ui/ValorPrivado";
+import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
 import { IconWallet, IconChevronLeft } from "@/components/ui/icons";
 import { MesNav } from "@/components/admin/financeiro/MesNav";
 import { ContextoToggle } from "@/components/admin/financeiro/ContextoToggle";
@@ -38,6 +40,7 @@ export default async function ContasPage({ searchParams }: PageProps) {
             <p className="mt-0.5 text-sm text-ink-muted">{dict.financeiro.contasSubtituloPagina}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <OlhoValoresToggle />
             <ContextoToggle referencia={referencia} contexto={contexto} basePath={BASE_PATH} />
             <MesNav referencia={referencia} contexto={contexto} basePath={BASE_PATH} />
           </div>
@@ -48,7 +51,7 @@ export default async function ContasPage({ searchParams }: PageProps) {
         <StatTile
           icon={IconWallet}
           label={dict.financeiro.statSaldoContas}
-          value={fmtBRL(saldoTotal)}
+          value={<ValorPrivado valor={fmtBRL(saldoTotal)} />}
           hint={dict.financeiro.hintContasQtd.replace("{n}", String(contasFiltradas.length))}
         />
       </div>

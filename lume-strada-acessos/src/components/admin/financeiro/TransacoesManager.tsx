@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { IconArrowRightLeft, IconPlus } from "@/components/ui/icons";
 import { TransacaoModal } from "@/components/admin/financeiro/TransacaoModal";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -186,7 +187,8 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
                         {t.categoria_nome && t.moeda_original && " · "}
                         {t.moeda_original && t.valor_original !== null && (
                           <>
-                            {dict.financeiro.lancadoEmLabel} {fmtMoedaEstrangeira(t.valor_original, t.moeda_original)}
+                            {dict.financeiro.lancadoEmLabel}{" "}
+                            <ValorPrivado valor={fmtMoedaEstrangeira(t.valor_original, t.moeda_original)} />
                           </>
                         )}
                       </p>
@@ -203,7 +205,8 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
                       <Badge tone={statusMeta.tone} label={statusMeta.label} />
                     </td>
                     <td className="py-3 pr-4 text-right">
-                      <span
+                      <ValorPrivado
+                        valor={`${valorSinal}${fmtBRL(t.valor)}`}
                         className={
                           t.tipo === "receita"
                             ? "text-sm font-semibold text-status-good"
@@ -211,10 +214,7 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
                               ? "text-sm font-semibold text-ink-primary"
                               : "text-sm font-semibold text-ink-secondary"
                         }
-                      >
-                        {valorSinal}
-                        {fmtBRL(t.valor)}
-                      </span>
+                      />
                     </td>
                     <td className="py-3 text-right">
                       {confirmando === t.id ? (

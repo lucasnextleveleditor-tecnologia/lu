@@ -8,6 +8,7 @@ import { toneLimiteCartao } from "@/lib/utils/financeiro";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Meter } from "@/components/ui/Meter";
+import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { IconCreditCard } from "@/components/ui/icons";
 import { NovoCartaoModal } from "@/components/admin/financeiro/NovoCartaoModal";
 import { PagarFaturaModal } from "@/components/admin/financeiro/PagarFaturaModal";
@@ -108,16 +109,18 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
 
                 <div className="mb-1 flex items-center justify-between text-xs text-ink-secondary">
                   <span>
-                    {dict.financeiro.usadoLabel} <span className="font-medium text-ink-primary">{fmtBRL(cartao.limite_consumido)}</span>{" "}
-                    {dict.financeiro.deLabel} {fmtBRL(cartao.limite)}
+                    {dict.financeiro.usadoLabel}{" "}
+                    <ValorPrivado valor={fmtBRL(cartao.limite_consumido)} className="font-medium text-ink-primary" />{" "}
+                    {dict.financeiro.deLabel} <ValorPrivado valor={fmtBRL(cartao.limite)} className="text-ink-secondary" />
                   </span>
-                  <span className="font-medium text-ink-primary">{fmtPercent(pct)}</span>
+                  <ValorPrivado valor={fmtPercent(pct)} className="font-medium text-ink-primary" />
                 </div>
                 <Meter pct={pct} tone={tone} />
 
                 <div className="mt-2.5 flex items-center justify-between">
                   <span className="text-xs text-ink-secondary">
-                    {dict.financeiro.disponivelLabel} <span className="font-medium text-ink-primary">{fmtBRL(cartao.limite_disponivel)}</span>
+                    {dict.financeiro.disponivelLabel}{" "}
+                    <ValorPrivado valor={fmtBRL(cartao.limite_disponivel)} className="font-medium text-ink-primary" />
                   </span>
                   <Button
                     variant="ghost"

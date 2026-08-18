@@ -6,6 +6,7 @@ import { removerConta } from "@/app/admin/financeiro/actions";
 import { fmtBRL } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { IconWallet } from "@/components/ui/icons";
 import { NovaContaModal } from "@/components/admin/financeiro/NovaContaModal";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -60,13 +61,12 @@ export function ContasCard({ contas }: { contas: ContaComSaldo[] }) {
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-3">
-                <span
+                <ValorPrivado
+                  valor={fmtBRL(conta.saldo_atual)}
                   className={
                     conta.saldo_atual < 0 ? "text-sm font-semibold text-danger" : "text-sm font-semibold text-ink-primary"
                   }
-                >
-                  {fmtBRL(conta.saldo_atual)}
-                </span>
+                />
                 {confirmando === conta.id ? (
                   <div className="flex items-center gap-1.5">
                     <button

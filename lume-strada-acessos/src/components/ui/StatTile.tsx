@@ -1,4 +1,4 @@
-import type { ComponentType, SVGProps } from "react";
+import type { ComponentType, ReactNode, SVGProps } from "react";
 import { cn } from "@/lib/utils/cn";
 import type { Tone } from "@/lib/utils/tone";
 
@@ -25,7 +25,8 @@ const STAT_TONE_META: Record<Tone, { badge: string; icon: string; dot: string }>
 interface StatTileProps {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   label: string;
-  value: string | number;
+  /** Normalmente `string | number`, mas aceita `ReactNode` pra permitir `<ValorPrivado>` nos tiles de Financeiro/Dashboard (ver `components/ui/ValorPrivado.tsx`). */
+  value: ReactNode;
   tone?: Tone;
   hint?: string;
   className?: string;

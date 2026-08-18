@@ -11,6 +11,7 @@ import type { BannerConfig } from "@/components/branding/AnnouncementBanner";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { ValoresVisiveisProvider } from "@/lib/valores-visiveis/ValoresVisiveisProvider";
 import type { NavDict } from "@/lib/i18n/dictionaries/pt/nav";
 import {
   IconUsers,
@@ -137,6 +138,7 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permi
   }
 
   return (
+    <ValoresVisiveisProvider>
     <div className="min-h-screen">
       <aside
         className={cn(
@@ -228,5 +230,6 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permi
         </div>
       </main>
     </div>
+    </ValoresVisiveisProvider>
   );
 }

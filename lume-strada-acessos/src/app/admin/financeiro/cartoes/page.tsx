@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { fmtBRL } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
+import { ValorPrivado } from "@/components/ui/ValorPrivado";
+import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
 import { IconCreditCard, IconChevronLeft } from "@/components/ui/icons";
 import { MesNav } from "@/components/admin/financeiro/MesNav";
 import { ContextoToggle } from "@/components/admin/financeiro/ContextoToggle";
@@ -39,6 +41,7 @@ export default async function CartoesPage({ searchParams }: PageProps) {
             <p className="mt-0.5 text-sm text-ink-muted">{dict.financeiro.cartoesSubtituloPagina}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <OlhoValoresToggle />
             <ContextoToggle referencia={referencia} contexto={contexto} basePath={BASE_PATH} />
             <MesNav referencia={referencia} contexto={contexto} basePath={BASE_PATH} />
           </div>
@@ -49,7 +52,7 @@ export default async function CartoesPage({ searchParams }: PageProps) {
         <StatTile
           icon={IconCreditCard}
           label={dict.financeiro.statLimiteDisponivel}
-          value={fmtBRL(limiteDisponivelTotal)}
+          value={<ValorPrivado valor={fmtBRL(limiteDisponivelTotal)} />}
           hint={dict.financeiro.hintCartoesQtd.replace("{n}", String(cartoesFiltrados.length))}
         />
       </div>

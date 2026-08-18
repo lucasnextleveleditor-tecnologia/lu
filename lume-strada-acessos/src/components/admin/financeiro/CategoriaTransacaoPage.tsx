@@ -2,6 +2,8 @@ import Link from "next/link";
 import { addMeses, mesParam } from "@/lib/utils/financeiro";
 import { fmtBRL } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
+import { ValorPrivado } from "@/components/ui/ValorPrivado";
+import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
 import { IconTrendingUp, IconAlertTriangle, IconChevronLeft } from "@/components/ui/icons";
 import { MesNav } from "@/components/admin/financeiro/MesNav";
 import { ContextoToggle } from "@/components/admin/financeiro/ContextoToggle";
@@ -61,6 +63,7 @@ export async function CategoriaTransacaoPage({ tipo, searchParams }: CategoriaTr
             <p className="mt-0.5 text-sm text-ink-muted">{subtitulo}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <OlhoValoresToggle />
             <ContextoToggle referencia={referencia} contexto={contexto} basePath={basePath} />
             <MesNav referencia={referencia} contexto={contexto} basePath={basePath} />
           </div>
@@ -68,8 +71,13 @@ export async function CategoriaTransacaoPage({ tipo, searchParams }: CategoriaTr
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:max-w-md">
-        <StatTile icon={Icon} label={statLabel} value={fmtBRL(totalDoMes)} tone={tipo === "receita" ? "good" : "neutral"} />
-        <StatTile icon={Icon} label={dict.financeiro.statMesAnterior} value={fmtBRL(totalMesAnterior)} />
+        <StatTile
+          icon={Icon}
+          label={statLabel}
+          value={<ValorPrivado valor={fmtBRL(totalDoMes)} />}
+          tone={tipo === "receita" ? "good" : "neutral"}
+        />
+        <StatTile icon={Icon} label={dict.financeiro.statMesAnterior} value={<ValorPrivado valor={fmtBRL(totalMesAnterior)} />} />
       </div>
 
       <TransacoesManager

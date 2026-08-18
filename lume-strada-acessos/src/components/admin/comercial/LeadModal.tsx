@@ -7,6 +7,7 @@ import { criarLead } from "@/app/admin/comercial/actions";
 import { ORIGEM_LEAD_META } from "@/lib/utils/comercial";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { GerenciarServicosModal } from "@/components/admin/comercial/GerenciarServicosModal";
@@ -42,7 +43,7 @@ export function LeadModal({ tiposServico, onClose }: LeadModalProps) {
   const [whatsapp, setWhatsapp] = useState("");
   const [origem, setOrigem] = useState<OrigemLead | "">("");
   const [tipoServicoId, setTipoServicoId] = useState("");
-  const [valorEstimado, setValorEstimado] = useState("");
+  const [valorEstimado, setValorEstimado] = useState(0);
   const [dataPrevistaFechamento, setDataPrevistaFechamento] = useState("");
   const [contratoAssinado, setContratoAssinado] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -60,7 +61,7 @@ export function LeadModal({ tiposServico, onClose }: LeadModalProps) {
       whatsapp: whatsapp || null,
       origem: origem || null,
       tipoServicoId: tipoServicoId || null,
-      valorEstimado: valorEstimado.trim() === "" ? null : Number(valorEstimado),
+      valorEstimado: valorEstimado > 0 ? valorEstimado : null,
       dataPrevistaFechamento: dataPrevistaFechamento || null,
       contratoAssinado,
     });
@@ -140,7 +141,7 @@ export function LeadModal({ tiposServico, onClose }: LeadModalProps) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.comercial.valorEstimadoLabel}</label>
-              <Input type="number" min="0" step="0.01" value={valorEstimado} onChange={(e) => setValorEstimado(e.target.value)} />
+              <CurrencyInput value={valorEstimado} onChange={setValorEstimado} />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.comercial.previsaoFechamentoLabel}</label>

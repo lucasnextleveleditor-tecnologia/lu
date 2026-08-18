@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils/cn";
 import { fmtDataCurta } from "@/lib/utils/format";
 import { IconCalendar, IconChevronLeft, IconChevronRight } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+
+const LARGURA_POPOVER = 280;
+const ALTURA_POPOVER_ESTIMADA = 320; // usado só na 1ª medição, antes do popover ter layout real
+const MARGEM_VIEWPORT = 8;
 
 interface DatePickerProps {
   /** ISO yyyy-mm-dd, ou "" quando vazio. */
@@ -100,17 +105,24 @@ export function DatePicker({
     const base = value ? new Date(`${value}T00:00:00Z`) : new Date();
     return new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), 1));
   });
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  /** Coordenadas do popover (portal em `document.body`, `position: fixed`) — `null` até a 1ª medição, ver `useLayoutEffect` abaixo. */
+  const [posicao, setPosicao] = useState<{ top: number; left: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   function fechar() {
     setAberto(false);
+    setPosicao(null);
     onBlur?.();
   }
 
   useEffect(() => {
     if (!aberto) return;
     function handlePointerDown(e: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) fechar();
+      const alvo = e.target as Node;
+      if (triggerRef.current?.contains(alvo)) return;
+      if (popoverRef.current?.contains(alvo)) return;
+      fechar();
     }
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") fechar();
@@ -123,6 +135,44 @@ export function DatePicker({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aberto]);
+
+  // Calcula onde o popover aparece na VIEWPORT (não relativo ao pai no
+  // fluxo do documento) — é isso que faz o calendário escapar de qualquer
+  // ancestral com `overflow-hidden/auto` (ex: modais com scroll interno,
+  // como o de Novo Lead), que antes cortava o calendário pela metade. Mede
+  // a altura real já renderizada (fora da tela na 1ª passada) antes de
+  // decidir abrir pra baixo ou pra cima, e recalcula ao rolar/redimensionar
+  // enquanto aberto.
+  useLayoutEffect(() => {
+    if (!aberto || !triggerRef.current) return;
+
+    function posicionar() {
+      const gatilho = triggerRef.current;
+      if (!gatilho) return;
+      const rect = gatilho.getBoundingClientRect();
+      const alturaPopover = popoverRef.current?.offsetHeight ?? ALTURA_POPOVER_ESTIMADA;
+
+      let top = rect.bottom + 6;
+      if (top + alturaPopover > window.innerHeight - MARGEM_VIEWPORT) {
+        top = Math.max(MARGEM_VIEWPORT, rect.top - alturaPopover - 6);
+      }
+
+      let left = rect.left;
+      if (left + LARGURA_POPOVER > window.innerWidth - MARGEM_VIEWPORT) {
+        left = Math.max(MARGEM_VIEWPORT, window.innerWidth - LARGURA_POPOVER - MARGEM_VIEWPORT);
+      }
+
+      setPosicao({ top, left });
+    }
+
+    posicionar();
+    window.addEventListener("scroll", posicionar, true);
+    window.addEventListener("resize", posicionar);
+    return () => {
+      window.removeEventListener("scroll", posicionar, true);
+      window.removeEventListener("resize", posicionar);
+    };
+  }, [aberto, referencia]);
 
   function abrir() {
     if (disabled) return;
@@ -144,8 +194,9 @@ export function DatePicker({
   const hoje = hojeISO();
 
   return (
-    <div ref={wrapperRef} className={cn("relative", className)}>
+    <div className={cn("relative", className)}>
       <button
+        ref={triggerRef}
         type="button"
         id={id}
         disabled={disabled}
@@ -176,8 +227,19 @@ export function DatePicker({
         )}
       </button>
 
-      {aberto && (
-        <div className="absolute left-0 top-[calc(100%+6px)] z-50 w-[280px] rounded-xl border border-base-700 bg-base-900 p-3 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.8)]">
+      {aberto &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            style={{
+              position: "fixed",
+              top: posicao?.top ?? 0,
+              left: posicao?.left ?? 0,
+              width: LARGURA_POPOVER,
+              visibility: posicao ? "visible" : "hidden",
+            }}
+            className="z-50 rounded-xl border border-base-700 bg-base-900 p-3 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.8)]"
+          >
           <div className="mb-2 flex items-center justify-between">
             <p className="text-xs font-semibold capitalize text-ink-primary">{fmtMesAno(referencia)}</p>
             <div className="flex items-center gap-1">
@@ -247,8 +309,9 @@ export function DatePicker({
               </div>
             ))}
           </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

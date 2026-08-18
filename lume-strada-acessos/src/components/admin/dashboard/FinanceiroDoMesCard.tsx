@@ -4,6 +4,7 @@ import { TONE_META } from "@/lib/utils/tone";
 import { cn } from "@/lib/utils/cn";
 import { Card } from "@/components/ui/Card";
 import { Meter } from "@/components/ui/Meter";
+import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { IconWallet } from "@/components/ui/icons";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 
@@ -42,14 +43,14 @@ export async function FinanceiroDoMesCard({ receitas, despesas }: FinanceiroDoMe
         <div>
           <div className="mb-1 flex items-center justify-between text-xs text-ink-secondary">
             <span>{dict.dashboard.receitas}</span>
-            <span className="font-medium text-ink-primary">{fmtBRL(receitas)}</span>
+            <ValorPrivado valor={fmtBRL(receitas)} className="font-medium text-ink-primary" />
           </div>
           <Meter pct={receitas / maiorValor} tone="good" />
         </div>
         <div>
           <div className="mb-1 flex items-center justify-between text-xs text-ink-secondary">
             <span>{dict.dashboard.despesas}</span>
-            <span className="font-medium text-ink-primary">{fmtBRL(despesas)}</span>
+            <ValorPrivado valor={fmtBRL(despesas)} className="font-medium text-ink-primary" />
           </div>
           <Meter pct={despesas / maiorValor} tone="neutral" />
         </div>
@@ -59,7 +60,7 @@ export async function FinanceiroDoMesCard({ receitas, despesas }: FinanceiroDoMe
         <span className="text-xs text-ink-secondary">{dict.dashboard.saldoDoMes}</span>
         <span className="flex items-center gap-1.5 text-sm font-semibold text-ink-primary">
           <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", TONE_META[saldo >= 0 ? "good" : "critical"].dotClassName)} />
-          {fmtBRL(saldo)}
+          <ValorPrivado valor={fmtBRL(saldo)} />
         </span>
       </div>
     </Card>

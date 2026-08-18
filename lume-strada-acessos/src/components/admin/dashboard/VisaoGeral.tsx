@@ -5,6 +5,8 @@ import { STATUS_SESSAO_META } from "@/lib/utils/whatsapp";
 import { hojeISO } from "@/lib/utils/dashboard";
 import { fmtBRL } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
+import { ValorPrivado } from "@/components/ui/ValorPrivado";
+import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
 import { AgendaDoDia } from "@/components/admin/dashboard/AgendaDoDia";
 import { FinanceiroDoMesCard } from "@/components/admin/dashboard/FinanceiroDoMesCard";
 import {
@@ -68,18 +70,24 @@ interface VisaoGeralProps {
 function SecaoDashboard({
   icon: Icon,
   titulo,
+  acao,
   children,
 }: {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   titulo: string;
+  /** Slot opcional pra uma ação no canto direito do cabeçalho da seção — hoje só o Financeiro usa (`OlhoValoresToggle`). */
+  acao?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-        <Icon className="h-3.5 w-3.5" />
-        {titulo}
-      </p>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+          <Icon className="h-3.5 w-3.5" />
+          {titulo}
+        </p>
+        {acao}
+      </div>
       {children}
     </div>
   );
@@ -197,7 +205,7 @@ export async function VisaoGeral({
       )}
 
       {mostrarFinanceiro && (
-        <SecaoDashboard icon={IconWallet} titulo={dict.dashboard.secaoFinanceiro}>
+        <SecaoDashboard icon={IconWallet} titulo={dict.dashboard.secaoFinanceiro} acao={<OlhoValoresToggle />}>
           <div className="space-y-4">
             {(saldoConsolidado !== null || contasVencidas !== null) && (
               <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -205,7 +213,7 @@ export async function VisaoGeral({
                   <StatTile
                     icon={IconWallet}
                     label={dict.dashboard.saldoConsolidadoLabel}
-                    value={fmtBRL(saldoConsolidado)}
+                    value={<ValorPrivado valor={fmtBRL(saldoConsolidado)} />}
                     hint={dict.dashboard.saldoConsolidadoHint}
                   />
                 )}

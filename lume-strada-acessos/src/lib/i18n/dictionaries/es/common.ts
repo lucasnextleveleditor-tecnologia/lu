@@ -39,4 +39,6 @@ export const common: CommonDict = {
   idioma: "Idioma",
   limpar: "Limpiar",
   dataPlaceholder: "dd/mm/aaaa",
+  mostrarValores: "Mostrar valores",
+  ocultarValores: "Ocultar valores",
 };

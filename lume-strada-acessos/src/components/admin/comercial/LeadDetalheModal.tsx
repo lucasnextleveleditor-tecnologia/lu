@@ -8,6 +8,7 @@ import { STATUS_LEAD_ORDEM } from "@/lib/utils/comercial";
 import { fmtDataHora } from "@/lib/utils/status";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
@@ -61,7 +62,7 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
   const [whatsapp, setWhatsapp] = useState(lead.whatsapp ?? "");
   const [origem, setOrigem] = useState<OrigemLead | "">(lead.origem ?? "");
   const [tipoServicoId, setTipoServicoId] = useState(lead.tipo_servico_id ?? "");
-  const [valorEstimado, setValorEstimado] = useState(lead.valor_estimado != null ? String(lead.valor_estimado) : "");
+  const [valorEstimado, setValorEstimado] = useState(lead.valor_estimado ?? 0);
   const [dataPrevistaFechamento, setDataPrevistaFechamento] = useState(lead.data_prevista_fechamento ?? "");
   const [contratoAssinado, setContratoAssinado] = useState(lead.contrato_assinado);
   const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
@@ -83,7 +84,7 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
         whatsapp: whatsapp || null,
         origem: origem || null,
         tipoServicoId: tipoServicoId || null,
-        valorEstimado: valorEstimado.trim() === "" ? null : Number(valorEstimado),
+        valorEstimado: valorEstimado > 0 ? valorEstimado : null,
         dataPrevistaFechamento: dataPrevistaFechamento || null,
         contratoAssinado,
       });
@@ -244,7 +245,7 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.comercial.valorEstimadoLabel}</label>
-              <Input type="number" min="0" step="0.01" value={valorEstimado} onChange={(e) => setValorEstimado(e.target.value)} />
+              <CurrencyInput value={valorEstimado} onChange={setValorEstimado} />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.comercial.previsaoFechamentoLabel}</label>

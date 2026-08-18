@@ -3,6 +3,8 @@ import { calcularStatusTransacao } from "@/lib/types/financeiro";
 import { STATUS_TRANSACAO_META } from "@/lib/utils/financeiro";
 import { fmtBRL } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
+import { ValorPrivado } from "@/components/ui/ValorPrivado";
+import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
 import { IconWallet, IconCreditCard, IconTrendingUp, IconAlertTriangle } from "@/components/ui/icons";
 import { MesNav } from "@/components/admin/financeiro/MesNav";
@@ -48,6 +50,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
           <p className="mt-0.5 text-sm text-ink-muted">{dict.financeiro.subtituloPagina}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <OlhoValoresToggle />
           <ContextoToggle referencia={referencia} contexto={contexto} />
           <MesNav referencia={referencia} contexto={contexto} />
           <ExportMenuButton
@@ -84,7 +87,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
           <StatTile
             icon={IconWallet}
             label={dict.financeiro.statSaldoContas}
-            value={fmtBRL(saldoTotal)}
+            value={<ValorPrivado valor={fmtBRL(saldoTotal)} />}
             hint={dict.financeiro.hintContasQtd.replace("{n}", String(contasFiltradas.length))}
           />
         </Link>
@@ -92,7 +95,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
           <StatTile
             icon={IconCreditCard}
             label={dict.financeiro.statLimiteDisponivel}
-            value={fmtBRL(limiteDisponivelTotal)}
+            value={<ValorPrivado valor={fmtBRL(limiteDisponivelTotal)} />}
             hint={dict.financeiro.hintCartoesQtd.replace("{n}", String(cartoesFiltrados.length))}
           />
         </Link>
@@ -100,7 +103,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
           <StatTile
             icon={IconTrendingUp}
             label={dict.financeiro.statReceitasMes}
-            value={fmtBRL(receitasDoMes)}
+            value={<ValorPrivado valor={fmtBRL(receitasDoMes)} />}
             tone="good"
             hint={dict.financeiro.hintLancadasNoPeriodo}
           />
@@ -109,7 +112,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
           <StatTile
             icon={IconAlertTriangle}
             label={dict.financeiro.statDespesasMes}
-            value={fmtBRL(despesasDoMes)}
+            value={<ValorPrivado valor={fmtBRL(despesasDoMes)} />}
             tone={despesasDoMes > receitasDoMes ? "warning" : "neutral"}
             hint={dict.financeiro.hintLancadasNoPeriodo}
           />

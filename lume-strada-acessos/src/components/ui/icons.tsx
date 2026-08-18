@@ -660,3 +660,25 @@ export function IconGlobe(props: IconProps) {
     </svg>
   );
 }
+
+/** Olho aberto — valores financeiros visíveis (`OlhoValoresToggle`). */
+export function IconEye(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+/** Olho riscado — valores financeiros ocultos (`OlhoValoresToggle`). */
+export function IconEyeOff(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M3 3l18 18" />
+      <path d="M10.6 5.2A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a15.4 15.4 0 0 1-3.6 4.5" />
+      <path d="M6.6 6.6C4 8.3 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 4.4-1" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </svg>
+  );
+}
