@@ -54,7 +54,8 @@ as $$
 begin
   insert into public.prod_funcionarios (nome, ativo, equipe_membro_id)
   values (new.nome, true, new.id)
-  on conflict (equipe_membro_id) do update set nome = excluded.nome;
+  on conflict (equipe_membro_id) where equipe_membro_id is not null
+  do update set nome = excluded.nome;
   return new;
 end;
 $$;
@@ -73,4 +74,5 @@ create trigger equipe_membros_sync_prod_funcionario
 -- ----------------------------------------------------------------------------
 insert into public.prod_funcionarios (nome, ativo, equipe_membro_id)
 select nome, true, id from public.equipe_membros
-on conflict (equipe_membro_id) do update set nome = excluded.nome;
+on conflict (equipe_membro_id) where equipe_membro_id is not null
+do update set nome = excluded.nome;
