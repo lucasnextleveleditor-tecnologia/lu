@@ -41,4 +41,8 @@ export const common: CommonDict = {
   dataPlaceholder: "dd/mm/aaaa",
   mostrarValores: "Mostrar valores",
   ocultarValores: "Ocultar valores",
+  concluir: "Finalizar",
+  copiarLink: "Copiar enlace",
+  linkCopiado: "¡Copiado!",
+  enviarPorWhatsapp: "Abrir en WhatsApp",
 };

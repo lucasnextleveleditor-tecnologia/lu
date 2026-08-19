@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/Badge";
 import { IconCheck } from "@/components/ui/icons";
 import { FollowUpLog } from "@/components/admin/comercial/FollowUpLog";
 import { GerenciarServicosModal } from "@/components/admin/comercial/GerenciarServicosModal";
+import { LinkAcessoGerado } from "@/components/ui/LinkAcessoGerado";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { ComercialDict } from "@/lib/i18n/dictionaries/pt/comercial";
@@ -71,6 +72,7 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
   const [salvo, setSalvo] = useState(false);
   const [convertendo, setConvertendo] = useState(false);
   const [erroConversao, setErroConversao] = useState<string | null>(null);
+  const [linkConversao, setLinkConversao] = useState<string | null>(null);
   const [gerenciarServicosAberto, setGerenciarServicosAberto] = useState(false);
 
   function handleSalvar(e: FormEvent) {
@@ -122,7 +124,15 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
     startTransition(async () => {
       const result = await converterLeadEmCliente(lead.id);
       setConvertendo(false);
-      if (!result.ok) setErroConversao(result.error);
+      if (!result.ok) {
+        setErroConversao(result.error);
+        return;
+      }
+      // O link só existe aqui nesta resposta — fica exposto até quem
+      // converteu copiar/enviar, mesmo depois do lead já ter `cliente_id`
+      // (a condição abaixo passa a checar `linkConversao` antes de trocar
+      // pro card "já convertido").
+      setLinkConversao(result.link);
     });
   }
 
@@ -163,8 +173,22 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
           })}
         </div>
 
-        {/* Conversão — some assim que já tem cliente_id vinculado */}
-        {lead.cliente_id ? (
+        {/* Conversão — some assim que já tem cliente_id vinculado, exceto
+            logo depois de converter: aí o link gerado (só existe na resposta
+            desta chamada, ver handleConverter) precisa ficar visível pra
+            copiar/enviar antes de sumir pro card de "já convertido". */}
+        {linkConversao ? (
+          <div className="mb-5">
+            <LinkAcessoGerado
+              link={linkConversao}
+              titulo={dict.comercial.linkAcessoTitulo}
+              ajuda={dict.comercial.linkAcessoAjuda}
+              copiarLabel={dict.common.copiarLink}
+              copiadoLabel={dict.common.linkCopiado}
+              whatsappLabel={dict.common.enviarPorWhatsapp}
+            />
+          </div>
+        ) : lead.cliente_id ? (
           <div className="mb-5 flex items-center gap-2 rounded-lg border border-status-good/30 bg-status-good/10 px-3.5 py-2.5">
             <IconCheck className="h-4 w-4 shrink-0 text-status-good" />
             <p className="text-xs text-ink-primary">

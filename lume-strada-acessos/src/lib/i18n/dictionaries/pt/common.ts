@@ -46,6 +46,10 @@ export interface CommonDict {
   dataPlaceholder: string;
   mostrarValores: string;
   ocultarValores: string;
+  concluir: string;
+  copiarLink: string;
+  linkCopiado: string;
+  enviarPorWhatsapp: string;
 }
 
 export const common: CommonDict = {
@@ -89,4 +93,8 @@ export const common: CommonDict = {
   dataPlaceholder: "dd/mm/aaaa",
   mostrarValores: "Mostrar valores",
   ocultarValores: "Ocultar valores",
+  concluir: "Concluir",
+  copiarLink: "Copiar link",
+  linkCopiado: "Copiado!",
+  enviarPorWhatsapp: "Abrir no WhatsApp",
 };

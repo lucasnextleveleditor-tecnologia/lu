@@ -1,9 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, gerarLinkConvite } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/auth/requireAdmin";
 import type { StatusEmpresa } from "@/lib/types/super-admin";
+import type { AcessoGeradoResult } from "@/lib/types/acesso";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
@@ -115,7 +116,7 @@ export async function removerEmpresa(id: string): Promise<ActionResult> {
  * Empresa); dar um segundo `expires_at` pro dono junto criaria dois
  * relógios pra mesma coisa e confundiria qual vence primeiro.
  */
-export async function gerarAcessoCompanyAdmin(companyId: string, input: { email: string; nome: string }): Promise<ActionResult> {
+export async function gerarAcessoCompanyAdmin(companyId: string, input: { email: string; nome: string }): Promise<AcessoGeradoResult> {
   try {
     await requireSuperAdmin();
 
@@ -131,21 +132,23 @@ export async function gerarAcessoCompanyAdmin(companyId: string, input: { email:
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-    const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+    // Ver `gerarLinkConvite` (lib/supabase/admin.ts) — não usa mais
+    // `inviteUserByEmail` (e-mail automático, rate limit baixo); gera o
+    // usuário e devolve o link pra quem chamou copiar/enviar manualmente.
+    const gerado = await gerarLinkConvite(admin, email, {
       data: { full_name: nome, company_id: companyId },
       redirectTo: `${siteUrl}/auth/callback`,
     });
-    if (inviteError) return { ok: false, error: inviteError.message };
-    if (!invited.user) return { ok: false, error: "Convite não retornou um usuário." };
+    if (!gerado.ok) return gerado;
 
     // Promove pra 'admin' DAQUELA empresa — sem isso o convidado nasceria
     // como 'cliente' (padrão do trigger) e não conseguiria nem entrar no
     // próprio painel recém-comprado.
-    const { error: erroPromocao } = await admin.from("profiles").update({ role: "admin" }).eq("id", invited.user.id);
+    const { error: erroPromocao } = await admin.from("profiles").update({ role: "admin" }).eq("id", gerado.userId);
     if (erroPromocao) return { ok: false, error: erroPromocao.message };
 
     revalidatePath(PATH);
-    return { ok: true };
+    return { ok: true, link: gerado.link };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }

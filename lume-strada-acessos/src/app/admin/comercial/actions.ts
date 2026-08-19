@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin, requireModulo } from "@/lib/auth/requireAdmin";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, gerarLinkConvite } from "@/lib/supabase/admin";
 import type { OrigemLead, StatusLead } from "@/lib/types/comercial";
+import type { AcessoGeradoResult } from "@/lib/types/acesso";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
@@ -144,16 +145,16 @@ export async function criarAnotacao(leadId: string, nota: string, proximoContato
 // nova tabela `clientes` (cadastro rico); se quiser o cadastro completo
 // também, crie-o manualmente na aba Clientes depois.
 // ----------------------------------------------------------------------------
-export async function converterLeadEmCliente(leadId: string): Promise<ActionResult> {
+export async function converterLeadEmCliente(leadId: string): Promise<AcessoGeradoResult> {
   try {
     // Admin-only de propósito (igual Equipe/Aparência em requireAdmin.ts) —
     // essa ação cria uma conta de acesso de verdade via Service Role
-    // (`admin.auth.admin.inviteUserByEmail`), não é só um CRUD dentro do
-    // módulo Comercial. Antes usava `requireModulo("comercial")`, que
-    // deixava qualquer funcionário com a permissão "Comercial" ligada capaz
-    // de criar contas de login — a mesma ação sensível que só admin pode
-    // fazer em Equipe/Gerar Acesso.
-    const { supabase } = await requireAdmin();
+    // (`gerarLinkConvite`), não é só um CRUD dentro do módulo Comercial.
+    // Antes usava `requireModulo("comercial")`, que deixava qualquer
+    // funcionário com a permissão "Comercial" ligada capaz de criar contas
+    // de login — a mesma ação sensível que só admin pode fazer em
+    // Equipe/Gerar Acesso.
+    const { supabase, companyId } = await requireAdmin();
 
     const { data: lead, error: erroLead } = await supabase.from("crm_leads").select("nome, email, cliente_id").eq("id", leadId).single();
     if (erroLead || !lead) return { ok: false, error: erroLead?.message ?? "Lead não encontrado." };
@@ -163,24 +164,31 @@ export async function converterLeadEmCliente(leadId: string): Promise<ActionResu
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     const admin = createAdminClient();
 
-    const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(lead.email, {
-      data: { full_name: lead.nome },
+    // `company_id` nos metadados é OBRIGATÓRIO (mesma nota de
+    // `gerarAcessoCliente` em `app/admin/actions.ts`) — antes desta função
+    // não passava `company_id` aqui, e o trigger `handle_new_user` recusa
+    // (constraint `profiles_company_id_invariante`) criar um perfil
+    // não-super_admin sem empresa. Na prática, converter QUALQUER lead
+    // quebrava com "Convite não retornou um usuário" depois da migração
+    // multi-tenant — bug real corrigido junto com a troca pra
+    // `gerarLinkConvite`.
+    const gerado = await gerarLinkConvite(admin, lead.email, {
+      data: { full_name: lead.nome, company_id: companyId },
       redirectTo: `${siteUrl}/auth/callback`,
     });
-    if (inviteError) return { ok: false, error: inviteError.message };
-    if (!invited.user) return { ok: false, error: "Convite não retornou um usuário." };
+    if (!gerado.ok) return gerado;
 
     // O trigger `handle_new_user` já criou o profile (role 'cliente'). Só
     // vinculamos o lead a esse profile e registramos quando converteu.
     const { error: erroVinculo } = await supabase
       .from("crm_leads")
-      .update({ cliente_id: invited.user.id, convertido_em: new Date().toISOString(), status: "fechado_ganha" })
+      .update({ cliente_id: gerado.userId, convertido_em: new Date().toISOString(), status: "fechado_ganha" })
       .eq("id", leadId);
     if (erroVinculo) return { ok: false, error: erroVinculo.message };
 
     revalidatePath(PATH);
     revalidatePath("/admin");
-    return { ok: true };
+    return { ok: true, link: gerado.link };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }

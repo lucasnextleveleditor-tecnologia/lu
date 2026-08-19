@@ -1,10 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, gerarLinkConvite } from "@/lib/supabase/admin";
 import { requireAdmin, requireModulo } from "@/lib/auth/requireAdmin";
 import type { PermissoesFuncionario, PreferenciasDashboard } from "@/lib/types/database";
 import type { ClienteAtividadeRow, TipoAtividadeCliente } from "@/lib/types/cadastros";
+import type { AcessoGeradoResult } from "@/lib/types/acesso";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
@@ -170,7 +171,7 @@ export async function removerMembroEquipe(id: string): Promise<ActionResult> {
 // ----------------------------------------------------------------------------
 
 /** Cliente: acesso simples — só data de expiração opcional. O `role` continua 'cliente' (o padrão do trigger `handle_new_user`), então não precisa promover nada depois do convite. */
-export async function gerarAcessoCliente(clienteId: string, input: { email: string; expiresAt: string | null }): Promise<ActionResult> {
+export async function gerarAcessoCliente(clienteId: string, input: { email: string; expiresAt: string | null }): Promise<AcessoGeradoResult> {
   try {
     const { supabase, companyId } = await requireAdmin();
 
@@ -192,27 +193,27 @@ export async function gerarAcessoCliente(clienteId: string, input: { email: stri
     // `handle_new_user` (ver `supabase/multitenant-migration.sql`) lê pra
     // gravar o novo perfil já na MESMA empresa de quem convidou. Sem isso a
     // inserção do perfil falharia (a empresa é obrigatória pra todo mundo
-    // que não é super_admin).
-    const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+    // que não é super_admin). Ver `gerarLinkConvite` (lib/supabase/admin.ts)
+    // pra por que isso não usa mais `inviteUserByEmail`.
+    const gerado = await gerarLinkConvite(admin, email, {
       data: { full_name: cliente.nome, company_id: companyId },
       redirectTo: `${siteUrl}/auth/callback`,
     });
-    if (inviteError) return { ok: false, error: inviteError.message };
-    if (!invited.user) return { ok: false, error: "Convite não retornou um usuário." };
+    if (!gerado.ok) return gerado;
 
     if (input.expiresAt) {
       const { error: erroExpiracao } = await admin
         .from("profiles")
         .update({ expires_at: new Date(input.expiresAt).toISOString() })
-        .eq("id", invited.user.id);
+        .eq("id", gerado.userId);
       if (erroExpiracao) return { ok: false, error: erroExpiracao.message };
     }
 
-    const { error: erroVinculo } = await admin.from("clientes").update({ profile_id: invited.user.id }).eq("id", clienteId);
+    const { error: erroVinculo } = await admin.from("clientes").update({ profile_id: gerado.userId }).eq("id", clienteId);
     if (erroVinculo) return { ok: false, error: erroVinculo.message };
 
     revalidatePath(PATH);
-    return { ok: true };
+    return { ok: true, link: gerado.link };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
@@ -227,7 +228,7 @@ export async function gerarAcessoCliente(clienteId: string, input: { email: stri
 export async function gerarAcessoFuncionario(
   membroId: string,
   input: { email: string; permissoes: PermissoesFuncionario; expiresAt: string | null }
-): Promise<ActionResult> {
+): Promise<AcessoGeradoResult> {
   try {
     const { supabase, companyId } = await requireAdmin();
 
@@ -247,12 +248,11 @@ export async function gerarAcessoFuncionario(
 
     // Mesma nota de `gerarAcessoCliente` acima — `company_id` nos metadados
     // do convite é o que faz o novo perfil nascer já na empresa certa.
-    const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+    const gerado = await gerarLinkConvite(admin, email, {
       data: { full_name: membro.nome, company_id: companyId },
       redirectTo: `${siteUrl}/auth/callback`,
     });
-    if (inviteError) return { ok: false, error: inviteError.message };
-    if (!invited.user) return { ok: false, error: "Convite não retornou um usuário." };
+    if (!gerado.ok) return gerado;
 
     const updates: { role: string; permissoes: PermissoesFuncionario; expires_at?: string } = {
       role: "funcionario",
@@ -260,14 +260,14 @@ export async function gerarAcessoFuncionario(
     };
     if (input.expiresAt) updates.expires_at = new Date(input.expiresAt).toISOString();
 
-    const { error: erroPromocao } = await admin.from("profiles").update(updates).eq("id", invited.user.id);
+    const { error: erroPromocao } = await admin.from("profiles").update(updates).eq("id", gerado.userId);
     if (erroPromocao) return { ok: false, error: erroPromocao.message };
 
-    const { error: erroVinculo } = await admin.from("equipe_membros").update({ profile_id: invited.user.id }).eq("id", membroId);
+    const { error: erroVinculo } = await admin.from("equipe_membros").update({ profile_id: gerado.userId }).eq("id", membroId);
     if (erroVinculo) return { ok: false, error: erroVinculo.message };
 
     revalidatePath(PATH);
-    return { ok: true };
+    return { ok: true, link: gerado.link };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }

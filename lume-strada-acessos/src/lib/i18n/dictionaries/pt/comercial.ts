@@ -63,6 +63,8 @@ export interface ComercialDict {
   /** `{etapa}` é substituído pelo nome da etapa "Fechado (Ganha)". */
   converterHintIndisponivel: string;
   convertendo: string;
+  linkAcessoTitulo: string;
+  linkAcessoAjuda: string;
   excluirLeadPergunta: string;
   simExcluir: string;
   excluirLeadBotao: string;
@@ -152,9 +154,11 @@ export const comercial: ComercialDict = {
   convertidoEmPrefixo: "em",
   convertidoRodape: "já aparece em Clientes & Acessos.",
   converterTitulo: "Converter em Cliente",
-  converterHintDisponivel: "Envia um convite de acesso pro e-mail do lead e cria o perfil oficial em Clientes & Acessos.",
+  converterHintDisponivel: "Gera um link de acesso pro e-mail do lead e cria o perfil oficial em Clientes & Acessos.",
   converterHintIndisponivel: "Disponível quando o lead tiver um e-mail cadastrado — recomendado ao chegar em {etapa}.",
   convertendo: "Convertendo...",
+  linkAcessoTitulo: "Acesso gerado",
+  linkAcessoAjuda: "Copie esse link e envie manualmente pro cliente (WhatsApp, e-mail, etc.) — ele usa pra criar a senha e entrar no painel.",
   excluirLeadPergunta: "Excluir este lead?",
   simExcluir: "Sim, excluir",
   excluirLeadBotao: "Excluir Lead",

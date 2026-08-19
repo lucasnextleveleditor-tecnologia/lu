@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Switch } from "@/components/ui/Switch";
+import { LinkAcessoGerado } from "@/components/ui/LinkAcessoGerado";
 
 interface AcessoFuncionarioModalProps {
   membro: EquipeMembroRow;
@@ -35,6 +36,7 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
+  const [link, setLink] = useState<string | null>(null);
 
   const jaTemAcesso = Boolean(profile);
 
@@ -69,7 +71,10 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
       setError(result.error);
       return;
     }
-    onClose();
+    // Fica aberto mostrando o link (LinkAcessoGerado) em vez de fechar
+    // sozinho — sem isso o link gerado nunca chegaria a aparecer pra
+    // ninguém copiar.
+    setLink(result.link);
   }
 
   async function handleSalvarPermissoes() {
@@ -110,87 +115,107 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
           </button>
         </div>
 
-        {jaTemAcesso && profile && (
-          <div className="mb-5 rounded-xl border border-base-800 bg-base-950/40 p-4">
-            <AcessoStatusControls profile={profile} editavel />
-          </div>
-        )}
-
-        {!jaTemAcesso && (
-          <div className="mb-5 space-y-4">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.emailLoginLabel}</label>
-              <Input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={dict.cadastros.emailFuncionarioPlaceholder}
-              />
-              <p className="mt-1 text-xs text-ink-muted">{dict.cadastros.conviteFuncionarioAjuda}</p>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.dataExpiracaoLabel}</label>
-              <DatePicker value={expiresAt} onChange={setExpiresAt} clearable />
+        {link ? (
+          <div className="space-y-4">
+            <LinkAcessoGerado
+              link={link}
+              titulo={dict.cadastros.linkAcessoTitulo}
+              ajuda={dict.cadastros.linkAcessoAjuda}
+              copiarLabel={dict.common.copiarLink}
+              copiadoLabel={dict.common.linkCopiado}
+              whatsappLabel={dict.common.enviarPorWhatsapp}
+            />
+            <div className="flex justify-end">
+              <Button type="button" onClick={onClose}>
+                {dict.common.concluir}
+              </Button>
             </div>
           </div>
-        )}
-
-        <div className="mb-5">
-          <p className="mb-1 text-sm font-semibold text-ink-primary">{dict.cadastros.modulosLiberadosTitulo}</p>
-          <p className="mb-3 text-xs text-ink-muted">{dict.cadastros.modulosLiberadosAjuda}</p>
-          <div className="divide-y divide-base-800 rounded-xl border border-base-800">
-            {MODULOS_PERMISSAO.map((modulo) => (
-              <div key={modulo.chave} className="flex items-center justify-between gap-3 px-4 py-3">
-                <div>
-                  <p className="text-sm text-ink-primary">{modulo.label}</p>
-                  <p className="text-xs text-ink-muted">{modulo.hint}</p>
-                </div>
-                <Switch checked={Boolean(permissoes[modulo.chave])} onChange={() => alternarPermissao(modulo.chave)} label={modulo.label} />
+        ) : (
+          <>
+            {jaTemAcesso && profile && (
+              <div className="mb-5 rounded-xl border border-base-800 bg-base-950/40 p-4">
+                <AcessoStatusControls profile={profile} editavel />
               </div>
-            ))}
-          </div>
-        </div>
+            )}
 
-        {jaTemAcesso && profile && (
-          <div className="mb-5">
-            <p className="mb-1 text-sm font-semibold text-ink-primary">Cards do Dashboard</p>
-            <p className="mb-3 text-xs text-ink-muted">
-              Escolha o que aparece na Visão Geral desse funcionário — os cards de módulo (Financeiro/Inventário/Tráfego/WhatsApp) só
-              aparecem se o módulo acima também estiver liberado.
-            </p>
-            <div className="grid grid-cols-1 gap-x-3 gap-y-1 rounded-xl border border-base-800 p-2 sm:grid-cols-2">
-              {CARDS_DASHBOARD.map((card) => (
-                <div key={card.chave} className="flex items-center justify-between gap-3 rounded-lg px-2.5 py-2">
-                  <p className="text-sm leading-tight text-ink-primary">{card.label}</p>
-                  <Switch
-                    checked={dashboardConfig[card.chave] !== false}
-                    onChange={() => alternarCardDashboard(card.chave)}
-                    label={card.label}
+            {!jaTemAcesso && (
+              <div className="mb-5 space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.emailLoginLabel}</label>
+                  <Input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={dict.cadastros.emailFuncionarioPlaceholder}
                   />
+                  <p className="mt-1 text-xs text-ink-muted">{dict.cadastros.conviteFuncionarioAjuda}</p>
                 </div>
-              ))}
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.dataExpiracaoLabel}</label>
+                  <DatePicker value={expiresAt} onChange={setExpiresAt} clearable />
+                </div>
+              </div>
+            )}
+
+            <div className="mb-5">
+              <p className="mb-1 text-sm font-semibold text-ink-primary">{dict.cadastros.modulosLiberadosTitulo}</p>
+              <p className="mb-3 text-xs text-ink-muted">{dict.cadastros.modulosLiberadosAjuda}</p>
+              <div className="divide-y divide-base-800 rounded-xl border border-base-800">
+                {MODULOS_PERMISSAO.map((modulo) => (
+                  <div key={modulo.chave} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <div>
+                      <p className="text-sm text-ink-primary">{modulo.label}</p>
+                      <p className="text-xs text-ink-muted">{modulo.hint}</p>
+                    </div>
+                    <Switch checked={Boolean(permissoes[modulo.chave])} onChange={() => alternarPermissao(modulo.chave)} label={modulo.label} />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+
+            {jaTemAcesso && profile && (
+              <div className="mb-5">
+                <p className="mb-1 text-sm font-semibold text-ink-primary">Cards do Dashboard</p>
+                <p className="mb-3 text-xs text-ink-muted">
+                  Escolha o que aparece na Visão Geral desse funcionário — os cards de módulo (Financeiro/Inventário/Tráfego/WhatsApp) só
+                  aparecem se o módulo acima também estiver liberado.
+                </p>
+                <div className="grid grid-cols-1 gap-x-3 gap-y-1 rounded-xl border border-base-800 p-2 sm:grid-cols-2">
+                  {CARDS_DASHBOARD.map((card) => (
+                    <div key={card.chave} className="flex items-center justify-between gap-3 rounded-lg px-2.5 py-2">
+                      <p className="text-sm leading-tight text-ink-primary">{card.label}</p>
+                      <Switch
+                        checked={dashboardConfig[card.chave] !== false}
+                        onChange={() => alternarCardDashboard(card.chave)}
+                        label={card.label}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {error && <p className="mb-3 text-sm text-danger">{error}</p>}
+            {salvo && <p className="mb-3 text-sm text-ink-secondary">Alterações salvas.</p>}
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={onClose}>
+                Fechar
+              </Button>
+              {jaTemAcesso ? (
+                <Button type="button" onClick={handleSalvarPermissoes} disabled={loading}>
+                  {loading ? "Salvando..." : "Salvar Alterações"}
+                </Button>
+              ) : (
+                <Button type="button" onClick={handleGerarAcesso} disabled={loading}>
+                  {loading ? dict.cadastros.enviando : dict.cadastros.gerarAcessoEnviarConvite}
+                </Button>
+              )}
+            </div>
+          </>
         )}
-
-        {error && <p className="mb-3 text-sm text-danger">{error}</p>}
-        {salvo && <p className="mb-3 text-sm text-ink-secondary">Alterações salvas.</p>}
-
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="ghost" onClick={onClose}>
-            Fechar
-          </Button>
-          {jaTemAcesso ? (
-            <Button type="button" onClick={handleSalvarPermissoes} disabled={loading}>
-              {loading ? "Salvando..." : "Salvar Alterações"}
-            </Button>
-          ) : (
-            <Button type="button" onClick={handleGerarAcesso} disabled={loading}>
-              {loading ? "Enviando..." : "Gerar Acesso e Enviar Convite"}
-            </Button>
-          )}
-        </div>
       </div>
     </div>
   );

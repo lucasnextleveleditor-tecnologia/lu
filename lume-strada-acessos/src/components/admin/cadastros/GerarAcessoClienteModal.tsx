@@ -7,6 +7,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { LinkAcessoGerado } from "@/components/ui/LinkAcessoGerado";
 
 export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: ClienteRow; onClose: () => void }) {
   const { dict } = useLocale();
@@ -14,6 +15,7 @@ export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: Cliente
   const [expiresAt, setExpiresAt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [link, setLink] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -25,7 +27,10 @@ export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: Cliente
       setError(result.error);
       return;
     }
-    onClose();
+    // Fica aberto mostrando o link (LinkAcessoGerado) em vez de fechar
+    // sozinho — sem isso o link gerado nunca chegaria a aparecer pra
+    // ninguém copiar.
+    setLink(result.link);
   }
 
   return (
@@ -40,29 +45,53 @@ export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: Cliente
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.emailLoginLabel}</label>
-            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={dict.cadastros.emailClientePlaceholder} />
-            <p className="mt-1 text-xs text-ink-muted">{dict.cadastros.conviteClienteAjuda}</p>
+        {link ? (
+          <div className="space-y-4">
+            <LinkAcessoGerado
+              link={link}
+              titulo={dict.cadastros.linkAcessoTitulo}
+              ajuda={dict.cadastros.linkAcessoAjuda}
+              copiarLabel={dict.common.copiarLink}
+              copiadoLabel={dict.common.linkCopiado}
+              whatsappLabel={dict.common.enviarPorWhatsapp}
+            />
+            <div className="flex justify-end pt-1">
+              <Button type="button" onClick={onClose}>
+                {dict.common.concluir}
+              </Button>
+            </div>
           </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.dataExpiracaoLabel}</label>
-            <DatePicker value={expiresAt} onChange={setExpiresAt} clearable />
-            <p className="mt-1 text-xs text-ink-muted">{dict.cadastros.semExpiracaoAjuda}</p>
-          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.emailLoginLabel}</label>
+              <Input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={dict.cadastros.emailClientePlaceholder}
+              />
+              <p className="mt-1 text-xs text-ink-muted">{dict.cadastros.conviteClienteAjuda}</p>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.cadastros.dataExpiracaoLabel}</label>
+              <DatePicker value={expiresAt} onChange={setExpiresAt} clearable />
+              <p className="mt-1 text-xs text-ink-muted">{dict.cadastros.semExpiracaoAjuda}</p>
+            </div>
 
-          {error && <p className="text-sm text-danger">{error}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
 
-          <div className="flex justify-end gap-2 pt-1">
-            <Button type="button" variant="ghost" onClick={onClose}>
-              {dict.common.cancelar}
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? dict.cadastros.enviando : dict.cadastros.gerarAcessoEnviarConvite}
-            </Button>
-          </div>
-        </form>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" variant="ghost" onClick={onClose}>
+                {dict.common.cancelar}
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? dict.cadastros.enviando : dict.cadastros.gerarAcessoEnviarConvite}
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

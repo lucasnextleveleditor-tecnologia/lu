@@ -52,11 +52,13 @@ export const cadastros: CadastrosDict = {
   emailLoginLabel: "Login email *",
   emailClientePlaceholder: "client@company.com",
   conviteClienteAjuda:
-    "The client receives an invite at this email to set a password and will only see their own dashboards (Traffic, Approvals, Invoices).",
+    "We generate an access link for this email to set a password — you copy and send it however you prefer (WhatsApp, email...). Once in, the client only sees their own dashboards (Traffic, Approvals, Invoices).",
   dataExpiracaoLabel: "Expiration date (optional)",
   semExpiracaoAjuda: "Leave blank for access with no set deadline.",
-  enviando: "Sending...",
-  gerarAcessoEnviarConvite: "Grant Access and Send Invite",
+  enviando: "Generating...",
+  gerarAcessoEnviarConvite: "Grant Access",
+  linkAcessoTitulo: "Access granted",
+  linkAcessoAjuda: "Copy this link and send it manually (WhatsApp, email, etc.) — the person uses it to set a password and log in.",
 
   loginLabel: "Login:",
   expiraEmLabel: "Expires on",
@@ -92,7 +94,7 @@ export const cadastros: CadastrosDict = {
   emailFuncionarioPlaceholder: "employee@agency.com",
   criarMembro: "Create Member",
 
-  conviteFuncionarioAjuda: "An invite with a password will be sent to this email.",
+  conviteFuncionarioAjuda: "We generate an access link for this email to set a password — you copy and send it however you prefer (WhatsApp, email...).",
   modulosLiberadosTitulo: "Unlocked Modules",
   modulosLiberadosAjuda: 'Block or unlock each menu area for this employee — e.g.: "Block Finance, Unlock Tasks".',
   cardsDashboardTitulo: "Dashboard Cards",

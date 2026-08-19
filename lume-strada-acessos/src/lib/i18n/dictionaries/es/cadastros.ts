@@ -52,11 +52,13 @@ export const cadastros: CadastrosDict = {
   emailLoginLabel: "Correo de acceso *",
   emailClientePlaceholder: "cliente@empresa.com",
   conviteClienteAjuda:
-    "El cliente recibe una invitación a este correo para definir la contraseña y pasa a ver solo sus propios paneles (Tráfico, Aprobaciones, Facturas).",
+    "Generamos un enlace de acceso para este correo definir la contraseña — usted lo copia y lo envía como prefiera (WhatsApp, correo...). Al entrar, el cliente ve solo sus propios paneles (Tráfico, Aprobaciones, Facturas).",
   dataExpiracaoLabel: "Fecha de expiración (opcional)",
   semExpiracaoAjuda: "Déjelo en blanco para un acceso sin plazo definido.",
-  enviando: "Enviando...",
-  gerarAcessoEnviarConvite: "Generar Acceso y Enviar Invitación",
+  enviando: "Generando...",
+  gerarAcessoEnviarConvite: "Generar Acceso",
+  linkAcessoTitulo: "Acceso generado",
+  linkAcessoAjuda: "Copie este enlace y envíelo manualmente (WhatsApp, correo, etc.) — la persona lo usa para definir la contraseña e iniciar sesión.",
 
   loginLabel: "Acceso:",
   expiraEmLabel: "Expira el",
@@ -92,7 +94,7 @@ export const cadastros: CadastrosDict = {
   emailFuncionarioPlaceholder: "empleado@agencia.com",
   criarMembro: "Crear Miembro",
 
-  conviteFuncionarioAjuda: "Se enviará una invitación con contraseña a este correo.",
+  conviteFuncionarioAjuda: "Generamos un enlace de acceso para este correo definir la contraseña — usted lo copia y lo envía como prefiera (WhatsApp, correo...).",
   modulosLiberadosTitulo: "Módulos Habilitados",
   modulosLiberadosAjuda: 'Bloquee o habilite cada área del menú para este empleado — ej: "Bloquear Finanzas, Habilitar Tareas".',
   cardsDashboardTitulo: "Tarjetas del Panel",

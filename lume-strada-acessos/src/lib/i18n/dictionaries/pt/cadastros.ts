@@ -66,6 +66,8 @@ export interface CadastrosDict {
   semExpiracaoAjuda: string;
   enviando: string;
   gerarAcessoEnviarConvite: string;
+  linkAcessoTitulo: string;
+  linkAcessoAjuda: string;
 
   // AcessoStatusControls
   loginLabel: string;
@@ -167,11 +169,13 @@ export const cadastros: CadastrosDict = {
   emailLoginLabel: "E-mail de login *",
   emailClientePlaceholder: "cliente@empresa.com",
   conviteClienteAjuda:
-    "O cliente recebe um convite nesse e-mail pra definir a senha e passa a ver só os dashboards dele (Tráfego, Aprovações, Boletos).",
+    "Geramos um link de acesso pra esse e-mail definir a senha — você copia e envia por onde preferir (WhatsApp, e-mail...). Depois de entrar, o cliente vê só os dashboards dele (Tráfego, Aprovações, Boletos).",
   dataExpiracaoLabel: "Data de expiração (opcional)",
   semExpiracaoAjuda: "Deixe em branco para acesso sem prazo definido.",
-  enviando: "Enviando...",
-  gerarAcessoEnviarConvite: "Gerar Acesso e Enviar Convite",
+  enviando: "Gerando...",
+  gerarAcessoEnviarConvite: "Gerar Acesso",
+  linkAcessoTitulo: "Acesso gerado",
+  linkAcessoAjuda: "Copie esse link e envie manualmente (WhatsApp, e-mail, etc.) — a pessoa usa ele pra criar a senha e entrar no painel.",
 
   loginLabel: "Login:",
   expiraEmLabel: "Expira em",
@@ -207,7 +211,7 @@ export const cadastros: CadastrosDict = {
   emailFuncionarioPlaceholder: "funcionario@agencia.com",
   criarMembro: "Criar Membro",
 
-  conviteFuncionarioAjuda: "Um convite com senha vai ser enviado pra esse e-mail.",
+  conviteFuncionarioAjuda: "Geramos um link de acesso pra esse e-mail definir a senha — você copia e envia por onde preferir (WhatsApp, e-mail...).",
   modulosLiberadosTitulo: "Módulos Liberados",
   modulosLiberadosAjuda: 'Bloqueie ou libere cada área do menu pra esse funcionário — ex: "Bloquear Financeiro, Liberar Tarefas".',
   cardsDashboardTitulo: "Cards do Dashboard",

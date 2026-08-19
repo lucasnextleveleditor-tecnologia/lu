@@ -11,8 +11,9 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  * também rode no navegador — é a rede de segurança contra vazar a Service
  * Role Key no bundle do cliente.
  *
- * Usado neste projeto pra: (1) convidar clientes/funcionários por e-mail
- * (`auth.admin.inviteUserByEmail`) e (2) o Dashboard do CLIENTE
+ * Usado neste projeto pra: (1) gerar o link de acesso de clientes/
+ * funcionários/donos de empresa (`auth.admin.generateLink`, ver
+ * `gerarLinkConvite` abaixo) e (2) o Dashboard do CLIENTE
  * (`src/app/dashboard/actions.ts`) ler/aprovar entregas de Produção — a RLS
  * dessas tabelas (`is_staff()`) bloqueia um cliente por completo, então a
  * checagem de posse (`tarefa.cliente_id === user.id`) é feita na aplicação
@@ -36,4 +37,42 @@ export function createAdminClient() {
   return createSupabaseClient(url, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+}
+
+/**
+ * Gera um link de acesso (convite) via Admin API — `generateLink({ type:
+ * "invite" })` — SEM disparar e-mail nenhum. É a função usada por TODA ação
+ * de "Gerar acesso" do sistema (`gerarAcessoCliente`, `gerarAcessoFuncionario`,
+ * `gerarAcessoCompanyAdmin`, `converterLeadEmCliente`).
+ *
+ * Substituiu `inviteUserByEmail` de propósito: aquele método soma duas
+ * coisas numa chamada só — criar o usuário E mandar o e-mail pelo serviço
+ * embutido do Supabase, que tem um rate limit baixíssimo (pensado só pra
+ * teste, ver `MIGRACAO-MULTI-TENANT.md`) e depende de "Redirect URLs"
+ * configurada certinho no dashboard; qualquer um dos dois quebrando (limite
+ * batido, link caindo em localhost, token de uso único queimado num clique
+ * que falhou) derrubava o convite inteiro. `generateLink` faz só a metade
+ * que realmente precisa da Service Role (criar o usuário) e devolve o link
+ * pronto (`action_link`) pra quem chamou decidir como entregar — copiar e
+ * mandar no WhatsApp do cliente, colar num e-mail manual, etc. Sem e-mail
+ * automático não existe rate limit, então essa chamada nunca falha por causa
+ * disso.
+ *
+ * `type: "invite"` funciona tanto pra criar um usuário novo quanto pra gerar
+ * um link novo pra um usuário que já existe mas ainda não confirmou o
+ * primeiro (reenvio) — não precisa de um caminho separado pra "reenviar".
+ */
+export async function gerarLinkConvite(
+  admin: ReturnType<typeof createAdminClient>,
+  email: string,
+  options: { data?: Record<string, unknown>; redirectTo: string }
+): Promise<{ ok: true; link: string; userId: string } | { ok: false; error: string }> {
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "invite",
+    email,
+    options: { data: options.data, redirectTo: options.redirectTo },
+  });
+  if (error) return { ok: false, error: error.message };
+  if (!data.user) return { ok: false, error: "Geração de link não retornou um usuário." };
+  return { ok: true, link: data.properties.action_link, userId: data.user.id };
 }
