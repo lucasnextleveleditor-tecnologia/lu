@@ -1,0 +1,60 @@
+ARQUIVOS ALTERADOS/NOVOS NESTA SESSÃO
+======================================
+
+Este zip mantém a MESMA estrutura de pastas do projeto (src/..., supabase/...).
+Descompacte na raiz do seu clone Git local (sobrescrevendo os arquivos
+existentes) e depois rode:
+
+    git status
+    git add -A
+    git commit -m "fix: whatsapp multi-tenant + nome do app personalizável"
+    git push
+
+A Vercel deve disparar o deploy automaticamente depois do push.
+
+--------------------------------------------------------------------------
+1) Painel Super Admin — "Enviar link" / "Reenviar acesso"
+--------------------------------------------------------------------------
+src/components/super-admin/CompaniesManager.tsx
+src/components/super-admin/AcessosEmpresaModal.tsx
+
+--------------------------------------------------------------------------
+2) Erro "column whatsapp_sessoes.singleton does not exist" + bug de
+   isolamento entre empresas no webhook do WhatsApp
+--------------------------------------------------------------------------
+src/app/admin/whatsapp/actions.ts
+src/app/admin/whatsapp/conexao/page.tsx
+src/app/admin/dashboard/page.tsx
+src/app/api/whatsapp/webhook/route.ts
+supabase/whatsapp-multitenant-fix.sql   (já aplicado no banco — só documentação)
+
+--------------------------------------------------------------------------
+3) Nome do App (nunca mais "Lume Strada Filmes" em lugar nenhum visível)
+--------------------------------------------------------------------------
+src/components/admin/AdminShell.tsx              -> sidebar do admin
+src/app/admin/layout.tsx                          -> busca nome_app
+src/app/dashboard/layout.tsx                      -> header do cliente
+src/lib/branding/getNomeApp.ts                    -> NOVO
+src/lib/branding/constants.ts                     -> default genérico
+src/lib/types/super-admin.ts                      -> tipo CompanyRow
+src/app/admin/aparencia/actions.ts                -> nova Server Action atualizarNomeApp
+src/app/admin/aparencia/page.tsx
+src/components/admin/aparencia/AparenciaForm.tsx  -> campo "Nome do App"
+src/app/layout.tsx                                -> título da aba do navegador
+src/lib/i18n/dictionaries/{pt,en,es}/aparencia.ts
+src/lib/i18n/dictionaries/{pt,en,es}/login.ts
+src/lib/i18n/dictionaries/{pt,en,es}/cliente.ts
+supabase/companies-nome-app.sql                   (já aplicado no banco — só documentação)
+
+--------------------------------------------------------------------------
+4) Categorias padrão do Financeiro (já aplicado no banco, arquivo é só doc)
+--------------------------------------------------------------------------
+supabase/financeiro-categorias-por-empresa.sql    -> NOVO
+supabase/financeiro-categorias.sql                -> nota no topo apontando pro novo
+supabase/schema.sql                               -> default do login_title
+
+--------------------------------------------------------------------------
+IMPORTANTE: tudo em supabase/*.sql já foi aplicado direto no banco de
+produção pelo MCP do Supabase — você NÃO precisa rodar esses .sql de novo.
+Eles estão aqui só pra manter a pasta supabase/ do seu repositório
+sincronizada com o que já está no banco.
