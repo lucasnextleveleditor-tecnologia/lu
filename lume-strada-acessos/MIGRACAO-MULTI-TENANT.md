@@ -101,13 +101,16 @@ Rodar `supabase/multitenant-migration.sql` (depois de trocar o e-mail placeholde
 
 O arquivo é idempotente (seguro rodar mais de uma vez) e roda como uma transação só — se qualquer passo falhar no meio, o Postgres desfaz tudo.
 
-## 7. Sobre aplicar isso em produção
+## 7. Status: JÁ APLICADA em produção
 
-As migrações anteriores deste projeto (menores, ex: `producao-sync-funcionarios.sql`) foram aplicadas direto no banco de produção durante a sessão, a pedido explícito. **Esta é diferente**: reescreve política de segurança de praticamente toda tabela do sistema de uma vez. Por isso, **não apliquei esta automaticamente** — ela está pronta para revisão e para ser rodada quando você decidir.
+Esta migração **já foi aplicada** no banco de produção (projeto `ifoggohkikwtnnhmhwoe`), a seu pedido explícito, em 19/08/2026. O "PASSO 0" foi resolvido usando `lucasmelo748@icloud.com` — o único perfil com `role = 'admin'` encontrado no banco antes da migração — que agora é `super_admin`.
 
-Duas formas de aplicar, em ordem de segurança:
+Verificado após a aplicação:
+- `lucasmelo748@icloud.com` está com `role = 'super_admin'` e `company_id = null`.
+- Existe 1 empresa, "Lume Strada Filmes", e todo o resto dos perfis/dados existentes foi migrado para ela (0 perfis órfãos sem empresa).
+- RLS está ativo (`rowsecurity = true`) em `companies` e em todas as tabelas operacionais verificadas.
+- `get_advisors` (segurança) não mostrou nenhum problema novo além do padrão já existente antes da migração (as mesmas funções `SECURITY DEFINER` expostas via RPC que `is_admin()`/`is_staff()` já tinham — comportamento esperado, não uma regressão).
 
-1. **Recomendado — testar antes num branch do Supabase.** O projeto tem acesso às ferramentas de Branching do Supabase (`create_branch`/`merge_branch`), que criam uma cópia isolada do banco pra testar a migração inteira sem tocar em produção. Se quiser, eu crio esse branch, aplico a migração nele, confirmo que tudo funciona (login, RLS, o painel novo) e só depois aplico (`merge_branch`) em produção.
-2. **Direto em produção**, do mesmo jeito que as migrações anteriores — rodando o SQL Editor do Supabase manualmente, ou me pedindo para aplicar via `apply_migration`.
+Durante a aplicação, um bug real foi encontrado e corrigido: as 3 views recriadas na Seção 7 originalmente colocavam `company_id` logo depois da coluna de id (ex: `c.id as conta_id, c.company_id, c.nome, ...`) — o Postgres rejeita isso com `cannot change name of view column`, porque `CREATE OR REPLACE VIEW` só permite ACRESCENTAR coluna no final, nunca mudar nome/posição de uma coluna existente. Corrigido movendo `company_id` para o final da lista de colunas nas 3 views (`fin_contas_saldo`, `fin_cartoes_limite`, `prod_entregas_atual`) — o arquivo `supabase/multitenant-migration.sql` já reflete a versão corrigida, e é essa versão que está rodando em produção agora.
 
-Qualquer uma das duas, o "PASSO 0" precisa ser resolvido antes: trocar o e-mail placeholder pelo seu e-mail de login de verdade.
+Nenhuma ação adicional é necessária no Supabase para esta etapa — só rodar as próximas migrações que forem criadas depois desta.

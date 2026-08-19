@@ -681,11 +681,15 @@ create policy "whatsapp_mensagens_admin_all" on public.whatsapp_mensagens
 -- as 3 com `security_invoker = true`, que passa a respeitar a RLS de quem
 -- está de fato consultando.
 -- ============================================================================
+-- NOTA: `company_id` vai no FINAL da lista de colunas em cada view, não
+-- misturado no meio — `CREATE OR REPLACE VIEW` do Postgres proíbe mudar o
+-- NOME ou a ORDEM de uma coluna já existente (só permite acrescentar coluna
+-- nova no final); colocar `company_id` logo depois do id, como numa tabela
+-- normal, quebra a substituição com "cannot change name of view column".
 create or replace view public.fin_contas_saldo
 with (security_invoker = true) as
 select
   c.id as conta_id,
-  c.company_id,
   c.nome,
   c.contexto,
   c.saldo_inicial,
@@ -697,30 +701,30 @@ select
       when t.conta_destino_id = c.id and t.tipo = 'transferencia' and t.pago then t.valor
       else 0
     end
-  ), 0) as saldo_atual
+  ), 0) as saldo_atual,
+  c.company_id
 from public.fin_contas c
 left join public.fin_transacoes t on t.conta_id = c.id or t.conta_destino_id = c.id
-group by c.id, c.company_id, c.nome, c.contexto, c.saldo_inicial;
+group by c.id, c.nome, c.contexto, c.saldo_inicial, c.company_id;
 
 create or replace view public.fin_cartoes_limite
 with (security_invoker = true) as
 select
   cc.id as cartao_id,
-  cc.company_id,
   cc.nome,
   cc.contexto,
   cc.limite,
   coalesce(sum(t.valor) filter (where t.cartao_id = cc.id and not t.fatura_paga), 0) as limite_consumido,
-  cc.limite - coalesce(sum(t.valor) filter (where t.cartao_id = cc.id and not t.fatura_paga), 0) as limite_disponivel
+  cc.limite - coalesce(sum(t.valor) filter (where t.cartao_id = cc.id and not t.fatura_paga), 0) as limite_disponivel,
+  cc.company_id
 from public.fin_cartoes cc
 left join public.fin_transacoes t on t.cartao_id = cc.id
-group by cc.id, cc.company_id, cc.nome, cc.contexto, cc.limite;
+group by cc.id, cc.nome, cc.contexto, cc.limite, cc.company_id;
 
 create or replace view public.prod_entregas_atual
 with (security_invoker = true) as
 select
   e.id as entrega_id,
-  e.company_id,
   e.tarefa_id,
   e.nome,
   v.id as versao_id,
@@ -736,7 +740,8 @@ select
   v.enviado_por,
   v.aprovado_por,
   v.aprovado_em,
-  v.created_at
+  v.created_at,
+  e.company_id
 from public.prod_entregas e
 left join lateral (
   select * from public.prod_entrega_versoes pv

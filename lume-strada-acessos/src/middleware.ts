@@ -116,14 +116,26 @@ export async function middleware(request: NextRequest) {
     }
 
     if (user) {
-      // `companies(status, expires_at)` é um select relacional (segue a FK
-      // `profiles.company_id -> companies.id`) — resolve o perfil E a
-      // licença da empresa dele numa query só, sem uma segunda ida ao banco
-      // a cada request. Pra `super_admin` (sem `company_id`), `companies`
-      // vem `null` — tratado abaixo, nunca barrado por licença de empresa.
+      // `companies!company_id(status, expires_at)` é um select relacional
+      // (segue a FK `profiles.company_id -> companies.id`) — resolve o
+      // perfil E a licença da empresa dele numa query só, sem uma segunda
+      // ida ao banco a cada request. Pra `super_admin` (sem `company_id`),
+      // `companies` vem `null` — tratado abaixo, nunca barrado por licença
+      // de empresa.
+      //
+      // O hint `!company_id` (em vez de só `companies(...)`) é OBRIGATÓRIO
+      // aqui: existem DUAS foreign keys entre `profiles` e `companies`
+      // (`profiles.company_id -> companies.id`, usada aqui, E
+      // `companies.created_by -> profiles.id`, o "quem cadastrou" da
+      // empresa). Sem o hint, o PostgREST não sabe qual das duas relações
+      // usar pra montar o embed e devolve HTTP 300 (Multiple Choices) —
+      // que o Supabase JS trata como erro, `profile` vem `null`, e todo
+      // mundo (inclusive o super_admin) cai em /acesso-expirado por
+      // segurança. Bug real encontrado em produção logo após aplicar
+      // `supabase/multitenant-migration.sql` — ver `MIGRACAO-MULTI-TENANT.md`.
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role, active, expires_at, company_id, companies(status, expires_at)")
+        .select("role, active, expires_at, company_id, companies!company_id(status, expires_at)")
         .eq("id", user.id)
         .single()
         .overrideTypes<
