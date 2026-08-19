@@ -1,6 +1,14 @@
 -- ============================================================================
 -- Agência Hub — Financeiro: categorias padrão (emoji + cor)
 -- ============================================================================
+-- ATENÇÃO: este arquivo semeava a lista padrão UMA VEZ, globalmente, antes
+-- da migração multi-tenant (`multitenant-migration.sql`). Depois dela,
+-- `fin_categorias` passou a ter `company_id`, e este insert sozinho não
+-- cobre empresa nenhuma nova. A semeadura por empresa (gatilho + backfill +
+-- lista atualizada, com Vestuário e Presentes & Doações a mais) está em
+-- `financeiro-categorias-por-empresa.sql` — é esse arquivo que roda hoje,
+-- este aqui fica só como histórico de como a lista original nasceu.
+--
 -- Rode DEPOIS de `financeiro.sql` (e de preferência depois de
 -- `correcoes-auditoria.sql`, só pra manter a ordem de sempre — não há
 -- dependência real entre os dois). Idempotente: seguro rodar de novo.
