@@ -18,7 +18,13 @@
  * é seguro voltar a parametrizar os clientes com ele.
  */
 
-export type PapelUsuario = "admin" | "funcionario" | "cliente";
+// "super_admin" foi adicionado pela migração multi-tenant (ver
+// `supabase/multitenant-migration.sql` e `MIGRACAO-MULTI-TENANT.md`) — é
+// você, dono do SaaS, sem `company_id`. Os outros 3 valores NÃO foram
+// renomeados pra COMPANY_ADMIN/COMPANY_USER de propósito (ver o motivo no
+// plano) — na prática 'admin' = dono da empresa compradora, 'funcionario' =
+// funcionário dela, 'cliente' = cliente daquela empresa.
+export type PapelUsuario = "admin" | "funcionario" | "cliente" | "super_admin";
 
 /** Chaves possíveis dentro de `permissoes` — mesma lista de `ModuloChave` em `lib/auth/requireAdmin.ts`, duplicada aqui só como tipo de dado (evita import circular). */
 export type PermissoesFuncionario = Partial<Record<"clientes" | "financeiro" | "producao" | "comercial" | "trafego" | "inventario" | "whatsapp", boolean>>;
@@ -58,6 +64,7 @@ export interface ProfileRow {
   email: string;
   full_name: string | null;
   role: PapelUsuario;
+  company_id: string | null; // uuid -> companies.id — null SOMENTE quando role = 'super_admin'
   active: boolean; // suspensão manual (independe da data de expiração)
   expires_at: string | null; // ISO timestamp — null = sem expiração definida
   // Só é lida/usada quando role = 'funcionario' — admin sempre tem acesso

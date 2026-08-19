@@ -67,14 +67,19 @@ export async function requireAdmin() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, company_id")
     .eq("id", user.id)
     .single()
-    .overrideTypes<Pick<ProfileRow, "role">, { merge: false }>();
+    .overrideTypes<Pick<ProfileRow, "role" | "company_id">, { merge: false }>();
 
   if (profile?.role !== "admin") throw new Error("Apenas administradores podem fazer isso.");
 
-  return { supabase, user };
+  // `companyId` nunca é null aqui — todo `role = 'admin'` tem empresa
+  // (invariante garantida em `supabase/multitenant-migration.sql`). Exposto
+  // pra quem convida gente nova (`gerarAcessoCliente`/`gerarAcessoFuncionario`
+  // em `src/app/admin/actions.ts`) poder carimbar o convite com a MESMA
+  // empresa de quem está convidando, sem precisar buscar de novo.
+  return { supabase, user, companyId: profile.company_id };
 }
 
 /** Mesma checagem de `requireAdmin`, mas pra Server Components de página — redireciona em vez de lançar (uma página não tem try/catch pra virar mensagem inline). Usado só em Equipe/Aparência. */
@@ -93,6 +98,63 @@ export async function requireAdminOuRedirect() {
     .overrideTypes<Pick<ProfileRow, "role">, { merge: false }>();
 
   if (profile?.role !== "admin") redirect("/admin/dashboard");
+  return { supabase, user };
+}
+
+// ----------------------------------------------------------------------------
+// Super Admin (multi-tenant) — dono do SaaS, gerencia as empresas
+// compradoras em `/super-admin`. Papel completamente à parte de
+// `admin`/`funcionario`/`cliente`: um super_admin NUNCA tem `company_id`
+// (ver invariante em `supabase/multitenant-migration.sql`), então nunca
+// passa em `requireAdmin`/`requireModulo*` (que checam `role = 'admin'` ou
+// `'funcionario'`) — e vice-versa, um `admin`/`funcionario` normal nunca
+// passa aqui. Os dois mundos não se cruzam de propósito.
+// ----------------------------------------------------------------------------
+
+/** Guarda de Server Action para `/super-admin` — mesmo padrão de `requireAdmin`. */
+export async function requireSuperAdmin() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Não autenticado.");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+    .overrideTypes<Pick<ProfileRow, "role">, { merge: false }>();
+
+  if (profile?.role !== "super_admin") throw new Error("Apenas o Super Admin pode fazer isso.");
+
+  return { supabase, user };
+}
+
+/** Mesma checagem de `requireSuperAdmin`, mas pra Server Components de página — redireciona em vez de lançar. Usado em `/super-admin`. */
+export async function requireSuperAdminOuRedirect() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+    .overrideTypes<Pick<ProfileRow, "role">, { merge: false }>();
+
+  // Redireciona pra Home de cada papel (mesma árvore de decisão do
+  // middleware) em vez de sempre mandar pra /login — um admin/funcionario/
+  // cliente que tenta abrir /super-admin na marra cai no painel dele, não
+  // numa tela de erro.
+  if (profile?.role !== "super_admin") {
+    const home = profile?.role === "admin" || profile?.role === "funcionario" ? "/admin" : "/dashboard";
+    redirect(home);
+  }
   return { supabase, user };
 }
 

@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { ProfileRow } from "@/lib/types/database";
-import { calcularStatus } from "@/lib/utils/status";
+import { calcularStatus, calcularStatusEmpresa } from "@/lib/utils/status";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
 const ROTAS_PUBLICAS = ["/login", "/acesso-expirado", "/definir-senha", "/auth/callback"];
@@ -116,18 +116,35 @@ export async function middleware(request: NextRequest) {
     }
 
     if (user) {
+      // `companies(status, expires_at)` é um select relacional (segue a FK
+      // `profiles.company_id -> companies.id`) — resolve o perfil E a
+      // licença da empresa dele numa query só, sem uma segunda ida ao banco
+      // a cada request. Pra `super_admin` (sem `company_id`), `companies`
+      // vem `null` — tratado abaixo, nunca barrado por licença de empresa.
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role, active, expires_at")
+        .select("role, active, expires_at, company_id, companies(status, expires_at)")
         .eq("id", user.id)
         .single()
-        .overrideTypes<Pick<ProfileRow, "role" | "active" | "expires_at">, { merge: false }>();
+        .overrideTypes<
+          Pick<ProfileRow, "role" | "active" | "expires_at" | "company_id"> & {
+            companies: { status: "ativo" | "suspenso"; expires_at: string | null } | null;
+          },
+          { merge: false }
+        >();
 
       // Perfil deveria sempre existir (trigger `handle_new_user` cria na hora
       // do cadastro — ver supabase/schema.sql). Se por algum motivo não
       // existir ainda, tratamos como "sem acesso liberado" por segurança.
-      const status = profile ? calcularStatus(profile) : "inativo";
       const role = profile?.role ?? "cliente";
+      const statusPessoal = profile ? calcularStatus(profile) : "inativo";
+      // Licença da empresa: só se aplica a quem TEM empresa (todo mundo,
+      // exceto super_admin) — suspensão/expiração da empresa barra mesmo com
+      // o perfil individual "ativo" (ver `calcularStatusEmpresa`).
+      const statusEmpresa = role !== "super_admin" && profile?.companies ? calcularStatusEmpresa(profile.companies) : "ativo";
+      // Os dois precisam estar "ativo" — se o pessoal já não está, ele manda
+      // (é o mais específico); senão, quem decide é a licença da empresa.
+      const status = statusPessoal !== "ativo" ? statusPessoal : statusEmpresa;
 
       if (status !== "ativo" && pathname !== "/acesso-expirado") {
         const url = request.nextUrl.clone();
@@ -136,10 +153,11 @@ export async function middleware(request: NextRequest) {
       }
 
       if (status === "ativo") {
-        // Admin cai na Home do painel (Cadastros); funcionário cai direto no
-        // Dashboard (Visão Geral — o único módulo aberto a qualquer membro
-        // da equipe, sem depender de permissão); cliente vai pro portal dele.
-        const home = role === "admin" ? "/admin" : role === "funcionario" ? "/admin/dashboard" : "/dashboard";
+        // Super Admin cai no painel mestre; admin cai na Home do painel
+        // (Cadastros); funcionário cai direto no Dashboard (Visão Geral — o
+        // único módulo aberto a qualquer membro da equipe, sem depender de
+        // permissão); cliente vai pro portal dele.
+        const home = role === "super_admin" ? "/super-admin" : role === "admin" ? "/admin" : role === "funcionario" ? "/admin/dashboard" : "/dashboard";
 
         if (pathname === "/login" || pathname === "/") {
           const url = request.nextUrl.clone();
@@ -147,9 +165,19 @@ export async function middleware(request: NextRequest) {
           return NextResponse.redirect(url);
         }
 
+        // Cada árvore de rotas é exclusiva de quem tem o papel certo — um
+        // admin/funcionario tentando abrir /super-admin (ou o inverso, um
+        // super_admin tentando abrir /admin) cai na PRÓPRIA home, nunca na
+        // área do outro.
+        if (pathname.startsWith("/super-admin") && role !== "super_admin") {
+          const url = request.nextUrl.clone();
+          url.pathname = home;
+          return NextResponse.redirect(url);
+        }
+
         if (pathname.startsWith("/admin") && role !== "admin" && role !== "funcionario") {
           const url = request.nextUrl.clone();
-          url.pathname = "/dashboard";
+          url.pathname = home;
           return NextResponse.redirect(url);
         }
       }

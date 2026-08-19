@@ -35,6 +35,25 @@ export function temAcessoLiberado(profile: Pick<ProfileRow, "active" | "expires_
   return calcularStatus(profile) === "ativo";
 }
 
+/**
+ * Mesma ideia de `calcularStatus`, só que no nível da EMPRESA (licença),
+ * não do usuário individual — ver `companies.status`/`companies.expires_at`
+ * em `supabase/multitenant-migration.sql`. Os dois níveis são
+ * INDEPENDENTES e ambos precisam estar "ativo" pra alguém entrar: uma
+ * empresa suspensa barra todo mundo dela mesmo com perfis individuais
+ * "ativo"; um funcionário suspenso continua barrado mesmo com a empresa em
+ * dia. Only `admin`/`funcionario`/`cliente` passam por essa checagem —
+ * `super_admin` não tem `company_id`, então nunca é afetado por ela (ver
+ * `src/middleware.ts`).
+ */
+export function calcularStatusEmpresa(empresa: { status: "ativo" | "suspenso"; expires_at: string | null }): StatusAcesso {
+  if (empresa.status === "suspenso") return "inativo";
+  if (empresa.expires_at && new Date(empresa.expires_at).getTime() < Date.now()) {
+    return "expirado";
+  }
+  return "ativo";
+}
+
 export function fmtData(iso: string | null): string {
   if (!iso) return "Sem expiração";
   return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });

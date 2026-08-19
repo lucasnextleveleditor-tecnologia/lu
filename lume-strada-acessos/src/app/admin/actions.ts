@@ -172,7 +172,7 @@ export async function removerMembroEquipe(id: string): Promise<ActionResult> {
 /** Cliente: acesso simples — só data de expiração opcional. O `role` continua 'cliente' (o padrão do trigger `handle_new_user`), então não precisa promover nada depois do convite. */
 export async function gerarAcessoCliente(clienteId: string, input: { email: string; expiresAt: string | null }): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase, companyId } = await requireAdmin();
 
     const email = input.email.trim().toLowerCase();
     if (!email) return { ok: false, error: "Informe um e-mail para o acesso." };
@@ -188,8 +188,13 @@ export async function gerarAcessoCliente(clienteId: string, input: { email: stri
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     const admin = createAdminClient();
 
+    // `company_id` vai nos metadados do convite — é isso que o trigger
+    // `handle_new_user` (ver `supabase/multitenant-migration.sql`) lê pra
+    // gravar o novo perfil já na MESMA empresa de quem convidou. Sem isso a
+    // inserção do perfil falharia (a empresa é obrigatória pra todo mundo
+    // que não é super_admin).
     const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-      data: { full_name: cliente.nome },
+      data: { full_name: cliente.nome, company_id: companyId },
       redirectTo: `${siteUrl}/auth/callback`,
     });
     if (inviteError) return { ok: false, error: inviteError.message };
@@ -224,7 +229,7 @@ export async function gerarAcessoFuncionario(
   input: { email: string; permissoes: PermissoesFuncionario; expiresAt: string | null }
 ): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase, companyId } = await requireAdmin();
 
     const email = input.email.trim().toLowerCase();
     if (!email) return { ok: false, error: "Informe um e-mail para o acesso." };
@@ -240,8 +245,10 @@ export async function gerarAcessoFuncionario(
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     const admin = createAdminClient();
 
+    // Mesma nota de `gerarAcessoCliente` acima — `company_id` nos metadados
+    // do convite é o que faz o novo perfil nascer já na empresa certa.
     const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-      data: { full_name: membro.nome },
+      data: { full_name: membro.nome, company_id: companyId },
       redirectTo: `${siteUrl}/auth/callback`,
     });
     if (inviteError) return { ok: false, error: inviteError.message };
