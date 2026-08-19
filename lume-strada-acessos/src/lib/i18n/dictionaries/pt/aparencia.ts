@@ -10,6 +10,11 @@ export interface AparenciaDict {
   tituloPagina: string;
   subtituloPagina: string;
 
+  nomeAppCardTitulo: string;
+  nomeAppCardDescricao: string;
+  nomeAppLabel: string;
+  nomeAppPlaceholder: string;
+
   logoCardTitulo: string;
   logoCardDescricao: string;
   logoPrincipalLabel: string;
@@ -85,9 +90,14 @@ export const aparencia: AparenciaDict = {
   tituloPagina: "Aparência & White-Label",
   subtituloPagina: "Logotipo, cores e a identidade visual da tela de login — aplicado pra todo mundo assim que você salvar.",
 
+  nomeAppCardTitulo: "Nome do App",
+  nomeAppCardDescricao: "Mostrado no topo do menu lateral do admin e no header do portal do cliente — comece como \"App Gestão\" e troque pelo nome da sua empresa quando quiser.",
+  nomeAppLabel: "Nome exibido",
+  nomeAppPlaceholder: "Ex: Minha Agência",
+
   logoCardTitulo: "Logotipo & Favicon",
   logoCardDescricao:
-    "Usados no menu lateral do admin e no header do cliente (área de membros) — a tela de login sempre exibe a marca padrão da Lume Strada, por design. O app hoje é fixo em Dark Mode — a versão “clara” fica pronta pra quando existir um modo claro.",
+    "Usados no menu lateral do admin e no header do cliente (área de membros) — a tela de login sempre exibe a marca padrão do App Gestão, por design. O app hoje é fixo em Dark Mode — a versão “clara” fica pronta pra quando existir um modo claro.",
   logoPrincipalLabel: "Logo principal",
   faviconLabel: "Favicon",
   faviconHint: "Aba do navegador.",
@@ -99,7 +109,7 @@ export const aparencia: AparenciaDict = {
   loginCardTitulo: "Tela de Login",
   loginCardDescricao: "Título, subtítulo, fundo e posição da caixa de login — veja o preview ao lado.",
   tituloLabel: "Título",
-  tituloPlaceholder: "Ex: Área Exclusiva - Lume Strada",
+  tituloPlaceholder: "Ex: Área Exclusiva - App Gestão",
   subtituloLabel: "Subtítulo",
   subtituloPlaceholder: "Ex: Acesso a clientes e projetos",
   posicaoLabel: "Posição da caixa de login",

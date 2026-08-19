@@ -365,7 +365,7 @@ create table if not exists public.branding_config (
   -- Tela de login
   login_bg_url text,
   login_bg_preset text not null default 'grain' check (login_bg_preset in ('grain', 'projector', 'film-strip', 'none')),
-  login_title text not null default 'Lume Strada Filmes',
+  login_title text not null default 'App Gestão',
   login_subtitle text not null default 'Acesso a clientes e projetos',
   login_box_position text not null default 'centro' check (login_box_position in ('esquerda', 'direita', 'centro')),
 

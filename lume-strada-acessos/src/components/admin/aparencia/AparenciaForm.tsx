@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import type { BannerTone, BrandingConfigRow, LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
-import { salvarBranding } from "@/app/admin/aparencia/actions";
+import { salvarBranding, atualizarNomeApp } from "@/app/admin/aparencia/actions";
 import { BANNER_TONE_LABELS, LOGIN_BG_PRESETS } from "@/lib/branding/constants";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -15,8 +15,15 @@ import { LoginPreview } from "@/components/admin/aparencia/LoginPreview";
 import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
-export function AparenciaForm({ initialBranding }: { initialBranding: BrandingConfigRow }) {
+export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBranding: BrandingConfigRow; initialNomeApp: string }) {
   const { dict } = useLocale();
+
+  // Nome do APP (sidebar do admin + header do cliente) — vive em
+  // `companies.nome_app`, não em `branding_config` (que é global, ver
+  // `atualizarNomeApp` em `actions.ts`). Fica junto do resto do formulário
+  // por conveniência de UX (um botão "Salvar Alterações" só), mas salva
+  // numa Server Action separada.
+  const [nomeApp, setNomeApp] = useState(initialNomeApp);
 
   const POSICOES: { value: LoginBoxPosition; label: string }[] = [
     { value: "esquerda", label: dict.aparencia.posicaoEsquerda },
@@ -63,24 +70,33 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
     setError(null);
     setSalvoRecentemente(false);
     startTransition(async () => {
-      const result = await salvarBranding({
-        loginTitle,
-        loginSubtitle,
-        loginBoxPosition,
-        loginBgPreset,
-        sidebarCompactoPadrao,
-        bannerAtivoLogin,
-        bannerAtivoAdmin,
-        bannerAtivoCliente,
-        bannerTitulo,
-        bannerDescricao,
-        bannerLinkUrl,
-        bannerLinkLabel,
-        bannerTone,
-        bannerDispensavel,
-      });
-      if (!result.ok) {
-        setError(result.error);
+      // Duas tabelas diferentes (`companies.nome_app` vs `branding_config`),
+      // uma Server Action cada — disparadas juntas pra manter um botão só.
+      const [resultNomeApp, resultBranding] = await Promise.all([
+        atualizarNomeApp(nomeApp),
+        salvarBranding({
+          loginTitle,
+          loginSubtitle,
+          loginBoxPosition,
+          loginBgPreset,
+          sidebarCompactoPadrao,
+          bannerAtivoLogin,
+          bannerAtivoAdmin,
+          bannerAtivoCliente,
+          bannerTitulo,
+          bannerDescricao,
+          bannerLinkUrl,
+          bannerLinkLabel,
+          bannerTone,
+          bannerDispensavel,
+        }),
+      ]);
+      if (!resultNomeApp.ok) {
+        setError(resultNomeApp.error);
+        return;
+      }
+      if (!resultBranding.ok) {
+        setError(resultBranding.error);
         return;
       }
       setSalvoRecentemente(true);
@@ -90,6 +106,15 @@ export function AparenciaForm({ initialBranding }: { initialBranding: BrandingCo
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
       <div className="space-y-6">
+        <Card>
+          <h2 className="mb-1 text-sm font-semibold">{dict.aparencia.nomeAppCardTitulo}</h2>
+          <p className="mb-4 text-xs text-ink-muted">{dict.aparencia.nomeAppCardDescricao}</p>
+          <div className="max-w-sm">
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.nomeAppLabel}</label>
+            <Input value={nomeApp} onChange={(e) => setNomeApp(e.target.value)} placeholder={dict.aparencia.nomeAppPlaceholder} maxLength={60} />
+          </div>
+        </Card>
+
         <Card>
           <h2 className="mb-1 text-sm font-semibold">{dict.aparencia.logoCardTitulo}</h2>
           <p className="mb-4 text-xs text-ink-muted">{dict.aparencia.logoCardDescricao}</p>

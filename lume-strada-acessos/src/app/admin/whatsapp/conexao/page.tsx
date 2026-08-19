@@ -9,10 +9,14 @@ export default async function WhatsappConexaoPage() {
   const supabase = await createClient();
   const { dict } = await getDictionary();
 
+  // `whatsapp_sessoes` deixou de ser singleton global na migração
+  // multi-tenant (virou uma linha por empresa, coluna `singleton` nem
+  // existe mais) — a RLS já restringe a UMA linha só, a da própria empresa
+  // de quem está logado (`whatsapp_sessoes_admin_all`, ver
+  // `multitenant-migration.sql` §5/§6).
   const { data: sessao, error } = await supabase
     .from("whatsapp_sessoes")
     .select("id, status, numero_conectado, qr_code_base64, bateria_percentual, ultima_atualizacao, conectado_em, created_at, updated_at")
-    .eq("singleton", true)
     .maybeSingle()
     .overrideTypes<SessaoWhatsappRow | null, { merge: false }>();
 

@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { BRANDING_CONFIG_ID } from "@/lib/branding/constants";
+import { NOME_APP_PADRAO } from "@/lib/branding/getNomeApp";
 import { ehImagemPermitida } from "@/lib/utils/upload";
 import type { BannerTone, LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
 
@@ -134,6 +136,42 @@ export async function salvarBranding(input: BrandingInput): Promise<ActionResult
     // Branding afeta o favicon, a sidebar do admin e o header do cliente —
     // invalidação ampla de propósito (login não usa mais nenhum campo de
     // branding além de título/subtítulo/fundo/banner, já cobertos aqui).
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Nome do APP mostrado na sidebar do admin e no header do cliente
+ * (`companies.nome_app`, ver `supabase/companies-nome-app.sql`) — diferente
+ * de `branding_config` (que é global, compartilhado por TODAS as empresas):
+ * este campo é só da empresa de quem está chamando.
+ *
+ * Usa a Service Role de propósito: `companies` só tem policy de ESCRITA pra
+ * `super_admin` (`companies_super_admin_all`, ver
+ * `multitenant-migration.sql`) — de propósito, pra ninguém além do dono do
+ * SaaS mexer em `status`/`expires_at`/`created_by` (campos da LICENÇA). Em
+ * vez de abrir uma policy nova (que arriscaria liberar esses campos
+ * sensíveis também), a Service Role escreve só a coluna `nome_app`, e o
+ * `.eq("id", companyId)` (vindo de `requireAdmin()`, nunca do client) trava
+ * a escrita na PRÓPRIA empresa de quem chamou — mesmo padrão de
+ * `atualizarEmailAcesso` em `app/super-admin/actions.ts`.
+ */
+export async function atualizarNomeApp(nome: string): Promise<ActionResult> {
+  try {
+    const { companyId } = await requireAdmin();
+
+    const nomeApp = nome.trim() || NOME_APP_PADRAO;
+    if (nomeApp.length > 60) return { ok: false, error: "Nome muito longo (máximo 60 caracteres)." };
+
+    const admin = createAdminClient();
+    const { error } = await admin.from("companies").update({ nome_app: nomeApp }).eq("id", companyId);
+    if (error) return { ok: false, error: error.message };
+
+    // Afeta a sidebar do admin E o header do cliente (dois layouts
+    // diferentes) — invalidação ampla, igual `salvarBranding` acima.
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (err) {

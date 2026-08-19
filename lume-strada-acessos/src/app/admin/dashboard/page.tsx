@@ -121,10 +121,12 @@ export default async function DashboardPage() {
           .overrideTypes<{ id: string }[], { merge: false }>()
       : Promise.resolve({ data: null as { id: string }[] | null }),
     podeVerWhatsapp
-      ? supabase
+      ? // Sem `.eq("singleton", ...)`: essa coluna não existe mais desde a
+        // migração multi-tenant (`whatsapp_sessoes` virou 1 linha por
+        // empresa) — RLS já restringe à sessão da própria empresa.
+        supabase
           .from("whatsapp_sessoes")
           .select("status")
-          .eq("singleton", true)
           .maybeSingle()
           .overrideTypes<{ status: StatusSessaoWhatsapp } | null, { merge: false }>()
       : Promise.resolve({ data: null as { status: StatusSessaoWhatsapp } | null }),

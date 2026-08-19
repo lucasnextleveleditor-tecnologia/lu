@@ -88,6 +88,8 @@ const STORAGE_KEY = "lsf_admin_sidebar_colapsada";
 
 interface AdminShellProps {
   logoUrl: string | null;
+  /** Nome do APP mostrado no topo da sidebar (`companies.nome_app`, editável em Aparência) — nunca o nome literal de uma empresa específica. Default "App Gestão". */
+  nomeApp: string;
   nome: string;
   email: string;
   colapsadoPadrao: boolean;
@@ -98,7 +100,7 @@ interface AdminShellProps {
   children: React.ReactNode;
 }
 
-export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permissoes, banner, children }: AdminShellProps) {
+export function AdminShell({ logoUrl, nomeApp, nome, email, colapsadoPadrao, papel, permissoes, banner, children }: AdminShellProps) {
   const pathname = usePathname();
   const { dict } = useLocale();
   const [colapsado, setColapsado] = useState(colapsadoPadrao);
@@ -150,7 +152,7 @@ export function AdminShell({ logoUrl, nome, email, colapsadoPadrao, papel, permi
           <BrandingLogo logoUrl={logoUrl} sizeClassName="h-8" />
           {!colapsado && (
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold tracking-tight">Lume Strada Filmes</p>
+              <p className="truncate text-sm font-semibold tracking-tight">{nomeApp}</p>
               <p className="truncate text-[11px] text-ink-muted">{dict.nav.painelAdministrativo}</p>
             </div>
           )}

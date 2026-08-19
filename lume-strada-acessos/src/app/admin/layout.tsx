@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
+import { getNomeApp } from "@/lib/branding/getNomeApp";
 import { AdminShell } from "@/components/admin/AdminShell";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (profile?.role !== "admin" && profile?.role !== "funcionario") redirect("/dashboard");
 
   const branding = await getBrandingConfig();
+  const nomeApp = await getNomeApp();
 
   const banner =
     branding.banner_ativo_admin && branding.banner_titulo.trim()
@@ -47,6 +49,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <AdminShell
       logoUrl={branding.logo_dark_url ?? branding.logo_url}
+      nomeApp={nomeApp}
       nome={profile.full_name ?? ""}
       email={profile.email}
       colapsadoPadrao={branding.sidebar_compacto_padrao}

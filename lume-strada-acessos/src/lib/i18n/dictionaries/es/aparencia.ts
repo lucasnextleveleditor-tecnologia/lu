@@ -4,9 +4,14 @@ export const aparencia: AparenciaDict = {
   tituloPagina: "Apariencia y White-Label",
   subtituloPagina: "Logotipo, colores y la identidad visual de la pantalla de inicio de sesión — se aplica a todos apenas guardes.",
 
+  nomeAppCardTitulo: "Nombre de la App",
+  nomeAppCardDescricao: "Se muestra en la parte superior del menú lateral del admin y en el encabezado del portal del cliente — empieza como \"App Gestão\" y puedes cambiarlo por el nombre de tu empresa cuando quieras.",
+  nomeAppLabel: "Nombre mostrado",
+  nomeAppPlaceholder: "Ej.: Mi Agencia",
+
   logoCardTitulo: "Logotipo y Favicon",
   logoCardDescricao:
-    "Se usan en el menú lateral del admin y en el encabezado del cliente (área de miembros) — la pantalla de inicio de sesión siempre muestra la marca predeterminada de Lume Strada, por diseño. La app hoy está fija en Modo Oscuro — la versión “clara” queda lista para cuando exista un modo claro.",
+    "Se usan en el menú lateral del admin y en el encabezado del cliente (área de miembros) — la pantalla de inicio de sesión siempre muestra la marca predeterminada de App Gestão, por diseño. La app hoy está fija en Modo Oscuro — la versión “clara” queda lista para cuando exista un modo claro.",
   logoPrincipalLabel: "Logo principal",
   faviconLabel: "Favicon",
   faviconHint: "Pestaña del navegador.",
@@ -18,7 +23,7 @@ export const aparencia: AparenciaDict = {
   loginCardTitulo: "Pantalla de Inicio de Sesión",
   loginCardDescricao: "Título, subtítulo, fondo y posición del cuadro de inicio de sesión — mira la vista previa al lado.",
   tituloLabel: "Título",
-  tituloPlaceholder: "Ej.: Área Exclusiva - Lume Strada",
+  tituloPlaceholder: "Ej.: Área Exclusiva - App Gestão",
   subtituloLabel: "Subtítulo",
   subtituloPlaceholder: "Ej.: Acceso para clientes y proyectos",
   posicaoLabel: "Posición del cuadro de inicio de sesión",

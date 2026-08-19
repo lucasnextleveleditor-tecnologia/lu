@@ -6,8 +6,8 @@ export const BRANDING_CONFIG_ID = "00000000-0000-0000-0000-000000000001";
 /**
  * Estado usado se a tabela `branding_config` ainda não existir (schema não
  * rodado) ou a query falhar por qualquer motivo — o app nunca deve quebrar
- * por causa de branding ausente; ele só volta pro visual padrão da Lume
- * Strada (o mesmo de antes deste módulo existir).
+ * por causa de branding ausente; ele só volta pro visual padrão genérico do
+ * App Gestão (nunca o nome de uma empresa específica).
  */
 export const DEFAULT_BRANDING: BrandingConfigRow = {
   id: BRANDING_CONFIG_ID,
@@ -19,7 +19,7 @@ export const DEFAULT_BRANDING: BrandingConfigRow = {
   accent_color: "#e8bd72",
   login_bg_url: null,
   login_bg_preset: "grain",
-  login_title: "Lume Strada Filmes",
+  login_title: "App Gestão",
   login_subtitle: "Acesso a clientes e projetos",
   login_box_position: "centro",
   theme_preset: "cinematic_dark",

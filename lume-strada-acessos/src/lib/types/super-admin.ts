@@ -3,7 +3,14 @@ export type StatusEmpresa = "ativo" | "suspenso";
 /** Uma licença/empresa compradora do SaaS — ver `supabase/multitenant-migration.sql`. */
 export interface CompanyRow {
   id: string; // uuid
-  nome: string;
+  nome: string; // nome da LICENÇA — só o super-admin vê/edita (lista de Empresas em `/super-admin`)
+  /**
+   * Nome exibido pro time/clientes DENTRO do app (sidebar do admin, header
+   * do cliente) — ver `supabase/companies-nome-app.sql`. Independente de
+   * `nome`: o admin da empresa compradora edita isso em Aparência, sem
+   * tocar no registro da licença. Default "App Gestão".
+   */
+  nome_app: string;
   status: StatusEmpresa;
   expires_at: string | null; // ISO timestamp — null = sem expiração definida
   created_by: string | null; // uuid -> profiles.id (qual super_admin cadastrou)

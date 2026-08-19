@@ -15,9 +15,21 @@ export const dynamic = "force-dynamic";
  * segredo no painel do provedor escolhido. Sem o segredo configurado, TODA
  * requisição é recusada (falha fechado, nunca aberto).
  *
+ * MULTI-TENANT: desde `multitenant-migration.sql`, `whatsapp_sessoes`/
+ * `whatsapp_contatos`/`whatsapp_mensagens` são por EMPRESA — e esta rota usa
+ * a Service Role (abaixo), que não tem sessão de usuário nenhuma pra RLS
+ * inferir de qual empresa é o evento. Por isso a URL cadastrada no painel do
+ * provedor precisa incluir também `?company_id=<id da empresa>`, além do
+ * `secret` — uma URL de webhook por empresa (cada empresa que ligar o
+ * próprio WhatsApp configura a própria instância do provedor com a própria
+ * URL). Sem um `company_id` válido, a requisição é recusada (falha fechado,
+ * mesma postura do segredo).
+ *
  * Usa a Service Role (`createAdminClient`) de propósito: a requisição não
- * tem cookie de sessão de admin, então RLS bloquearia tudo — a única
- * validação de segurança aqui é o segredo compartilhado, não RLS.
+ * tem cookie de sessão de admin, então RLS bloquearia tudo — a validação de
+ * segurança aqui é o segredo compartilhado + o `company_id` da URL, não RLS
+ * (por isso todo `update`/`insert` abaixo escopa explicitamente por
+ * `company_id`, nunca confiando em RLS pra isolar as empresas).
  *
  * O formato exato do payload muda de provedor pra provedor — `normalizarEvento`
  * abaixo cobre o formato da Evolution API (`{ event: "...", data: {...} }`),
@@ -26,6 +38,8 @@ export const dynamic = "force-dynamic";
  * que a gente mandou) retornam 200 — o provedor não deve ficar re-tentando
  * um evento que a gente decidiu não tratar.
  */
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function validarSegredo(req: Request): boolean {
   const segredo = process.env.WHATSAPP_WEBHOOK_SECRET;
@@ -37,9 +51,21 @@ function validarSegredo(req: Request): boolean {
   return doQuery === segredo || doHeader === segredo;
 }
 
+/** `?company_id=` da URL cadastrada no provedor — ver nota multi-tenant acima. `null` se ausente ou com formato inválido (nunca tentamos adivinhar). */
+function obterCompanyId(req: Request): string | null {
+  const url = new URL(req.url);
+  const companyId = url.searchParams.get("company_id");
+  return companyId && UUID_REGEX.test(companyId) ? companyId : null;
+}
+
 export async function POST(req: Request) {
   if (!validarSegredo(req)) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  }
+
+  const companyId = obterCompanyId(req);
+  if (!companyId) {
+    return NextResponse.json({ error: "URL do webhook sem ?company_id= válido." }, { status: 400 });
   }
 
   let payload: unknown;
@@ -57,10 +83,13 @@ export async function POST(req: Request) {
   const supabase = createAdminClient();
 
   if (evento.tipo === "qrcode") {
+    // `.eq("company_id", ...)` explícito: Service Role ignora RLS, então SEM
+    // esse filtro este update afetaria a sessão de TODAS as empresas de uma
+    // vez (ver nota multi-tenant no topo do arquivo).
     const { error } = await supabase
       .from("whatsapp_sessoes")
       .update({ status: "aguardando_leitura", qr_code_base64: evento.qrCodeBase64, ultima_atualizacao: new Date().toISOString() })
-      .eq("singleton", true);
+      .eq("company_id", companyId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
   }
@@ -80,17 +109,20 @@ export async function POST(req: Request) {
     }
     if (evento.bateriaPercentual != null) atualizacao.bateria_percentual = evento.bateriaPercentual;
 
-    const { error } = await supabase.from("whatsapp_sessoes").update(atualizacao).eq("singleton", true);
+    const { error } = await supabase.from("whatsapp_sessoes").update(atualizacao).eq("company_id", companyId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
   }
 
   if (evento.tipo === "mensagem") {
-    // Upsert do contato — cria na primeira mensagem desse número, ou só
-    // atualiza o nome (pushName pode mudar) se já existir.
+    // Upsert do contato — cria na primeira mensagem desse número (dessa
+    // EMPRESA — `whatsapp_contatos_company_telefone_idx` é único por
+    // `company_id, telefone`, não só `telefone`, desde a migração
+    // multi-tenant: duas empresas podem ter contatos com o mesmo telefone
+    // sem colidir), ou só atualiza o nome (pushName pode mudar) se já existir.
     const { data: contato, error: erroContato } = await supabase
       .from("whatsapp_contatos")
-      .upsert({ telefone: evento.telefone, nome: evento.nomeContato ?? undefined }, { onConflict: "telefone" })
+      .upsert({ company_id: companyId, telefone: evento.telefone, nome: evento.nomeContato ?? undefined }, { onConflict: "company_id,telefone" })
       .select("id")
       .single();
     if (erroContato || !contato) {
@@ -98,17 +130,23 @@ export async function POST(req: Request) {
     }
 
     // Idempotência: se essa mensagem (pelo id do provedor) já foi salva —
-    // provedores costumam reentregar o mesmo evento mais de uma vez —, não duplica.
+    // provedores costumam reentregar o mesmo evento mais de uma vez —, não
+    // duplica. Escopado por `company_id` também: `external_message_id` é
+    // um id gerado pelo PROVEDOR de cada empresa, então duas empresas com
+    // provedores/instâncias diferentes podem, em teoria, gerar o mesmo id
+    // sem terem nenhuma relação uma com a outra.
     if (evento.externalMessageId) {
       const { data: existente } = await supabase
         .from("whatsapp_mensagens")
         .select("id")
+        .eq("company_id", companyId)
         .eq("external_message_id", evento.externalMessageId)
         .maybeSingle();
       if (existente) return NextResponse.json({ ok: true, duplicado: true });
     }
 
     const { error: erroMensagem } = await supabase.from("whatsapp_mensagens").insert({
+      company_id: companyId,
       contato_id: contato.id,
       direcao: "recebida",
       tipo: evento.tipoMidia ?? "texto",
@@ -124,7 +162,8 @@ export async function POST(req: Request) {
         ultima_mensagem_preview: evento.conteudo?.slice(0, 120) || "Mensagem recebida",
         ultima_mensagem_em: new Date().toISOString(),
       })
-      .eq("id", contato.id);
+      .eq("id", contato.id)
+      .eq("company_id", companyId);
 
     return NextResponse.json({ ok: true });
   }

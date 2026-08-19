@@ -15,13 +15,20 @@ const PATH_CONEXAO = "/admin/whatsapp/conexao";
 // Sessão / Conexão
 // ----------------------------------------------------------------------------
 
-/** Busca a sessão singleton atual — usado tanto pela página quanto pelo polling defensivo do client. */
+/**
+ * Busca a sessão de WhatsApp da EMPRESA atual — usado tanto pela página
+ * quanto pelo polling defensivo do client. `whatsapp_sessoes` deixou de ser
+ * singleton global na migração multi-tenant (virou uma linha por empresa,
+ * ver `multitenant-migration.sql` §5) — a RLS (`whatsapp_sessoes_admin_all`)
+ * já restringe a UMA linha só (a da própria empresa de quem está logado),
+ * então não precisa (nem dá: a coluna `singleton` não existe mais) filtrar
+ * por nada extra aqui.
+ */
 export async function consultarSessaoAtual(): Promise<SessaoWhatsappRow | null> {
   const { supabase } = await requireModulo("whatsapp");
   const { data } = await supabase
     .from("whatsapp_sessoes")
     .select("id, status, numero_conectado, qr_code_base64, bateria_percentual, ultima_atualizacao, conectado_em, created_at, updated_at")
-    .eq("singleton", true)
     .maybeSingle()
     .overrideTypes<SessaoWhatsappRow | null, { merge: false }>();
   return data ?? null;
@@ -33,14 +40,16 @@ export async function gerarQrCode(): Promise<ActionResult> {
     const provider = getWhatsAppProvider();
     const resultado = await provider.gerarQrCode();
 
+    // Sem `.eq(...)` de propósito: `whatsapp_sessoes_admin_all` (RLS) já
+    // restringe update a UMA linha só (a da própria empresa de quem está
+    // logado) — ver nota em `consultarSessaoAtual` acima.
     const { error } = await supabase
       .from("whatsapp_sessoes")
       .update({
         status: "aguardando_leitura",
         qr_code_base64: resultado.qrCodeBase64,
         ultima_atualizacao: new Date().toISOString(),
-      })
-      .eq("singleton", true);
+      });
 
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH_CONEXAO);
@@ -64,8 +73,7 @@ export async function desconectarSessao(): Promise<ActionResult> {
         numero_conectado: null,
         conectado_em: null,
         ultima_atualizacao: new Date().toISOString(),
-      })
-      .eq("singleton", true);
+      });
 
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH_CONEXAO);

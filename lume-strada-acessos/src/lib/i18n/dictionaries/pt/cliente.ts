@@ -16,7 +16,7 @@ export interface ClienteDict {
 
 export const cliente: ClienteDict = {
   tituloPagina: "Materiais para Aprovação",
-  subtituloPagina: "Arquivos e links enviados pela Lume Strada Filmes, esperando sua revisão.",
+  subtituloPagina: "Arquivos e links enviados pela sua agência, esperando sua revisão.",
   nenhumaAprovacaoPendente: "Nada esperando sua aprovação no momento.",
   enviadoEm: "Enviado em {data}",
   aprovar: "Aprovar",

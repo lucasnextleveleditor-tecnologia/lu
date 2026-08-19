@@ -18,9 +18,14 @@ import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 export async function generateMetadata(): Promise<Metadata> {
   const branding = await getBrandingConfig();
 
+  // `branding.login_title` já é a marca compartilhada de toda a plataforma
+  // (`branding_config` é global — ver nota em `getBrandingConfig.ts`),
+  // exatamente como o favicon logo abaixo. Nunca hardcodear o nome de uma
+  // empresa específica aqui: sem branding configurado, cai em "App Gestão"
+  // (`DEFAULT_BRANDING`), nunca em "Lume Strada Filmes".
   return {
-    title: "Lume Strada Filmes — Acessos",
-    description: "Gestão de clientes, acessos, tráfego e patrimônio da Lume Strada Filmes",
+    title: `${branding.login_title} — Acessos`,
+    description: `Gestão de clientes, acessos, tráfego e patrimônio da ${branding.login_title}`,
     icons: branding.favicon_url ? { icon: branding.favicon_url } : undefined,
   };
 }

@@ -4,9 +4,14 @@ export const aparencia: AparenciaDict = {
   tituloPagina: "Appearance & White-Label",
   subtituloPagina: "Logo, colors and the login screen's visual identity — applied to everyone as soon as you save.",
 
+  nomeAppCardTitulo: "App Name",
+  nomeAppCardDescricao: "Shown at the top of the admin sidebar and in the client portal header — starts as \"App Gestão\" and can be changed to your company's name whenever you like.",
+  nomeAppLabel: "Displayed name",
+  nomeAppPlaceholder: "E.g.: My Agency",
+
   logoCardTitulo: "Logo & Favicon",
   logoCardDescricao:
-    "Used in the admin sidebar and the client (member area) header — the login screen always shows the default Lume Strada brand, by design. The app is currently fixed in Dark Mode — the “light” version is ready for whenever a light mode exists.",
+    "Used in the admin sidebar and the client (member area) header — the login screen always shows the default App Gestão brand, by design. The app is currently fixed in Dark Mode — the “light” version is ready for whenever a light mode exists.",
   logoPrincipalLabel: "Main logo",
   faviconLabel: "Favicon",
   faviconHint: "Browser tab.",
@@ -18,7 +23,7 @@ export const aparencia: AparenciaDict = {
   loginCardTitulo: "Login Screen",
   loginCardDescricao: "Title, subtitle, background and position of the login box — see the preview alongside.",
   tituloLabel: "Title",
-  tituloPlaceholder: "E.g.: Exclusive Area - Lume Strada",
+  tituloPlaceholder: "E.g.: Exclusive Area - App Gestão",
   subtituloLabel: "Subtitle",
   subtituloPlaceholder: "E.g.: Access for clients and projects",
   posicaoLabel: "Login box position",
