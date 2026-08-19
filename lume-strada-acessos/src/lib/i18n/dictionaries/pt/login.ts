@@ -28,7 +28,7 @@ export interface LoginDict {
 }
 
 export const login: LoginDict = {
-  convitePrompt: "Recebeu um convite por e-mail? Abra o link da mensagem para definir sua senha antes do primeiro acesso.",
+  convitePrompt: "Primeiro acesso? Entre com o e-mail cadastrado e a senha provisória que você recebeu. Você vai poder criar uma senha nova assim que entrar.",
   emailLabel: "E-mail",
   senhaLabel: "Senha",
   emailPlaceholder: "voce@lumestrada.com",

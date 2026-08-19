@@ -1,7 +1,7 @@
 import type { LoginDict } from "../pt/login";
 
 export const login: LoginDict = {
-  convitePrompt: "¿Recibiste una invitación por correo? Abre el enlace del mensaje para definir tu contraseña antes del primer acceso.",
+  convitePrompt: "¿Es tu primer acceso? Entra con el correo registrado y la contraseña provisional que recibiste. Podrás crear una contraseña nueva justo después de entrar.",
   emailLabel: "Correo electrónico",
   senhaLabel: "Contraseña",
   emailPlaceholder: "tu@lumestrada.com",

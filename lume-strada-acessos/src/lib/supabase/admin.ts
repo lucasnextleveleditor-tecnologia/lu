@@ -11,9 +11,9 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  * também rode no navegador — é a rede de segurança contra vazar a Service
  * Role Key no bundle do cliente.
  *
- * Usado neste projeto pra: (1) gerar o link de acesso de clientes/
- * funcionários/donos de empresa (`auth.admin.generateLink`, ver
- * `gerarLinkConvite` abaixo) e (2) o Dashboard do CLIENTE
+ * Usado neste projeto pra: (1) criar o login de clientes/funcionários/donos
+ * de empresa já com senha provisória (`auth.admin.createUser`, ver
+ * `criarAcessoComSenhaPadrao` abaixo) e (2) o Dashboard do CLIENTE
  * (`src/app/dashboard/actions.ts`) ler/aprovar entregas de Produção — a RLS
  * dessas tabelas (`is_staff()`) bloqueia um cliente por completo, então a
  * checagem de posse (`tarefa.cliente_id === user.id`) é feita na aplicação
@@ -39,56 +39,54 @@ export function createAdminClient() {
   });
 }
 
+/** Senha provisória atribuída a TODA conta nova — a pessoa loga com ela e o `senha_provisoria = true` (ver `supabase/senha-provisoria.sql`) força a troca antes de qualquer outra tela. Fixa e curta de propósito: não é segurança de verdade (é só o portão de entrada), a segurança real é obrigar a troca antes de liberar o resto do painel. */
+export const SENHA_PADRAO_ACESSO = "123";
+
 /**
- * Gera um link de acesso (convite) via Admin API — `generateLink({ type:
- * "invite" })` — SEM disparar e-mail nenhum. É a função usada por TODA ação
- * de "Gerar acesso" do sistema (`gerarAcessoCliente`, `gerarAcessoFuncionario`,
+ * Cria o login de um cliente/funcionário/dono de empresa já com e-mail
+ * confirmado e a senha padrão (`SENHA_PADRAO_ACESSO`) — via
+ * `auth.admin.createUser`. É a função usada por TODA ação de "Gerar acesso"
+ * do sistema (`gerarAcessoCliente`, `gerarAcessoFuncionario`,
  * `gerarAcessoCompanyAdmin`, `converterLeadEmCliente`).
  *
- * Substituiu `inviteUserByEmail` de propósito: aquele método soma duas
- * coisas numa chamada só — criar o usuário E mandar o e-mail pelo serviço
- * embutido do Supabase, que tem um rate limit baixíssimo (pensado só pra
- * teste, ver `MIGRACAO-MULTI-TENANT.md`) e depende de "Redirect URLs"
- * configurada certinho no dashboard; qualquer um dos dois quebrando (limite
- * batido, link caindo em localhost, token de uso único queimado num clique
- * que falhou) derrubava o convite inteiro. `generateLink` faz só a metade
- * que realmente precisa da Service Role (criar o usuário) e devolve os
- * dados pra quem chamou montar o próprio link e entregar como quiser —
- * copiar e mandar no WhatsApp do cliente, colar num e-mail manual, etc. Sem
- * e-mail automático não existe rate limit, então essa chamada nunca falha
- * por causa disso.
+ * Histórico (por que não é mais convite por e-mail/link): esse fluxo já foi
+ * `inviteUserByEmail` (e-mail automático — esbarrou no rate limit baixíssimo
+ * do serviço embutido do Supabase) e depois `generateLink` com um link
+ * copiável — que por sua vez esbarrou em: link caindo em localhost (env var
+ * ausente), token de uso único queimado por pré-visualização de link
+ * (WhatsApp/navegador prefetch), e por fim um bug real na rota de callback
+ * que fazia QUALQUER convite (nem só o link novo, o e-mail antigo também)
+ * nunca terminar em "definir senha" (a sessão vinha em fragmento de URL,
+ * que o servidor não consegue ler — ver `MIGRACAO-MULTI-TENANT.md` §8.1).
+ * Depois de todas essas voltas, o pedido explícito foi abandonar
+ * token/link/e-mail de vez: sem nenhum dos três, nenhum dos bugs acima pode
+ * mais acontecer. A pessoa recebe e-mail + senha (por WhatsApp, verbalmente,
+ * como for) e loga direto — a troca de senha acontece DENTRO do painel já
+ * autenticado, sem depender de mais nenhuma entrega externa.
  *
- * IMPORTANTE: o link devolvido NÃO é o `action_link` pronto que o Supabase
- * gera (esse aponta pro `/auth/v1/verify` DELES, que devolve a sessão em
- * fragmento de URL — `#access_token=...` — algo que um Route Handler nunca
- * consegue ler, porque fragmento não sai do navegador; foi exatamente esse
- * o bug real encontrado em produção que fazia TODO convite, mesmo o antigo
- * por e-mail, cair de volta no `/login` sem explicação nenhuma, sempre).
- * Em vez disso, montamos aqui um link pra NOSSA PRÓPRIA rota
- * (`/auth/callback`, ver `app/auth/callback/route.ts`) com `token_hash` +
- * `type` — o padrão que a própria documentação do Supabase recomenda pra
- * SSR — e lá a verificação roda via `verifyOtp({ token_hash, type })`, que
- * devolve a sessão no CORPO da resposta, servidor consegue ler numa boa.
- *
- * `type: "invite"` funciona tanto pra criar um usuário novo quanto pra gerar
- * um link novo pra um usuário que já existe mas ainda não confirmou o
- * primeiro (reenvio) — não precisa de um caminho separado pra "reenviar".
+ * `email_confirm: true` já marca o e-mail como confirmado na criação (sem
+ * isso `createUser` cria a conta mas com `email_confirmed_at` nulo, e o
+ * login normal por senha ainda funciona — mas confirmar de cara evita
+ * qualquer ambiguidade futura). Marca `senha_provisoria = true` no profile
+ * logo em seguida (o `handle_new_user` — ver `multitenant-migration.sql` —
+ * cria a linha sem essa flag, então precisa desse segundo passo pra ligá-la).
  */
-export async function gerarLinkConvite(
+export async function criarAcessoComSenhaPadrao(
   admin: ReturnType<typeof createAdminClient>,
   email: string,
-  options: { data?: Record<string, unknown>; redirectTo: string }
-): Promise<{ ok: true; link: string; userId: string } | { ok: false; error: string }> {
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: "invite",
+  options: { data?: Record<string, unknown> }
+): Promise<{ ok: true; userId: string; senhaPadrao: string } | { ok: false; error: string }> {
+  const { data, error } = await admin.auth.admin.createUser({
     email,
-    options: { data: options.data, redirectTo: options.redirectTo },
+    password: SENHA_PADRAO_ACESSO,
+    email_confirm: true,
+    user_metadata: options.data,
   });
   if (error) return { ok: false, error: error.message };
-  if (!data.user) return { ok: false, error: "Geração de link não retornou um usuário." };
+  if (!data.user) return { ok: false, error: "Criação de usuário não retornou um usuário." };
 
-  const link = `${options.redirectTo}?token_hash=${encodeURIComponent(data.properties.hashed_token)}&type=${encodeURIComponent(
-    data.properties.verification_type
-  )}`;
-  return { ok: true, link, userId: data.user.id };
+  const { error: erroFlag } = await admin.from("profiles").update({ senha_provisoria: true }).eq("id", data.user.id);
+  if (erroFlag) return { ok: false, error: erroFlag.message };
+
+  return { ok: true, userId: data.user.id, senhaPadrao: SENHA_PADRAO_ACESSO };
 }

@@ -52,13 +52,15 @@ export const cadastros: CadastrosDict = {
   emailLoginLabel: "Correo de acceso *",
   emailClientePlaceholder: "cliente@empresa.com",
   conviteClienteAjuda:
-    "Generamos un enlace de acceso para este correo definir la contraseña — usted lo copia y lo envía como prefiera (WhatsApp, correo...). Al entrar, el cliente ve solo sus propios paneles (Tráfico, Aprobaciones, Facturas).",
+    "Creamos el acceso ya con una contraseña provisional — usted copia el correo + la contraseña y los envía como prefiera (WhatsApp, correo...). En el primer acceso, la app exige definir una contraseña nueva. Al entrar, el cliente ve solo sus propios paneles (Tráfico, Aprobaciones, Facturas).",
   dataExpiracaoLabel: "Fecha de expiración (opcional)",
   semExpiracaoAjuda: "Déjelo en blanco para un acceso sin plazo definido.",
   enviando: "Generando...",
   gerarAcessoEnviarConvite: "Generar Acceso",
   linkAcessoTitulo: "Acceso generado",
-  linkAcessoAjuda: "Copie este enlace y envíelo manualmente (WhatsApp, correo, etc.) — la persona lo usa para definir la contraseña e iniciar sesión.",
+  linkAcessoAjuda:
+    "Copie el correo + la contraseña y envíelos manualmente (WhatsApp, correo, etc.). La persona inicia sesión con estos datos y la app exigirá definir una contraseña nueva apenas entre.",
+  senhaProvisoriaBadge: "Todavía con la contraseña provisional",
 
   loginLabel: "Acceso:",
   expiraEmLabel: "Expira el",
@@ -94,7 +96,8 @@ export const cadastros: CadastrosDict = {
   emailFuncionarioPlaceholder: "empleado@agencia.com",
   criarMembro: "Crear Miembro",
 
-  conviteFuncionarioAjuda: "Generamos un enlace de acceso para este correo definir la contraseña — usted lo copia y lo envía como prefiera (WhatsApp, correo...).",
+  conviteFuncionarioAjuda:
+    "Creamos el acceso ya con una contraseña provisional — usted copia el correo + la contraseña y los envía como prefiera (WhatsApp, correo...). En el primer acceso, la app exige definir una contraseña nueva.",
   modulosLiberadosTitulo: "Módulos Habilitados",
   modulosLiberadosAjuda: 'Bloquee o habilite cada área del menú para este empleado — ej: "Bloquear Finanzas, Habilitar Tareas".',
   cardsDashboardTitulo: "Tarjetas del Panel",

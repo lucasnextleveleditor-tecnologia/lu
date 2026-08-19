@@ -7,7 +7,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
-import { LinkAcessoGerado } from "@/components/ui/LinkAcessoGerado";
+import { CredenciaisAcessoGerado } from "@/components/ui/CredenciaisAcessoGerado";
 
 export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: ClienteRow; onClose: () => void }) {
   const { dict } = useLocale();
@@ -15,7 +15,7 @@ export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: Cliente
   const [expiresAt, setExpiresAt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [link, setLink] = useState<string | null>(null);
+  const [credenciais, setCredenciais] = useState<{ email: string; senhaPadrao: string } | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -27,10 +27,10 @@ export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: Cliente
       setError(result.error);
       return;
     }
-    // Fica aberto mostrando o link (LinkAcessoGerado) em vez de fechar
-    // sozinho — sem isso o link gerado nunca chegaria a aparecer pra
-    // ninguém copiar.
-    setLink(result.link);
+    // Fica aberto mostrando as credenciais (CredenciaisAcessoGerado) em vez
+    // de fechar sozinho — sem isso a senha gerada nunca chegaria a aparecer
+    // pra ninguém copiar.
+    setCredenciais({ email: result.email, senhaPadrao: result.senhaPadrao });
   }
 
   return (
@@ -45,10 +45,11 @@ export function GerarAcessoClienteModal({ cliente, onClose }: { cliente: Cliente
           </button>
         </div>
 
-        {link ? (
+        {credenciais ? (
           <div className="space-y-4">
-            <LinkAcessoGerado
-              link={link}
+            <CredenciaisAcessoGerado
+              email={credenciais.email}
+              senhaPadrao={credenciais.senhaPadrao}
               titulo={dict.cadastros.linkAcessoTitulo}
               ajuda={dict.cadastros.linkAcessoAjuda}
               copiarLabel={dict.common.copiarLink}

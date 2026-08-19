@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin, requireModulo } from "@/lib/auth/requireAdmin";
-import { createAdminClient, gerarLinkConvite } from "@/lib/supabase/admin";
+import { createAdminClient, criarAcessoComSenhaPadrao } from "@/lib/supabase/admin";
 import type { OrigemLead, StatusLead } from "@/lib/types/comercial";
 import type { AcessoGeradoResult } from "@/lib/types/acesso";
 
@@ -149,11 +149,11 @@ export async function converterLeadEmCliente(leadId: string): Promise<AcessoGera
   try {
     // Admin-only de propósito (igual Equipe/Aparência em requireAdmin.ts) —
     // essa ação cria uma conta de acesso de verdade via Service Role
-    // (`gerarLinkConvite`), não é só um CRUD dentro do módulo Comercial.
-    // Antes usava `requireModulo("comercial")`, que deixava qualquer
-    // funcionário com a permissão "Comercial" ligada capaz de criar contas
-    // de login — a mesma ação sensível que só admin pode fazer em
-    // Equipe/Gerar Acesso.
+    // (`criarAcessoComSenhaPadrao`), não é só um CRUD dentro do módulo
+    // Comercial. Antes usava `requireModulo("comercial")`, que deixava
+    // qualquer funcionário com a permissão "Comercial" ligada capaz de
+    // criar contas de login — a mesma ação sensível que só admin pode fazer
+    // em Equipe/Gerar Acesso.
     const { supabase, companyId } = await requireAdmin();
 
     const { data: lead, error: erroLead } = await supabase.from("crm_leads").select("nome, email, cliente_id").eq("id", leadId).single();
@@ -161,7 +161,6 @@ export async function converterLeadEmCliente(leadId: string): Promise<AcessoGera
     if (lead.cliente_id) return { ok: false, error: "Este lead já foi convertido em cliente." };
     if (!lead.email) return { ok: false, error: "O lead precisa de um e-mail cadastrado pra virar cliente." };
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     const admin = createAdminClient();
 
     // `company_id` nos metadados é OBRIGATÓRIO (mesma nota de
@@ -171,10 +170,9 @@ export async function converterLeadEmCliente(leadId: string): Promise<AcessoGera
     // não-super_admin sem empresa. Na prática, converter QUALQUER lead
     // quebrava com "Convite não retornou um usuário" depois da migração
     // multi-tenant — bug real corrigido junto com a troca pra
-    // `gerarLinkConvite`.
-    const gerado = await gerarLinkConvite(admin, lead.email, {
+    // `criarAcessoComSenhaPadrao`.
+    const gerado = await criarAcessoComSenhaPadrao(admin, lead.email, {
       data: { full_name: lead.nome, company_id: companyId },
-      redirectTo: `${siteUrl}/auth/callback`,
     });
     if (!gerado.ok) return gerado;
 
@@ -188,7 +186,7 @@ export async function converterLeadEmCliente(leadId: string): Promise<AcessoGera
 
     revalidatePath(PATH);
     revalidatePath("/admin");
-    return { ok: true, link: gerado.link };
+    return { ok: true, email: lead.email, senhaPadrao: gerado.senhaPadrao };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }

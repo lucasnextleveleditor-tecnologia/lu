@@ -1,7 +1,7 @@
 import type { LoginDict } from "../pt/login";
 
 export const login: LoginDict = {
-  convitePrompt: "Received an email invite? Open the link in the message to set your password before your first login.",
+  convitePrompt: "First time signing in? Use the registered email and the temporary password you were given. You'll be able to set a new password right after you log in.",
   emailLabel: "Email",
   senhaLabel: "Password",
   emailPlaceholder: "you@lumestrada.com",

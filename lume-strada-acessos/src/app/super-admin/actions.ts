@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAdminClient, gerarLinkConvite } from "@/lib/supabase/admin";
+import { createAdminClient, criarAcessoComSenhaPadrao } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/auth/requireAdmin";
 import type { StatusEmpresa } from "@/lib/types/super-admin";
 import type { AcessoGeradoResult } from "@/lib/types/acesso";
@@ -130,14 +130,10 @@ export async function gerarAcessoCompanyAdmin(companyId: string, input: { email:
     const { data: empresa, error: erroEmpresa } = await admin.from("companies").select("id, nome").eq("id", companyId).single();
     if (erroEmpresa || !empresa) return { ok: false, error: "Empresa não encontrada." };
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
-    // Ver `gerarLinkConvite` (lib/supabase/admin.ts) — não usa mais
-    // `inviteUserByEmail` (e-mail automático, rate limit baixo); gera o
-    // usuário e devolve o link pra quem chamou copiar/enviar manualmente.
-    const gerado = await gerarLinkConvite(admin, email, {
+    // Ver `criarAcessoComSenhaPadrao` (lib/supabase/admin.ts) — cria o login
+    // já com e-mail confirmado e senha provisória, sem token nem link.
+    const gerado = await criarAcessoComSenhaPadrao(admin, email, {
       data: { full_name: nome, company_id: companyId },
-      redirectTo: `${siteUrl}/auth/callback`,
     });
     if (!gerado.ok) return gerado;
 
@@ -148,7 +144,7 @@ export async function gerarAcessoCompanyAdmin(companyId: string, input: { email:
     if (erroPromocao) return { ok: false, error: erroPromocao.message };
 
     revalidatePath(PATH);
-    return { ok: true, link: gerado.link };
+    return { ok: true, email, senhaPadrao: gerado.senhaPadrao };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }

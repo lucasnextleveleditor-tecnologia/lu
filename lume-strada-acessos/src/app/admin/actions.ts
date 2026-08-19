@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAdminClient, gerarLinkConvite } from "@/lib/supabase/admin";
+import { createAdminClient, criarAcessoComSenhaPadrao } from "@/lib/supabase/admin";
 import { requireAdmin, requireModulo } from "@/lib/auth/requireAdmin";
 import type { PermissoesFuncionario, PreferenciasDashboard } from "@/lib/types/database";
 import type { ClienteAtividadeRow, TipoAtividadeCliente } from "@/lib/types/cadastros";
@@ -186,18 +186,17 @@ export async function gerarAcessoCliente(clienteId: string, input: { email: stri
     if (erroCliente || !cliente) return { ok: false, error: "Cliente não encontrado." };
     if (cliente.profile_id) return { ok: false, error: "Este cliente já tem acesso gerado." };
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     const admin = createAdminClient();
 
-    // `company_id` vai nos metadados do convite — é isso que o trigger
+    // `company_id` vai nos metadados da conta — é isso que o trigger
     // `handle_new_user` (ver `supabase/multitenant-migration.sql`) lê pra
-    // gravar o novo perfil já na MESMA empresa de quem convidou. Sem isso a
-    // inserção do perfil falharia (a empresa é obrigatória pra todo mundo
-    // que não é super_admin). Ver `gerarLinkConvite` (lib/supabase/admin.ts)
-    // pra por que isso não usa mais `inviteUserByEmail`.
-    const gerado = await gerarLinkConvite(admin, email, {
+    // gravar o novo perfil já na MESMA empresa de quem gerou o acesso. Sem
+    // isso a inserção do perfil falharia (a empresa é obrigatória pra todo
+    // mundo que não é super_admin). Ver `criarAcessoComSenhaPadrao`
+    // (lib/supabase/admin.ts) pra por que isso não é mais um convite por
+    // link/e-mail.
+    const gerado = await criarAcessoComSenhaPadrao(admin, email, {
       data: { full_name: cliente.nome, company_id: companyId },
-      redirectTo: `${siteUrl}/auth/callback`,
     });
     if (!gerado.ok) return gerado;
 
@@ -213,7 +212,7 @@ export async function gerarAcessoCliente(clienteId: string, input: { email: stri
     if (erroVinculo) return { ok: false, error: erroVinculo.message };
 
     revalidatePath(PATH);
-    return { ok: true, link: gerado.link };
+    return { ok: true, email, senhaPadrao: gerado.senhaPadrao };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
@@ -243,14 +242,12 @@ export async function gerarAcessoFuncionario(
     if (erroMembro || !membro) return { ok: false, error: "Membro da equipe não encontrado." };
     if (membro.profile_id) return { ok: false, error: "Este membro já tem acesso gerado." };
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
     const admin = createAdminClient();
 
     // Mesma nota de `gerarAcessoCliente` acima — `company_id` nos metadados
-    // do convite é o que faz o novo perfil nascer já na empresa certa.
-    const gerado = await gerarLinkConvite(admin, email, {
+    // é o que faz o novo perfil nascer já na empresa certa.
+    const gerado = await criarAcessoComSenhaPadrao(admin, email, {
       data: { full_name: membro.nome, company_id: companyId },
-      redirectTo: `${siteUrl}/auth/callback`,
     });
     if (!gerado.ok) return gerado;
 
@@ -267,7 +264,7 @@ export async function gerarAcessoFuncionario(
     if (erroVinculo) return { ok: false, error: erroVinculo.message };
 
     revalidatePath(PATH);
-    return { ok: true, link: gerado.link };
+    return { ok: true, email, senhaPadrao: gerado.senhaPadrao };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }

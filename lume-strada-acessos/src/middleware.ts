@@ -135,11 +135,11 @@ export async function middleware(request: NextRequest) {
       // `supabase/multitenant-migration.sql` — ver `MIGRACAO-MULTI-TENANT.md`.
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role, active, expires_at, company_id, companies!company_id(status, expires_at)")
+        .select("role, active, expires_at, company_id, senha_provisoria, companies!company_id(status, expires_at)")
         .eq("id", user.id)
         .single()
         .overrideTypes<
-          Pick<ProfileRow, "role" | "active" | "expires_at" | "company_id"> & {
+          Pick<ProfileRow, "role" | "active" | "expires_at" | "company_id" | "senha_provisoria"> & {
             companies: { status: "ativo" | "suspenso"; expires_at: string | null } | null;
           },
           { merge: false }
@@ -165,6 +165,19 @@ export async function middleware(request: NextRequest) {
       }
 
       if (status === "ativo") {
+        // Senha provisória ("123", atribuída na criação da conta — ver
+        // `criarAcessoComSenhaPadrao` em `lib/supabase/admin.ts`) TRANCA
+        // qualquer outra tela até a pessoa trocar: checagem ANTES do
+        // roteamento por papel abaixo, porque um super_admin/admin recém-
+        // criado com senha padrão não deveria nem ver a própria Home antes
+        // de definir uma senha de verdade. `/definir-senha` está em
+        // `ROTAS_PUBLICAS`, então segue liberada normalmente aqui.
+        if (profile?.senha_provisoria && pathname !== "/definir-senha") {
+          const url = request.nextUrl.clone();
+          url.pathname = "/definir-senha";
+          return NextResponse.redirect(url);
+        }
+
         // Super Admin cai no painel mestre; admin cai na Home do painel
         // (Cadastros); funcionário cai direto no Dashboard (Visão Geral — o
         // único módulo aberto a qualquer membro da equipe, sem depender de

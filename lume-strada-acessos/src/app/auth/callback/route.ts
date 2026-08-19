@@ -3,39 +3,33 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Callback do fluxo de convite (e também de login por magic link, se algum
- * dia for adicionado).
+ * Callback de qualquer fluxo de Auth que devolva sessão por link — hoje em
+ * dia NENHUM caminho do app gera links assim (ver nota grande em
+ * `lib/supabase/admin.ts`: contas novas nascem com e-mail confirmado +
+ * senha provisória via `criarAcessoComSenhaPadrao`, sem token/link
+ * nenhum), mas a rota fica aqui pronta pra qualquer feature futura que
+ * precise disso (ex: "esqueci minha senha" via `resetPasswordForEmail`,
+ * magic link).
  *
- * BUG REAL encontrado e corrigido aqui (19/08/2026, depois de nenhum convite
- * — nem no fluxo antigo por e-mail, nem no link copiável novo — conseguir
- * terminar em `/definir-senha`, sempre voltando pro `/login` sem explicação
- * nenhuma): esta rota só sabia ler `?code=...` (fluxo PKCE, via
- * `exchangeCodeForSession`). Só que o link que `auth.admin.generateLink`/
- * `auth.admin.inviteUserByEmail` geram (ver `gerarLinkConvite` em
- * `lib/supabase/admin.ts`) NUNCA usa PKCE — é um convite criado do lado do
- * SERVIDOR (Service Role), não existe "o mesmo navegador que iniciou o
- * fluxo" pra guardar o code_verifier que o PKCE exige. O link do convite
- * aponta primeiro pro endpoint `/auth/v1/verify` do próprio Supabase, que
- * (confirmado na documentação oficial, seção "Redirecting the user to a
- * server-side endpoint") devolve a sessão nos QUERY FRAGMENTS da URL
- * (`#access_token=...&refresh_token=...`) — fragmento (depois do `#`) nunca
- * chega no servidor, só em JS do navegador. Resultado: `code` sempre vinha
- * `null` aqui, a rota caía direto no fallback `/login?erro=convite_invalido`
- * — e como `LoginForm` nunca leu esse `erro`, a pessoa só via a tela de
- * login normal, sem nenhuma pista do que aconteceu (foi exatamente o que
- * apareceu pro Lucas ao testar o link copiável novo).
- *
- * Correção: `gerarLinkConvite` para de usar o `action_link` pronto do
- * Supabase (que passa pelo `/auth/v1/verify` deles) e monta o link
- * apontando direto pra ESTA rota, com `token_hash` + `type` (os dois vêm em
- * `properties.hashed_token`/`properties.verification_type` na resposta do
- * `generateLink`) — igual ao padrão recomendado na doc do Supabase pra SSR.
- * Com isso a verificação roda aqui, via `verifyOtp({ token_hash, type })`,
- * que devolve a sessão no CORPO da resposta (não em fragmento), então o
- * servidor consegue ler e gravar nos cookies normalmente. O ramo `code` /
- * `exchangeCodeForSession` fica como fallback, caso algum dia surja um
- * fluxo PKCE de verdade (ex: magic link disparado pelo próprio navegador do
- * usuário, não por um admin).
+ * Histórico: esta rota só sabia ler `?code=...` (fluxo PKCE, via
+ * `exchangeCodeForSession`) — mas o link de convite que
+ * `auth.admin.generateLink`/`inviteUserByEmail` geravam NUNCA usa PKCE (é
+ * criado do lado do SERVIDOR, com a Service Role; não existe "o mesmo
+ * navegador que iniciou o fluxo" pra guardar o code_verifier que o PKCE
+ * exige) — o link deles aponta pro `/auth/v1/verify` do Supabase, que
+ * devolve a sessão nos QUERY FRAGMENTS da URL (`#access_token=...`), e
+ * fragmento nunca chega no servidor. Resultado: `code` sempre vinha `null`
+ * aqui, a rota caía direto no fallback `/login?erro=convite_invalido` — e
+ * como `LoginForm` nunca lia esse `erro`, a pessoa só via a tela de login
+ * normal, sem nenhuma pista do que tinha acontecido. Isso fazia TODO
+ * convite (por e-mail antigo ou link copiável) nunca terminar em
+ * "definir senha" — ver `MIGRACAO-MULTI-TENANT.md` §8.1 pro relato
+ * completo. Corrigido em duas partes (ambas ainda válidas se essa rota
+ * voltar a ser usada): o ramo `token_hash`/`type` abaixo, via
+ * `verifyOtp` (devolve a sessão no CORPO da resposta, não em fragmento —
+ * o padrão que a documentação do Supabase recomenda pra SSR); e o ramo
+ * `code`/`exchangeCodeForSession` como fallback pra um fluxo PKCE de
+ * verdade (ex: magic link disparado pelo próprio navegador do usuário).
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);

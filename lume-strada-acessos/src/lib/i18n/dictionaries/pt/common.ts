@@ -94,7 +94,7 @@ export const common: CommonDict = {
   mostrarValores: "Mostrar valores",
   ocultarValores: "Ocultar valores",
   concluir: "Concluir",
-  copiarLink: "Copiar link",
+  copiarLink: "Copiar dados de acesso",
   linkCopiado: "Copiado!",
   enviarPorWhatsapp: "Abrir no WhatsApp",
 };

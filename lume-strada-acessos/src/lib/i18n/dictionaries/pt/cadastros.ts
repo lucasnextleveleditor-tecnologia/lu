@@ -68,6 +68,7 @@ export interface CadastrosDict {
   gerarAcessoEnviarConvite: string;
   linkAcessoTitulo: string;
   linkAcessoAjuda: string;
+  senhaProvisoriaBadge: string;
 
   // AcessoStatusControls
   loginLabel: string;
@@ -169,13 +170,15 @@ export const cadastros: CadastrosDict = {
   emailLoginLabel: "E-mail de login *",
   emailClientePlaceholder: "cliente@empresa.com",
   conviteClienteAjuda:
-    "Geramos um link de acesso pra esse e-mail definir a senha — você copia e envia por onde preferir (WhatsApp, e-mail...). Depois de entrar, o cliente vê só os dashboards dele (Tráfego, Aprovações, Boletos).",
+    "Criamos o login já com uma senha provisória — você copia e-mail + senha e envia por onde preferir (WhatsApp, e-mail...). No primeiro acesso, o painel obriga a criar uma senha nova. Depois de entrar, o cliente vê só os dashboards dele (Tráfego, Aprovações, Boletos).",
   dataExpiracaoLabel: "Data de expiração (opcional)",
   semExpiracaoAjuda: "Deixe em branco para acesso sem prazo definido.",
   enviando: "Gerando...",
   gerarAcessoEnviarConvite: "Gerar Acesso",
   linkAcessoTitulo: "Acesso gerado",
-  linkAcessoAjuda: "Copie esse link e envie manualmente (WhatsApp, e-mail, etc.) — a pessoa usa ele pra criar a senha e entrar no painel.",
+  linkAcessoAjuda:
+    "Copie e-mail + senha e envie manualmente (WhatsApp, e-mail, etc.). A pessoa loga com esses dados e o painel vai obrigar a trocar a senha assim que ela entrar.",
+  senhaProvisoriaBadge: "Ainda com a senha provisória",
 
   loginLabel: "Login:",
   expiraEmLabel: "Expira em",
@@ -211,7 +214,8 @@ export const cadastros: CadastrosDict = {
   emailFuncionarioPlaceholder: "funcionario@agencia.com",
   criarMembro: "Criar Membro",
 
-  conviteFuncionarioAjuda: "Geramos um link de acesso pra esse e-mail definir a senha — você copia e envia por onde preferir (WhatsApp, e-mail...).",
+  conviteFuncionarioAjuda:
+    "Criamos o login já com uma senha provisória — você copia e-mail + senha e envia por onde preferir (WhatsApp, e-mail...). No primeiro acesso, o painel obriga a criar uma senha nova.",
   modulosLiberadosTitulo: "Módulos Liberados",
   modulosLiberadosAjuda: 'Bloqueie ou libere cada área do menu pra esse funcionário — ex: "Bloquear Financeiro, Liberar Tarefas".',
   cardsDashboardTitulo: "Cards do Dashboard",

@@ -5,14 +5,14 @@ import type { CompanyRow } from "@/lib/types/super-admin";
 import { gerarAcessoCompanyAdmin } from "@/app/super-admin/actions";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { LinkAcessoGerado } from "@/components/ui/LinkAcessoGerado";
+import { CredenciaisAcessoGerado } from "@/components/ui/CredenciaisAcessoGerado";
 
 export function GerarAcessoCompanyAdminModal({ empresa, onClose }: { empresa: CompanyRow; onClose: () => void }) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [link, setLink] = useState<string | null>(null);
+  const [credenciais, setCredenciais] = useState<{ email: string; senhaPadrao: string } | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -24,9 +24,9 @@ export function GerarAcessoCompanyAdminModal({ empresa, onClose }: { empresa: Co
       setError(result.error);
       return;
     }
-    // Não fecha o modal sozinho — o link só existe aqui, então quem gerou
-    // precisa poder copiar/enviar antes de fechar (ver LinkAcessoGerado).
-    setLink(result.link);
+    // Não fecha o modal sozinho — as credenciais só existem aqui, então quem
+    // gerou precisa poder copiar/enviar antes de fechar (ver CredenciaisAcessoGerado).
+    setCredenciais({ email: result.email, senhaPadrao: result.senhaPadrao });
   }
 
   return (
@@ -39,9 +39,9 @@ export function GerarAcessoCompanyAdminModal({ empresa, onClose }: { empresa: Co
           </button>
         </div>
 
-        {link ? (
+        {credenciais ? (
           <div className="space-y-4">
-            <LinkAcessoGerado link={link} titulo={`Acesso gerado para ${nome}`} />
+            <CredenciaisAcessoGerado email={credenciais.email} senhaPadrao={credenciais.senhaPadrao} titulo={`Acesso gerado para ${nome}`} />
             <div className="flex justify-end pt-1">
               <Button type="button" onClick={onClose}>
                 Concluir
@@ -58,8 +58,8 @@ export function GerarAcessoCompanyAdminModal({ empresa, onClose }: { empresa: Co
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">E-mail de login</label>
               <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="dono@empresa.com" />
               <p className="mt-1 text-xs text-ink-muted">
-                Geramos um link de acesso pra essa pessoa definir a própria senha — você copia e envia por onde preferir (WhatsApp, e-mail...).
-                Ela entra com acesso total ao painel, restrito aos dados desta empresa.
+                Criamos o login já com uma senha provisória — você copia e-mail + senha e envia por onde preferir (WhatsApp, e-mail...). No
+                primeiro acesso, o painel obriga a pessoa a criar a própria senha. Ela entra com acesso total, restrito aos dados desta empresa.
               </p>
             </div>
 

@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { concluirTrocaDeSenha } from "@/app/definir-senha/actions";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -31,11 +32,24 @@ export function SetPasswordForm() {
     setLoading(true);
     const supabase = createClient();
     const { error: updateError } = await supabase.auth.updateUser({ password });
-    setLoading(false);
 
     if (updateError) {
+      setLoading(false);
       setError(updateError.message);
       return;
+    }
+
+    // Senha de verdade já está trocada nesse ponto — o que falta é só
+    // limpar `senha_provisoria` (ver `app/definir-senha/actions.ts`) pra o
+    // middleware parar de forçar essa tela. Best-effort: se isso falhar por
+    // algum motivo, a senha NOVA já está valendo (o auth.updateUser acima
+    // funcionou), só que a pessoa cairia de novo aqui no próximo login — bem
+    // menos grave do que travar a troca de senha por causa disso, então
+    // seguimos em frente de qualquer jeito.
+    const resultado = await concluirTrocaDeSenha();
+    setLoading(false);
+    if (!resultado.ok) {
+      console.error("[SetPasswordForm] falha ao limpar senha_provisoria:", resultado.error);
     }
 
     router.refresh();

@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/Badge";
 import { IconCheck } from "@/components/ui/icons";
 import { FollowUpLog } from "@/components/admin/comercial/FollowUpLog";
 import { GerenciarServicosModal } from "@/components/admin/comercial/GerenciarServicosModal";
-import { LinkAcessoGerado } from "@/components/ui/LinkAcessoGerado";
+import { CredenciaisAcessoGerado } from "@/components/ui/CredenciaisAcessoGerado";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { ComercialDict } from "@/lib/i18n/dictionaries/pt/comercial";
@@ -72,7 +72,7 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
   const [salvo, setSalvo] = useState(false);
   const [convertendo, setConvertendo] = useState(false);
   const [erroConversao, setErroConversao] = useState<string | null>(null);
-  const [linkConversao, setLinkConversao] = useState<string | null>(null);
+  const [credenciaisConversao, setCredenciaisConversao] = useState<{ email: string; senhaPadrao: string } | null>(null);
   const [gerenciarServicosAberto, setGerenciarServicosAberto] = useState(false);
 
   function handleSalvar(e: FormEvent) {
@@ -128,11 +128,11 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
         setErroConversao(result.error);
         return;
       }
-      // O link só existe aqui nesta resposta — fica exposto até quem
+      // A senha só existe aqui nesta resposta — fica exposta até quem
       // converteu copiar/enviar, mesmo depois do lead já ter `cliente_id`
-      // (a condição abaixo passa a checar `linkConversao` antes de trocar
-      // pro card "já convertido").
-      setLinkConversao(result.link);
+      // (a condição abaixo passa a checar `credenciaisConversao` antes de
+      // trocar pro card "já convertido").
+      setCredenciaisConversao({ email: result.email, senhaPadrao: result.senhaPadrao });
     });
   }
 
@@ -174,13 +174,15 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
         </div>
 
         {/* Conversão — some assim que já tem cliente_id vinculado, exceto
-            logo depois de converter: aí o link gerado (só existe na resposta
-            desta chamada, ver handleConverter) precisa ficar visível pra
-            copiar/enviar antes de sumir pro card de "já convertido". */}
-        {linkConversao ? (
+            logo depois de converter: aí as credenciais geradas (só existem
+            na resposta desta chamada, ver handleConverter) precisam ficar
+            visíveis pra copiar/enviar antes de sumir pro card de "já
+            convertido". */}
+        {credenciaisConversao ? (
           <div className="mb-5">
-            <LinkAcessoGerado
-              link={linkConversao}
+            <CredenciaisAcessoGerado
+              email={credenciaisConversao.email}
+              senhaPadrao={credenciaisConversao.senhaPadrao}
               titulo={dict.comercial.linkAcessoTitulo}
               ajuda={dict.comercial.linkAcessoAjuda}
               copiarLabel={dict.common.copiarLink}

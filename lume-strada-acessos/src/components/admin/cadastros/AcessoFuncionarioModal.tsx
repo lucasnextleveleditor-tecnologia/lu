@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Switch } from "@/components/ui/Switch";
-import { LinkAcessoGerado } from "@/components/ui/LinkAcessoGerado";
+import { CredenciaisAcessoGerado } from "@/components/ui/CredenciaisAcessoGerado";
 
 interface AcessoFuncionarioModalProps {
   membro: EquipeMembroRow;
@@ -36,7 +36,7 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
-  const [link, setLink] = useState<string | null>(null);
+  const [credenciais, setCredenciais] = useState<{ email: string; senhaPadrao: string } | null>(null);
 
   const jaTemAcesso = Boolean(profile);
 
@@ -71,10 +71,10 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
       setError(result.error);
       return;
     }
-    // Fica aberto mostrando o link (LinkAcessoGerado) em vez de fechar
-    // sozinho — sem isso o link gerado nunca chegaria a aparecer pra
-    // ninguém copiar.
-    setLink(result.link);
+    // Fica aberto mostrando as credenciais (CredenciaisAcessoGerado) em vez
+    // de fechar sozinho — sem isso a senha gerada nunca chegaria a aparecer
+    // pra ninguém copiar.
+    setCredenciais({ email: result.email, senhaPadrao: result.senhaPadrao });
   }
 
   async function handleSalvarPermissoes() {
@@ -115,10 +115,11 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
           </button>
         </div>
 
-        {link ? (
+        {credenciais ? (
           <div className="space-y-4">
-            <LinkAcessoGerado
-              link={link}
+            <CredenciaisAcessoGerado
+              email={credenciais.email}
+              senhaPadrao={credenciais.senhaPadrao}
               titulo={dict.cadastros.linkAcessoTitulo}
               ajuda={dict.cadastros.linkAcessoAjuda}
               copiarLabel={dict.common.copiarLink}

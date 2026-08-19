@@ -42,7 +42,7 @@ export const common: CommonDict = {
   mostrarValores: "Show values",
   ocultarValores: "Hide values",
   concluir: "Done",
-  copiarLink: "Copy link",
+  copiarLink: "Copy access details",
   linkCopiado: "Copied!",
   enviarPorWhatsapp: "Open in WhatsApp",
 };

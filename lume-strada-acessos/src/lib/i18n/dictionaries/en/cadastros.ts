@@ -52,13 +52,14 @@ export const cadastros: CadastrosDict = {
   emailLoginLabel: "Login email *",
   emailClientePlaceholder: "client@company.com",
   conviteClienteAjuda:
-    "We generate an access link for this email to set a password — you copy and send it however you prefer (WhatsApp, email...). Once in, the client only sees their own dashboards (Traffic, Approvals, Invoices).",
+    "We create the login already with a temporary password — you copy the email + password and send it however you prefer (WhatsApp, email...). On first access, the app requires setting a new password. Once in, the client only sees their own dashboards (Traffic, Approvals, Invoices).",
   dataExpiracaoLabel: "Expiration date (optional)",
   semExpiracaoAjuda: "Leave blank for access with no set deadline.",
   enviando: "Generating...",
   gerarAcessoEnviarConvite: "Grant Access",
   linkAcessoTitulo: "Access granted",
-  linkAcessoAjuda: "Copy this link and send it manually (WhatsApp, email, etc.) — the person uses it to set a password and log in.",
+  linkAcessoAjuda: "Copy the email + password and send it manually (WhatsApp, email, etc.). The person logs in with these and the app will require them to set a new password as soon as they get in.",
+  senhaProvisoriaBadge: "Still on the temporary password",
 
   loginLabel: "Login:",
   expiraEmLabel: "Expires on",
@@ -94,7 +95,8 @@ export const cadastros: CadastrosDict = {
   emailFuncionarioPlaceholder: "employee@agency.com",
   criarMembro: "Create Member",
 
-  conviteFuncionarioAjuda: "We generate an access link for this email to set a password — you copy and send it however you prefer (WhatsApp, email...).",
+  conviteFuncionarioAjuda:
+    "We create the login already with a temporary password — you copy the email + password and send it however you prefer (WhatsApp, email...). On first access, the app requires setting a new password.",
   modulosLiberadosTitulo: "Unlocked Modules",
   modulosLiberadosAjuda: 'Block or unlock each menu area for this employee — e.g.: "Block Finance, Unlock Tasks".',
   cardsDashboardTitulo: "Dashboard Cards",

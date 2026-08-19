@@ -75,6 +75,12 @@ export interface ProfileRow {
   // `DashboardCardChave` acima. Também só é lida/usada quando
   // role = 'funcionario' (admin sempre vê tudo).
   dashboard_config: PreferenciasDashboard;
+  // true = ainda está com a senha padrão ("123") atribuída na criação da
+  // conta — o middleware força a troca em /definir-senha antes de liberar
+  // qualquer outra tela (ver `src/middleware.ts` e
+  // `src/app/definir-senha/actions.ts`). Vira false assim que a pessoa
+  // define a própria senha.
+  senha_provisoria: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -54,6 +54,14 @@ export function AcessoStatusControls({ profile, editavel }: AcessoStatusControls
         <span className="text-xs text-ink-muted">
           {dict.cadastros.loginLabel} {profile.email}
         </span>
+        {/* Ainda com a senha padrão ("123") — ver `senha_provisoria` em
+            `supabase/senha-provisoria.sql`. Só informativo: avisa o admin que
+            essa pessoa ainda não fez o primeiro login/troca de senha. */}
+        {profile.senha_provisoria && (
+          <span className="rounded-full border border-status-warning/40 bg-status-warning/10 px-2 py-0.5 text-[11px] font-medium text-status-warning">
+            {dict.cadastros.senhaProvisoriaBadge}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
