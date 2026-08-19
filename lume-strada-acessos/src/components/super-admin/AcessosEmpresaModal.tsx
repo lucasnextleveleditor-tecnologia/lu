@@ -5,6 +5,7 @@ import type { AcessoEmpresaRow, CompanyRow } from "@/lib/types/super-admin";
 import { listarAcessosEmpresa, atualizarEmailAcesso, excluirAcessoEmpresa } from "@/app/super-admin/actions";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { IconCheck, IconClipboardList } from "@/components/ui/icons";
 
 const LABEL_PAPEL: Record<AcessoEmpresaRow["role"], string> = {
   admin: "Dono da empresa",
@@ -31,6 +32,8 @@ export function AcessosEmpresaModal({ empresa, onClose }: { empresa: CompanyRow;
 
   const [confirmandoExclusaoId, setConfirmandoExclusaoId] = useState<string | null>(null);
   const [excluindo, setExcluindo] = useState(false);
+
+  const [linkCopiadoId, setLinkCopiadoId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelado = false;
@@ -76,6 +79,26 @@ export function AcessosEmpresaModal({ empresa, onClose }: { empresa: CompanyRow;
       return;
     }
     setAcessos((atual) => atual?.filter((a) => a.id !== id) ?? atual);
+  }
+
+  /**
+   * "Reenviar acesso" — copia só o link da área de login (`/login`), igual
+   * ao botão "Enviar link" da lista de Empresas (`CompaniesManager`), só que
+   * aqui dentro do detalhe de CADA login específico, pra reenviar pra quem
+   * já tem conta e só perdeu o link. Não inclui e-mail/senha: a senha real
+   * (se a pessoa já trocou) a gente nem sabe qual é, e reenviar a provisória
+   * de novo pra quem já trocou seria enganoso.
+   */
+  async function reenviarAcesso(id: string) {
+    const loginUrl = `${window.location.origin}/login`;
+    try {
+      await navigator.clipboard.writeText(loginUrl);
+      setLinkCopiadoId(id);
+      setTimeout(() => setLinkCopiadoId((atual) => (atual === id ? null : atual)), 2000);
+    } catch {
+      // Clipboard API pode falhar (contexto não seguro, permissão negada) —
+      // sem quebrar nada, só não mostra o "Copiado!".
+    }
   }
 
   return (
@@ -152,6 +175,17 @@ export function AcessosEmpresaModal({ empresa, onClose }: { empresa: CompanyRow;
                       </div>
                     ) : (
                       <div className="flex gap-2">
+                        <Button type="button" variant="ghost" onClick={() => reenviarAcesso(acesso.id)} className="px-3 py-1.5 text-xs">
+                          {linkCopiadoId === acesso.id ? (
+                            <>
+                              <IconCheck className="h-3.5 w-3.5" /> Copiado!
+                            </>
+                          ) : (
+                            <>
+                              <IconClipboardList className="h-3.5 w-3.5" /> Reenviar acesso
+                            </>
+                          )}
+                        </Button>
                         <Button type="button" variant="ghost" onClick={() => iniciarEdicao(acesso)} className="px-3 py-1.5 text-xs">
                           Editar e-mail
                         </Button>

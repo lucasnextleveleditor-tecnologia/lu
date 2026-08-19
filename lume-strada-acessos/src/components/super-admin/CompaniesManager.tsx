@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { StatTile } from "@/components/ui/StatTile";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { IconBuilding, IconCheckCircle, IconPauseCircle, IconKey } from "@/components/ui/icons";
+import { IconBuilding, IconCheckCircle, IconPauseCircle, IconKey, IconCheck, IconClipboardList } from "@/components/ui/icons";
 import { EmpresaModal } from "@/components/super-admin/EmpresaModal";
 import { GerarAcessoCompanyAdminModal } from "@/components/super-admin/GerarAcessoCompanyAdminModal";
 import { AcessosEmpresaModal } from "@/components/super-admin/AcessosEmpresaModal";
@@ -27,6 +27,7 @@ export function CompaniesManager({ companies, acessosPorEmpresa }: CompaniesMana
   const [empresaGerandoAcesso, setEmpresaGerandoAcesso] = useState<CompanyRow | null>(null);
   const [empresaVendoAcessos, setEmpresaVendoAcessos] = useState<CompanyRow | null>(null);
   const [confirmandoExclusao, setConfirmandoExclusao] = useState<string | null>(null);
+  const [linkCopiadoId, setLinkCopiadoId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -62,6 +63,29 @@ export function CompaniesManager({ companies, acessosPorEmpresa }: CompaniesMana
       if (!result.ok) setError(result.error);
       setConfirmandoExclusao(null);
     });
+  }
+
+  /**
+   * Copia só o link da área de membros (`/login`) — sem e-mail/senha junto,
+   * ao contrário de `CredenciaisAcessoGerado` (usado em "Gerar acesso", que
+   * já manda os três juntos). Serve pra reenviar o link puro pra quem já
+   * tem login e só esqueceu onde entrar — não precisa reabrir o modal de
+   * gerar acesso (que criaria um login novo) só pra isso. O link é o mesmo
+   * pra qualquer empresa (um `/login` só pro app inteiro, ver
+   * `branding_config` — é singleton, não por empresa), mas o botão fica em
+   * cada linha mesmo assim, pra copiar direto de onde já está olhando a
+   * empresa em questão.
+   */
+  async function handleCopiarLink(empresa: CompanyRow) {
+    const loginUrl = `${window.location.origin}/login`;
+    try {
+      await navigator.clipboard.writeText(loginUrl);
+      setLinkCopiadoId(empresa.id);
+      setTimeout(() => setLinkCopiadoId((atual) => (atual === empresa.id ? null : atual)), 2000);
+    } catch {
+      // Clipboard API pode falhar (contexto não seguro, permissão negada) —
+      // sem quebrar nada, só não mostra o "Copiado!".
+    }
   }
 
   return (
@@ -147,6 +171,17 @@ export function CompaniesManager({ companies, acessosPorEmpresa }: CompaniesMana
                       <div className="flex justify-end gap-2">
                         <Button variant="ghost" onClick={() => setEmpresaGerandoAcesso(empresa)} className="px-3 py-1.5 text-xs">
                           <IconKey className="h-3.5 w-3.5" /> Gerar acesso
+                        </Button>
+                        <Button variant="ghost" onClick={() => handleCopiarLink(empresa)} className="px-3 py-1.5 text-xs">
+                          {linkCopiadoId === empresa.id ? (
+                            <>
+                              <IconCheck className="h-3.5 w-3.5" /> Copiado!
+                            </>
+                          ) : (
+                            <>
+                              <IconClipboardList className="h-3.5 w-3.5" /> Enviar link
+                            </>
+                          )}
                         </Button>
                         <Button variant="ghost" onClick={() => handleToggleStatus(empresa)} disabled={pending} className="px-3 py-1.5 text-xs">
                           {empresa.status === "ativo" ? "Suspender" : "Reativar"}
