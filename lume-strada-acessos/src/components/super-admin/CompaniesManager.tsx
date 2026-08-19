@@ -13,7 +13,13 @@ import { IconBuilding, IconCheckCircle, IconPauseCircle, IconKey } from "@/compo
 import { EmpresaModal } from "@/components/super-admin/EmpresaModal";
 import { GerarAcessoCompanyAdminModal } from "@/components/super-admin/GerarAcessoCompanyAdminModal";
 
-export function CompaniesManager({ companies }: { companies: CompanyRow[] }) {
+interface CompaniesManagerProps {
+  companies: CompanyRow[];
+  /** id da empresa -> quantidade de logins (admin/funcionário/cliente) já gerados nela. Empresa sem entrada aqui = zero acessos ainda. */
+  acessosPorEmpresa: Record<string, number>;
+}
+
+export function CompaniesManager({ companies, acessosPorEmpresa }: CompaniesManagerProps) {
   const [busca, setBusca] = useState("");
   const [modalCriacaoAberto, setModalCriacaoAberto] = useState(false);
   const [empresaEditando, setEmpresaEditando] = useState<CompanyRow | null>(null);
@@ -87,6 +93,7 @@ export function CompaniesManager({ companies }: { companies: CompanyRow[] }) {
                 <th className="px-6 py-3 font-medium">Empresa</th>
                 <th className="px-0 py-3 font-medium">Status</th>
                 <th className="px-0 py-3 font-medium">Expiração</th>
+                <th className="px-0 py-3 font-medium">Acessos</th>
                 <th className="px-6 py-3 font-medium text-right">Ações</th>
               </tr>
             </thead>
@@ -102,6 +109,15 @@ export function CompaniesManager({ companies }: { companies: CompanyRow[] }) {
                   </td>
                   <td className="py-3 pr-4">
                     <span className="text-xs text-ink-secondary">{fmtData(empresa.expires_at)}</span>
+                  </td>
+                  <td className="py-3 pr-4">
+                    {acessosPorEmpresa[empresa.id] ? (
+                      <span className="text-xs text-ink-secondary">
+                        {acessosPorEmpresa[empresa.id]} {acessosPorEmpresa[empresa.id] === 1 ? "acesso" : "acessos"}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-ink-muted">Nenhum acesso ainda</span>
+                    )}
                   </td>
                   <td className="py-3 text-right">
                     {confirmandoExclusao === empresa.id ? (
