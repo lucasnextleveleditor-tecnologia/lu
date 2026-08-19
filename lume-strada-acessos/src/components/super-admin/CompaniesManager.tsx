@@ -12,6 +12,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { IconBuilding, IconCheckCircle, IconPauseCircle, IconKey } from "@/components/ui/icons";
 import { EmpresaModal } from "@/components/super-admin/EmpresaModal";
 import { GerarAcessoCompanyAdminModal } from "@/components/super-admin/GerarAcessoCompanyAdminModal";
+import { AcessosEmpresaModal } from "@/components/super-admin/AcessosEmpresaModal";
 
 interface CompaniesManagerProps {
   companies: CompanyRow[];
@@ -24,6 +25,7 @@ export function CompaniesManager({ companies, acessosPorEmpresa }: CompaniesMana
   const [modalCriacaoAberto, setModalCriacaoAberto] = useState(false);
   const [empresaEditando, setEmpresaEditando] = useState<CompanyRow | null>(null);
   const [empresaGerandoAcesso, setEmpresaGerandoAcesso] = useState<CompanyRow | null>(null);
+  const [empresaVendoAcessos, setEmpresaVendoAcessos] = useState<CompanyRow | null>(null);
   const [confirmandoExclusao, setConfirmandoExclusao] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -112,9 +114,12 @@ export function CompaniesManager({ companies, acessosPorEmpresa }: CompaniesMana
                   </td>
                   <td className="py-3 pr-4">
                     {acessosPorEmpresa[empresa.id] ? (
-                      <span className="text-xs text-ink-secondary">
+                      <button
+                        onClick={() => setEmpresaVendoAcessos(empresa)}
+                        className="text-xs text-ink-secondary underline decoration-dotted hover:text-ink-primary"
+                      >
                         {acessosPorEmpresa[empresa.id]} {acessosPorEmpresa[empresa.id] === 1 ? "acesso" : "acessos"}
-                      </span>
+                      </button>
                     ) : (
                       <span className="text-xs text-ink-muted">Nenhum acesso ainda</span>
                     )}
@@ -170,6 +175,7 @@ export function CompaniesManager({ companies, acessosPorEmpresa }: CompaniesMana
       {modalCriacaoAberto && <EmpresaModal onClose={() => setModalCriacaoAberto(false)} />}
       {empresaEditando && <EmpresaModal empresa={empresaEditando} onClose={() => setEmpresaEditando(null)} />}
       {empresaGerandoAcesso && <GerarAcessoCompanyAdminModal empresa={empresaGerandoAcesso} onClose={() => setEmpresaGerandoAcesso(null)} />}
+      {empresaVendoAcessos && <AcessosEmpresaModal empresa={empresaVendoAcessos} onClose={() => setEmpresaVendoAcessos(null)} />}
     </div>
   );
 }

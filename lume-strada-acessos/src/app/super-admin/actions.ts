@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient, criarAcessoComSenhaPadrao } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/auth/requireAdmin";
-import type { StatusEmpresa } from "@/lib/types/super-admin";
+import type { AcessoEmpresaRow, StatusEmpresa } from "@/lib/types/super-admin";
 import type { AcessoGeradoResult } from "@/lib/types/acesso";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
+export type ActionResultAcessos = { ok: true; acessos: AcessoEmpresaRow[] } | { ok: false; error: string };
 
 const PATH = "/super-admin";
 
@@ -145,6 +146,102 @@ export async function gerarAcessoCompanyAdmin(companyId: string, input: { email:
 
     revalidatePath(PATH);
     return { ok: true, email, senhaPadrao: gerado.senhaPadrao };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Acessos de uma empresa (modal "Acessos" na lista de Empresas licenciadas) —
+// aqui o Super Admin vê/edita/apaga QUALQUER login de QUALQUER empresa,
+// independente de papel (admin/funcionário/cliente). Diferente do resto
+// deste arquivo (que só mexe em `companies`), essas três ações mexem direto
+// em `profiles`/`auth.users` de terceiros — por isso `atualizarEmailAcesso`
+// e `excluirAcessoEmpresa` usam a Service Role (a RLS de update de
+// `profiles` nem cobriria mudar o e-mail em `auth.users`, que é uma tabela
+// separada só acessível pela API admin do Supabase Auth).
+// ----------------------------------------------------------------------------
+
+/** Lista todo login já gerado pra essa empresa — `profiles_select_admin` (RLS) já deixa `is_super_admin()` ler perfis de qualquer empresa, então um select comum (sem Service Role) basta aqui. */
+export async function listarAcessosEmpresa(companyId: string): Promise<ActionResultAcessos> {
+  try {
+    const { supabase } = await requireSuperAdmin();
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, full_name, role, active, senha_provisoria, created_at")
+      .eq("company_id", companyId)
+      .order("created_at", { ascending: true })
+      .overrideTypes<AcessoEmpresaRow[], { merge: false }>();
+    if (error) return { ok: false, error: error.message };
+
+    return { ok: true, acessos: data ?? [] };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Troca o e-mail de login de um acesso já existente. Usa
+ * `auth.admin.updateUserById` (Service Role) — é o único jeito de mudar
+ * `auth.users.email` de verdade (mexe também em `auth.identities`, o
+ * Supabase cuida disso sozinho); `email_confirm: true` evita reabrir
+ * qualquer fluxo de confirmação por e-mail, consistente com a decisão de
+ * §9 de `MIGRACAO-MULTI-TENANT.md` (sem token/link/e-mail automático em
+ * nenhum ponto do sistema). `profiles.email` é só uma cópia de leitura (não
+ * existe trigger de sync em UPDATE, só em INSERT via `handle_new_user`), por
+ * isso precisa ser atualizada aqui também, na mesma ação, pra não desalinhar.
+ */
+export async function atualizarEmailAcesso(profileId: string, companyId: string, novoEmail: string): Promise<ActionResult> {
+  try {
+    await requireSuperAdmin();
+
+    const email = novoEmail.trim().toLowerCase();
+    if (!email) return { ok: false, error: "Informe um e-mail." };
+
+    const admin = createAdminClient();
+
+    // Confere que esse login é mesmo dessa empresa antes de mexer em nada —
+    // defesa extra (o modal já só chama isso com IDs da própria empresa que
+    // está aberta, mas uma Server Action nunca deve confiar só no que o
+    // client mandou).
+    const { data: perfil, error: erroPerfil } = await admin.from("profiles").select("id, company_id").eq("id", profileId).single();
+    if (erroPerfil || !perfil || perfil.company_id !== companyId) return { ok: false, error: "Acesso não encontrado nessa empresa." };
+
+    const { error: erroAuth } = await admin.auth.admin.updateUserById(profileId, { email, email_confirm: true });
+    if (erroAuth) return { ok: false, error: erroAuth.message };
+
+    const { error: erroProfile } = await admin.from("profiles").update({ email }).eq("id", profileId);
+    if (erroProfile) return { ok: false, error: erroProfile.message };
+
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Apaga o login por completo (`auth.admin.deleteUser`) — o `profiles`
+ * correspondente vai junto sozinho (`profiles_id_fkey ... ON DELETE
+ * CASCADE`, ver `supabase/multitenant-migration.sql`). Igual à exclusão de
+ * empresa (`removerEmpresa` acima): ação definitiva, sem meio-termo — quem
+ * chama já mostra a confirmação antes (ver `AcessosEmpresaModal`).
+ */
+export async function excluirAcessoEmpresa(profileId: string, companyId: string): Promise<ActionResult> {
+  try {
+    await requireSuperAdmin();
+
+    const admin = createAdminClient();
+
+    const { data: perfil, error: erroPerfil } = await admin.from("profiles").select("id, company_id").eq("id", profileId).single();
+    if (erroPerfil || !perfil || perfil.company_id !== companyId) return { ok: false, error: "Acesso não encontrado nessa empresa." };
+
+    const { error } = await admin.auth.admin.deleteUser(profileId);
+    if (error) return { ok: false, error: error.message };
+
+    revalidatePath(PATH);
+    return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
