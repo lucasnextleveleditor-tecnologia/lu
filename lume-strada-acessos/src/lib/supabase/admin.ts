@@ -52,11 +52,23 @@ export function createAdminClient() {
  * configurada certinho no dashboard; qualquer um dos dois quebrando (limite
  * batido, link caindo em localhost, token de uso único queimado num clique
  * que falhou) derrubava o convite inteiro. `generateLink` faz só a metade
- * que realmente precisa da Service Role (criar o usuário) e devolve o link
- * pronto (`action_link`) pra quem chamou decidir como entregar — copiar e
- * mandar no WhatsApp do cliente, colar num e-mail manual, etc. Sem e-mail
- * automático não existe rate limit, então essa chamada nunca falha por causa
- * disso.
+ * que realmente precisa da Service Role (criar o usuário) e devolve os
+ * dados pra quem chamou montar o próprio link e entregar como quiser —
+ * copiar e mandar no WhatsApp do cliente, colar num e-mail manual, etc. Sem
+ * e-mail automático não existe rate limit, então essa chamada nunca falha
+ * por causa disso.
+ *
+ * IMPORTANTE: o link devolvido NÃO é o `action_link` pronto que o Supabase
+ * gera (esse aponta pro `/auth/v1/verify` DELES, que devolve a sessão em
+ * fragmento de URL — `#access_token=...` — algo que um Route Handler nunca
+ * consegue ler, porque fragmento não sai do navegador; foi exatamente esse
+ * o bug real encontrado em produção que fazia TODO convite, mesmo o antigo
+ * por e-mail, cair de volta no `/login` sem explicação nenhuma, sempre).
+ * Em vez disso, montamos aqui um link pra NOSSA PRÓPRIA rota
+ * (`/auth/callback`, ver `app/auth/callback/route.ts`) com `token_hash` +
+ * `type` — o padrão que a própria documentação do Supabase recomenda pra
+ * SSR — e lá a verificação roda via `verifyOtp({ token_hash, type })`, que
+ * devolve a sessão no CORPO da resposta, servidor consegue ler numa boa.
  *
  * `type: "invite"` funciona tanto pra criar um usuário novo quanto pra gerar
  * um link novo pra um usuário que já existe mas ainda não confirmou o
@@ -74,5 +86,9 @@ export async function gerarLinkConvite(
   });
   if (error) return { ok: false, error: error.message };
   if (!data.user) return { ok: false, error: "Geração de link não retornou um usuário." };
-  return { ok: true, link: data.properties.action_link, userId: data.user.id };
+
+  const link = `${options.redirectTo}?token_hash=${encodeURIComponent(data.properties.hashed_token)}&type=${encodeURIComponent(
+    data.properties.verification_type
+  )}`;
+  return { ok: true, link, userId: data.user.id };
 }

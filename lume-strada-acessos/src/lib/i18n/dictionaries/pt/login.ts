@@ -10,6 +10,7 @@ export interface LoginDict {
   sair: string;
   saindo: string;
   credenciaisInvalidas: string;
+  conviteInvalidoErro: string;
   acessoExpiradoTitulo: string;
   acessoExpiradoPadrao: string;
   acessoExpiradoData: string;
@@ -37,6 +38,7 @@ export const login: LoginDict = {
   sair: "Sair",
   saindo: "Saindo...",
   credenciaisInvalidas: "E-mail ou senha incorretos.",
+  conviteInvalidoErro: "Esse link de convite já foi usado ou expirou. Peça pra quem te convidou gerar um link novo.",
   acessoExpiradoTitulo: "Acesso Expirado",
   acessoExpiradoPadrao: "Seu acesso não está disponível no momento.",
   acessoExpiradoData: "Seu acesso expirou em {data}.",

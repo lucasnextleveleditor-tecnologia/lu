@@ -14,7 +14,13 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Inicializa a partir de `?erro=convite_invalido` (`app/auth/callback/route.ts`
+  // manda pra cá quando o `verifyOtp`/`exchangeCodeForSession` falha — link já
+  // usado, expirado, etc.) — sem isso a pessoa cai aqui sem NENHUMA pista do
+  // que aconteceu, só a tela de login comum (bug real encontrado testando o
+  // link copiável: alguém clicava o link, dava erro, e via só isso — nada
+  // indicava que era o link, e não usuário/senha).
+  const [error, setError] = useState<string | null>(searchParams.get("erro") === "convite_invalido" ? dict.login.conviteInvalidoErro : null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

@@ -11,6 +11,7 @@ export const login: LoginDict = {
   sair: "Sign out",
   saindo: "Signing out...",
   credenciaisInvalidas: "Incorrect email or password.",
+  conviteInvalidoErro: "This invite link was already used or has expired. Ask whoever invited you to generate a new one.",
   acessoExpiradoTitulo: "Access Expired",
   acessoExpiradoPadrao: "Your access is not available right now.",
   acessoExpiradoData: "Your access expired on {data}.",
