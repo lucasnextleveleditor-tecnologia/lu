@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireModulo } from "@/lib/auth/requireAdmin";
 import { getWhatsAppProvider } from "@/lib/whatsapp/provider";
 import type { ContatoWhatsappRow, MensagemWhatsappRow, SessaoWhatsappRow } from "@/lib/types/whatsapp";
@@ -10,6 +11,19 @@ export type ActionResultId = { ok: true; id: string } | { ok: false; error: stri
 
 const PATH_INBOX = "/admin/whatsapp";
 const PATH_CONEXAO = "/admin/whatsapp/conexao";
+
+/**
+ * `company_id` da empresa de quem está logado — necessário pra montar o
+ * provedor certo (a instância Evolution API é uma por empresa, ver
+ * `src/lib/whatsapp/provider.ts`). Lido de `whatsapp_sessoes` (RLS já
+ * restringe a UMA linha, a da própria empresa) em vez de `profiles` só pra
+ * reaproveitar uma tabela que todo chamador já tem permissão de ler.
+ */
+async function obterCompanyIdAtual(supabase: SupabaseClient): Promise<string> {
+  const { data } = await supabase.from("whatsapp_sessoes").select("company_id").maybeSingle<{ company_id: string }>();
+  if (!data?.company_id) throw new Error("Sessão do WhatsApp não encontrada para esta empresa.");
+  return data.company_id;
+}
 
 // ----------------------------------------------------------------------------
 // Sessão / Conexão
@@ -37,7 +51,8 @@ export async function consultarSessaoAtual(): Promise<SessaoWhatsappRow | null> 
 export async function gerarQrCode(): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("whatsapp");
-    const provider = getWhatsAppProvider();
+    const companyId = await obterCompanyIdAtual(supabase);
+    const provider = getWhatsAppProvider(companyId);
     const resultado = await provider.gerarQrCode();
 
     // Sem `.eq(...)` de propósito: `whatsapp_sessoes_admin_all` (RLS) já
@@ -62,7 +77,8 @@ export async function gerarQrCode(): Promise<ActionResult> {
 export async function desconectarSessao(): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("whatsapp");
-    const provider = getWhatsAppProvider();
+    const companyId = await obterCompanyIdAtual(supabase);
+    const provider = getWhatsAppProvider(companyId);
     await provider.desconectar();
 
     const { error } = await supabase
@@ -129,7 +145,8 @@ export async function enviarMensagem(contatoId: string, conteudo: string): Promi
       .single();
     if (erroInsert || !mensagem) return { ok: false, error: erroInsert?.message ?? "Falha ao registrar a mensagem." };
 
-    const provider = getWhatsAppProvider();
+    const companyId = await obterCompanyIdAtual(supabase);
+    const provider = getWhatsAppProvider(companyId);
     try {
       const resultado = await provider.enviarMensagemTexto(contato.telefone, texto);
       await supabase
