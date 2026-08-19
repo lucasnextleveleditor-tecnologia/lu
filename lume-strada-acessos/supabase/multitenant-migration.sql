@@ -425,7 +425,15 @@ create index if not exists produtos_company_idx on public.produtos (company_id);
 create index if not exists anuncios_tracking_company_idx on public.anuncios_tracking (company_id);
 create index if not exists metas_calendario_company_idx on public.metas_calendario (company_id);
 create index if not exists fechamentos_semanais_company_idx on public.fechamentos_semanais (company_id);
-create index if not exists whatsapp_sessoes_company_idx on public.whatsapp_sessoes (company_id);
+-- `whatsapp_sessoes` NÃO entra aqui de propósito — ela recebe um índice
+-- ÚNICO em `company_id` na Seção 5 (é o "singleton por empresa"), que já
+-- serve tanto pra indexação quanto pra unicidade. Criar um índice comum
+-- aqui com o MESMO NOME que o índice único de lá faria o `IF NOT EXISTS` da
+-- Seção 5 encontrar um índice já existente (por nome) e pular a criação do
+-- único silenciosamente — bug real encontrado em produção: toda criação de
+-- empresa passou a falhar com "no unique or exclusion constraint matching
+-- the ON CONFLICT specification", porque o trigger de seed do WhatsApp
+-- (Seção 5) depende desse índice ser único. Ver `MIGRACAO-MULTI-TENANT.md`.
 create index if not exists whatsapp_contatos_company_idx on public.whatsapp_contatos (company_id);
 create index if not exists whatsapp_mensagens_company_idx on public.whatsapp_mensagens (company_id);
 
@@ -459,7 +467,7 @@ alter table public.whatsapp_sessoes drop constraint if exists whatsapp_sessoes_s
 alter table public.whatsapp_sessoes drop constraint if exists whatsapp_sessoes_singleton_key;
 drop index if exists whatsapp_sessoes_singleton_key;
 alter table public.whatsapp_sessoes drop column if exists singleton;
-create unique index if not exists whatsapp_sessoes_company_idx on public.whatsapp_sessoes (company_id);
+create unique index if not exists whatsapp_sessoes_company_unique_idx on public.whatsapp_sessoes (company_id);
 
 -- Garante que toda empresa NOVA já nasce com sua própria sessão de WhatsApp
 -- "desconectado", sem precisar de código de aplicação pra isso.
