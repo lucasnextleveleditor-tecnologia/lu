@@ -6,7 +6,7 @@ import { StatTile } from "@/components/ui/StatTile";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
-import { IconWallet, IconCreditCard, IconTrendingUp, IconAlertTriangle } from "@/components/ui/icons";
+import { IconWallet, IconCreditCard, IconTrendingUp, IconAlertTriangle, IconPiggyBank } from "@/components/ui/icons";
 import { MesNav } from "@/components/admin/financeiro/MesNav";
 import { ContextoToggle } from "@/components/admin/financeiro/ContextoToggle";
 import { ContasCard } from "@/components/admin/financeiro/ContasCard";
@@ -15,6 +15,7 @@ import { CategoriasCard } from "@/components/admin/financeiro/CategoriasCard";
 import { TransacoesManager } from "@/components/admin/financeiro/TransacoesManager";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { buscarDadosFinanceiro, type FinanceiroSearchParams } from "@/app/admin/financeiro/data";
+import { buscarResumoCaixinhas } from "@/app/admin/financeiro/caixinhas/data";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
     saldoTotal,
     limiteDisponivelTotal,
   } = await buscarDadosFinanceiro(params);
+  const { saldoTotal: saldoCaixinhas, qtd: qtdCaixinhas } = await buscarResumoCaixinhas();
 
   const qs = new URLSearchParams({ mes: mesParamStr, ...(contexto !== "todos" ? { contexto } : {}) }).toString();
 
@@ -82,7 +84,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <Link href={`/admin/financeiro/contas?${qs}`} className="block transition hover:opacity-90">
           <StatTile
             icon={IconWallet}
@@ -115,6 +117,14 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
             value={<ValorPrivado valor={fmtBRL(despesasDoMes)} />}
             tone={despesasDoMes > receitasDoMes ? "warning" : "neutral"}
             hint={dict.financeiro.hintLancadasNoPeriodo}
+          />
+        </Link>
+        <Link href="/admin/financeiro/caixinhas" className="block transition hover:opacity-90">
+          <StatTile
+            icon={IconPiggyBank}
+            label={dict.financeiro.caixinhas.statSaldoTotal}
+            value={<ValorPrivado valor={fmtBRL(saldoCaixinhas)} />}
+            hint={dict.financeiro.caixinhas.hintCaixinhasQtd.replace("{n}", String(qtdCaixinhas))}
           />
         </Link>
       </div>

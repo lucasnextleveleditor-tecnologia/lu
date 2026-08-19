@@ -682,3 +682,16 @@ export function IconEyeOff(props: IconProps) {
     </svg>
   );
 }
+
+/** Ícone do sub-módulo Caixinhas & Investimentos (Financeiro). */
+export function IconPiggyBank(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M4.5 12.2c0-3.7 3.2-6.7 7.4-6.7 2.3 0 4.3.9 5.7 2.3h2.4c.5 0 .9.5.7 1l-.9 2c.5.8.8 1.7.8 2.6v1.8c0 .5-.4.9-.9.9h-1.4l-.6 2.1a.9.9 0 0 1-.9.7h-1.8a.9.9 0 0 1-.9-.9v-1.1c-.7.1-1.4.2-2.2.2-4.2 0-7.4-2.2-7.4-4.9z" />
+      <path d="M4.5 12.7l-2-1v3.1l2-.6" />
+      <circle cx="15.5" cy="10.5" r="0.9" fill="currentColor" stroke="none" />
+      <path d="M9.5 5.6V4" />
+      <path d="M7 6.3l-.9-1.4" />
+    </svg>
+  );
+}
