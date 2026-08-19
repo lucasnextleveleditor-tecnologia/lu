@@ -55,16 +55,19 @@ export async function gerarQrCode(): Promise<ActionResult> {
     const provider = getWhatsAppProvider(companyId);
     const resultado = await provider.gerarQrCode();
 
-    // Sem `.eq(...)` de propósito: `whatsapp_sessoes_admin_all` (RLS) já
-    // restringe update a UMA linha só (a da própria empresa de quem está
-    // logado) — ver nota em `consultarSessaoAtual` acima.
+    // `.eq("company_id", ...)` é OBRIGATÓRIO aqui — mesmo a RLS já
+    // restringindo a UMA linha só (a da própria empresa), o PostgREST
+    // recusa qualquer UPDATE/DELETE sem filtro explícito na query
+    // ("UPDATE requires a WHERE clause"), como proteção contra update em
+    // massa por engano. `companyId` já foi resolvido acima.
     const { error } = await supabase
       .from("whatsapp_sessoes")
       .update({
         status: "aguardando_leitura",
         qr_code_base64: resultado.qrCodeBase64,
         ultima_atualizacao: new Date().toISOString(),
-      });
+      })
+      .eq("company_id", companyId);
 
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH_CONEXAO);
@@ -81,6 +84,8 @@ export async function desconectarSessao(): Promise<ActionResult> {
     const provider = getWhatsAppProvider(companyId);
     await provider.desconectar();
 
+    // Mesmo motivo do `.eq(...)` em `gerarQrCode` acima — obrigatório pro
+    // PostgREST aceitar o UPDATE, independente da RLS já isolar por empresa.
     const { error } = await supabase
       .from("whatsapp_sessoes")
       .update({
@@ -89,7 +94,8 @@ export async function desconectarSessao(): Promise<ActionResult> {
         numero_conectado: null,
         conectado_em: null,
         ultima_atualizacao: new Date().toISOString(),
-      });
+      })
+      .eq("company_id", companyId);
 
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH_CONEXAO);
