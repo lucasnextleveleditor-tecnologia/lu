@@ -78,7 +78,15 @@ export function addMeses(referencia: Date, delta: number): Date {
 }
 
 export function fmtMesAno(referencia: Date): string {
-  const label = referencia.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  // `timeZone: "UTC"` é obrigatório aqui: `referencia` é sempre meia-noite
+  // UTC do dia 1º (ver `addMeses`/`parseMesParam`) — sem forçar UTC no
+  // formatador, o navegador usa o fuso LOCAL pra decidir o mês, e num fuso
+  // atrás de UTC (Brasil, UTC-3) meia-noite UTC do dia 1º já caiu na NOITE
+  // do último dia do mês ANTERIOR, então o cabeçalho mostrava sempre um mês
+  // pra trás do real (bug reportado: calendário de Produção abrindo em
+  // "Julho" com o mês corrente sendo Agosto). Mesmo fix já usado em
+  // `components/ui/DatePicker.tsx`.
+  const label = referencia.toLocaleDateString("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" });
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
