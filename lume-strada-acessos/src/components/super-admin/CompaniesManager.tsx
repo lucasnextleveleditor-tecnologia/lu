@@ -13,6 +13,7 @@ import { IconBuilding, IconCheckCircle, IconPauseCircle, IconKey, IconCheck, Ico
 import { EmpresaModal } from "@/components/super-admin/EmpresaModal";
 import { GerarAcessoCompanyAdminModal } from "@/components/super-admin/GerarAcessoCompanyAdminModal";
 import { AcessosEmpresaModal } from "@/components/super-admin/AcessosEmpresaModal";
+import { getSiteUrl } from "@/lib/utils/siteUrl";
 
 interface CompaniesManagerProps {
   companies: CompanyRow[];
@@ -77,7 +78,7 @@ export function CompaniesManager({ companies, acessosPorEmpresa }: CompaniesMana
    * empresa em questão.
    */
   async function handleCopiarLink(empresa: CompanyRow) {
-    const loginUrl = `${window.location.origin}/login`;
+    const loginUrl = `${getSiteUrl()}/login`;
     try {
       await navigator.clipboard.writeText(loginUrl);
       setLinkCopiadoId(empresa.id);
