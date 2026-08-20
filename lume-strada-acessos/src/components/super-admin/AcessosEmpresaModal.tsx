@@ -6,6 +6,7 @@ import { listarAcessosEmpresa, atualizarEmailAcesso, excluirAcessoEmpresa } from
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { IconCheck, IconClipboardList } from "@/components/ui/icons";
+import { getSiteUrl } from "@/lib/utils/siteUrl";
 
 const LABEL_PAPEL: Record<AcessoEmpresaRow["role"], string> = {
   admin: "Dono da empresa",
@@ -90,7 +91,7 @@ export function AcessosEmpresaModal({ empresa, onClose }: { empresa: CompanyRow;
    * de novo pra quem já trocou seria enganoso.
    */
   async function reenviarAcesso(id: string) {
-    const loginUrl = `${window.location.origin}/login`;
+    const loginUrl = `${getSiteUrl()}/login`;
     try {
       await navigator.clipboard.writeText(loginUrl);
       setLinkCopiadoId(id);
