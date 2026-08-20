@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function LoginForm() {
@@ -59,13 +60,14 @@ export function LoginForm() {
       </div>
       <div>
         <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.login.senhaLabel}</label>
-        <Input
-          type="password"
+        <PasswordInput
           autoComplete="current-password"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={dict.login.senhaPlaceholder}
+          mostrarSenhaAria={dict.login.mostrarSenhaAria}
+          ocultarSenhaAria={dict.login.ocultarSenhaAria}
         />
       </div>
 
