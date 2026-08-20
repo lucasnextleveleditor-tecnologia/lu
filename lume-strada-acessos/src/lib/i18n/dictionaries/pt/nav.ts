@@ -4,6 +4,7 @@ export interface NavDict {
   grupoVisaoGeral: string;
   grupoComercial: string;
   grupoGestao: string;
+  grupoFinanceiro: string;
   dashboard: string;
   relatorios: string;
   crmVendas: string;
@@ -23,6 +24,7 @@ export const nav: NavDict = {
   grupoVisaoGeral: "Visão Geral",
   grupoComercial: "Comercial",
   grupoGestao: "Gestão",
+  grupoFinanceiro: "Financeiro",
   dashboard: "Dashboard",
   relatorios: "Relatórios",
   crmVendas: "CRM & Vendas",
