@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { concluirTrocaDeSenha } from "@/app/definir-senha/actions";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function SetPasswordForm() {
@@ -60,25 +60,27 @@ export function SetPasswordForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.login.novaSenha}</label>
-        <Input
-          type="password"
+        <PasswordInput
           autoComplete="new-password"
           required
           autoFocus
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={dict.login.novaSenhaPlaceholder}
+          mostrarSenhaAria={dict.login.mostrarSenhaAria}
+          ocultarSenhaAria={dict.login.ocultarSenhaAria}
         />
       </div>
       <div>
         <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.login.confirmarSenha}</label>
-        <Input
-          type="password"
+        <PasswordInput
           autoComplete="new-password"
           required
           value={confirmacao}
           onChange={(e) => setConfirmacao(e.target.value)}
           placeholder={dict.login.confirmarSenhaPlaceholder}
+          mostrarSenhaAria={dict.login.mostrarSenhaAria}
+          ocultarSenhaAria={dict.login.ocultarSenhaAria}
         />
       </div>
 
