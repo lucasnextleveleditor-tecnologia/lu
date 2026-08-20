@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { IconCheck, IconClipboardList, IconMessageCircle } from "@/components/ui/icons";
+import { getSiteUrl } from "@/lib/utils/siteUrl";
 
 interface CredenciaisAcessoGeradoProps {
   email: string;
@@ -45,10 +46,9 @@ export function CredenciaisAcessoGerado({
 }: CredenciaisAcessoGeradoProps) {
   const [copiado, setCopiado] = useState(false);
 
-  // URL do próprio painel, montada no navegador — sempre correta (nunca cai
-  // em `localhost` por engano, o bug que já mordeu esse fluxo antes quando
-  // dependia da env var `NEXT_PUBLIC_SITE_URL`).
-  const loginUrl = typeof window !== "undefined" ? `${window.location.origin}/login` : "/login";
+  // Ver doc de `getSiteUrl` — evita tanto o link cair em `localhost` quanto
+  // sair apontando pra URL fixa de um deployment antigo.
+  const loginUrl = `${getSiteUrl()}/login`;
 
   const texto = `Seu acesso ao painel:\nLink: ${loginUrl}\nE-mail: ${email}\nSenha provisória: ${senhaPadrao}\n\nNo primeiro acesso, o próprio painel vai pedir pra você criar uma senha nova.`;
 
