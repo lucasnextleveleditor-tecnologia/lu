@@ -30,9 +30,10 @@ import {
 
 // Menu separado em grupos — "Visão Geral" (o Dashboard, que junta Produção +
 // Comercial + Financeiro numa tela só) no topo, "Comercial" (pré-vendas/CRM
-// + clientes convertidos + Inbox do WhatsApp) depois, e o resto da operação
-// da agência por último. Cada grupo pode crescer independente sem bagunçar
-// a leitura do menu inteiro.
+// + clientes convertidos + Inbox do WhatsApp) depois, o resto da operação da
+// agência em "Gestão", e "Financeiro" isolado por último (pedido explícito —
+// separado do resto da gestão, sempre no fim do menu). Cada grupo pode
+// crescer independente sem bagunçar a leitura do menu inteiro.
 //
 // `chave` é a mesma `ModuloChave` usada por `requireModulo`/`requireModuloOuRedirect`
 // no servidor — o item some do menu de um funcionário sem aquela permissão
@@ -65,12 +66,17 @@ const NAV_GRUPOS = [
   {
     tituloKey: "grupoGestao",
     itens: [
-      { href: "/admin/financeiro", labelKey: "financeiro", icon: IconWallet, chave: "financeiro" },
       { href: "/admin/producao", labelKey: "producaoTarefas", icon: IconColumns, chave: "producao" },
       { href: "/admin/trafego", labelKey: "trafegoMetas", icon: IconActivity, chave: "trafego" },
       { href: "/admin/inventario", labelKey: "inventarioPatrimonio", icon: IconBox, chave: "inventario" },
       { href: "/admin/aparencia", labelKey: "aparencia", icon: IconPalette, chave: null, adminOnly: true },
     ],
+  },
+  // Grupo próprio, separado de "Gestão" e sempre por último — pedido
+  // explícito pra destacar Financeiro do resto da operação no menu.
+  {
+    tituloKey: "grupoFinanceiro",
+    itens: [{ href: "/admin/financeiro", labelKey: "financeiro", icon: IconWallet, chave: "financeiro" }],
   },
 ] as const satisfies ReadonlyArray<{
   tituloKey: keyof NavDict;
