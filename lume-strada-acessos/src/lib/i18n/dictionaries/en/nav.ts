@@ -5,6 +5,7 @@ export const nav: NavDict = {
   grupoVisaoGeral: "Overview",
   grupoComercial: "Sales",
   grupoGestao: "Management",
+  grupoFinanceiro: "Finance",
   dashboard: "Dashboard",
   relatorios: "Reports",
   crmVendas: "CRM & Sales",
