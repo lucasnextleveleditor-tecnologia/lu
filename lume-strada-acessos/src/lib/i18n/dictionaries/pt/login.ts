@@ -25,6 +25,8 @@ export interface LoginDict {
   definirSenhaBotao: string;
   senhaMinimoCaracteres: string;
   senhasNaoCoincidem: string;
+  mostrarSenhaAria: string;
+  ocultarSenhaAria: string;
 }
 
 export const login: LoginDict = {
@@ -53,4 +55,6 @@ export const login: LoginDict = {
   definirSenhaBotao: "Definir senha e entrar",
   senhaMinimoCaracteres: "A senha precisa ter pelo menos 8 caracteres.",
   senhasNaoCoincidem: "As senhas não coincidem.",
+  mostrarSenhaAria: "Mostrar senha",
+  ocultarSenhaAria: "Ocultar senha",
 };
