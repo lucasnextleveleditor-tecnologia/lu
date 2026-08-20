@@ -162,3 +162,52 @@ export function AcessosEmpresaModal({ empresa, onClose }: { empresa: CompanyRow;
                         <button
                           onClick={() => excluir(acesso.id)}
                           disabled={excluindo}
+                          className="text-xs font-medium text-danger hover:underline"
+                        >
+                          Sim
+                        </button>
+                        <button
+                          onClick={() => setConfirmandoExclusaoId(null)}
+                          disabled={excluindo}
+                          className="text-xs text-ink-muted hover:text-ink-primary"
+                        >
+                          Não
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button type="button" variant="ghost" onClick={() => reenviarAcesso(acesso.id)} className="px-3 py-1.5 text-xs">
+                          {linkCopiadoId === acesso.id ? (
+                            <>
+                              <IconCheck className="h-3.5 w-3.5" /> Copiado!
+                            </>
+                          ) : (
+                            <>
+                              <IconClipboardList className="h-3.5 w-3.5" /> Reenviar acesso
+                            </>
+                          )}
+                        </Button>
+                        <Button type="button" variant="ghost" onClick={() => iniciarEdicao(acesso)} className="px-3 py-1.5 text-xs">
+                          Editar e-mail
+                        </Button>
+                        <Button type="button" variant="danger" onClick={() => setConfirmandoExclusaoId(acesso.id)} className="px-3 py-1.5 text-xs">
+                          Excluir
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="mt-5 flex justify-end">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Fechar
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
