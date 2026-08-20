@@ -26,4 +26,6 @@ export const login: LoginDict = {
   definirSenhaBotao: "Definir contraseña y entrar",
   senhaMinimoCaracteres: "La contraseña debe tener al menos 8 caracteres.",
   senhasNaoCoincidem: "Las contraseñas no coinciden.",
+  mostrarSenhaAria: "Mostrar contraseña",
+  ocultarSenhaAria: "Ocultar contraseña",
 };
