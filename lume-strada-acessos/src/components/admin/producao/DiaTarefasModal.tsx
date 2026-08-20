@@ -49,12 +49,13 @@ export function DiaTarefasModal({ data, tarefas, onAbrirTarefa, onNovaTarefa, on
               }}
               onDoubleClick={(e) => e.stopPropagation()}
               className={cn(
-                "block w-full truncate rounded-lg px-3 py-2 text-left text-sm font-medium text-ink-primary transition hover:opacity-80",
+                "flex w-full items-center gap-1.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-ink-primary transition hover:opacity-80",
                 t.prioridade === "urgente" || t.prioridade === "alta" ? "bg-status-critical/20" : "bg-base-800"
               )}
-              title={t.titulo}
+              title={t.cliente_nome ? `${t.titulo} — ${t.cliente_nome}` : t.titulo}
             >
-              {t.titulo}
+              {t.cliente_cor && <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: t.cliente_cor }} />}
+              <span className="truncate">{t.titulo}</span>
             </button>
           ))}
         </div>

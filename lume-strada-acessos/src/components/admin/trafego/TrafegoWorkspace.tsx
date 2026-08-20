@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { MetaDiariaRow, ProfileRow, TrafegoRegistroRow } from "@/lib/types/database";
+import type { MetaDiariaRow, TrafegoRegistroRow } from "@/lib/types/database";
+import type { ClienteRow } from "@/lib/types/cadastros";
 import type { AnuncioComRelacoes, FechamentoSemanalRow, MetaCalendarioRow, ProdutoRow } from "@/lib/types/infoprodutos";
 import type { StatusTrafego } from "@/lib/utils/trafego";
 import { cn } from "@/lib/utils/cn";
@@ -11,11 +12,9 @@ import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
 import { IconUsers, IconBarChart2 } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
-type ClienteResumido = Pick<ProfileRow, "id" | "full_name" | "email">;
-
 interface TrafegoWorkspaceProps {
   data: string;
-  clientes: ClienteResumido[];
+  clientes: ClienteRow[];
   metaPorCliente: Record<string, MetaDiariaRow>;
   registrosPorMeta: Record<string, TrafegoRegistroRow[]>;
   contagemStatus: Record<StatusTrafego, number>;
@@ -36,14 +35,25 @@ type Aba = "clientes" | "info_produtos";
 export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
   const { dict } = useLocale();
   const [aba, setAba] = useState<Aba>("clientes");
+  // Estado local pro "+ Novo Cliente" (ver `ClientesTrafegoTab.tsx`) aparecer
+  // na hora, sem esperar o Server Component pai re-renderizar — mesmo padrão
+  // de `ProducaoWorkspace.tsx`.
+  const [clientes, setClientes] = useState(props.clientes);
+  function handleClienteCriado(novo: Pick<ClienteRow, "id" | "nome" | "cor">) {
+    setClientes((atual) =>
+      [...atual, { ...novo, documento: null, email: null, telefone: null, nome_responsavel: null, endereco: null, profile_id: null, created_at: "", updated_at: "" }].sort(
+        (a, b) => a.nome.localeCompare(b.nome)
+      )
+    );
+  }
 
   // CSV muda de forma conforme a aba ativa — cada uma tem colunas bem
   // diferentes (cliente x anúncio), então não faz sentido um formato só.
-  const csvClientes = props.clientes.map((c) => {
+  const csvClientes = clientes.map((c) => {
     const meta = props.metaPorCliente[c.id];
     const registros = meta ? (props.registrosPorMeta[meta.id] ?? []) : [];
     return {
-      cliente: c.full_name || c.email,
+      cliente: c.nome,
       investido: registros.reduce((s, r) => s + r.valor_investido, 0).toFixed(2),
       leadsGerados: registros.reduce((s, r) => s + r.leads_gerados, 0),
       metaInvestimento: (meta?.valor_investido_meta ?? 0).toFixed(2),
@@ -117,10 +127,11 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
         {aba === "clientes" ? (
           <ClientesTrafegoTab
             data={props.data}
-            clientes={props.clientes}
+            clientes={clientes}
             metaPorCliente={props.metaPorCliente}
             registrosPorMeta={props.registrosPorMeta}
             contagemStatus={props.contagemStatus}
+            onClienteCriado={handleClienteCriado}
           />
         ) : (
           <InfoProdutosWorkspace

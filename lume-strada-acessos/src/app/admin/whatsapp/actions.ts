@@ -53,21 +53,36 @@ export async function gerarQrCode(): Promise<ActionResult> {
     const { supabase } = await requireModulo("whatsapp");
     const companyId = await obterCompanyIdAtual(supabase);
     const provider = getWhatsAppProvider(companyId);
-    const resultado = await provider.gerarQrCode();
+    const resultado = await provider.iniciarConexao();
+
+    // Dois formatos de atualização, dependendo do provedor: Evolution API
+    // devolve um QR Code pra escanear (`modo: "qrcode"`); a Cloud API já
+    // vem autorizada pelo painel da Meta, então confirma e marca como
+    // conectada direto (`modo: "conectado_direto"`) — ver `ConexaoResult`
+    // em `src/lib/whatsapp/provider.ts`.
+    const atualizacao =
+      resultado.modo === "qrcode"
+        ? {
+            status: "aguardando_leitura" as const,
+            qr_code_base64: resultado.qrCodeBase64,
+            numero_conectado: null,
+            conectado_em: null,
+            ultima_atualizacao: new Date().toISOString(),
+          }
+        : {
+            status: "conectado" as const,
+            qr_code_base64: null,
+            numero_conectado: resultado.numero,
+            conectado_em: new Date().toISOString(),
+            ultima_atualizacao: new Date().toISOString(),
+          };
 
     // `.eq("company_id", ...)` é OBRIGATÓRIO aqui — mesmo a RLS já
     // restringindo a UMA linha só (a da própria empresa), o PostgREST
     // recusa qualquer UPDATE/DELETE sem filtro explícito na query
     // ("UPDATE requires a WHERE clause"), como proteção contra update em
     // massa por engano. `companyId` já foi resolvido acima.
-    const { error } = await supabase
-      .from("whatsapp_sessoes")
-      .update({
-        status: "aguardando_leitura",
-        qr_code_base64: resultado.qrCodeBase64,
-        ultima_atualizacao: new Date().toISOString(),
-      })
-      .eq("company_id", companyId);
+    const { error } = await supabase.from("whatsapp_sessoes").update(atualizacao).eq("company_id", companyId);
 
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH_CONEXAO);

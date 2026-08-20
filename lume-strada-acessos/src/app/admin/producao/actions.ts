@@ -81,7 +81,7 @@ export async function removerTipoServico(id: string): Promise<ActionResult> {
 export interface TarefaInput {
   titulo: string;
   briefing: string | null;
-  clienteId: string | null;
+  clienteId: string | null; // uuid -> clientes.id (cadastro completo — COM ou SEM login, ver `resolverVinculoCliente`)
   responsavelId: string | null;
   tipoServicoId: string | null;
   prioridade: PrioridadeTarefa;
@@ -89,17 +89,40 @@ export interface TarefaInput {
   dataEntrega: string | null;
 }
 
+/**
+ * `prod_tarefas` guarda o vínculo do cliente em DUAS colunas de propósito
+ * (ver migração `clientes_cor_e_vinculo_sem_login` e o comentário em
+ * `supabase/cadastros.sql`): `cliente_cadastro_id -> clientes.id` é o
+ * vínculo "de verdade", sempre preenchido quando um cliente é escolhido —
+ * funciona pra QUALQUER cliente cadastrado, com ou sem login. `cliente_id ->
+ * profiles.id` é mantido em paralelo só pelo portal do próprio cliente
+ * (`src/app/dashboard/actions.ts` filtra "Aprovações Pendentes" por
+ * `cliente_id = auth.uid()`) — só existe quando o cliente escolhido TEM
+ * acesso gerado (`clientes.profile_id` não nulo); fica `null` pra cliente
+ * sem login, o que é esperado (ele não tem portal pra mostrar nada mesmo).
+ */
+async function resolverVinculoCliente(
+  supabase: Awaited<ReturnType<typeof requireModulo>>["supabase"],
+  clienteCadastroId: string | null
+): Promise<{ cliente_cadastro_id: string | null; cliente_id: string | null }> {
+  if (!clienteCadastroId) return { cliente_cadastro_id: null, cliente_id: null };
+  const { data } = await supabase.from("clientes").select("profile_id").eq("id", clienteCadastroId).maybeSingle<{ profile_id: string | null }>();
+  return { cliente_cadastro_id: clienteCadastroId, cliente_id: data?.profile_id ?? null };
+}
+
 export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
   try {
     const { supabase } = await requireModulo("producao");
     if (!input.titulo.trim()) return { ok: false, error: "Informe o título da tarefa." };
+
+    const vinculoCliente = await resolverVinculoCliente(supabase, input.clienteId);
 
     const { data, error } = await supabase
       .from("prod_tarefas")
       .insert({
         titulo: input.titulo.trim(),
         briefing: input.briefing?.trim() ? sanitizarBriefingHtml(input.briefing.trim()) : null,
-        cliente_id: input.clienteId,
+        ...vinculoCliente,
         responsavel_id: input.responsavelId,
         tipo_servico_id: input.tipoServicoId,
         prioridade: input.prioridade,
@@ -122,12 +145,14 @@ export async function atualizarTarefa(id: string, input: TarefaInput): Promise<A
     const { supabase } = await requireModulo("producao");
     if (!input.titulo.trim()) return { ok: false, error: "Informe o título da tarefa." };
 
+    const vinculoCliente = await resolverVinculoCliente(supabase, input.clienteId);
+
     const { error } = await supabase
       .from("prod_tarefas")
       .update({
         titulo: input.titulo.trim(),
         briefing: input.briefing?.trim() ? sanitizarBriefingHtml(input.briefing.trim()) : null,
-        cliente_id: input.clienteId,
+        ...vinculoCliente,
         responsavel_id: input.responsavelId,
         tipo_servico_id: input.tipoServicoId,
         prioridade: input.prioridade,

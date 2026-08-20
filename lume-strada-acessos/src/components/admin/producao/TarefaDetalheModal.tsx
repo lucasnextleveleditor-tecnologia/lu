@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
-import type { ProfileRow } from "@/lib/types/database";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { EntregaComVersoes, FuncionarioRow, PrioridadeTarefa, StatusTarefa, SubtarefaRow, TarefaComRelacoes, TipoServicoRow } from "@/lib/types/producao";
 import { atualizarTarefa, moverStatusTarefa, removerTarefa } from "@/app/admin/producao/actions";
@@ -16,6 +15,8 @@ import { SubtarefasChecklist } from "@/components/admin/producao/SubtarefasCheck
 import { EntregasSection } from "@/components/admin/producao/EntregasSection";
 import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
 import { GerenciarClientesAcessoModal } from "@/components/admin/producao/GerenciarClientesAcessoModal";
+import { ClienteModal } from "@/components/admin/cadastros/ClienteModal";
+import { IconPlus } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -23,14 +24,14 @@ interface TarefaDetalheModalProps {
   tarefa: TarefaComRelacoes;
   subtarefas: SubtarefaRow[];
   entregas: EntregaComVersoes[];
-  clientes: Pick<ProfileRow, "id" | "email" | "full_name">[];
-  clientesCadastro: ClienteRow[];
+  clientes: ClienteRow[];
   funcionarios: FuncionarioRow[];
   tiposServico: TipoServicoRow[];
+  onClienteCriado: (cliente: Pick<ClienteRow, "id" | "nome" | "cor">) => void;
   onClose: () => void;
 }
 
-export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, clientesCadastro, funcionarios, tiposServico, onClose }: TarefaDetalheModalProps) {
+export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, funcionarios, tiposServico, onClienteCriado, onClose }: TarefaDetalheModalProps) {
   const { dict } = useLocale();
   const statusLabel: Record<StatusTarefa, string> = {
     backlog: dict.producao.statusBacklog,
@@ -48,7 +49,7 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, cli
   };
   const [titulo, setTitulo] = useState(tarefa.titulo);
   const [briefing, setBriefing] = useState(tarefa.briefing ?? "");
-  const [clienteId, setClienteId] = useState(tarefa.cliente_id ?? "");
+  const [clienteId, setClienteId] = useState(tarefa.cliente_cadastro_id ?? "");
   const [responsavelId, setResponsavelId] = useState(tarefa.responsavel_id ?? "");
   const [tipoServicoId, setTipoServicoId] = useState(tarefa.tipo_servico_id ?? "");
   const [prioridade, setPrioridade] = useState<PrioridadeTarefa>(tarefa.prioridade);
@@ -60,8 +61,14 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, cli
   const [salvo, setSalvo] = useState(false);
   const [gerenciarServicosAberto, setGerenciarServicosAberto] = useState(false);
   const [gerenciarClientesAberto, setGerenciarClientesAberto] = useState(false);
+  const [novoClienteAberto, setNovoClienteAberto] = useState(false);
 
   const atrasada = isTarefaAtrasada(tarefa);
+
+  function handleClienteCriado(cliente: Pick<ClienteRow, "id" | "nome" | "cor">) {
+    onClienteCriado(cliente);
+    setClienteId(cliente.id);
+  }
 
   function handleSalvar(e: FormEvent) {
     e.preventDefault();
@@ -149,21 +156,31 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, cli
         <form onSubmit={handleSalvar} className="mb-6 space-y-4 border-b border-base-800 pb-6">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <div className="mb-1.5 flex items-center justify-between">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
                 <label className="block text-xs font-medium text-ink-secondary">{dict.producao.clienteLabel}</label>
-                <button
-                  type="button"
-                  onClick={() => setGerenciarClientesAberto(true)}
-                  className="text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
-                >
-                  {dict.producao.gerenciar}
-                </button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNovoClienteAberto(true)}
+                    className="flex items-center gap-0.5 text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
+                  >
+                    <IconPlus className="h-3 w-3" />
+                    {dict.producao.novoClienteInline}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGerenciarClientesAberto(true)}
+                    className="text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
+                  >
+                    {dict.producao.gerenciar}
+                  </button>
+                </div>
               </div>
               <Select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
                 <option value="">{dict.producao.clienteSemVinculo}</option>
                 {clientes.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.full_name || c.email}
+                    {c.nome}
                   </option>
                 ))}
               </Select>
@@ -275,9 +292,8 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, cli
       {gerenciarServicosAberto && (
         <GerenciarTiposServicoModal tiposServico={tiposServico} onClose={() => setGerenciarServicosAberto(false)} />
       )}
-      {gerenciarClientesAberto && (
-        <GerenciarClientesAcessoModal clientes={clientesCadastro} onClose={() => setGerenciarClientesAberto(false)} />
-      )}
+      {gerenciarClientesAberto && <GerenciarClientesAcessoModal clientes={clientes} onClose={() => setGerenciarClientesAberto(false)} />}
+      {novoClienteAberto && <ClienteModal onCreated={handleClienteCriado} onClose={() => setNovoClienteAberto(false)} />}
     </div>
   );
 }

@@ -65,7 +65,12 @@ export function TarefaCard({ tarefa, onClick, className }: TarefaCardProps) {
 
       {(tarefa.cliente_nome || tarefa.tipo_servico_nome) && (
         <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
-          {tarefa.cliente_nome && <p className="truncate text-xs text-ink-secondary">{tarefa.cliente_nome}</p>}
+          {tarefa.cliente_nome && (
+            <p className="flex items-center gap-1 truncate text-xs text-ink-secondary">
+              {tarefa.cliente_cor && <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: tarefa.cliente_cor }} />}
+              {tarefa.cliente_nome}
+            </p>
+          )}
           {tarefa.tipo_servico_nome && <PillTag tone="neutral" label={tarefa.tipo_servico_nome} />}
         </div>
       )}

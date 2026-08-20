@@ -88,7 +88,8 @@ export interface ProfileRow {
 /** Meta de performance de um cliente para UM dia específico (data em formato ISO, ex: "2026-08-12"). */
 export interface MetaDiariaRow {
   id: string; // uuid
-  cliente_id: string; // uuid -> profiles.id (role = 'cliente')
+  cliente_id: string | null; // uuid -> profiles.id (role = 'cliente') — null pra cliente sem login (ver `cliente_cadastro_id`)
+  cliente_cadastro_id: string | null; // uuid -> clientes.id — vínculo "de verdade", sempre preenchido, com ou sem login (mesmo padrão de `prod_tarefas`, ver supabase/cadastros.sql)
   data: string; // ISO date (yyyy-mm-dd)
   valor_investido_meta: number;
   leads_meta: number | null;

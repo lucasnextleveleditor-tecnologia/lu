@@ -73,6 +73,7 @@ export interface ProducaoDict {
   maisTarefas: string;
   legendaAltaUrgente: string;
   legendaNormalBaixa: string;
+  legendaClientesLabel: string;
 
   // Card do Kanban / prefixos de data (`TarefaCard.tsx`).
   subtarefas: string;
@@ -86,6 +87,7 @@ export interface ProducaoDict {
   tituloPlaceholder: string;
   clienteLabel: string;
   clienteSemVinculo: string;
+  novoClienteInline: string;
   tipoServicoLabel: string;
   responsavelLabel: string;
   responsavelSemVinculo: string;
@@ -152,6 +154,7 @@ export interface ProducaoDict {
   clientesPendentesVazio: string;
 }
 
+
 export const producao: ProducaoDict = {
   titulo: "Produção & Tarefas",
   subtitulo: "Board de produção, subtarefas e entregas com controle de versão e aprovação.",
@@ -206,6 +209,7 @@ export const producao: ProducaoDict = {
   maisTarefas: "+{n} mais",
   legendaAltaUrgente: "Alta/Urgente",
   legendaNormalBaixa: "Normal/Baixa",
+  legendaClientesLabel: "Clientes:",
 
   subtarefas: "Subtarefas",
   captacaoPrefixo: "Captação: ",
@@ -217,6 +221,7 @@ export const producao: ProducaoDict = {
   tituloPlaceholder: "Ex: Edição do vídeo institucional",
   clienteLabel: "Cliente",
   clienteSemVinculo: "Sem cliente vinculado",
+  novoClienteInline: "Novo Cliente",
   tipoServicoLabel: "Tipo de Serviço",
   responsavelLabel: "Responsável",
   responsavelSemVinculo: "Sem responsável",
@@ -274,6 +279,6 @@ export const producao: ProducaoDict = {
 
   clientesPendentesTitulo: "Liberar Acesso de Cliente",
   clientesPendentesAjuda:
-    "Só clientes com acesso liberado aparecem pra selecionar aqui — o portal de cada cliente usa esse login pra mostrar só os dados dele. Gere o acesso de um cliente já cadastrado (Cadastros → Clientes) e ele passa a aparecer no campo Cliente em todo o sistema.",
+    "Todo cliente cadastrado já aparece pra selecionar no campo Cliente, com ou sem login. Gerar o acesso aqui é só pra quem você também quer que enxergue o próprio dashboard (Tráfego, Aprovações, Boletos).",
   clientesPendentesVazio: "Todos os clientes cadastrados já têm acesso liberado.",
 };

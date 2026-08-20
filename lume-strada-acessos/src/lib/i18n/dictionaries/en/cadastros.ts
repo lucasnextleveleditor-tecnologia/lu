@@ -40,6 +40,10 @@ export const cadastros: CadastrosDict = {
   nomeResponsavelPlaceholder: "Who speaks for the account",
   enderecoLabel: "Full Address",
   enderecoPlaceholder: "Street, number, neighborhood, city — state, zip code",
+  corEtiquetaLabel: "Label color",
+  corEtiquetaAjuda: "Shows up on this client's label in the Production Calendar — pick a color to spot it at a glance.",
+  escolherCorAria: "Pick color {hex}",
+  corPersonalizadaAria: "Pick a custom color",
   criarCliente: "Create Client",
 
   semDocumentoCadastrado: "No tax ID registered",

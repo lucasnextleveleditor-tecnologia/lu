@@ -25,6 +25,7 @@ export const trafego: TrafegoDict = {
   csvColVendas: "Ventas",
 
   clientesDescricao: "Cada tarjeta vincula al cliente con la Meta del Día y el estado actual del tráfico registrado.",
+  novoClienteBotao: "Nuevo Cliente",
   statNoCaminho: "En Camino",
   statNoCaminhoHint: "≥60% de la meta del día",
   statMetaBatida: "Meta Alcanzada",

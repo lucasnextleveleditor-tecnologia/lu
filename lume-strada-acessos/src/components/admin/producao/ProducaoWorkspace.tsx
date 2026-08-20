@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type ComponentType } from "react";
-import type { ProfileRow } from "@/lib/types/database";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { EntregaComVersoes, FuncionarioRow, SubtarefaRow, TarefaComRelacoes, TipoServicoRow } from "@/lib/types/producao";
 import { IconCalendar, IconColumns, IconList, IconPlus, IconSettings } from "@/components/ui/icons";
@@ -21,8 +20,7 @@ interface ProducaoWorkspaceProps {
   tarefas: TarefaComRelacoes[];
   subtarefasPorTarefa: Record<string, SubtarefaRow[]>;
   entregasPorTarefa: Record<string, EntregaComVersoes[]>;
-  clientes: Pick<ProfileRow, "id" | "email" | "full_name">[];
-  clientesCadastro: ClienteRow[];
+  clientes: ClienteRow[];
   funcionarios: FuncionarioRow[];
   tiposServico: TipoServicoRow[];
 }
@@ -31,12 +29,21 @@ export function ProducaoWorkspace({
   tarefas,
   subtarefasPorTarefa,
   entregasPorTarefa,
-  clientes,
-  clientesCadastro,
+  clientes: clientesIniciais,
   funcionarios,
   tiposServico,
 }: ProducaoWorkspaceProps) {
   const { dict } = useLocale();
+  // Estado local (não só a prop) pra um cliente criado "na hora" (ver
+  // `onClienteCriado` passado pra `TarefaModal`/`TarefaDetalheModal`)
+  // aparecer no dropdown imediatamente, sem esperar o Server Component pai
+  // re-renderizar (o `revalidatePath` de `criarCliente` já cuida disso na
+  // PRÓXIMA navegação, mas essa atualização otimista evita o usuário achar
+  // que o cliente "sumiu" até lá).
+  const [clientes, setClientes] = useState(clientesIniciais);
+  function handleClienteCriado(novo: Pick<ClienteRow, "id" | "nome" | "cor">) {
+    setClientes((atual) => [...atual, { ...novo, documento: null, email: null, telefone: null, nome_responsavel: null, endereco: null, profile_id: null, created_at: "", updated_at: "" }].sort((a, b) => a.nome.localeCompare(b.nome)));
+  }
   const VISOES: { value: Visao; label: string; icon: ComponentType<{ className?: string }> }[] = [
     { value: "kanban", label: dict.producao.visaoKanban, icon: IconColumns },
     { value: "lista", label: dict.producao.visaoLista, icon: IconList },
@@ -93,10 +100,10 @@ export function ProducaoWorkspace({
       {modalNovaAberto && (
         <TarefaModal
           clientes={clientes}
-          clientesCadastro={clientesCadastro}
           funcionarios={funcionarios}
           tiposServico={tiposServico}
           dataEntregaInicial={novaTarefaData}
+          onClienteCriado={handleClienteCriado}
           onClose={() => setModalNovaAberto(false)}
         />
       )}
@@ -111,9 +118,9 @@ export function ProducaoWorkspace({
           subtarefas={subtarefasPorTarefa[tarefaDetalhe.id] ?? []}
           entregas={entregasPorTarefa[tarefaDetalhe.id] ?? []}
           clientes={clientes}
-          clientesCadastro={clientesCadastro}
           funcionarios={funcionarios}
           tiposServico={tiposServico}
+          onClienteCriado={handleClienteCriado}
           onClose={() => setTarefaDetalheId(null)}
         />
       )}

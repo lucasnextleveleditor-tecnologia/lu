@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient, criarAcessoComSenhaPadrao } from "@/lib/supabase/admin";
-import { requireAdmin, requireModulo } from "@/lib/auth/requireAdmin";
+import { requireAdmin, requireModulo, requireQualquerModulo } from "@/lib/auth/requireAdmin";
 import type { PermissoesFuncionario, PreferenciasDashboard } from "@/lib/types/database";
 import type { ClienteAtividadeRow, TipoAtividadeCliente } from "@/lib/types/cadastros";
 import type { AcessoGeradoResult } from "@/lib/types/acesso";
@@ -11,6 +11,11 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
 
 const PATH = "/admin";
+// Cliente cadastrado aqui pode ser usado (e agora também CRIADO) direto de
+// dentro de Produção e Tráfego (ver `ClienteInput`/`criarCliente` abaixo) —
+// por isso revalida os três caminhos, não só `/admin`.
+const PATH_PRODUCAO = "/admin/producao";
+const PATH_TRAFEGO = "/admin/trafego";
 
 function mensagemAmigavelCliente(error: { code?: string; message: string }): string {
   if (error.code === "23505") return "Já existe um cliente cadastrado com esse CNPJ/CPF.";
@@ -27,11 +32,21 @@ export interface ClienteInput {
   telefone: string | null;
   nomeResponsavel: string | null;
   endereco: string | null;
+  cor: string | null; // hex ("#RRGGBB") — etiqueta do cliente no Calendário de Produção
 }
 
+/**
+ * `requireQualquerModulo` (não `requireModulo("clientes")`) DE PROPÓSITO —
+ * o pedido explícito foi "eu consiga cadastrar os clientes aqui mesmo" a
+ * partir de Produção e Tráfego, sem precisar sair pra Cadastros. Um cliente
+ * criado por aqui nasce SEM `profile_id` (sem login) — é só o cadastro, que
+ * já fica disponível em todo dropdown de cliente do sistema. Editar/excluir
+ * o cadastro completo continua restrito ao módulo Clientes (`atualizarCliente`/
+ * `removerCliente` abaixo).
+ */
 export async function criarCliente(input: ClienteInput): Promise<ActionResultId> {
   try {
-    const { supabase } = await requireModulo("clientes");
+    const { supabase } = await requireQualquerModulo(["clientes", "producao", "trafego"]);
     if (!input.nome.trim()) return { ok: false, error: "Informe a razão social / nome completo." };
 
     const { data, error } = await supabase
@@ -43,12 +58,15 @@ export async function criarCliente(input: ClienteInput): Promise<ActionResultId>
         telefone: input.telefone?.trim() || null,
         nome_responsavel: input.nomeResponsavel?.trim() || null,
         endereco: input.endereco?.trim() || null,
+        cor: input.cor || null,
       })
       .select("id")
       .single();
 
     if (error) return { ok: false, error: mensagemAmigavelCliente(error) };
     revalidatePath(PATH);
+    revalidatePath(PATH_PRODUCAO);
+    revalidatePath(PATH_TRAFEGO);
     return { ok: true, id: data!.id as string };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -69,11 +87,14 @@ export async function atualizarCliente(id: string, input: ClienteInput): Promise
         telefone: input.telefone?.trim() || null,
         nome_responsavel: input.nomeResponsavel?.trim() || null,
         endereco: input.endereco?.trim() || null,
+        cor: input.cor || null,
       })
       .eq("id", id);
 
     if (error) return { ok: false, error: mensagemAmigavelCliente(error) };
     revalidatePath(PATH);
+    revalidatePath(PATH_PRODUCAO);
+    revalidatePath(PATH_TRAFEGO);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

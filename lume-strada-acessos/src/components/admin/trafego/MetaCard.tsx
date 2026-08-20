@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import type { MetaDiariaRow, ProfileRow, TrafegoRegistroRow } from "@/lib/types/database";
+import type { MetaDiariaRow, TrafegoRegistroRow } from "@/lib/types/database";
+import type { ClienteRow } from "@/lib/types/cadastros";
 import { calcularResumoTrafego, STATUS_TRAFEGO_META } from "@/lib/utils/trafego";
 import { fmtBRL, fmtPercent } from "@/lib/utils/format";
 import { salvarMeta, adicionarRegistro, removerRegistro } from "@/app/admin/trafego/actions";
@@ -15,7 +16,7 @@ import { TONE_GLOW } from "@/components/admin/trafego/tone-glow";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface MetaCardProps {
-  cliente: Pick<ProfileRow, "id" | "full_name" | "email">;
+  cliente: Pick<ClienteRow, "id" | "nome" | "email" | "cor">;
   data: string; // yyyy-mm-dd selecionado
   meta: MetaDiariaRow | null;
   registros: TrafegoRegistroRow[];
@@ -83,8 +84,11 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
       <Card className="overflow-hidden bg-gradient-to-br from-base-800/30 via-transparent to-transparent">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
         <div>
-          <p className="text-sm font-semibold text-ink-primary">{cliente.full_name || dict.trafego.semNome}</p>
-          <p className="text-xs text-ink-muted">{cliente.email}</p>
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-ink-primary">
+            {cliente.cor && <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: cliente.cor }} />}
+            {cliente.nome || dict.trafego.semNome}
+          </p>
+          {cliente.email && <p className="text-xs text-ink-muted">{cliente.email}</p>}
         </div>
         <Badge tone={statusMeta.tone} label={statusMeta.label} />
       </div>

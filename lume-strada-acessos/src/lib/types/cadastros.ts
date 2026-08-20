@@ -8,6 +8,7 @@ export interface ClienteRow {
   nome_responsavel: string | null;
   endereco: string | null;
   profile_id: string | null; // uuid -> profiles.id — null até "Gerar Acesso" ser usado
+  cor: string | null; // hex ("#RRGGBB") escolhido no cadastro — usado nas etiquetas do Calendário (Produção) pra identificar o cliente visualmente
   created_at: string;
   updated_at: string;
 }

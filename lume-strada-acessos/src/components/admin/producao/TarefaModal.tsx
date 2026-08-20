@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { ProfileRow } from "@/lib/types/database";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { FuncionarioRow, PrioridadeTarefa, TipoServicoRow } from "@/lib/types/producao";
 import { criarTarefa } from "@/app/admin/producao/actions";
@@ -13,20 +12,23 @@ import { Select } from "@/components/ui/Select";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
 import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
 import { GerenciarClientesAcessoModal } from "@/components/admin/producao/GerenciarClientesAcessoModal";
+import { ClienteModal } from "@/components/admin/cadastros/ClienteModal";
+import { IconPlus } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface TarefaModalProps {
-  clientes: Pick<ProfileRow, "id" | "email" | "full_name">[];
-  clientesCadastro: ClienteRow[];
+  clientes: ClienteRow[];
   funcionarios: FuncionarioRow[];
   tiposServico: TipoServicoRow[];
   dataEntregaInicial?: string;
+  /** Repassa o cliente recém-criado pelo "+ Novo Cliente" pro estado do workspace (ver `ProducaoWorkspace.tsx`), sem precisar recarregar a página. */
+  onClienteCriado: (cliente: Pick<ClienteRow, "id" | "nome" | "cor">) => void;
   onClose: () => void;
 }
 
 /** Criação de uma nova tarefa. Edição completa (+ subtarefas/entregas) acontece no painel de detalhe, depois de criada. */
-export function TarefaModal({ clientes, clientesCadastro, funcionarios, tiposServico, dataEntregaInicial, onClose }: TarefaModalProps) {
+export function TarefaModal({ clientes, funcionarios, tiposServico, dataEntregaInicial, onClienteCriado, onClose }: TarefaModalProps) {
   const { dict } = useLocale();
   const prioridadeLabel: Record<string, string> = {
     baixa: dict.producao.prioridadeBaixa,
@@ -46,6 +48,12 @@ export function TarefaModal({ clientes, clientesCadastro, funcionarios, tiposSer
   const [error, setError] = useState<string | null>(null);
   const [gerenciarServicosAberto, setGerenciarServicosAberto] = useState(false);
   const [gerenciarClientesAberto, setGerenciarClientesAberto] = useState(false);
+  const [novoClienteAberto, setNovoClienteAberto] = useState(false);
+
+  function handleClienteCriado(cliente: Pick<ClienteRow, "id" | "nome" | "cor">) {
+    onClienteCriado(cliente);
+    setClienteId(cliente.id);
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -92,21 +100,31 @@ export function TarefaModal({ clientes, clientesCadastro, funcionarios, tiposSer
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <div className="mb-1.5 flex items-center justify-between">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
                 <label className="block text-xs font-medium text-ink-secondary">{dict.producao.clienteLabel}</label>
-                <button
-                  type="button"
-                  onClick={() => setGerenciarClientesAberto(true)}
-                  className="text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
-                >
-                  {dict.producao.gerenciar}
-                </button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNovoClienteAberto(true)}
+                    className="flex items-center gap-0.5 text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
+                  >
+                    <IconPlus className="h-3 w-3" />
+                    {dict.producao.novoClienteInline}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGerenciarClientesAberto(true)}
+                    className="text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
+                  >
+                    {dict.producao.gerenciar}
+                  </button>
+                </div>
               </div>
               <Select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
                 <option value="">{dict.producao.clienteSemVinculo}</option>
                 {clientes.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.full_name || c.email}
+                    {c.nome}
                   </option>
                 ))}
               </Select>
@@ -197,9 +215,8 @@ export function TarefaModal({ clientes, clientesCadastro, funcionarios, tiposSer
       {gerenciarServicosAberto && (
         <GerenciarTiposServicoModal tiposServico={tiposServico} onClose={() => setGerenciarServicosAberto(false)} />
       )}
-      {gerenciarClientesAberto && (
-        <GerenciarClientesAcessoModal clientes={clientesCadastro} onClose={() => setGerenciarClientesAberto(false)} />
-      )}
+      {gerenciarClientesAberto && <GerenciarClientesAcessoModal clientes={clientes} onClose={() => setGerenciarClientesAberto(false)} />}
+      {novoClienteAberto && <ClienteModal onCreated={handleClienteCriado} onClose={() => setNovoClienteAberto(false)} />}
     </div>
   );
 }

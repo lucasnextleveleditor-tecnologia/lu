@@ -1,13 +1,12 @@
 import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
-import type { ProfileRow, MetaDiariaRow, TrafegoRegistroRow } from "@/lib/types/database";
+import type { MetaDiariaRow, TrafegoRegistroRow } from "@/lib/types/database";
+import type { ClienteRow } from "@/lib/types/cadastros";
 import type { AnuncioComRelacoes, AnuncioTrackingRow, FechamentoSemanalRow, MetaCalendarioRow, ProdutoRow } from "@/lib/types/infoprodutos";
 import { todayISO } from "@/lib/utils/format";
 import { calcularResumoTrafego, type StatusTrafego } from "@/lib/utils/trafego";
 import { TrafegoWorkspace } from "@/components/admin/trafego/TrafegoWorkspace";
 
 export const dynamic = "force-dynamic";
-
-type ClienteResumido = Pick<ProfileRow, "id" | "full_name" | "email">;
 
 interface TrafegoPageProps {
   searchParams: { data?: string };
@@ -29,14 +28,16 @@ export default async function TrafegoPage({ searchParams }: TrafegoPageProps) {
   const { supabase } = await requireModuloOuRedirect("trafego");
 
   // ---------------------------------------------------------------------
-  // Aba Clientes — mesma busca de sempre, sem nenhuma mudança de lógica.
+  // Aba Clientes — a partir daqui, `clientes` é o cadastro completo
+  // (`clientes`, não mais `profiles`/role=cliente): mostra TODO cliente
+  // cadastrado, tenha ou não login gerado (mesma mudança de Produção — ver
+  // `resolverVinculoCliente` em `app/admin/trafego/actions.ts`).
   // ---------------------------------------------------------------------
   const { data: clientes } = await supabase
-    .from("profiles")
-    .select("id, full_name, email")
-    .eq("role", "cliente")
-    .order("full_name", { ascending: true })
-    .overrideTypes<ClienteResumido[], { merge: false }>();
+    .from("clientes")
+    .select("*")
+    .order("nome", { ascending: true })
+    .overrideTypes<ClienteRow[], { merge: false }>();
 
   const clienteIds = (clientes ?? []).map((c) => c.id);
 
@@ -45,7 +46,7 @@ export default async function TrafegoPage({ searchParams }: TrafegoPageProps) {
         .from("metas_diarias")
         .select("*")
         .eq("data", data)
-        .in("cliente_id", clienteIds)
+        .in("cliente_cadastro_id", clienteIds)
         .overrideTypes<MetaDiariaRow[], { merge: false }>()
     : { data: [] as MetaDiariaRow[] };
 
@@ -61,7 +62,9 @@ export default async function TrafegoPage({ searchParams }: TrafegoPageProps) {
     : { data: [] as TrafegoRegistroRow[] };
 
   const metaPorCliente = new Map<string, MetaDiariaRow>();
-  (metas ?? []).forEach((m) => metaPorCliente.set(m.cliente_id, m));
+  (metas ?? []).forEach((m) => {
+    if (m.cliente_cadastro_id) metaPorCliente.set(m.cliente_cadastro_id, m);
+  });
 
   const registrosPorMeta = new Map<string, TrafegoRegistroRow[]>();
   (registros ?? []).forEach((r) => {

@@ -166,7 +166,10 @@ export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
                       {t.tipo_servico_nome && <p className="text-xs text-ink-muted">{t.tipo_servico_nome}</p>}
                     </td>
                     <td className="py-3 pr-4">
-                      <span className="text-xs text-ink-secondary">{t.cliente_nome || "—"}</span>
+                      <span className="flex items-center gap-1.5 text-xs text-ink-secondary">
+                        {t.cliente_nome && t.cliente_cor && <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: t.cliente_cor }} />}
+                        {t.cliente_nome || "—"}
+                      </span>
                     </td>
                     <td className="py-3 pr-4">
                       <span className="text-xs text-ink-secondary">{t.responsavel_nome || "—"}</span>

@@ -54,6 +54,7 @@ export const producao: ProducaoDict = {
   maisTarefas: "+{n} más",
   legendaAltaUrgente: "Alta/Urgente",
   legendaNormalBaixa: "Normal/Baja",
+  legendaClientesLabel: "Clientes:",
 
   subtarefas: "Subtareas",
   captacaoPrefixo: "Grabación: ",
@@ -65,6 +66,7 @@ export const producao: ProducaoDict = {
   tituloPlaceholder: "Ej: Edición del video institucional",
   clienteLabel: "Cliente",
   clienteSemVinculo: "Sin cliente vinculado",
+  novoClienteInline: "Nuevo Cliente",
   tipoServicoLabel: "Tipo de Servicio",
   responsavelLabel: "Responsable",
   responsavelSemVinculo: "Sin responsable",
@@ -122,6 +124,6 @@ export const producao: ProducaoDict = {
 
   clientesPendentesTitulo: "Liberar Acceso de Cliente",
   clientesPendentesAjuda:
-    "Solo los clientes con acceso liberado aparecen para seleccionar aquí — el portal de cada cliente usa ese login para mostrar solo sus propios datos. Genere el acceso de un cliente ya registrado (Cadastros → Clientes) y pasará a aparecer en el campo Cliente en todo el sistema.",
+    "Todo cliente registrado ya aparece para seleccionar en el campo Cliente, con o sin login. Generar el acceso aquí es solo para quien también quiera que vea su propio panel (Tráfico, Aprobaciones, Facturas).",
   clientesPendentesVazio: "Todos los clientes registrados ya tienen acceso liberado.",
 };

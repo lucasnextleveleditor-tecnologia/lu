@@ -39,6 +39,7 @@ export interface TrafegoDict {
 
   // Aba Clientes (`ClientesTrafegoTab.tsx`).
   clientesDescricao: string;
+  novoClienteBotao: string;
   statNoCaminho: string;
   statNoCaminhoHint: string;
   statMetaBatida: string;
@@ -202,6 +203,7 @@ export const trafego: TrafegoDict = {
   csvColVendas: "Vendas",
 
   clientesDescricao: "Cada card liga o cliente à Meta do Dia e ao status atual do tráfego lançado.",
+  novoClienteBotao: "Novo Cliente",
   statNoCaminho: "No Caminho",
   statNoCaminhoHint: "≥60% da meta do dia",
   statMetaBatida: "Meta Batida",

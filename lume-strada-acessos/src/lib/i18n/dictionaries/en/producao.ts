@@ -54,6 +54,7 @@ export const producao: ProducaoDict = {
   maisTarefas: "+{n} more",
   legendaAltaUrgente: "High/Urgent",
   legendaNormalBaixa: "Normal/Low",
+  legendaClientesLabel: "Clients:",
 
   subtarefas: "Subtasks",
   captacaoPrefixo: "Shoot: ",
@@ -65,6 +66,7 @@ export const producao: ProducaoDict = {
   tituloPlaceholder: "E.g.: Institutional video editing",
   clienteLabel: "Client",
   clienteSemVinculo: "No client linked",
+  novoClienteInline: "New Client",
   tipoServicoLabel: "Service Type",
   responsavelLabel: "Assignee",
   responsavelSemVinculo: "No assignee",
@@ -122,6 +124,6 @@ export const producao: ProducaoDict = {
 
   clientesPendentesTitulo: "Grant Client Access",
   clientesPendentesAjuda:
-    "Only clients with access already granted show up to select here — each client's portal uses that login to show only their own data. Grant access to an already-registered client (Cadastros → Clientes) and they'll show up in the Client field everywhere in the system.",
+    "Every registered client already shows up to select in the Client field, with or without a login. Granting access here is only for clients you also want to see their own dashboard (Traffic, Approvals, Invoices).",
   clientesPendentesVazio: "All registered clients already have access granted.",
 };

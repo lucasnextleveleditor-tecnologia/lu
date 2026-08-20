@@ -1,5 +1,4 @@
 import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
-import type { ProfileRow } from "@/lib/types/database";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type {
   EntregaComVersoes,
@@ -21,47 +20,39 @@ export default async function ProducaoPage() {
   const { supabase } = await requireModuloOuRedirect("producao");
   const { dict } = await getDictionary();
 
-  const [tarefasRes, subtarefasRes, entregasRes, versoesRes, clientesRes, clientesCadastroRes, funcionariosRes, tiposServicoRes] =
-    await Promise.all([
-      supabase.from("prod_tarefas").select("*").order("data_entrega", { ascending: true }).overrideTypes<TarefaRow[], { merge: false }>(),
-      supabase.from("prod_subtarefas").select("*").order("created_at").overrideTypes<SubtarefaRow[], { merge: false }>(),
-      supabase.from("prod_entregas").select("*").order("created_at").overrideTypes<EntregaRow[], { merge: false }>(),
-      supabase
-        .from("prod_entrega_versoes")
-        .select("*")
-        .order("versao", { ascending: false })
-        .overrideTypes<EntregaVersaoRow[], { merge: false }>(),
-      supabase
-        .from("profiles")
-        .select("id, email, full_name")
-        .eq("role", "cliente")
-        .order("full_name")
-        .overrideTypes<Pick<ProfileRow, "id" | "email" | "full_name">[], { merge: false }>(),
-      // Cadastro completo de clientes (Cadastros → Clientes) — usado só pelo
-      // atalho "Gerenciar" do campo Cliente (ver GerenciarClientesAcessoModal),
-      // pra deixar liberar acesso de quem já está cadastrado sem sair do
-      // modal de tarefa. O SELECT em si (dropdown "Cliente") continua vindo
-      // de `profiles`/role=cliente acima — não muda.
-      supabase.from("clientes").select("*").order("nome").overrideTypes<ClienteRow[], { merge: false }>(),
-      supabase
-        .from("prod_funcionarios")
-        .select("*")
-        .eq("ativo", true)
-        .order("nome")
-        .overrideTypes<FuncionarioRow[], { merge: false }>(),
-      supabase.from("prod_tipos_servico").select("*").order("nome").overrideTypes<TipoServicoRow[], { merge: false }>(),
-    ]);
+  const [tarefasRes, subtarefasRes, entregasRes, versoesRes, clientesRes, funcionariosRes, tiposServicoRes] = await Promise.all([
+    supabase.from("prod_tarefas").select("*").order("data_entrega", { ascending: true }).overrideTypes<TarefaRow[], { merge: false }>(),
+    supabase.from("prod_subtarefas").select("*").order("created_at").overrideTypes<SubtarefaRow[], { merge: false }>(),
+    supabase.from("prod_entregas").select("*").order("created_at").overrideTypes<EntregaRow[], { merge: false }>(),
+    supabase
+      .from("prod_entrega_versoes")
+      .select("*")
+      .order("versao", { ascending: false })
+      .overrideTypes<EntregaVersaoRow[], { merge: false }>(),
+    // Cadastro completo de clientes (Cadastros → Clientes) — ÚNICA fonte do
+    // dropdown "Cliente" agora (era `profiles`/role=cliente antes: só
+    // aparecia quem já tinha login). Traz todo mundo cadastrado, com ou sem
+    // acesso — ver `resolverVinculoCliente` em `app/admin/producao/actions.ts`
+    // pra como o vínculo de fato é salvo em `prod_tarefas`.
+    supabase.from("clientes").select("*").order("nome").overrideTypes<ClienteRow[], { merge: false }>(),
+    supabase.from("prod_funcionarios").select("*").eq("ativo", true).order("nome").overrideTypes<FuncionarioRow[], { merge: false }>(),
+    supabase.from("prod_tipos_servico").select("*").order("nome").overrideTypes<TipoServicoRow[], { merge: false }>(),
+  ]);
 
   const tarefas = tarefasRes.data ?? [];
   const subtarefas = subtarefasRes.data ?? [];
   const entregas = entregasRes.data ?? [];
   const versoes = versoesRes.data ?? [];
   const clientes = clientesRes.data ?? [];
-  const clientesCadastro = clientesCadastroRes.data ?? [];
   const funcionarios = funcionariosRes.data ?? [];
   const tiposServico = tiposServicoRes.data ?? [];
 
-  const nomeCliente = new Map(clientes.map((c) => [c.id, c.full_name || c.email]));
+  const clientePorId = new Map(clientes.map((c) => [c.id, c]));
+  // Fallback pra tarefa antiga que só tem `cliente_id` (profiles.id) —
+  // resolve pelo `clientes.profile_id` correspondente. Base atual não tem
+  // nenhuma linha assim, mas mantém o Calendário/lista corretos se algum dia
+  // existir dado migrado de antes desta mudança.
+  const clientePorProfileId = new Map(clientes.filter((c) => c.profile_id).map((c) => [c.profile_id as string, c]));
   const nomeFuncionario = new Map(funcionarios.map((f) => [f.id, f.nome]));
   const nomeTipoServico = new Map(tiposServico.map((t) => [t.id, t.nome]));
 
@@ -79,9 +70,11 @@ export default async function ProducaoPage() {
 
   const tarefasComRelacoes: TarefaComRelacoes[] = tarefas.map((t) => {
     const subs = subtarefasPorTarefa.get(t.id) ?? [];
+    const cliente = t.cliente_cadastro_id ? clientePorId.get(t.cliente_cadastro_id) : t.cliente_id ? clientePorProfileId.get(t.cliente_id) : undefined;
     return {
       ...t,
-      cliente_nome: t.cliente_id ? (nomeCliente.get(t.cliente_id) ?? null) : null,
+      cliente_nome: cliente?.nome ?? null,
+      cliente_cor: cliente?.cor ?? null,
       responsavel_nome: t.responsavel_id ? (nomeFuncionario.get(t.responsavel_id) ?? null) : null,
       tipo_servico_nome: t.tipo_servico_id ? (nomeTipoServico.get(t.tipo_servico_id) ?? null) : null,
       subtarefas_total: subs.length,
@@ -124,7 +117,6 @@ export default async function ProducaoPage() {
           subtarefasPorTarefa={Object.fromEntries(subtarefasPorTarefa)}
           entregasPorTarefa={Object.fromEntries(entregasPorTarefa)}
           clientes={clientes}
-          clientesCadastro={clientesCadastro}
           funcionarios={funcionarios}
           tiposServico={tiposServico}
         />

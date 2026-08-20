@@ -48,6 +48,10 @@ export interface CadastrosDict {
   nomeResponsavelPlaceholder: string;
   enderecoLabel: string;
   enderecoPlaceholder: string;
+  corEtiquetaLabel: string;
+  corEtiquetaAjuda: string;
+  escolherCorAria: string;
+  corPersonalizadaAria: string;
   criarCliente: string;
 
   // ClienteDetalheModal
@@ -158,6 +162,10 @@ export const cadastros: CadastrosDict = {
   nomeResponsavelPlaceholder: "Quem fala pela conta",
   enderecoLabel: "Endereço Completo",
   enderecoPlaceholder: "Rua, número, bairro, cidade — UF, CEP",
+  corEtiquetaLabel: "Cor da etiqueta",
+  corEtiquetaAjuda: "Aparece na etiqueta deste cliente no Calendário de Produção — escolha uma cor pra identificar ele de relance.",
+  escolherCorAria: "Escolher a cor {hex}",
+  corPersonalizadaAria: "Escolher outra cor",
   criarCliente: "Criar Cliente",
 
   semDocumentoCadastrado: "Sem CNPJ/CPF cadastrado",

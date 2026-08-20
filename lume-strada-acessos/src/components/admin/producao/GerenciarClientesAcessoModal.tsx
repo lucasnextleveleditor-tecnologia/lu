@@ -7,18 +7,15 @@ import { IconKey } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 /**
- * Atalho pra liberar acesso de um cliente já cadastrado (Cadastros →
- * Clientes) direto do modal de Nova/Detalhe Tarefa — resolve a confusão de
- * "o cliente já está cadastrado mas não aparece pra selecionar": o dropdown
- * "Cliente" de Produção continua ligado a `profiles` (role='cliente'), não
- * a `clientes`, porque o PORTAL do próprio cliente filtra os dados dele
- * pelo login (`auth.uid()`) — um cadastro em `clientes` sem "Gerar Acesso"
- * ainda não tem esse login, então não tem como aparecer ali (ver nota em
- * `supabase/cadastros.sql`, seção 2, sobre não repontar esse FK). Gerar o
- * acesso aqui é a MESMA ação de Cadastros → Clientes → Gerar Acesso (manda
- * um convite por e-mail); assim que gerado, o cliente passa a aparecer no
- * dropdown em todo o sistema (Produção/Comercial/Tráfego). `z-[60]` de
- * propósito — mesmo padrão de `GerenciarTiposServicoModal`.
+ * Atalho pra liberar acesso (login/portal) de um cliente já cadastrado
+ * direto do modal de Nova/Detalhe Tarefa — o dropdown "Cliente" de Produção
+ * já lista TODOS os cadastros de `clientes` (com ou sem login, ver
+ * `resolverVinculoCliente` em `app/admin/producao/actions.ts`), então isso
+ * aqui não é mais pré-requisito pra selecionar o cliente na tarefa; serve só
+ * pra quem quer que ESSE cliente específico passe a enxergar o próprio
+ * dashboard (Tráfego, Aprovações, Boletos), sem sair de Produção pra ir em
+ * Cadastros → Clientes. Mesma ação de lá (cria login com senha provisória).
+ * `z-[60]` de propósito — mesmo padrão de `GerenciarTiposServicoModal`.
  */
 export function GerenciarClientesAcessoModal({ clientes, onClose }: { clientes: ClienteRow[]; onClose: () => void }) {
   const { dict } = useLocale();

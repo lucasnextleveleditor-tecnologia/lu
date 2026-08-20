@@ -25,6 +25,7 @@ export const trafego: TrafegoDict = {
   csvColVendas: "Sales",
 
   clientesDescricao: "Each card links the client to the Daily Goal and the current status of their tracked traffic.",
+  novoClienteBotao: "New Client",
   statNoCaminho: "On Track",
   statNoCaminhoHint: "≥60% of the daily goal",
   statMetaBatida: "Goal Reached",

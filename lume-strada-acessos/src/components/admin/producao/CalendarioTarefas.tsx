@@ -42,6 +42,22 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa, onNovaTarefa }: Cale
     tarefasPorDia.set(t.data_entrega, [...(tarefasPorDia.get(t.data_entrega) ?? []), t]);
   }
 
+  // Legenda de clientes — só os que têm cor escolhida E têm tarefa visível
+  // na grade DESTE mês (evita listar a base inteira de clientes se só 2 têm
+  // entrega no mês atual). Dedup por `cliente_nome`, não por cor — cores
+  // podem se repetir entre clientes (ver comentário em `ClienteModal`).
+  const clientesComCorNoMes = new Map<string, string>();
+  for (const semana of semanas) {
+    for (const dia of semana) {
+      if (!dia) continue;
+      for (const t of tarefasPorDia.get(dia) ?? []) {
+        if (t.cliente_nome && t.cliente_cor && !clientesComCorNoMes.has(t.cliente_nome)) {
+          clientesComCorNoMes.set(t.cliente_nome, t.cliente_cor);
+        }
+      }
+    }
+  }
+
   return (
     <Card className="p-4 sm:p-5">
       <div className="mb-4 flex items-center justify-between">
@@ -120,12 +136,14 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa, onNovaTarefa }: Cale
                           onAbrirTarefa(t.id);
                         }}
                         className={cn(
-                          "block w-full truncate rounded px-1.5 py-1 text-left text-[11px] font-medium text-ink-primary transition hover:opacity-80",
+                          "flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-[11px] font-medium text-ink-primary transition hover:opacity-80",
                           t.prioridade === "urgente" || t.prioridade === "alta" ? "bg-status-critical/20" : "bg-base-800"
                         )}
-                        title={t.titulo}
+                        title={t.cliente_nome ? `${t.titulo} — ${t.cliente_nome}` : t.titulo}
                       >
-                        {t.titulo}
+                        {/* Etiqueta de cor do cliente — identidade nunca só pela cor do texto/fundo (contraste imprevisível com hex livre), sempre um dot ao lado do nome. */}
+                        {t.cliente_cor && <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: t.cliente_cor }} />}
+                        <span className="truncate">{t.titulo}</span>
                       </button>
                     ))}
                     {restantes > 0 && (
@@ -148,7 +166,7 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa, onNovaTarefa }: Cale
         ))}
       </div>
 
-      <div className="mt-4 flex items-center gap-4 text-[11px] text-ink-muted">
+      <div className="mt-4 flex flex-wrap items-center gap-4 text-[11px] text-ink-muted">
         <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-status-critical/60" /> {dict.producao.legendaAltaUrgente}
         </span>
@@ -156,6 +174,17 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa, onNovaTarefa }: Cale
           <span className="h-2 w-2 rounded-full bg-base-700" /> {dict.producao.legendaNormalBaixa}
         </span>
       </div>
+
+      {clientesComCorNoMes.size > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-base-800 pt-2.5 text-[11px] text-ink-muted">
+          <span className="font-medium text-ink-secondary">{dict.producao.legendaClientesLabel}</span>
+          {[...clientesComCorNoMes].map(([nome, cor]) => (
+            <span key={nome} className="flex items-center gap-1.5">
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: cor }} /> {nome}
+            </span>
+          ))}
+        </div>
+      )}
 
       {diaExpandido && (
         <DiaTarefasModal

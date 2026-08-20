@@ -20,7 +20,8 @@ export interface TarefaRow {
   id: string;
   titulo: string;
   briefing: string | null; // HTML (rich text)
-  cliente_id: string | null;
+  cliente_id: string | null; // uuid -> profiles.id — só quando o cliente vinculado TEM login (ver `resolverVinculoCliente` em app/admin/producao/actions.ts)
+  cliente_cadastro_id: string | null; // uuid -> clientes.id — vínculo "de verdade", sempre preenchido quando um cliente é escolhido, com ou sem login
   responsavel_id: string | null;
   tipo_servico_id: string | null;
   status: StatusTarefa;
@@ -34,6 +35,7 @@ export interface TarefaRow {
 /** Tarefa enriquecida com os nomes relacionados (join em memória) e contagem de subtarefas. */
 export type TarefaComRelacoes = TarefaRow & {
   cliente_nome: string | null;
+  cliente_cor: string | null; // hex do cadastro do cliente (`clientes.cor`) — etiqueta colorida no Calendário
   responsavel_nome: string | null;
   tipo_servico_nome: string | null;
   subtarefas_total: number;
