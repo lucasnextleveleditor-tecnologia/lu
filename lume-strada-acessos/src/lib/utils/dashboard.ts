@@ -16,7 +16,10 @@ export function addMeses(referencia: Date, delta: number): Date {
 }
 
 export function fmtMesAno(referencia: Date): string {
-  const label = referencia.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  // `timeZone: "UTC"` é obrigatório aqui — ver comentário equivalente em
+  // `lib/utils/producao.ts`. Sem isso, num fuso atrás de UTC (Brasil,
+  // UTC-3) o cabeçalho de mês fica sempre um mês pra trás do real.
+  const label = referencia.toLocaleDateString("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" });
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
