@@ -12,8 +12,13 @@ import { cn } from "@/lib/utils/cn";
 import { IconChevronLeft, IconChevronRight } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
+interface CalendarioMetasProps {
+  metasCalendario: MetaCalendarioRow[];
+  clienteCadastroId: string;
+}
+
 /** Calendário interativo pra digitar a Meta de Lucro Líquido de cada dia — clica no dia, digita, salva. */
-export function CalendarioMetas({ metasCalendario }: { metasCalendario: MetaCalendarioRow[] }) {
+export function CalendarioMetas({ metasCalendario, clienteCadastroId }: CalendarioMetasProps) {
   const { dict } = useLocale();
   const DIAS_SEMANA = dict.trafego.diasSemanaAbrev;
   const [referencia, setReferencia] = useState(() => {
@@ -46,7 +51,7 @@ export function CalendarioMetas({ metasCalendario }: { metasCalendario: MetaCale
     setError(null);
     setSalvo(false);
     startTransition(async () => {
-      const result = await salvarMetaCalendario(diaSelecionado, Number(metaInput) || 0);
+      const result = await salvarMetaCalendario(clienteCadastroId, diaSelecionado, Number(metaInput) || 0);
       if (!result.ok) {
         setError(result.error);
         return;
