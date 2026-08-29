@@ -141,6 +141,7 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
           />
         ) : (
           <InfoProdutosWorkspace
+            clientes={clientes}
             produtos={props.produtos}
             anuncios={props.anuncios}
             metasCalendario={props.metasCalendario}
