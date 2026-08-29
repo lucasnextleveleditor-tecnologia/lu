@@ -28,10 +28,7 @@ export interface ResumoTrafego {
   status: StatusTrafego;
 }
 
-export type RegistroParaSoma = Pick
-  TrafegoRegistroRow,
-  "valor_investido" | "tipo_resultado" | "quantidade_resultado" | "cliques" | "visualizacoes"
->;
+export type RegistroParaSoma = Pick<TrafegoRegistroRow, "valor_investido" | "tipo_resultado" | "quantidade_resultado" | "cliques" | "visualizacoes">;
 
 export function somarRegistros(registros: RegistroParaSoma[]) {
   return registros.reduce(
