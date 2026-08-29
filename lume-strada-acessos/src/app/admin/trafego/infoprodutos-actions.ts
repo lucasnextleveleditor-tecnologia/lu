@@ -15,6 +15,18 @@ export type UploadAssinadoCriativoResult =
 const PATH = "/admin/trafego";
 const BUCKET = "infoprodutos";
 
+/**
+ * Todo o espaço de Info-Produtos (produtos, anúncios, calendário de metas,
+ * fechamento semanal) agora é separado por cliente — ver migração
+ * `infoprodutos_por_cliente_e_trafego_tipo_resultado`. `clienteCadastroId`
+ * (-> `clientes.id`) é o vínculo gravado em `cliente_cadastro_id` nas 4
+ * tabelas; `cliente_id` (-> `profiles.id`) fica sempre null por enquanto —
+ * ainda não existe portal do cliente pra Info-Produtos (só a área
+ * administrativa lê/escreve essas tabelas, RLS já cobre via `is_staff()` +
+ * `company_id`), então não há motivo pra resolver/gravar esse segundo
+ * vínculo como em `resolverVinculoCliente` (app/admin/trafego/actions.ts).
+ */
+
 // ----------------------------------------------------------------------------
 // Produtos (Principal / Order Bump)
 // ----------------------------------------------------------------------------
@@ -24,7 +36,7 @@ export interface ProdutoInput {
   valor: number;
 }
 
-export async function criarProduto(input: ProdutoInput): Promise<ActionResultId> {
+export async function criarProduto(clienteCadastroId: string, input: ProdutoInput): Promise<ActionResultId> {
   try {
     const { supabase } = await requireModulo("trafego");
     if (!input.nome.trim()) return { ok: false, error: "Informe o nome do produto." };
@@ -32,7 +44,7 @@ export async function criarProduto(input: ProdutoInput): Promise<ActionResultId>
 
     const { data, error } = await supabase
       .from("produtos")
-      .insert({ nome: input.nome.trim(), tipo: input.tipo, valor: input.valor })
+      .insert({ cliente_cadastro_id: clienteCadastroId, nome: input.nome.trim(), tipo: input.tipo, valor: input.valor })
       .select("id")
       .single();
 
@@ -102,13 +114,14 @@ export interface AnuncioInput {
   receitaBruta: number; // já vem calculado (com possível override) do client
 }
 
-export async function criarAnuncio(input: AnuncioInput): Promise<ActionResultId> {
+export async function criarAnuncio(clienteCadastroId: string, input: AnuncioInput): Promise<ActionResultId> {
   try {
     const { supabase } = await requireModulo("trafego");
 
     const { data, error } = await supabase
       .from("anuncios_tracking")
       .insert({
+        cliente_cadastro_id: clienteCadastroId,
         data: input.data,
         semana_inicio: segundaFeiraISO(input.data),
         nome_anuncio: input.nomeAnuncio?.trim() || null,
@@ -255,12 +268,12 @@ export async function removerCriativo(anuncioId: string): Promise<ActionResult> 
 // ----------------------------------------------------------------------------
 // Calendário de Metas de Lucro
 // ----------------------------------------------------------------------------
-export async function salvarMetaCalendario(data: string, metaLucro: number): Promise<ActionResult> {
+export async function salvarMetaCalendario(clienteCadastroId: string, data: string, metaLucro: number): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("trafego");
     const { error } = await supabase
       .from("metas_calendario")
-      .upsert({ data, meta_lucro: metaLucro }, { onConflict: "data" });
+      .upsert({ cliente_cadastro_id: clienteCadastroId, data, meta_lucro: metaLucro }, { onConflict: "cliente_cadastro_id,data" });
 
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
@@ -273,7 +286,7 @@ export async function salvarMetaCalendario(data: string, metaLucro: number): Pro
 // ----------------------------------------------------------------------------
 // Fechamento da Semana — abate os reembolsos e trava o lucro líquido real.
 // ----------------------------------------------------------------------------
-export async function fecharSemana(semanaInicio: string, reembolsos: number): Promise<ActionResult> {
+export async function fecharSemana(clienteCadastroId: string, semanaInicio: string, reembolsos: number): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("trafego");
     if (reembolsos < 0) return { ok: false, error: "O valor de reembolsos não pode ser negativo." };
@@ -281,6 +294,7 @@ export async function fecharSemana(semanaInicio: string, reembolsos: number): Pr
     const { data: anuncios, error: erroAnuncios } = await supabase
       .from("anuncios_tracking")
       .select("investimento, receita_bruta")
+      .eq("cliente_cadastro_id", clienteCadastroId)
       .eq("semana_inicio", semanaInicio);
     if (erroAnuncios) return { ok: false, error: erroAnuncios.message };
 
@@ -290,6 +304,7 @@ export async function fecharSemana(semanaInicio: string, reembolsos: number): Pr
 
     const { error } = await supabase.from("fechamentos_semanais").upsert(
       {
+        cliente_cadastro_id: clienteCadastroId,
         semana_inicio: semanaInicio,
         semana_fim: domingoISO(semanaInicio),
         receita_bruta_total: receitaBrutaTotal,
@@ -298,7 +313,7 @@ export async function fecharSemana(semanaInicio: string, reembolsos: number): Pr
         lucro_liquido_real: lucroLiquidoReal,
         fechado_em: new Date().toISOString(),
       },
-      { onConflict: "semana_inicio" }
+      { onConflict: "cliente_cadastro_id,semana_inicio" }
     );
 
     if (error) return { ok: false, error: error.message };
@@ -307,4 +322,3 @@ export async function fecharSemana(semanaInicio: string, reembolsos: number): Pr
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
-}
