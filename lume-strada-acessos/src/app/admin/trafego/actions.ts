@@ -84,7 +84,14 @@ export async function salvarMeta(
 export async function adicionarRegistro(
   clienteCadastroId: string,
   data: string,
-  registro: { nomeCampanha: string | null; valorInvestido: number; leadsGerados: number }
+  registro: {
+    nomeCampanha: string | null;
+    valorInvestido: number;
+    tipoResultado: "leads" | "vendas";
+    quantidadeResultado: number;
+    cliques: number;
+    visualizacoes: number;
+  }
 ): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("trafego");
@@ -96,7 +103,10 @@ export async function adicionarRegistro(
       meta_id: meta.id,
       nome_campanha: registro.nomeCampanha,
       valor_investido: registro.valorInvestido,
-      leads_gerados: registro.leadsGerados,
+      tipo_resultado: registro.tipoResultado,
+      quantidade_resultado: registro.quantidadeResultado,
+      cliques: registro.cliques,
+      visualizacoes: registro.visualizacoes,
     });
 
     if (error) return { ok: false, error: error.message };
