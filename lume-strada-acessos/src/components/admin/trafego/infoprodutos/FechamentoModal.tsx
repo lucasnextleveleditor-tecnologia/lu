@@ -14,6 +14,7 @@ interface FechamentoModalProps {
   receitaBrutaTotal: number;
   investimentoTotal: number;
   fechamentoExistente: FechamentoSemanalRow | null;
+  clienteCadastroId: string;
   onClose: () => void;
 }
 
@@ -24,7 +25,15 @@ interface FechamentoModalProps {
  * pra pré-visualização); o valor TRAVADO de verdade é recalculado no
  * servidor no momento do fechamento (`fecharSemana`), direto do banco.
  */
-export function FechamentoModal({ semanaInicio, semanaFim, receitaBrutaTotal, investimentoTotal, fechamentoExistente, onClose }: FechamentoModalProps) {
+export function FechamentoModal({
+  semanaInicio,
+  semanaFim,
+  receitaBrutaTotal,
+  investimentoTotal,
+  fechamentoExistente,
+  clienteCadastroId,
+  onClose,
+}: FechamentoModalProps) {
   const { dict } = useLocale();
   const [reembolsos, setReembolsos] = useState(String(fechamentoExistente?.reembolsos ?? "0"));
   const [loading, setLoading] = useState(false);
@@ -36,7 +45,7 @@ export function FechamentoModal({ semanaInicio, semanaFim, receitaBrutaTotal, in
   async function handleFechar() {
     setLoading(true);
     setError(null);
-    const result = await fecharSemana(semanaInicio, Number(reembolsos) || 0);
+    const result = await fecharSemana(clienteCadastroId, semanaInicio, Number(reembolsos) || 0);
     setLoading(false);
     if (!result.ok) {
       setError(result.error);
