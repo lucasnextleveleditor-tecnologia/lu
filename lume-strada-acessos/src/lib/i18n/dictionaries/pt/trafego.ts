@@ -31,6 +31,9 @@ export interface TrafegoDict {
   csvColCliente: string;
   csvColInvestido: string;
   csvColLeadsGerados: string;
+  csvColVendasGeradas: string;
+  csvColCliques: string;
+  csvColVisualizacoes: string;
   csvColMetaInvestimento: string;
   csvColAnuncio: string;
   csvColInvestimento: string;
@@ -66,6 +69,13 @@ export interface TrafegoDict {
   valorInvestidoPlaceholder: string;
   leadsPlaceholder: string;
   lancarBotao: string;
+  tipoResultadoLeadsOpcao: string;
+  tipoResultadoVendasOpcao: string;
+  quantidadePlaceholder: string;
+  vendasLabel: string;
+  vendasSufixo: string;
+  custoPorLeadLabel: string;
+  custoPorVendaLabel: string;
 
   // Modal de anúncio (`AnuncioModal.tsx`).
   editarAnuncioTitulo: string;
@@ -196,6 +206,9 @@ export const trafego: TrafegoDict = {
   csvColCliente: "Cliente",
   csvColInvestido: "Investido (R$)",
   csvColLeadsGerados: "Leads Gerados",
+  csvColVendasGeradas: "Vendas Geradas",
+  csvColCliques: "Cliques",
+  csvColVisualizacoes: "Visualizações",
   csvColMetaInvestimento: "Meta de Investimento (R$)",
   csvColAnuncio: "Anúncio",
   csvColInvestimento: "Investimento (R$)",
@@ -229,6 +242,13 @@ export const trafego: TrafegoDict = {
   valorInvestidoPlaceholder: "R$ investido",
   leadsPlaceholder: "Leads",
   lancarBotao: "Lançar",
+  tipoResultadoLeadsOpcao: "Leads",
+  tipoResultadoVendasOpcao: "Vendas",
+  quantidadePlaceholder: "Qtd.",
+  vendasLabel: "Vendas:",
+  vendasSufixo: "venda(s)",
+  custoPorLeadLabel: "Custo/Lead:",
+  custoPorVendaLabel: "Custo/Venda:",
 
   editarAnuncioTitulo: "Editar Anúncio",
   novoAnuncioTitulo: "Novo Anúncio do Dia",
