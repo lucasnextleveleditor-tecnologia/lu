@@ -14,9 +14,10 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 interface AnunciosManagerProps {
   anuncios: AnuncioComRelacoes[];
   produtos: ProdutoRow[];
+  clienteCadastroId: string;
 }
 
-export function AnunciosManager({ anuncios, produtos }: AnunciosManagerProps) {
+export function AnunciosManager({ anuncios, produtos, clienteCadastroId }: AnunciosManagerProps) {
   const { dict } = useLocale();
   const [dataSelecionada, setDataSelecionada] = useState(todayISO());
   const [modalAberto, setModalAberto] = useState(false);
@@ -187,7 +188,15 @@ export function AnunciosManager({ anuncios, produtos }: AnunciosManagerProps) {
         </div>
       )}
 
-      {modalAberto && <AnuncioModal anuncio={anuncioEditando} produtos={produtos} dataPadrao={dataSelecionada} onClose={fecharModal} />}
+      {modalAberto && (
+        <AnuncioModal
+          anuncio={anuncioEditando}
+          produtos={produtos}
+          clienteCadastroId={clienteCadastroId}
+          dataPadrao={dataSelecionada}
+          onClose={fecharModal}
+        />
+      )}
     </div>
   );
 }
