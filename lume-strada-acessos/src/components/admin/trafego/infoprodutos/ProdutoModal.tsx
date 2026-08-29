@@ -10,10 +10,11 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface ProdutoModalProps {
   produto?: ProdutoRow | null;
+  clienteCadastroId: string;
   onClose: () => void;
 }
 
-export function ProdutoModal({ produto, onClose }: ProdutoModalProps) {
+export function ProdutoModal({ produto, clienteCadastroId, onClose }: ProdutoModalProps) {
   const { dict } = useLocale();
   const [nome, setNome] = useState(produto?.nome ?? "");
   const [tipo, setTipo] = useState<TipoProduto>(produto?.tipo ?? "principal");
@@ -29,7 +30,7 @@ export function ProdutoModal({ produto, onClose }: ProdutoModalProps) {
     setError(null);
 
     const input = { nome, tipo, valor: Number(valor) || 0 };
-    const result = produto ? await atualizarProduto(produto.id, input) : await criarProduto(input);
+    const result = produto ? await atualizarProduto(produto.id, input) : await criarProduto(clienteCadastroId, input);
 
     setLoading(false);
     if (!result.ok) {
