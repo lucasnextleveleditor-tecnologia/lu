@@ -9,7 +9,7 @@ import { isTarefaAtrasada } from "@/lib/utils/producao";
 import { leadEstaAberto, isFollowUpAtrasado } from "@/lib/utils/comercial";
 import { hojeISO } from "@/lib/utils/dashboard";
 import { limitesDoMes } from "@/lib/utils/financeiro";
-import { somarRegistros } from "@/lib/utils/trafego";
+import { somarRegistros, type RegistroParaSoma } from "@/lib/utils/trafego";
 import { VisaoGeral } from "@/components/admin/dashboard/VisaoGeral";
 
 export const dynamic = "force-dynamic";
@@ -138,10 +138,10 @@ export default async function DashboardPage() {
     podeVerTrafego && metaIds.length > 0
       ? supabase
           .from("trafego_registros")
-          .select("valor_investido, leads_gerados")
+          .select("valor_investido, tipo_resultado, quantidade_resultado, cliques, visualizacoes")
           .in("meta_id", metaIds)
-          .overrideTypes<{ valor_investido: number; leads_gerados: number }[], { merge: false }>()
-      : Promise.resolve({ data: null as { valor_investido: number; leads_gerados: number }[] | null }),
+          .overrideTypes<RegistroParaSoma[], { merge: false }>()
+      : Promise.resolve({ data: null as RegistroParaSoma[] | null }),
     podeVerWhatsapp
       ? supabase
           .from("whatsapp_contatos")
