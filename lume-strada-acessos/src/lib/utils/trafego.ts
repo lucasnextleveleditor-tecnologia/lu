@@ -12,38 +12,76 @@ const LIMIAR_META_BATIDA = 1.0; // >=100% -> "Meta Batida"
 
 export interface ResumoTrafego {
   totalInvestido: number;
+  totalCliques: number;
+  totalVisualizacoes: number;
   totalLeads: number;
+  totalVendas: number;
+  /** Investido só nos lançamentos DO TIPO leads/vendas — base pro custo por resultado (não é o mesmo que `totalInvestido`, que soma os dois tipos juntos). */
+  investidoEmLeads: number;
+  investidoEmVendas: number;
+  /** null quando ainda não há nenhum lead lançado — não dá pra dividir por zero. */
+  custoPorLead: number | null;
+  /** null quando ainda não há nenhuma venda lançada. */
+  custoPorVenda: number | null;
   /** null quando não há meta de investimento definida (>0) pra esse dia — não dá pra calcular % */
   pctInvestido: number | null;
   status: StatusTrafego;
 }
 
-export function somarRegistros(registros: Pick<TrafegoRegistroRow, "valor_investido" | "leads_gerados">[]) {
+export type RegistroParaSoma = Pick
+  TrafegoRegistroRow,
+  "valor_investido" | "tipo_resultado" | "quantidade_resultado" | "cliques" | "visualizacoes"
+>;
+
+export function somarRegistros(registros: RegistroParaSoma[]) {
   return registros.reduce(
-    (acc, r) => ({
-      totalInvestido: acc.totalInvestido + Number(r.valor_investido),
-      totalLeads: acc.totalLeads + Number(r.leads_gerados),
-    }),
-    { totalInvestido: 0, totalLeads: 0 }
+    (acc, r) => {
+      const investido = Number(r.valor_investido);
+      const quantidade = Number(r.quantidade_resultado);
+      const ehVenda = r.tipo_resultado === "vendas";
+      return {
+        totalInvestido: acc.totalInvestido + investido,
+        totalCliques: acc.totalCliques + Number(r.cliques),
+        totalVisualizacoes: acc.totalVisualizacoes + Number(r.visualizacoes),
+        totalLeads: acc.totalLeads + (ehVenda ? 0 : quantidade),
+        totalVendas: acc.totalVendas + (ehVenda ? quantidade : 0),
+        investidoEmLeads: acc.investidoEmLeads + (ehVenda ? 0 : investido),
+        investidoEmVendas: acc.investidoEmVendas + (ehVenda ? investido : 0),
+      };
+    },
+    {
+      totalInvestido: 0,
+      totalCliques: 0,
+      totalVisualizacoes: 0,
+      totalLeads: 0,
+      totalVendas: 0,
+      investidoEmLeads: 0,
+      investidoEmVendas: 0,
+    }
   );
 }
 
-/** Deriva status/percentual a partir da meta + registros do dia — nunca gravado, sempre calculado. */
+/** Deriva status/percentual/custo por resultado a partir da meta + registros do dia — nunca gravado, sempre calculado. */
 export function calcularResumoTrafego(
   meta: Pick<MetaDiariaRow, "valor_investido_meta"> | null | undefined,
-  registros: Pick<TrafegoRegistroRow, "valor_investido" | "leads_gerados">[]
+  registros: RegistroParaSoma[]
 ): ResumoTrafego {
-  const { totalInvestido, totalLeads } = somarRegistros(registros);
+  const somas = somarRegistros(registros);
+  // Custo por resultado é o investido DENTRO DAQUELE TIPO dividido pela
+  // quantidade daquele tipo — não o investido total, que misturaria o custo
+  // de campanhas de lead com o de campanhas de venda.
+  const custoPorLead = somas.totalLeads > 0 ? somas.investidoEmLeads / somas.totalLeads : null;
+  const custoPorVenda = somas.totalVendas > 0 ? somas.investidoEmVendas / somas.totalVendas : null;
 
   if (!meta || meta.valor_investido_meta <= 0) {
-    return { totalInvestido, totalLeads, pctInvestido: null, status: "sem_meta" };
+    return { ...somas, custoPorLead, custoPorVenda, pctInvestido: null, status: "sem_meta" };
   }
 
-  const pctInvestido = totalInvestido / meta.valor_investido_meta;
+  const pctInvestido = somas.totalInvestido / meta.valor_investido_meta;
   const status: StatusTrafego =
     pctInvestido >= LIMIAR_META_BATIDA ? "meta_batida" : pctInvestido >= LIMIAR_NO_CAMINHO ? "no_caminho" : "abaixo_da_meta";
 
-  return { totalInvestido, totalLeads, pctInvestido, status };
+  return { ...somas, custoPorLead, custoPorVenda, pctInvestido, status };
 }
 
 // "No Caminho" e "Meta Batida" dividem o mesmo tone (good) — o que os
