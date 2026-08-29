@@ -322,3 +322,4 @@ export async function fecharSemana(clienteCadastroId: string, semanaInicio: stri
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
+}
