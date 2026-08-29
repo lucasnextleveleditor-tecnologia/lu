@@ -145,6 +145,8 @@ export const trafego: TrafegoDict = {
   anunciosAba: "Anuncios",
   calendarioMetasAba: "Calendario de Metas",
   produtosAba: "Productos",
+  infoProdutosClienteLabel: "Cliente",
+  nenhumClienteParaInfoprodutos: 'Registra un cliente en la pestaña "Clientes" antes de usar Infoproductos.',
 
   editarProdutoTitulo: "Editar Producto",
   novoProdutoTitulo: "Nuevo Producto",
