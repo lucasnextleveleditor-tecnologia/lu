@@ -16,6 +16,7 @@ interface Dashboard7DiasProps {
   anuncios: AnuncioComRelacoes[];
   metasCalendario: MetaCalendarioRow[];
   fechamentos: FechamentoSemanalRow[];
+  clienteCadastroId: string;
 }
 
 interface ResumoSemana {
@@ -26,7 +27,7 @@ interface ResumoSemana {
   fechamento: FechamentoSemanalRow | null;
 }
 
-export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos }: Dashboard7DiasProps) {
+export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, clienteCadastroId }: Dashboard7DiasProps) {
   const { dict } = useLocale();
   const [semanaAbrindoFechamento, setSemanaAbrindoFechamento] = useState<ResumoSemana | null>(null);
 
@@ -189,6 +190,7 @@ export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos }: Dashb
           receitaBrutaTotal={semanaAbrindoFechamento.receitaBrutaTotal}
           investimentoTotal={semanaAbrindoFechamento.investimentoTotal}
           fechamentoExistente={semanaAbrindoFechamento.fechamento}
+          clienteCadastroId={clienteCadastroId}
           onClose={() => setSemanaAbrindoFechamento(null)}
         />
       )}
