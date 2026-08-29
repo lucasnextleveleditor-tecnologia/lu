@@ -161,11 +161,15 @@ export interface TrafegoDict {
   fechandoTexto: string;
   salvarCorrecaoBotao: string;
 
-  // Sub-abas do workspace de Info-Produtos (`InfoProdutosWorkspace.tsx`).
+  // Sub-abas do workspace de Info-Produtos (`InfoProdutosWorkspace.tsx`) — e
+  // o seletor de cliente que separa todo o espaço de Info-Produtos por
+  // cliente (ver comentário no componente).
   visaoGeralAba: string;
   anunciosAba: string;
   calendarioMetasAba: string;
   produtosAba: string;
+  infoProdutosClienteLabel: string;
+  nenhumClienteParaInfoprodutos: string;
 
   // Modal de produto (`ProdutoModal.tsx`).
   editarProdutoTitulo: string;
@@ -333,6 +337,8 @@ export const trafego: TrafegoDict = {
   anunciosAba: "Anúncios",
   calendarioMetasAba: "Calendário de Metas",
   produtosAba: "Produtos",
+  infoProdutosClienteLabel: "Cliente",
+  nenhumClienteParaInfoprodutos: 'Cadastre um cliente na aba "Clientes" antes de usar o Info-Produtos.',
 
   editarProdutoTitulo: "Editar Produto",
   novoProdutoTitulo: "Novo Produto",
