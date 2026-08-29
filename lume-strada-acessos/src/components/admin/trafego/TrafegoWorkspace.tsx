@@ -55,7 +55,10 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
     return {
       cliente: c.nome,
       investido: registros.reduce((s, r) => s + r.valor_investido, 0).toFixed(2),
-      leadsGerados: registros.reduce((s, r) => s + r.leads_gerados, 0),
+      leadsGerados: registros.filter((r) => r.tipo_resultado === "leads").reduce((s, r) => s + r.quantidade_resultado, 0),
+      vendasGeradas: registros.filter((r) => r.tipo_resultado === "vendas").reduce((s, r) => s + r.quantidade_resultado, 0),
+      cliques: registros.reduce((s, r) => s + r.cliques, 0),
+      visualizacoes: registros.reduce((s, r) => s + r.visualizacoes, 0),
       metaInvestimento: (meta?.valor_investido_meta ?? 0).toFixed(2),
     };
   });
@@ -83,6 +86,9 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
               { chave: "cliente", rotulo: dict.trafego.csvColCliente },
               { chave: "investido", rotulo: dict.trafego.csvColInvestido },
               { chave: "leadsGerados", rotulo: dict.trafego.csvColLeadsGerados },
+              { chave: "vendasGeradas", rotulo: dict.trafego.csvColVendasGeradas },
+              { chave: "cliques", rotulo: dict.trafego.csvColCliques },
+              { chave: "visualizacoes", rotulo: dict.trafego.csvColVisualizacoes },
               { chave: "metaInvestimento", rotulo: dict.trafego.csvColMetaInvestimento },
             ]}
           />
