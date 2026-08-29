@@ -10,7 +10,12 @@ import { Badge } from "@/components/ui/Badge";
 import { ProdutoModal } from "@/components/admin/trafego/infoprodutos/ProdutoModal";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
-export function ProdutosManager({ produtos }: { produtos: ProdutoRow[] }) {
+interface ProdutosManagerProps {
+  produtos: ProdutoRow[];
+  clienteCadastroId: string;
+}
+
+export function ProdutosManager({ produtos, clienteCadastroId }: ProdutosManagerProps) {
   const { dict } = useLocale();
   const [modalAberto, setModalAberto] = useState(false);
   const [produtoEditando, setProdutoEditando] = useState<ProdutoRow | null>(null);
@@ -137,7 +142,7 @@ export function ProdutosManager({ produtos }: { produtos: ProdutoRow[] }) {
       <Grupo titulo={dict.trafego.produtosPrincipaisTitulo} itens={principais} />
       <Grupo titulo={dict.trafego.orderBumpsTitulo} itens={orderBumps} />
 
-      {modalAberto && <ProdutoModal produto={produtoEditando} onClose={fecharModal} />}
+      {modalAberto && <ProdutoModal produto={produtoEditando} clienteCadastroId={clienteCadastroId} onClose={fecharModal} />}
     </div>
   );
 }
