@@ -14,13 +14,14 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 interface AnuncioModalProps {
   anuncio?: AnuncioComRelacoes | null;
   produtos: ProdutoRow[];
+  clienteCadastroId: string;
   dataPadrao: string;
   onClose: () => void;
 }
 
 const SEM_ORDER_BUMP = "__nenhum__";
 
-export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: AnuncioModalProps) {
+export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao, onClose }: AnuncioModalProps) {
   const { dict } = useLocale();
   const principais = produtos.filter((p) => p.tipo === "principal");
   const orderBumps = produtos.filter((p) => p.tipo === "order_bump");
@@ -70,7 +71,7 @@ export function AnuncioModal({ anuncio, produtos, dataPadrao, onClose }: Anuncio
       receitaBruta: Number(receitaBruta) || 0,
     };
 
-    const result = anuncio ? await atualizarAnuncio(anuncio.id, input) : await criarAnuncio(input);
+    const result = anuncio ? await atualizarAnuncio(anuncio.id, input) : await criarAnuncio(clienteCadastroId, input);
 
     setLoading(false);
     if (!result.ok) {
