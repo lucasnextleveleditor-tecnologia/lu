@@ -98,13 +98,20 @@ export interface MetaDiariaRow {
   updated_at: string;
 }
 
+/** O que um lançamento de tráfego mediu como resultado — nem toda campanha gera lead, algumas geram venda direta. */
+export type TipoResultadoTrafego = "leads" | "vendas";
+
 /** Lançamento real de tráfego de um dia — sempre vinculado a uma MetaDiariaRow, nunca solto. */
 export interface TrafegoRegistroRow {
   id: string; // uuid
   meta_id: string; // uuid -> metas_diarias.id
   nome_campanha: string | null;
   valor_investido: number;
-  leads_gerados: number;
+  /** O que `quantidade_resultado` está contando nesse lançamento — leads OU vendas, nunca os dois juntos (um lançamento por tipo). */
+  tipo_resultado: TipoResultadoTrafego;
+  quantidade_resultado: number;
+  cliques: number;
+  visualizacoes: number;
   created_at: string;
   updated_at: string;
 }
