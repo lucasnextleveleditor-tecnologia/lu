@@ -172,3 +172,36 @@ O bug da Seção 8.1 (fragmento de URL não chega no servidor) só existe porque
 ### Consideração descartada por enquanto
 
 Cogitei adicionar uma ação de admin pra "resetar" uma conta já existente de volta pra senha padrão (útil se alguém esquecer a senha depois de já ter trocado) — não implementei porque não foi pedido; fica registrado aqui como próximo passo natural se aparecer essa necessidade.
+
+## 10. Backup automático 4x/dia pro Google Drive (06h, 12h, 18h e 00h — horário de Brasília)
+
+Pra garantir que nenhum cliente perca dados enquanto estiver com a licença ativa, todo dado de negócio do sistema (de TODAS as empresas licenciadas) é copiado automaticamente 4 vezes por dia pra uma pasta privada do Google Drive do dono do SaaS — os clientes nunca têm acesso a esse link.
+
+### Como funciona
+
+- **`public.backup_snapshot_json()`** (função SQL, migração `backup_snapshot_function` aplicada direto no projeto Supabase) percorre dinamicamente toda tabela do schema `public` (`information_schema.tables`) e devolve um único JSON com o conteúdo inteiro de cada uma — clientes, financeiro, produção, comercial, tráfego, inventário, WhatsApp, perfis e empresas, de todas as empresas de uma vez. Por ser dinâmica (não tem lista de tabela fixa no código), qualquer tabela nova criada no futuro entra automaticamente no backup seguinte, sem precisar tocar nessa função de novo.
+- **Nunca inclui login/senha** — a função só lê o schema `public`; `auth.users`/`auth.identities` (onde ficam e-mail confirmado, hash de senha etc.) ficam de fora de propósito. Um backup vazado exporia dados de clientes (nome, financeiro, tarefas...), nunca credenciais de acesso.
+- **Só quem acessa o Postgres diretamente com privilégio elevado consegue chamar essa função.** Toda função do schema `public` no Supabase vira automaticamente um endpoint REST (`/rest/v1/rpc/backup_snapshot_json`), e por padrão o Postgres libera `EXECUTE` pra `PUBLIC` — sem cuidado, isso deixaria QUALQUER cliente logado (de qualquer empresa) baixar o banco inteiro de todo mundo pela API. Por isso a migração já aplica `revoke execute ... from public/anon/authenticated` logo depois de criar a função — confirmado via `has_function_privilege`, `anon`/`authenticated` não conseguem chamá-la.
+- **Uma Tarefa Agendada** ("Backup diário Lume Strada (banco de dados → Drive)", cron `0 9,15,21,3 * * *` em UTC = 06h/12h/18h/00h em Brasília) roda `select public.backup_snapshot_json();` a cada disparo, pega o JSON devolvido e sobe pro Google Drive (pasta `App Gestão`, ID `16Wt8c9zPiOqZgcE9EBfT3eJtED3Xa3A0`) com `mcp__Google_Drive__create_file`, nomeando o arquivo `backup-lume-strada-AAAA-MM-DD_HHhMM-brasilia.json`. `disableConversionToGoogleType: true` impede o Drive de converter o `.json` num Google Doc (o que quebraria o formato).
+- **Retenção: mantém tudo pra sempre**, sem limpeza automática — decisão explícita (a alternativa considerada, apagar backups com mais de 30 dias, foi descartada a pedido). Com 4 backups/dia isso acumula ~120 arquivos/mês na pasta — se um dia quiser limpar, é manual.
+- **Silenciosa por padrão.** A tarefa não manda nenhuma mensagem quando dá tudo certo (é uma rotina 4x/dia, não faz sentido notificar toda vez) — só produz uma mensagem (e o sistema de notificação do dono pode alertar) se algum passo falhar (erro de SQL, upload, etc.).
+
+### Testado end-to-end antes de agendar
+
+Antes de criar a Tarefa Agendada, rodei o fluxo inteiro manualmente uma vez: chamei `backup_snapshot_json()` no projeto (`ifoggohkikwtnnhmhwoe`), confirmei que o JSON leva todas as ~29 tabelas de negócio (a maioria vazia ainda, já que o sistema tá no começo) e subi o resultado pra pasta do Drive — o arquivo chegou como `.json` de verdade (não virou Google Doc), confirmando que `disableConversionToGoogleType` funciona como esperado.
+
+### Restaurar um backup, se um dia precisar
+
+Cada arquivo é um JSON com a chave `tabelas` contendo, pra cada tabela, um array de linhas (cada linha já no formato de coluna → valor, pronto pra virar um `insert`). Não existe hoje um botão de "restaurar" no painel — é reimportação manual (linha a linha ou via script), decisão deliberada por enquanto: automatizar RESTAURAÇÃO tem risco de sobrescrever dado bom com dado velho por engano, então fica de fora até ter um pedido específico de como deve se comportar (substituir tudo? só preencher o que estiver faltando? empresa por empresa?).
+
+## 11. Financeiro: transação recorrente gera as ocorrências futuras de verdade, e exclusão de série com 3 escopos
+
+O checkbox "Transação recorrente" (semanal/mensal/anual) já existia na tela de lançamento, mas até aqui era só um rótulo — marcar como "mensal" não criava nada além daquela transação isolada. Agora, marcar recorrente já lança de uma vez a transação atual **+** as próximas ocorrências futuras, prontas pra aparecer quando o admin navegar pros meses seguintes (mesmo princípio do parcelamento: `TransacoesManager`/`buscarDadosFinanceiro` filtram por `data_vencimento` dentro do mês em exibição — uma ocorrência com vencimento em outubro só aparece quando o admin abrir outubro).
+
+### Como funciona
+
+- **`fin_transacoes.recorrencia_grupo_id`** (migração `supabase/financeiro-recorrencia.sql`, aplicada como `financeiro_recorrencia` no projeto) — mesmo padrão do `parcela_grupo_id` do parcelamento: todas as ocorrências nascidas juntas compartilham esse id. Uma transação avulsa (não recorrente) tem esse campo `null`.
+- **`criarTransacao`** (`src/app/admin/financeiro/actions.ts`), ao receber `recorrente: true` com um `recorrenciaIntervalo`, gera um `recorrencia_grupo_id` novo e insere de uma vez a ocorrência atual + um horizonte de futuras — **semanal: 12** (~3 meses), **mensal: 12** (1 ano), **anual: 5** —, cada uma com o mesmo valor (diferente do parcelamento, recorrência REPETE o valor, não divide um total) e vencimento calculado com `addDaysISO`/`addMonthsISO`. Só a primeira ocorrência herda o "já paga"; as futuras sempre nascem pendentes.
+- Horizonte é finito de propósito (evita gerar milhares de linhas por engano numa recorrência esquecida rodando "pra sempre"). Não existe hoje um job que estende a série automaticamente conforme o tempo passa — se um dia o horizonte acabar, decisão de produto pra revisitar.
+- **`atualizarTransacao`**: se a transação editada ainda não pertence a uma série e o admin marca "recorrente" agora, uma série nova é criada a partir dali (mesma lógica de geração). Se ela já pertence a uma série, a edição mexe só naquela linha — não recria nem apaga o resto da série, pra não duplicar nem perder lançamentos que o admin já conferiu.
+- **Exclusão com 3 escopos** — `removerTransacaoComEscopo(id, escopo)`, nova Server Action. Ao clicar em Excluir numa transação que tem `recorrencia_grupo_id`, o `TransacoesManager` troca o confirm simples (Sim/Não) por 3 opções, exatamente como pedido: **"Só esta"** (apaga só aquela linha), **"Esta e as futuras"** (apaga essa + tudo da mesma série com vencimento igual ou posterior), **"Esta, as futuras e as anteriores"** (apaga a série inteira). Uma transação avulsa continua com o confirm Sim/Não de sempre.
