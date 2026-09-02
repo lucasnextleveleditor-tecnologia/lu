@@ -500,11 +500,14 @@ export function TransacaoModal({
                 {dict.financeiro.transacaoRecorrenteLabel}
               </label>
               {recorrente && (
-                <Select value={recorrenciaIntervalo} onChange={(e) => setRecorrenciaIntervalo(e.target.value as FinRecorrencia)}>
-                  <option value="semanal">{dict.financeiro.semanalLabel}</option>
-                  <option value="mensal">{dict.financeiro.mensalLabel}</option>
-                  <option value="anual">{dict.financeiro.anualLabel}</option>
-                </Select>
+                <>
+                  <Select value={recorrenciaIntervalo} onChange={(e) => setRecorrenciaIntervalo(e.target.value as FinRecorrencia)}>
+                    <option value="semanal">{dict.financeiro.semanalLabel}</option>
+                    <option value="mensal">{dict.financeiro.mensalLabel}</option>
+                    <option value="anual">{dict.financeiro.anualLabel}</option>
+                  </Select>
+                  <p className="text-xs text-ink-muted">{dict.financeiro.recorrenciaPreviewTexto}</p>
+                </>
               )}
             </div>
           )}

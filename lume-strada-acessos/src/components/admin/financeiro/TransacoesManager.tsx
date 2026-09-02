@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import type { CartaoComLimite, CategoriaRow, ContaComSaldo, StatusTransacao, TransacaoComRelacoes } from "@/lib/types/financeiro";
-import { marcarPago, removerTransacao } from "@/app/admin/financeiro/actions";
+import { marcarPago, removerTransacao, removerTransacaoComEscopo, type EscopoExclusaoRecorrencia } from "@/app/admin/financeiro/actions";
 import { calcularStatusTransacao } from "@/lib/types/financeiro";
 import { STATUS_TRANSACAO_META } from "@/lib/utils/financeiro";
 import { fmtBRL, fmtMoedaEstrangeira } from "@/lib/utils/format";
@@ -64,10 +64,16 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
     });
   }
 
-  function handleExcluir(id: string) {
+  /**
+   * Transação avulsa: exclui direto (sem escopo — não há série pra
+   * considerar). Transação recorrente (`recorrencia_grupo_id` presente): o
+   * admin escolhe o escopo no próprio confirm inline (ver JSX abaixo) —
+   * "só esta" / "esta e as futuras" / "esta, as futuras e as anteriores".
+   */
+  function handleExcluir(t: TransacaoComRelacoes, escopo: EscopoExclusaoRecorrencia) {
     setError(null);
     startTransition(async () => {
-      const result = await removerTransacao(id);
+      const result = t.recorrencia_grupo_id ? await removerTransacaoComEscopo(t.id, escopo) : await removerTransacao(t.id);
       if (!result.ok) setError(result.error);
       setConfirmando(null);
     });
@@ -218,23 +224,59 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
                     </td>
                     <td className="py-3 text-right">
                       {confirmando === t.id ? (
-                        <div className="flex justify-end gap-2">
-                          <span className="text-xs text-ink-secondary">{dict.common.confirmarExclusao}</span>
-                          <button
-                            onClick={() => handleExcluir(t.id)}
-                            disabled={pending}
-                            className="text-xs font-medium text-danger hover:underline"
-                          >
-                            {dict.common.sim}
-                          </button>
-                          <button
-                            onClick={() => setConfirmando(null)}
-                            disabled={pending}
-                            className="text-xs text-ink-muted hover:text-ink-primary"
-                          >
-                            {dict.common.nao}
-                          </button>
-                        </div>
+                        t.recorrencia_grupo_id ? (
+                          <div className="flex flex-col items-end gap-1.5 py-1">
+                            <span className="text-xs text-ink-secondary">{dict.financeiro.excluirRecorrenciaPergunta}</span>
+                            <div className="flex flex-wrap justify-end gap-x-3 gap-y-1">
+                              <button
+                                onClick={() => handleExcluir(t, "somente_esta")}
+                                disabled={pending}
+                                className="text-xs font-medium text-danger hover:underline"
+                              >
+                                {dict.financeiro.excluirSomenteEstaBtn}
+                              </button>
+                              <button
+                                onClick={() => handleExcluir(t, "esta_e_futuras")}
+                                disabled={pending}
+                                className="text-xs font-medium text-danger hover:underline"
+                              >
+                                {dict.financeiro.excluirEstaEFuturasBtn}
+                              </button>
+                              <button
+                                onClick={() => handleExcluir(t, "todas")}
+                                disabled={pending}
+                                className="text-xs font-medium text-danger hover:underline"
+                              >
+                                {dict.financeiro.excluirTodasDaSerieBtn}
+                              </button>
+                              <button
+                                onClick={() => setConfirmando(null)}
+                                disabled={pending}
+                                className="text-xs text-ink-muted hover:text-ink-primary"
+                              >
+                                {dict.common.cancelar}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex justify-end gap-2">
+                            <span className="text-xs text-ink-secondary">{dict.common.confirmarExclusao}</span>
+                            <button
+                              onClick={() => handleExcluir(t, "somente_esta")}
+                              disabled={pending}
+                              className="text-xs font-medium text-danger hover:underline"
+                            >
+                              {dict.common.sim}
+                            </button>
+                            <button
+                              onClick={() => setConfirmando(null)}
+                              disabled={pending}
+                              className="text-xs text-ink-muted hover:text-ink-primary"
+                            >
+                              {dict.common.nao}
+                            </button>
+                          </div>
+                        )
                       ) : (
                         <div className="flex justify-end gap-2">
                           <Button
