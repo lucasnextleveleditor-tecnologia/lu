@@ -1,84 +1,6 @@
 import type { FinanceiroDict } from "../pt/financeiro";
 
 export const financeiro: FinanceiroDict = {
-  caixinhas: {
-    tituloPagina: "Vaults & Investments",
-    subtituloPagina: "Agency reserves, goals and investments — contribute, withdraw and track projected yield.",
-    voltarParaCaixinhas: "Back to Vaults",
-
-    statSaldoTotal: "Balance in Vaults",
-    hintCaixinhasQtd: "{n} vault(s)",
-    statComMeta: "With Goal Set",
-    hintComMetaDescricao: "Vaults with a target amount set",
-
-    novaCaixinhaBtn: "New Vault",
-    listaVaziaTitulo: "No vaults created yet.",
-    listaVaziaDescricao: "Create a vault for an emergency reserve, year-end bonus, taxes or any agency goal — with yield projection and its own history.",
-
-    saldoAtualLabel: "Current Balance",
-    metaLabel: "Goal:",
-    aoMes: "per month",
-    aoAno: "per year",
-    riscoBaixo: "Low risk",
-    riscoMedio: "Medium risk",
-    riscoAlto: "High risk",
-    liquidezImediata: "Immediate liquidity",
-    liquidezCurtoPrazo: "Short term",
-    liquidezLongoPrazo: "Long term",
-
-    projecaoTitulo: "Yield Projection",
-    projecaoSubtitulo: "Compound interest for the next 12 months, based on the registered rate — does not account for future contributions.",
-    projecaoHoje: "Today",
-    projecaoSemTaxa: "Set a yield rate to see the projection for the next 12 months.",
-    projecaoTooltipLabel: "Projected",
-
-    historicoTitulo: "History",
-    historicoVazio: "No movements recorded yet.",
-    aporteLabel: "Contribution",
-    resgateLabel: "Withdrawal",
-    rendimentoLabel: "Yield",
-
-    aporteBtn: "Contribute",
-    resgateBtn: "Withdraw",
-    lancarRendimentoBtn: "Record Yield",
-    confirmarArquivarPergunta: "Archive this vault?",
-    arquivarBtn: "Archive",
-
-    editarCaixinhaTitulo: "Edit Vault",
-    novaCaixinhaTitulo: "New Vault",
-    emojiLabel: "Icon",
-    placeholderNome: "E.g.: Emergency Reserve",
-    objetivoLabel: "Goal (optional)",
-    placeholderObjetivo: "E.g.: Cover 6 months of the agency's fixed expenses",
-    definirMetaLabel: "Set a target amount",
-    valorMetaLabel: "Target Amount ($)",
-    dataAlvoLabel: "Target Date",
-    taxaRendimentoLabel: "Yield Rate",
-    periodoLabel: "Period",
-    nivelRiscoLabel: "Risk Level",
-    liquidezLabel: "Liquidity",
-    criarCaixinhaBtn: "Create Vault",
-
-    selecioneContaOrigemErro: "Select the source account for the contribution.",
-    selecioneContaDestinoErro: "Select the destination account for the withdrawal.",
-    saldoInsuficienteErro: "Insufficient vault balance for this withdrawal.",
-    aporteResgateTitulo: "Contribution / Withdrawal — {nome}",
-    saldoDisponivelPrefixo: "Available balance:",
-    contaOrigemAporteLabel: "Debit from which account? *",
-    contaDestinoResgateLabel: "Credit to which account? *",
-    nenhumaContaCadastrada: "Register an account in this context before contributing or withdrawing.",
-    descricaoOpcionalLabel: "Description (optional)",
-    placeholderDescricaoAporte: "E.g.: Monthly contribution",
-    placeholderDescricaoResgate: "E.g.: Withdrawal for year-end bonus",
-    confirmarAporteBtn: "Confirm Contribution",
-    confirmarResgateBtn: "Confirm Withdrawal",
-
-    lancarRendimentoTitulo: "Record Yield — {nome}",
-    lancarRendimentoHint: "Credits the amount directly to the vault balance, without debiting any account — use once the financial institution has actually credited the yield.",
-    placeholderDescricaoRendimento: "E.g.: This month's yield",
-    confirmarRendimentoBtn: "Confirm Yield",
-  },
-
   tituloPagina: "Finance",
   subtituloPagina: "Accounts, cards and transactions for the agency.",
 
@@ -221,6 +143,8 @@ export const financeiro: FinanceiroDict = {
   semanalLabel: "Weekly",
   mensalLabel: "Monthly",
   anualLabel: "Yearly",
+  recorrenciaPreviewTexto:
+    "This already records this one plus the next occurrences automatically (one per period) — pending, ready for you to mark as paid as each one comes due. You can edit or delete them later if you change your mind.",
   selecioneContaErro: "Select the account.",
   selecioneCartaoErro: "Select the card.",
   selecioneOrigemDestinoErro: "Select the source and destination accounts.",
@@ -238,4 +162,9 @@ export const financeiro: FinanceiroDict = {
   baixaInteligenteTitle: "Smart Settlement — marks as paid/pending",
   reabrirBtn: "Reopen",
   darBaixaBtn: "Mark as Paid",
+
+  excluirRecorrenciaPergunta: "This transaction is recurring. What do you want to delete?",
+  excluirSomenteEstaBtn: "Only this one",
+  excluirEstaEFuturasBtn: "This and future ones",
+  excluirTodasDaSerieBtn: "This, future and past ones",
 };
