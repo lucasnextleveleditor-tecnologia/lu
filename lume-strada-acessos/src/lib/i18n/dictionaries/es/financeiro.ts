@@ -1,84 +1,6 @@
 import type { FinanceiroDict } from "../pt/financeiro";
 
 export const financeiro: FinanceiroDict = {
-  caixinhas: {
-    tituloPagina: "Alcancías & Inversiones",
-    subtituloPagina: "Reservas, metas e inversiones de la agencia — aporta, rescata y sigue el rendimiento proyectado.",
-    voltarParaCaixinhas: "Volver a Alcancías",
-
-    statSaldoTotal: "Saldo en Alcancías",
-    hintCaixinhasQtd: "{n} alcancía(s)",
-    statComMeta: "Con Meta Definida",
-    hintComMetaDescricao: "Alcancías con valor objetivo registrado",
-
-    novaCaixinhaBtn: "Nueva Alcancía",
-    listaVaziaTitulo: "Aún no hay alcancías creadas.",
-    listaVaziaDescricao: "Crea una alcancía para reserva de emergencia, aguinaldo, impuestos o cualquier meta de la agencia — con proyección de rendimiento e historial propio.",
-
-    saldoAtualLabel: "Saldo Actual",
-    metaLabel: "Meta:",
-    aoMes: "al mes",
-    aoAno: "al año",
-    riscoBaixo: "Riesgo bajo",
-    riscoMedio: "Riesgo medio",
-    riscoAlto: "Riesgo alto",
-    liquidezImediata: "Liquidez inmediata",
-    liquidezCurtoPrazo: "Corto plazo",
-    liquidezLongoPrazo: "Largo plazo",
-
-    projecaoTitulo: "Proyección de Rendimiento",
-    projecaoSubtitulo: "Interés compuesto de los próximos 12 meses, según la tasa registrada — no considera nuevos aportes.",
-    projecaoHoje: "Hoy",
-    projecaoSemTaxa: "Registra una tasa de rendimiento para ver la proyección de los próximos 12 meses.",
-    projecaoTooltipLabel: "Proyectado",
-
-    historicoTitulo: "Historial",
-    historicoVazio: "Aún no hay movimientos registrados.",
-    aporteLabel: "Aporte",
-    resgateLabel: "Rescate",
-    rendimentoLabel: "Rendimiento",
-
-    aporteBtn: "Aportar",
-    resgateBtn: "Rescatar",
-    lancarRendimentoBtn: "Registrar Rendimiento",
-    confirmarArquivarPergunta: "¿Archivar esta alcancía?",
-    arquivarBtn: "Archivar",
-
-    editarCaixinhaTitulo: "Editar Alcancía",
-    novaCaixinhaTitulo: "Nueva Alcancía",
-    emojiLabel: "Ícono",
-    placeholderNome: "Ej: Reserva de Emergencia",
-    objetivoLabel: "Objetivo (opcional)",
-    placeholderObjetivo: "Ej: Cubrir 6 meses de gastos fijos de la agencia",
-    definirMetaLabel: "Definir un valor objetivo",
-    valorMetaLabel: "Valor de la Meta ($)",
-    dataAlvoLabel: "Fecha Objetivo",
-    taxaRendimentoLabel: "Tasa de Rendimiento",
-    periodoLabel: "Período",
-    nivelRiscoLabel: "Nivel de Riesgo",
-    liquidezLabel: "Liquidez",
-    criarCaixinhaBtn: "Crear Alcancía",
-
-    selecioneContaOrigemErro: "Selecciona la cuenta de origen del aporte.",
-    selecioneContaDestinoErro: "Selecciona la cuenta de destino del rescate.",
-    saldoInsuficienteErro: "Saldo insuficiente en la alcancía para este rescate.",
-    aporteResgateTitulo: "Aporte / Rescate — {nome}",
-    saldoDisponivelPrefixo: "Saldo disponible:",
-    contaOrigemAporteLabel: "¿Debitar de qué cuenta? *",
-    contaDestinoResgateLabel: "¿Acreditar en qué cuenta? *",
-    nenhumaContaCadastrada: "Registra una cuenta en ese contexto antes de aportar o rescatar.",
-    descricaoOpcionalLabel: "Descripción (opcional)",
-    placeholderDescricaoAporte: "Ej: Aporte mensual",
-    placeholderDescricaoResgate: "Ej: Rescate para el aguinaldo",
-    confirmarAporteBtn: "Confirmar Aporte",
-    confirmarResgateBtn: "Confirmar Rescate",
-
-    lancarRendimentoTitulo: "Registrar Rendimiento — {nome}",
-    lancarRendimentoHint: "Acredita el valor directamente en el saldo de la alcancía, sin debitar ninguna cuenta — úsalo cuando la institución financiera ya acreditó el rendimiento real.",
-    placeholderDescricaoRendimento: "Ej: Rendimiento del mes",
-    confirmarRendimentoBtn: "Confirmar Rendimiento",
-  },
-
   tituloPagina: "Finanzas",
   subtituloPagina: "Cuentas, tarjetas y movimientos de la agencia.",
 
@@ -221,6 +143,8 @@ export const financeiro: FinanceiroDict = {
   semanalLabel: "Semanal",
   mensalLabel: "Mensual",
   anualLabel: "Anual",
+  recorrenciaPreviewTexto:
+    "Esto ya registra esta transacción y las próximas ocurrencias automáticamente (una por período) — pendientes, listas para que las marques como pagadas a medida que venzan. Puedes editarlas o eliminarlas después, si cambias de idea.",
   selecioneContaErro: "Selecciona la cuenta.",
   selecioneCartaoErro: "Selecciona la tarjeta.",
   selecioneOrigemDestinoErro: "Selecciona la cuenta de origen y la de destino.",
@@ -238,4 +162,9 @@ export const financeiro: FinanceiroDict = {
   baixaInteligenteTitle: "Liquidación Inteligente — marca como pagada/pendiente",
   reabrirBtn: "Reabrir",
   darBaixaBtn: "Marcar como Pagada",
+
+  excluirRecorrenciaPergunta: "Esta transacción es recurrente. ¿Qué quieres eliminar?",
+  excluirSomenteEstaBtn: "Solo esta",
+  excluirEstaEFuturasBtn: "Esta y las futuras",
+  excluirTodasDaSerieBtn: "Esta, las futuras y las anteriores",
 };

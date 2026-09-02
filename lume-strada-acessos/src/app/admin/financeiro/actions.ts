@@ -4,12 +4,33 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
 import type { FinContexto, FinRecorrencia, FinTipoTransacao, MoedaEstrangeira } from "@/lib/types/financeiro";
-import { addMonthsISO } from "@/lib/utils/format";
+import { addDaysISO, addMonthsISO } from "@/lib/utils/format";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
+export type EscopoExclusaoRecorrencia = "somente_esta" | "esta_e_futuras" | "todas";
 
 const PATH = "/admin/financeiro";
+
+// ----------------------------------------------------------------------------
+// Recorrência — quantas ocorrências FUTURAS já nascem lançadas de uma vez,
+// pra cada intervalo (a atual + essa quantidade). Não é "pra sempre" de
+// propósito — um horizonte finito evita gerar milhares de linhas por engano
+// numa recorrência esquecida, e o admin sempre pode editar/excluir e deixar
+// nascer mais conforme o tempo passa (ainda não existe um job que "estende"
+// a série automaticamente — ver nota em `MIGRACAO-MULTI-TENANT.md`).
+// ----------------------------------------------------------------------------
+const HORIZONTE_RECORRENCIA: Record<FinRecorrencia, number> = {
+  semanal: 12, // ~3 meses
+  mensal: 12, // 1 ano
+  anual: 5,
+};
+
+function proximaDataRecorrencia(dataBase: string, intervalo: FinRecorrencia, ocorrencia: number): string {
+  if (intervalo === "semanal") return addDaysISO(dataBase, 7 * ocorrencia);
+  if (intervalo === "anual") return addMonthsISO(dataBase, 12 * ocorrencia);
+  return addMonthsISO(dataBase, ocorrencia);
+}
 
 // ----------------------------------------------------------------------------
 // Contas
@@ -215,6 +236,44 @@ export async function criarTransacao(input: CriarTransacaoInput): Promise<Action
       return { ok: false, error: "Selecione a conta ou o cartão dessa transação." };
     }
 
+    const recorrenciaAtiva = input.recorrente && input.tipo !== "transferencia" ? input.recorrenciaIntervalo : null;
+
+    // Recorrência — gera de uma vez ESTA transação + as ocorrências futuras
+    // (mesmo espírito do parcelamento, ver `criarTransacaoParcelada` abaixo),
+    // todas com o mesmo `recorrencia_grupo_id`. Diferente do parcelamento, o
+    // VALOR se repete igual em cada ocorrência (não divide um total) — é uma
+    // assinatura de R$50, não uma compra de R$600 dividida em 12x. Só a
+    // primeira ocorrência (a que está sendo lançada agora) herda `jaPaga`;
+    // as futuras nascem sempre pendentes, porque ainda não venceram.
+    if (recorrenciaAtiva) {
+      const grupoId = randomUUID();
+      const n = HORIZONTE_RECORRENCIA[recorrenciaAtiva];
+      const linhas = Array.from({ length: n }, (_, i) => ({
+        tipo: input.tipo,
+        descricao: input.descricao.trim(),
+        valor: input.valor,
+        categoria_id: input.categoriaId,
+        contexto: input.contexto,
+        conta_id: input.cartaoId ? null : input.contaId,
+        conta_destino_id: null,
+        cartao_id: input.cartaoId,
+        recorrente: true,
+        recorrencia_intervalo: recorrenciaAtiva,
+        recorrencia_grupo_id: grupoId,
+        data_vencimento: proximaDataRecorrencia(input.dataVencimento, recorrenciaAtiva, i),
+        pago: i === 0 ? input.jaPaga : false,
+        data_pagamento: i === 0 && input.jaPaga ? new Date().toISOString() : null,
+        moeda_original: input.moedaOriginal ?? null,
+        valor_original: input.valorOriginal ?? null,
+        taxa_cambio: input.taxaCambio ?? null,
+      }));
+
+      const { error } = await supabase.from("fin_transacoes").insert(linhas);
+      if (error) return { ok: false, error: error.message };
+      revalidatePath(PATH);
+      return { ok: true };
+    }
+
     const { error } = await supabase.from("fin_transacoes").insert({
       tipo: input.tipo,
       descricao: input.descricao.trim(),
@@ -246,6 +305,13 @@ export async function criarTransacao(input: CriarTransacaoInput): Promise<Action
  * antes dessa função a única forma de corrigir um erro de digitação (valor,
  * descrição, data, categoria...) era excluir o lançamento inteiro e recriar
  * do zero, perdendo o histórico de quando foi criado.
+ *
+ * Recorrência na edição: se a transação editada AINDA NÃO pertence a uma
+ * série (`recorrencia_grupo_id` nulo) e o admin marca "recorrente" agora,
+ * criamos uma série nova a partir de hoje (esta linha vira a primeira
+ * ocorrência + geramos as futuras). Se ela JÁ pertence a uma série, a edição
+ * mexe só nessa linha — não recria nem apaga as outras ocorrências (evita
+ * duplicar ou perder lançamentos já conferidos pelo admin).
  */
 export async function atualizarTransacao(id: string, input: CriarTransacaoInput): Promise<ActionResult> {
   try {
@@ -261,6 +327,20 @@ export async function atualizarTransacao(id: string, input: CriarTransacaoInput)
       return { ok: false, error: "Selecione a conta ou o cartão dessa transação." };
     }
 
+    // Descobre se essa linha já pertence a uma série de recorrência — decide
+    // se vamos só atualizar essa linha ou também criar uma série nova.
+    const { data: atual, error: erroAtual } = await supabase
+      .from("fin_transacoes")
+      .select("recorrencia_grupo_id")
+      .eq("id", id)
+      .single();
+    if (erroAtual) return { ok: false, error: erroAtual.message };
+
+    const vaiCriarSerieNova = Boolean(
+      !atual?.recorrencia_grupo_id && input.recorrente && input.tipo !== "transferencia" && input.recorrenciaIntervalo
+    );
+    const novoGrupoId = vaiCriarSerieNova ? randomUUID() : null;
+
     const { error } = await supabase
       .from("fin_transacoes")
       .update({
@@ -274,6 +354,7 @@ export async function atualizarTransacao(id: string, input: CriarTransacaoInput)
         cartao_id: input.tipo === "transferencia" ? null : input.cartaoId,
         recorrente: input.recorrente,
         recorrencia_intervalo: input.recorrente ? input.recorrenciaIntervalo : null,
+        recorrencia_grupo_id: novoGrupoId ?? atual?.recorrencia_grupo_id ?? null,
         data_vencimento: input.dataVencimento,
         pago: input.jaPaga,
         data_pagamento: input.jaPaga ? new Date().toISOString() : null,
@@ -283,6 +364,41 @@ export async function atualizarTransacao(id: string, input: CriarTransacaoInput)
       })
       .eq("id", id);
     if (error) return { ok: false, error: error.message };
+
+    // Série nova: já gera as ocorrências futuras a partir da data desta
+    // transação, do mesmo jeito que `criarTransacao` faz ao lançar direto
+    // como recorrente.
+    if (vaiCriarSerieNova && novoGrupoId) {
+      const intervalo = input.recorrenciaIntervalo!;
+      const n = HORIZONTE_RECORRENCIA[intervalo];
+      const linhasFuturas = Array.from({ length: n - 1 }, (_, idx) => {
+        const i = idx + 1;
+        return {
+          tipo: input.tipo,
+          descricao: input.descricao.trim(),
+          valor: input.valor,
+          categoria_id: input.categoriaId,
+          contexto: input.contexto,
+          conta_id: input.cartaoId ? null : input.contaId,
+          conta_destino_id: null,
+          cartao_id: input.cartaoId,
+          recorrente: true,
+          recorrencia_intervalo: intervalo,
+          recorrencia_grupo_id: novoGrupoId,
+          data_vencimento: proximaDataRecorrencia(input.dataVencimento, intervalo, i),
+          pago: false,
+          data_pagamento: null,
+          moeda_original: input.moedaOriginal ?? null,
+          valor_original: input.valorOriginal ?? null,
+          taxa_cambio: input.taxaCambio ?? null,
+        };
+      });
+      if (linhasFuturas.length > 0) {
+        const { error: erroFuturas } = await supabase.from("fin_transacoes").insert(linhasFuturas);
+        if (erroFuturas) return { ok: false, error: erroFuturas.message };
+      }
+    }
+
     revalidatePath(PATH);
     return { ok: true };
   } catch (err) {
@@ -314,6 +430,58 @@ export async function removerTransacao(id: string): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("financeiro");
     const { error } = await supabase.from("fin_transacoes").delete().eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Exclui uma transação recorrente respeitando o escopo escolhido pelo admin
+ * (ver `TransacoesManager` — o prompt de 3 opções só aparece quando a
+ * transação tem `recorrencia_grupo_id`; pra uma transação avulsa, o
+ * `TransacoesManager` já chama `removerTransacao` direto):
+ *
+ * - "somente_esta": apaga só esta linha, deixa o resto da série intacto.
+ * - "esta_e_futuras": apaga esta + todas as ocorrências da MESMA série com
+ *   vencimento igual ou posterior a esta (as passadas ficam).
+ * - "todas": apaga a série inteira (passadas, esta e futuras).
+ */
+export async function removerTransacaoComEscopo(id: string, escopo: EscopoExclusaoRecorrencia): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+
+    const { data: transacao, error: erroBusca } = await supabase
+      .from("fin_transacoes")
+      .select("recorrencia_grupo_id, data_vencimento")
+      .eq("id", id)
+      .single();
+    if (erroBusca) return { ok: false, error: erroBusca.message };
+
+    // Sem grupo de recorrência — não há série pra considerar, comporta-se
+    // como o `removerTransacao` simples independente do escopo pedido.
+    if (!transacao?.recorrencia_grupo_id || escopo === "somente_esta") {
+      const { error } = await supabase.from("fin_transacoes").delete().eq("id", id);
+      if (error) return { ok: false, error: error.message };
+      revalidatePath(PATH);
+      return { ok: true };
+    }
+
+    if (escopo === "todas") {
+      const { error } = await supabase.from("fin_transacoes").delete().eq("recorrencia_grupo_id", transacao.recorrencia_grupo_id);
+      if (error) return { ok: false, error: error.message };
+      revalidatePath(PATH);
+      return { ok: true };
+    }
+
+    // "esta_e_futuras"
+    const { error } = await supabase
+      .from("fin_transacoes")
+      .delete()
+      .eq("recorrencia_grupo_id", transacao.recorrencia_grupo_id)
+      .gte("data_vencimento", transacao.data_vencimento);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
     return { ok: true };

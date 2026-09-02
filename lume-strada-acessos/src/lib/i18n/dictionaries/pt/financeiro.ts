@@ -9,88 +9,7 @@
  * fora de escopo dessa leva) e a saída das funções de formatação
  * (`fmtBRL`/`fmtData`/`fmtMoedaEstrangeira`), que ficam sempre em pt-BR.
  */
-/** Sub-módulo Caixinhas & Investimentos (`/admin/financeiro/caixinhas`) — ver `supabase/financeiro-caixinhas.sql`. */
-export interface CaixinhasDict {
-  tituloPagina: string;
-  subtituloPagina: string;
-  voltarParaCaixinhas: string;
-
-  statSaldoTotal: string;
-  hintCaixinhasQtd: string;
-  statComMeta: string;
-  hintComMetaDescricao: string;
-
-  novaCaixinhaBtn: string;
-  listaVaziaTitulo: string;
-  listaVaziaDescricao: string;
-
-  saldoAtualLabel: string;
-  metaLabel: string;
-  aoMes: string;
-  aoAno: string;
-  riscoBaixo: string;
-  riscoMedio: string;
-  riscoAlto: string;
-  liquidezImediata: string;
-  liquidezCurtoPrazo: string;
-  liquidezLongoPrazo: string;
-
-  projecaoTitulo: string;
-  projecaoSubtitulo: string;
-  projecaoHoje: string;
-  projecaoSemTaxa: string;
-  projecaoTooltipLabel: string;
-
-  historicoTitulo: string;
-  historicoVazio: string;
-  aporteLabel: string;
-  resgateLabel: string;
-  rendimentoLabel: string;
-
-  aporteBtn: string;
-  resgateBtn: string;
-  lancarRendimentoBtn: string;
-  confirmarArquivarPergunta: string;
-  arquivarBtn: string;
-
-  editarCaixinhaTitulo: string;
-  novaCaixinhaTitulo: string;
-  emojiLabel: string;
-  placeholderNome: string;
-  objetivoLabel: string;
-  placeholderObjetivo: string;
-  definirMetaLabel: string;
-  valorMetaLabel: string;
-  dataAlvoLabel: string;
-  taxaRendimentoLabel: string;
-  periodoLabel: string;
-  nivelRiscoLabel: string;
-  liquidezLabel: string;
-  criarCaixinhaBtn: string;
-
-  selecioneContaOrigemErro: string;
-  selecioneContaDestinoErro: string;
-  saldoInsuficienteErro: string;
-  aporteResgateTitulo: string;
-  saldoDisponivelPrefixo: string;
-  contaOrigemAporteLabel: string;
-  contaDestinoResgateLabel: string;
-  nenhumaContaCadastrada: string;
-  descricaoOpcionalLabel: string;
-  placeholderDescricaoAporte: string;
-  placeholderDescricaoResgate: string;
-  confirmarAporteBtn: string;
-  confirmarResgateBtn: string;
-
-  lancarRendimentoTitulo: string;
-  lancarRendimentoHint: string;
-  placeholderDescricaoRendimento: string;
-  confirmarRendimentoBtn: string;
-}
-
 export interface FinanceiroDict {
-  caixinhas: CaixinhasDict;
-
   // Geral / reaproveitado em vários componentes do módulo
   tituloPagina: string;
   subtituloPagina: string;
@@ -244,6 +163,7 @@ export interface FinanceiroDict {
   semanalLabel: string;
   mensalLabel: string;
   anualLabel: string;
+  recorrenciaPreviewTexto: string;
   selecioneContaErro: string;
   selecioneCartaoErro: string;
   selecioneOrigemDestinoErro: string;
@@ -262,87 +182,15 @@ export interface FinanceiroDict {
   baixaInteligenteTitle: string;
   reabrirBtn: string;
   darBaixaBtn: string;
+
+  // Exclusão de transação recorrente (TransacoesManager)
+  excluirRecorrenciaPergunta: string;
+  excluirSomenteEstaBtn: string;
+  excluirEstaEFuturasBtn: string;
+  excluirTodasDaSerieBtn: string;
 }
 
 export const financeiro: FinanceiroDict = {
-  caixinhas: {
-    tituloPagina: "Caixinhas & Investimentos",
-    subtituloPagina: "Reservas, metas e aplicações da agência — aporte, resgate e acompanhe o rendimento projetado.",
-    voltarParaCaixinhas: "Voltar pras Caixinhas",
-
-    statSaldoTotal: "Saldo em Caixinhas",
-    hintCaixinhasQtd: "{n} caixinha(s)",
-    statComMeta: "Com Meta Definida",
-    hintComMetaDescricao: "Caixinhas com valor-alvo cadastrado",
-
-    novaCaixinhaBtn: "Nova Caixinha",
-    listaVaziaTitulo: "Nenhuma caixinha cadastrada ainda.",
-    listaVaziaDescricao: "Crie uma caixinha pra reserva de emergência, décimo terceiro, impostos ou qualquer meta da agência — com projeção de rendimento e histórico próprio.",
-
-    saldoAtualLabel: "Saldo Atual",
-    metaLabel: "Meta:",
-    aoMes: "ao mês",
-    aoAno: "ao ano",
-    riscoBaixo: "Risco baixo",
-    riscoMedio: "Risco médio",
-    riscoAlto: "Risco alto",
-    liquidezImediata: "Liquidez imediata",
-    liquidezCurtoPrazo: "Curto prazo",
-    liquidezLongoPrazo: "Longo prazo",
-
-    projecaoTitulo: "Projeção de Rendimento",
-    projecaoSubtitulo: "Juros compostos dos próximos 12 meses, com base na taxa cadastrada — não considera novos aportes.",
-    projecaoHoje: "Hoje",
-    projecaoSemTaxa: "Cadastre uma taxa de rendimento pra ver a projeção dos próximos 12 meses.",
-    projecaoTooltipLabel: "Projetado",
-
-    historicoTitulo: "Histórico",
-    historicoVazio: "Nenhuma movimentação lançada ainda.",
-    aporteLabel: "Aporte",
-    resgateLabel: "Resgate",
-    rendimentoLabel: "Rendimento",
-
-    aporteBtn: "Aportar",
-    resgateBtn: "Resgatar",
-    lancarRendimentoBtn: "Lançar Rendimento",
-    confirmarArquivarPergunta: "Arquivar essa caixinha?",
-    arquivarBtn: "Arquivar",
-
-    editarCaixinhaTitulo: "Editar Caixinha",
-    novaCaixinhaTitulo: "Nova Caixinha",
-    emojiLabel: "Ícone",
-    placeholderNome: "Ex: Reserva de Emergência",
-    objetivoLabel: "Objetivo (opcional)",
-    placeholderObjetivo: "Ex: Cobrir 6 meses de despesas fixas da agência",
-    definirMetaLabel: "Definir uma meta de valor",
-    valorMetaLabel: "Valor da Meta (R$)",
-    dataAlvoLabel: "Data Alvo",
-    taxaRendimentoLabel: "Taxa de Rendimento",
-    periodoLabel: "Período",
-    nivelRiscoLabel: "Nível de Risco",
-    liquidezLabel: "Liquidez",
-    criarCaixinhaBtn: "Criar Caixinha",
-
-    selecioneContaOrigemErro: "Selecione a conta de origem do aporte.",
-    selecioneContaDestinoErro: "Selecione a conta de destino do resgate.",
-    saldoInsuficienteErro: "Saldo insuficiente na caixinha pra esse resgate.",
-    aporteResgateTitulo: "Aporte / Resgate — {nome}",
-    saldoDisponivelPrefixo: "Saldo disponível:",
-    contaOrigemAporteLabel: "Debitar de qual conta? *",
-    contaDestinoResgateLabel: "Creditar em qual conta? *",
-    nenhumaContaCadastrada: "Cadastre uma conta nesse contexto antes de aportar ou resgatar.",
-    descricaoOpcionalLabel: "Descrição (opcional)",
-    placeholderDescricaoAporte: "Ex: Aporte mensal",
-    placeholderDescricaoResgate: "Ex: Resgate pro décimo terceiro",
-    confirmarAporteBtn: "Confirmar Aporte",
-    confirmarResgateBtn: "Confirmar Resgate",
-
-    lancarRendimentoTitulo: "Lançar Rendimento — {nome}",
-    lancarRendimentoHint: "Credita o valor direto no saldo da caixinha, sem debitar nenhuma conta — use quando a instituição financeira já creditou o rendimento de verdade.",
-    placeholderDescricaoRendimento: "Ex: Rendimento do mês",
-    confirmarRendimentoBtn: "Confirmar Rendimento",
-  },
-
   tituloPagina: "Financeiro",
   subtituloPagina: "Contas, cartões e lançamentos da agência.",
 
@@ -485,6 +333,8 @@ export const financeiro: FinanceiroDict = {
   semanalLabel: "Semanal",
   mensalLabel: "Mensal",
   anualLabel: "Anual",
+  recorrenciaPreviewTexto:
+    "Isso já lança essa e mais as próximas ocorrências automaticamente (uma por período) — pendentes, prontas pra você dar baixa conforme forem vencendo. Dá pra editar ou excluir depois, se mudar de ideia.",
   selecioneContaErro: "Selecione a conta.",
   selecioneCartaoErro: "Selecione o cartão.",
   selecioneOrigemDestinoErro: "Selecione a conta de origem e a de destino.",
@@ -502,4 +352,9 @@ export const financeiro: FinanceiroDict = {
   baixaInteligenteTitle: "Baixa Inteligente — marca como paga/pendente",
   reabrirBtn: "Reabrir",
   darBaixaBtn: "Dar Baixa",
+
+  excluirRecorrenciaPergunta: "Essa transação é recorrente. O que você quer excluir?",
+  excluirSomenteEstaBtn: "Só esta",
+  excluirEstaEFuturasBtn: "Esta e as futuras",
+  excluirTodasDaSerieBtn: "Esta, as futuras e as anteriores",
 };

@@ -70,6 +70,8 @@ export interface TransacaoRow {
   parcela_grupo_id: string | null;
   parcela_numero: number | null;
   parcela_total: number | null;
+  /** Recorrência — linhas que nascem juntas (esta + ocorrências futuras) compartilham o mesmo id; `null` numa transação avulsa (ver `supabase/financeiro-recorrencia.sql`). */
+  recorrencia_grupo_id: string | null;
   /** Multi-moeda — `valor` acima é sempre BRL; estes três campos são só o registro informativo de origem (ver comentário no SQL). */
   moeda_original: MoedaEstrangeira | null;
   valor_original: number | null;
@@ -96,90 +98,4 @@ export function calcularStatusTransacao(t: Pick<TransacaoRow, "pago" | "data_ven
   const hoje = new Date().toISOString().slice(0, 10);
   if (t.data_vencimento < hoje) return "vencida";
   return "pendente";
-}
-
-// ----------------------------------------------------------------------------
-// Caixinhas & Investimentos (Vaults) — sub-módulo dentro do Financeiro.
-// Ver `supabase/financeiro-caixinhas.sql` pro schema completo/comentado.
-// ----------------------------------------------------------------------------
-export type CaixinhaTaxaPeriodo = "mensal" | "anual";
-export type CaixinhaRisco = "baixo" | "medio" | "alto";
-export type CaixinhaLiquidez = "imediata" | "curto_prazo" | "longo_prazo";
-export type CaixinhaTipoMovimentacao = "aporte" | "resgate" | "rendimento";
-
-export interface CaixinhaRow {
-  id: string;
-  nome: string;
-  objetivo: string | null;
-  valor_meta: number | null;
-  data_alvo: string | null; // ISO date
-  taxa_rendimento: number; // percentual, ex: 0.85 = 0,85%
-  taxa_rendimento_periodo: CaixinhaTaxaPeriodo;
-  nivel_risco: CaixinhaRisco;
-  liquidez: CaixinhaLiquidez;
-  contexto: FinContexto;
-  emoji: string | null;
-  cor: string | null;
-  arquivada: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CaixinhaSaldoRow {
-  caixinha_id: string;
-  saldo_atual: number;
-  qtd_movimentacoes: number;
-  ultima_movimentacao_em: string | null;
-}
-
-/** Caixinha enriquecida com o saldo calculado (view `fin_caixinhas_saldo`). */
-export type CaixinhaComSaldo = CaixinhaRow & { saldo_atual: number; qtd_movimentacoes: number; ultima_movimentacao_em: string | null };
-
-export interface CaixinhaTransacaoRow {
-  id: string;
-  caixinha_id: string;
-  tipo: CaixinhaTipoMovimentacao;
-  valor: number;
-  descricao: string | null;
-  transacao_fin_id: string | null;
-  data: string; // ISO timestamptz
-  created_at: string;
-}
-
-/**
- * Taxa mensal equivalente, sempre convertida a partir de `taxa_rendimento`/
- * `taxa_rendimento_periodo` — usada tanto pela projeção de 12 meses quanto
- * por qualquer outro cálculo de juros compostos da caixinha. Taxa anual ->
- * mensal usa a conversão geométrica correta (não divide por 12 — isso
- * subestimaria o efeito composto).
- */
-export function taxaMensalEquivalente(taxaRendimento: number, periodo: CaixinhaTaxaPeriodo): number {
-  const taxa = taxaRendimento / 100;
-  if (periodo === "mensal") return taxa;
-  return Math.pow(1 + taxa, 1 / 12) - 1;
-}
-
-export interface PontoProjecao {
-  mes: number; // 0 = hoje, 1..12 = meses à frente
-  data: string; // ISO date do início do mês projetado
-  valor: number;
-}
-
-/**
- * Projeção de juros compostos dos próximos `meses` a partir do saldo atual
- * — NÃO assume nenhum aporte futuro, só o efeito da taxa de rendimento
- * cadastrada sobre o saldo de hoje (mesmo espírito de "se eu não mexer mais
- * nessa caixinha, quanto ela vale daqui a X meses"). Aportes/resgates reais
- * lançados depois só entram no saldo ATUAL na próxima vez que a página
- * recarregar — a curva projetada é sempre recalculada a partir dele.
- */
-export function projetarJurosCompostos(saldoAtual: number, taxaRendimento: number, periodo: CaixinhaTaxaPeriodo, meses = 12): PontoProjecao[] {
-  const taxaMensal = taxaMensalEquivalente(taxaRendimento, periodo);
-  const hoje = new Date();
-  const pontos: PontoProjecao[] = [];
-  for (let i = 0; i <= meses; i++) {
-    const data = new Date(Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth() + i, 1));
-    pontos.push({ mes: i, data: data.toISOString().slice(0, 10), valor: saldoAtual * Math.pow(1 + taxaMensal, i) });
-  }
-  return pontos;
 }
