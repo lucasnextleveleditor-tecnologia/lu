@@ -4,6 +4,7 @@ import type { DashboardCardChave, PermissoesFuncionario } from "@/lib/types/data
 export const MODULOS_PERMISSAO: { chave: keyof PermissoesFuncionario; label: string; hint: string }[] = [
   { chave: "clientes", label: "Clientes", hint: "Ver e editar o cadastro de clientes" },
   { chave: "comercial", label: "CRM & Vendas", hint: "Funil comercial e leads" },
+  { chave: "orcamentos", label: "Orçamentos", hint: "Catálogo de serviços e propostas pra cliente" },
   { chave: "whatsapp", label: "WhatsApp", hint: "Inbox e conexão do número" },
   { chave: "financeiro", label: "Financeiro", hint: "Contas, cartões e transações" },
   { chave: "producao", label: "Produção & Tarefas", hint: "Board de tarefas e entregas" },
