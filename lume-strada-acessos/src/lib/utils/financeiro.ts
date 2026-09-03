@@ -63,6 +63,18 @@ export function addMeses(referencia: Date, delta: number): Date {
   return new Date(Date.UTC(referencia.getUTCFullYear(), referencia.getUTCMonth() + delta, 1));
 }
 
+/** "jan/26" — rótulo curto de mês pro eixo do gráfico de histórico (`GraficoReceitaDespesa`). Sempre pt-BR, mesmo espírito de `fmtMesAno`/`fmtBRL` (ver comentário no dicionário de i18n do Financeiro). */
+export function fmtMesCurto(referencia: Date): string {
+  const mes = referencia.toLocaleDateString("pt-BR", { month: "short", timeZone: "UTC" }).replace(/\.$/, "");
+  const ano = referencia.toLocaleDateString("pt-BR", { year: "2-digit", timeZone: "UTC" });
+  return `${mes}/${ano}`;
+}
+
+/** Os `qtd` meses terminando em `referencia` (incluso), do mais antigo pro mais recente — usado pra montar a janela do histórico mensal do gráfico. */
+export function ultimosMeses(referencia: Date, qtd: number): Date[] {
+  return Array.from({ length: qtd }, (_, i) => addMeses(referencia, i - (qtd - 1)));
+}
+
 const LIMIAR_LIMITE_ATENCAO = 0.7; // >=70% do limite consumido -> atenção
 const LIMIAR_LIMITE_CRITICO = 0.9; // >=90% do limite consumido -> crítico
 
