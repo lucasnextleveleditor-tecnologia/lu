@@ -4,7 +4,11 @@ import type { ProfileRow } from "@/lib/types/database";
 import { calcularStatus, calcularStatusEmpresa } from "@/lib/utils/status";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
-const ROTAS_PUBLICAS = ["/login", "/acesso-expirado", "/definir-senha", "/auth/callback"];
+// "/orcamento" (sem "s" — rota do LINK PÚBLICO do orçamento, `/orcamento/[token]`,
+// não confundir com "/admin/orcamentos" do painel) é pública de propósito: o
+// cliente abre o link sem nenhum login, a autorização é o token em si (ver
+// `src/app/orcamento/[token]/page.tsx` — busca via Service Role, nunca RLS).
+const ROTAS_PUBLICAS = ["/login", "/acesso-expirado", "/definir-senha", "/auth/callback", "/orcamento/"];
 
 /**
  * Página de erro autocontida (sem CSS/imagens externas, sem depender de
@@ -192,7 +196,7 @@ export async function middleware(request: NextRequest) {
 
         // Cada árvore de rotas é exclusiva de quem tem o papel certo — um
         // admin/funcionario tentando abrir /super-admin (ou o inverso, um
-        // super_admin tentando abrir /admin) cai na PRÓPRIA home, nunca na
+        // super_admin tentando abrir /admin) cai na PROPRIA home, nunca na
         // área do outro.
         if (pathname.startsWith("/super-admin") && role !== "super_admin") {
           const url = request.nextUrl.clone();
