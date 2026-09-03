@@ -121,6 +121,25 @@ export const financeiro: FinanceiroDict = {
   hintCartoesQtd: "{n} card(s)",
   hintLancadasNoPeriodo: "Recorded in this period",
 
+  statResultadoMes: "Monthly Result",
+  resultadoPositivoHint: "The month closed positive",
+  resultadoNegativoHint: "The month closed negative",
+  resultadoNeutroHint: "Income and expenses balanced out",
+
+  graficoReceitaDespesaTitulo: "Income vs. Expenses",
+  graficoReceitaDespesaSubtitulo: "Last 6 months — compare income and expenses month by month.",
+  graficoReceitaLegenda: "Income",
+  graficoDespesaLegenda: "Expenses",
+  graficoResultadoLegenda: "Monthly result (green = positive, red = negative)",
+  graficoReceitaTooltip: "Income in {mes}: {valor}",
+  graficoDespesaTooltip: "Expenses in {mes}: {valor}",
+  graficoResultadoTooltip: "Result for {mes}: {valor}",
+  graficoSemDados: "No transactions recorded in the last few months.",
+
+  despesasPorCategoriaTitulo: "Expenses by Category",
+  despesasPorCategoriaVazio: "No expenses recorded this month.",
+  despesasPorCategoriaTotalLabel: "Total",
+
   cartoesCreditoTitulo: "Credit Cards",
   btnNovoCartao: "+ New",
   cartoesVazio: "No cards registered yet.",
