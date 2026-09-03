@@ -120,6 +120,9 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
           não estica além de max-w-6xl, só a coluna do meio; a tela ser larga
           não dá mais espaço pro card). 3 colunas garante largura de sobra
           pra qualquer valor, ao custo de uma segunda linha de tiles. */}
+      {/* Ordem pedida explicitamente: 1ª linha = Saldo/Receitas/Despesas (o
+          "meu dinheiro hoje" + o mês em andamento), 2ª linha = Limite/
+          Caixinhas/Resultado (o resto do contexto financeiro). */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <Link href={`/admin/financeiro/contas?${qs}`} className="block transition hover:opacity-90">
           <StatTile
@@ -127,14 +130,6 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
             label={dict.financeiro.statSaldoContas}
             value={<ValorPrivado valor={fmtBRL(saldoTotal)} />}
             hint={dict.financeiro.hintContasQtd.replace("{n}", String(contasFiltradas.length))}
-          />
-        </Link>
-        <Link href={`/admin/financeiro/cartoes?${qs}`} className="block transition hover:opacity-90">
-          <StatTile
-            icon={IconCreditCard}
-            label={dict.financeiro.statLimiteDisponivel}
-            value={<ValorPrivado valor={fmtBRL(limiteDisponivelTotal)} />}
-            hint={dict.financeiro.hintCartoesQtd.replace("{n}", String(cartoesFiltrados.length))}
           />
         </Link>
         <Link href={`/admin/financeiro/receitas?${qs}`} className="block transition hover:opacity-90">
@@ -155,6 +150,14 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
             hint={dict.financeiro.hintLancadasNoPeriodo}
           />
         </Link>
+        <Link href={`/admin/financeiro/cartoes?${qs}`} className="block transition hover:opacity-90">
+          <StatTile
+            icon={IconCreditCard}
+            label={dict.financeiro.statLimiteDisponivel}
+            value={<ValorPrivado valor={fmtBRL(limiteDisponivelTotal)} />}
+            hint={dict.financeiro.hintCartoesQtd.replace("{n}", String(cartoesFiltrados.length))}
+          />
+        </Link>
         <Link href="/admin/financeiro/caixinhas" className="block transition hover:opacity-90">
           <StatTile
             icon={IconPiggyBank}
@@ -172,8 +175,14 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
         />
       </div>
 
+      {/* Categoria com col-span-3 (não 2) de propósito — nome de categoria
+          real é bem mais longo que no mock ("Equipamentos & Manutenção",
+          "Freelancers & Terceirizados"...), então essa carta é a que mais
+          precisa de largura pra legenda; o gráfico de barras sobrevive bem
+          mais apertado (rola por dentro, ver `overflow-x-auto` em
+          `GraficoReceitaDespesa`), então fica com a coluna menor. */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
+        <Card className="lg:col-span-2">
           <div className="mb-4 flex items-center gap-2">
             <IconBarChart2 className="h-4 w-4 text-ink-muted" />
             <div>
@@ -183,7 +192,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
           </div>
           <GraficoReceitaDespesa dados={historicoMensal} />
         </Card>
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-3">
           <div className="mb-4 flex items-center gap-2">
             <IconTag className="h-4 w-4 text-ink-muted" />
             <h2 className="text-sm font-semibold text-ink-primary">{dict.financeiro.despesasPorCategoriaTitulo}</h2>
