@@ -136,6 +136,28 @@ export interface FinanceiroDict {
   hintCartoesQtd: string;
   hintLancadasNoPeriodo: string;
 
+  // StatTile "Resultado do Mês" — receitas - despesas, tone bom/crítico/neutro
+  statResultadoMes: string;
+  resultadoPositivoHint: string;
+  resultadoNegativoHint: string;
+  resultadoNeutroHint: string;
+
+  // Gráfico "Receita x Despesa" (GraficoReceitaDespesa)
+  graficoReceitaDespesaTitulo: string;
+  graficoReceitaDespesaSubtitulo: string;
+  graficoReceitaLegenda: string;
+  graficoDespesaLegenda: string;
+  graficoResultadoLegenda: string;
+  graficoReceitaTooltip: string;
+  graficoDespesaTooltip: string;
+  graficoResultadoTooltip: string;
+  graficoSemDados: string;
+
+  // Gráfico "Despesas por Categoria" real (GraficoDespesasPorCategoria)
+  despesasPorCategoriaTitulo: string;
+  despesasPorCategoriaVazio: string;
+  despesasPorCategoriaTotalLabel: string;
+
   // CartoesCard
   cartoesCreditoTitulo: string;
   btnNovoCartao: string;
@@ -391,6 +413,25 @@ export const financeiro: FinanceiroDict = {
   hintContasQtd: "{n} conta(s)",
   hintCartoesQtd: "{n} cartão(ões)",
   hintLancadasNoPeriodo: "Lançadas no período",
+
+  statResultadoMes: "Resultado do Mês",
+  resultadoPositivoHint: "Mês fechou no positivo",
+  resultadoNegativoHint: "Mês fechou no negativo",
+  resultadoNeutroHint: "Receitas e despesas se equilibraram",
+
+  graficoReceitaDespesaTitulo: "Receita x Despesa",
+  graficoReceitaDespesaSubtitulo: "Últimos 6 meses — compare receita e despesa mês a mês.",
+  graficoReceitaLegenda: "Receita",
+  graficoDespesaLegenda: "Despesa",
+  graficoResultadoLegenda: "Resultado do mês (verde = positivo, vermelho = negativo)",
+  graficoReceitaTooltip: "Receita em {mes}: {valor}",
+  graficoDespesaTooltip: "Despesa em {mes}: {valor}",
+  graficoResultadoTooltip: "Resultado de {mes}: {valor}",
+  graficoSemDados: "Nenhuma movimentação lançada nos últimos meses.",
+
+  despesasPorCategoriaTitulo: "Despesas por Categoria",
+  despesasPorCategoriaVazio: "Nenhuma despesa lançada neste mês.",
+  despesasPorCategoriaTotalLabel: "Total",
 
   cartoesCreditoTitulo: "Cartões de Crédito",
   btnNovoCartao: "+ Novo",
