@@ -54,7 +54,16 @@ export function StatTile({ icon: Icon, label, value, tone = "neutral", hint, cla
       </div>
 
       <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{label}</p>
-      <p className="mt-1.5 text-3xl font-bold tracking-tight text-ink-primary">{value}</p>
+      {/* `truncate` como rede de segurança: o valor formatado (ex: "R$ 2.500,00")
+          nasce como um único "token" que o navegador não quebra em duas
+          linhas (o espaço entre "R$" e o número é non-breaking, de
+          `toLocaleString`) — sem isso, um valor mais largo que o tile
+          simplesmente vaza e é cortado no meio pelo `overflow-hidden` do
+          card (sem reticências, sem aviso nenhum de que há mais dígito).
+          Com `truncate` vira uma elipse legível ("R$ 2.500,0…") no pior
+          caso, mas o objetivo é o tile ter largura de sobra e nunca chegar
+          nisso (ver comentário no grid de `financeiro/page.tsx`). */}
+      <p className="mt-1.5 truncate text-3xl font-bold tracking-tight text-ink-primary">{value}</p>
 
       {hint && (
         <p className="mt-3 flex items-center gap-1.5 text-xs text-ink-secondary">
