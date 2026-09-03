@@ -493,7 +493,7 @@ export function IconBuilding(props: IconProps) {
 
 /** Ícones do módulo Info-Produtos (dentro de Tráfego & Metas). */
 
-export function IconFilm(props: IconProps) {
+export function IconFill(props: IconProps) {
   return (
     <svg {...BASE} {...props}>
       <rect x="3.5" y="4" width="17" height="16" rx="1.5" />
@@ -687,11 +687,32 @@ export function IconEyeOff(props: IconProps) {
 export function IconPiggyBank(props: IconProps) {
   return (
     <svg {...BASE} {...props}>
-      <path d="M4.5 12.2c0-3.7 3.2-6.7 7.4-6.7 2.3 0 4.3.9 5.7 2.3h2.4c.5 0 .9.5.7 1l-.9 2c.5.8.8 1.7.8 2.6v1.8c0 .5-.4.9-.9.9h-1.4l-.6 2.1a.9.9 0 0 1-.9.7h-1.8a.9.9 0 0 1-.9-.9v-1.1c-.7.1-1.4.2-2.2.2-4.2 0-7.4-2.2-7.4-4.9z" />
+      <path d="M4.5 12.2c0-3.7 3.2-6.7 7.4-6.7 2.3 0 4.3.9 5.7 2.3h2.4c.5 0 .9.5.7 1l-.9 2c.5.8.8 1.7 8 2.6v1.8c0 .5-.4.9-.9.9h-1.4l-.6 2.1a.9.9 0 0 1-.9.7h-1.8a.9.9 0 0 1-.9-.9v-1.1c-.7.1-1.4.2-2.2.2-4.2 0-7.4-2.2-7.4-4.9z" />
       <path d="M4.5 12.7l-2-1v3.1l2-.6" />
       <circle cx="15.5" cy="10.5" r="0.9" fill="currentColor" stroke="none" />
       <path d="M9.5 5.6V4" />
       <path d="M7 6.3l-.9-1.4" />
+    </svg>
+  );
+}
+
+/** Usado no botão "Copiar link" do orçamento (módulo Orçamentos). */
+export function IconCopy(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
+/** Usado no botão "Imprimir" do orçamento (módulo Orçamentos, painel e visualização pública). */
+export function IconPrinter(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <polyline points="6 9 6 3 18 3 18 9" />
+      <rect x="6" y="13" width="12" height="8" />
+      <path d="M6 17H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" />
     </svg>
   );
 }
