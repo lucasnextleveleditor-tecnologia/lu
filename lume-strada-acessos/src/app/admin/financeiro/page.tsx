@@ -113,7 +113,14 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
+      {/* 3 por linha (não 6) de propósito — em 6 colunas, dentro do container
+          travado em `max-w-6xl` do AdminShell, cada tile fica estreito demais
+          pro valor em reais (com centavos) e o texto acaba cortado pelo
+          `overflow-hidden` do StatTile, mesmo em tela ultra-wide (o container
+          não estica além de max-w-6xl, só a coluna do meio; a tela ser larga
+          não dá mais espaço pro card). 3 colunas garante largura de sobra
+          pra qualquer valor, ao custo de uma segunda linha de tiles. */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         <Link href={`/admin/financeiro/contas?${qs}`} className="block transition hover:opacity-90">
           <StatTile
             icon={IconWallet}
