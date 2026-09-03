@@ -27,7 +27,7 @@
 export type PapelUsuario = "admin" | "funcionario" | "cliente" | "super_admin";
 
 /** Chaves possíveis dentro de `permissoes` — mesma lista de `ModuloChave` em `lib/auth/requireAdmin.ts`, duplicada aqui só como tipo de dado (evita import circular). */
-export type PermissoesFuncionario = Partial<Record<"clientes" | "financeiro" | "producao" | "comercial" | "trafego" | "inventario" | "whatsapp", boolean>>;
+export type PermissoesFuncionario = Partial<Record<"clientes" | "financeiro" | "producao" | "comercial" | "orcamentos" | "trafego" | "inventario" | "whatsapp", boolean>>;
 
 /**
  * Chave de cada card/seção do Dashboard administrativo (`VisaoGeral.tsx`) —
