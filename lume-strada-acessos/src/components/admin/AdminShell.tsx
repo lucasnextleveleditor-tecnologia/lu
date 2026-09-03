@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
@@ -24,8 +24,6 @@ import {
   IconFileText,
   IconLayoutGrid,
   IconBarChart2,
-  IconChevronsLeft,
-  IconChevronsRight,
 } from "@/components/ui/icons";
 
 // Menu separado em grupos — "Visão Geral" (o Dashboard, que junta Produção +
@@ -93,15 +91,13 @@ const NAV_GRUPOS = [
   }>;
 }>;
 
-/** Preferência é por navegador (localStorage), não por conta — o valor salvo no branding é só o PADRÃO inicial de cada sessão nova. */
-const STORAGE_KEY = "lsf_admin_sidebar_colapsada";
-
 interface AdminShellProps {
   logoUrl: string | null;
   /** Nome do APP mostrado no topo da sidebar (`companies.nome_app`, editável em Aparência) — nunca o nome literal de uma empresa específica. Default "App Gestão". */
   nomeApp: string;
   nome: string;
   email: string;
+  /** Não usado mais para o estado inicial da sidebar (ver `hover` abaixo) — mantido só pra não quebrar a assinatura de quem chama (`admin/layout.tsx`) e o campo em Aparência que ainda existe no banco. */
   colapsadoPadrao: boolean;
   papel: PapelUsuario;
   permissoes: PermissoesFuncionario;
@@ -110,10 +106,28 @@ interface AdminShellProps {
   children: React.ReactNode;
 }
 
-export function AdminShell({ logoUrl, nomeApp, nome, email, colapsadoPadrao, papel, permissoes, banner, children }: AdminShellProps) {
+export function AdminShell({
+  logoUrl,
+  nomeApp,
+  nome,
+  email,
+  colapsadoPadrao: _colapsadoPadrao,
+  papel,
+  permissoes,
+  banner,
+  children,
+}: AdminShellProps) {
   const pathname = usePathname();
   const { dict } = useLocale();
-  const [colapsado, setColapsado] = useState(colapsadoPadrao);
+
+  // Sidebar sempre começa recolhida (pedido explícito do dono da conta) e só
+  // expande temporariamente enquanto o mouse está por cima dela — nada é
+  // salvo/lembrado entre sessões, então recarregar a página ou navegar pra
+  // outra tela sempre volta pro estado recolhido. Como a `<aside>` é
+  // `position: fixed`, ela some/aparece por cima do conteúdo (`main` tem o
+  // padding-left travado na largura recolhida) em vez de empurrar o layout.
+  const [hover, setHover] = useState(false);
+  const colapsado = !hover;
 
   // Mesma regra de autorização do servidor (`requireModulo`/`requireAdmin`),
   // só que aqui é pra decidir o que MOSTRAR no menu — a permissão de
@@ -132,30 +146,15 @@ export function AdminShell({ logoUrl, nomeApp, nome, email, colapsadoPadrao, pap
     itens: grupo.itens.filter(itemVisivel),
   })).filter((grupo) => grupo.itens.length > 0);
 
-  // Sincroniza com a preferência pessoal salva no navegador DEPOIS da
-  // primeira renderização — evita mismatch de hidratação (servidor não tem
-  // acesso ao localStorage, então o primeiro render em ambos os lados usa
-  // sempre `colapsadoPadrao`, vindo do branding_config).
-  useEffect(() => {
-    const salvo = window.localStorage.getItem(STORAGE_KEY);
-    if (salvo !== null) setColapsado(salvo === "1");
-  }, []);
-
-  function alternar() {
-    setColapsado((atual) => {
-      const novo = !atual;
-      window.localStorage.setItem(STORAGE_KEY, novo ? "1" : "0");
-      return novo;
-    });
-  }
-
   return (
     <ValoresVisiveisProvider>
     <div className="min-h-screen">
       <aside
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-base-800 bg-base-900/70 backdrop-blur-sm transition-[width] duration-200",
-          colapsado ? "w-[72px]" : "w-64"
+          "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-base-800 bg-base-900/95 backdrop-blur-sm transition-[width] duration-200",
+          colapsado ? "w-[72px]" : "w-64 shadow-2xl"
         )}
       >
         <div className={cn("flex items-center gap-2.5 border-b border-base-800 px-4 py-4", colapsado && "justify-center px-2")}>
@@ -216,14 +215,6 @@ export function AdminShell({ logoUrl, nomeApp, nome, email, colapsadoPadrao, pap
           )}
           <div className={cn("flex items-center gap-2", colapsado && "flex-col")}>
             <LogoutButton iconOnly={colapsado} className={colapsado ? undefined : "flex-1"} />
-            <button
-              onClick={alternar}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-base-600 text-ink-muted transition hover:border-ink-muted hover:text-ink-primary"
-              aria-label={colapsado ? dict.nav.expandirMenu : dict.nav.recolherMenu}
-              title={colapsado ? dict.nav.expandirMenu : dict.nav.recolherMenu}
-            >
-              {colapsado ? <IconChevronsRight className="h-4 w-4" /> : <IconChevronsLeft className="h-4 w-4" />}
-            </button>
           </div>
         </div>
       </aside>
@@ -235,7 +226,10 @@ export function AdminShell({ logoUrl, nomeApp, nome, email, colapsadoPadrao, pap
         <LanguageSwitcher />
       </div>
 
-      <main className={cn("min-h-screen transition-[padding] duration-200", colapsado ? "pl-[72px]" : "pl-64")}>
+      {/* padding-left travado na largura RECOLHIDA de propósito — a sidebar
+          expande por cima (fixed) ao passar o mouse, sem empurrar/redimensionar
+          o conteúdo, então o `main` nunca precisa reagir ao hover. */}
+      <main className="min-h-screen pl-[72px]">
         <div className="mx-auto max-w-6xl px-6 py-8">
           {banner && <AnnouncementBanner {...banner} className="mb-6" />}
           {children}
