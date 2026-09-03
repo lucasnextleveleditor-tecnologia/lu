@@ -9,6 +9,7 @@ export const nav: NavDict = {
   dashboard: "Panel",
   relatorios: "Informes",
   crmVendas: "CRM y Ventas",
+  orcamentos: "Presupuestos",
   whatsapp: "WhatsApp",
   cadastros: "Registros",
   financeiro: "Finanzas",
