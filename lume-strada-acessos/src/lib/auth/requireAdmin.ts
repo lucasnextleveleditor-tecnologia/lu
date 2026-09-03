@@ -176,7 +176,7 @@ export async function requireSuperAdminOuRedirect() {
 // (ferramenta interna da agência, sem acesso de terceiros) e evita duplicar
 // a lógica de permissão em SQL pra cada tabela de cada módulo.
 // ----------------------------------------------------------------------------
-export type ModuloChave = "clientes" | "financeiro" | "producao" | "comercial" | "trafego" | "inventario" | "whatsapp";
+export type ModuloChave = "clientes" | "financeiro" | "producao" | "comercial" | "orcamentos" | "trafego" | "inventario" | "whatsapp";
 
 type ResultadoPermissao = { autorizado: true; supabase: SupabaseClient; user: User } | { autorizado: false };
 
