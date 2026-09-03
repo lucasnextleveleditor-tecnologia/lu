@@ -21,7 +21,6 @@ import {
   IconWallet,
   IconColumns,
   IconTarget,
-  IconMessageCircle,
   IconFileText,
   IconLayoutGrid,
   IconBarChart2,
@@ -30,8 +29,8 @@ import {
 } from "@/components/ui/icons";
 
 // Menu separado em grupos — "Visão Geral" (o Dashboard, que junta Produção +
-// Comercial + Financeiro numa tela só) no topo, "Comercial" (pré-vendas/CRM
-// + clientes convertidos + Inbox do WhatsApp) depois, o resto da operação da
+// Comercial + Financeiro numa tela só) no topo, "Comercial" (pré-vendas/CRM,
+// Orçamentos e clientes convertidos) depois, o resto da operação da
 // agência em "Gestão", e "Financeiro" isolado por último (pedido explícito —
 // separado do resto da gestão, sempre no fim do menu). Cada grupo pode
 // crescer independente sem bagunçar a leitura do menu inteiro.
@@ -61,7 +60,10 @@ const NAV_GRUPOS = [
     itens: [
       { href: "/admin/comercial", labelKey: "crmVendas", icon: IconTarget, chave: "comercial" },
       { href: "/admin/orcamentos", labelKey: "orcamentos", icon: IconFileText, chave: "orcamentos" },
-      { href: "/admin/whatsapp", labelKey: "whatsapp", icon: IconMessageCircle, chave: "whatsapp" },
+      // WhatsApp foi escondido do menu e bloqueado por completo (ver
+      // `src/app/admin/whatsapp/layout.tsx`) — código e dados continuam
+      // intactos, só não aparece nem é acessível dentro do app. Pra
+      // reativar: devolver esta linha e reverter o layout.
       { href: "/admin", labelKey: "cadastros", icon: IconUsers, chave: "clientes" },
     ],
   },
