@@ -9,7 +9,7 @@ import type {
   TransacaoComRelacoes,
   TransacaoRow,
 } from "@/lib/types/financeiro";
-import { limitesDoMes, mesParam, parseMesParam } from "@/lib/utils/financeiro";
+import { limitesDoMes, mesParam, parseMesParam, ultimosMeses } from "@/lib/utils/financeiro";
 
 export interface FinanceiroSearchParams {
   mes?: string;
@@ -101,4 +101,52 @@ export async function buscarDadosFinanceiro(searchParams: FinanceiroSearchParams
     saldoTotal,
     limiteDisponivelTotal,
   };
+}
+
+const MESES_HISTORICO = 6;
+
+export interface HistoricoMensalPonto {
+  mes: Date;
+  mesParam: string;
+  receitas: number;
+  despesas: number;
+  /** receitas - despesas do mês — "fechou no positivo ou no negativo" (ver `GraficoReceitaDespesa`/StatTile "Resultado do Mês" em `page.tsx`). */
+  saldo: number;
+}
+
+/**
+ * Totais de receita/despesa dos últimos `MESES_HISTORICO` meses (o mês em
+ * referência incluso, sempre por último no array) — alimenta o gráfico de
+ * tendência da página principal do Financeiro. Propositalmente NÃO
+ * reaproveita `buscarDadosFinanceiro` (chamá-la 6x traria de novo
+ * contas/cartões/categorias inteiros a cada mês, à toa): uma única query
+ * leve em `fin_transacoes` (só as 4 colunas usadas aqui), agregada em
+ * memória por mês.
+ */
+export async function buscarHistoricoMensal(searchParams: FinanceiroSearchParams): Promise<HistoricoMensalPonto[]> {
+  const { supabase } = await requireModuloOuRedirect("financeiro");
+  const referencia = parseMesParam(searchParams.mes);
+  const contexto: "todos" | FinContexto =
+    searchParams.contexto === "pessoal" || searchParams.contexto === "profissional" ? searchParams.contexto : "todos";
+
+  const meses = ultimosMeses(referencia, MESES_HISTORICO);
+  const { inicio } = limitesDoMes(meses[0]!);
+  const { fim } = limitesDoMes(referencia);
+
+  const { data } = await supabase
+    .from("fin_transacoes")
+    .select("tipo, valor, data_vencimento, contexto")
+    .gte("data_vencimento", inicio)
+    .lte("data_vencimento", fim)
+    .overrideTypes<Pick<TransacaoRow, "tipo" | "valor" | "data_vencimento" | "contexto">[], { merge: false }>();
+
+  const linhas = (data ?? []).filter((t) => contexto === "todos" || t.contexto === contexto);
+
+  return meses.map((mes) => {
+    const limites = limitesDoMes(mes);
+    const doMes = linhas.filter((t) => t.data_vencimento >= limites.inicio && t.data_vencimento <= limites.fim);
+    const receitas = doMes.filter((t) => t.tipo === "receita").reduce((acc, t) => acc + t.valor, 0);
+    const despesas = doMes.filter((t) => t.tipo === "despesa").reduce((acc, t) => acc + t.valor, 0);
+    return { mes, mesParam: mesParam(mes), receitas, despesas, saldo: receitas - despesas };
+  });
 }

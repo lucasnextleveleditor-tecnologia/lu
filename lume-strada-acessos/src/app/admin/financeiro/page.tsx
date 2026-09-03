@@ -3,18 +3,29 @@ import { calcularStatusTransacao } from "@/lib/types/financeiro";
 import { STATUS_TRANSACAO_META } from "@/lib/utils/financeiro";
 import { fmtBRL } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
+import { Card } from "@/components/ui/Card";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
-import { IconWallet, IconCreditCard, IconTrendingUp, IconAlertTriangle, IconPiggyBank } from "@/components/ui/icons";
+import {
+  IconWallet,
+  IconCreditCard,
+  IconTrendingUp,
+  IconAlertTriangle,
+  IconPiggyBank,
+  IconBarChart2,
+  IconTag,
+} from "@/components/ui/icons";
 import { MesNav } from "@/components/admin/financeiro/MesNav";
 import { ContextoToggle } from "@/components/admin/financeiro/ContextoToggle";
 import { ContasCard } from "@/components/admin/financeiro/ContasCard";
 import { CartoesCard } from "@/components/admin/financeiro/CartoesCard";
 import { CategoriasCard } from "@/components/admin/financeiro/CategoriasCard";
 import { TransacoesManager } from "@/components/admin/financeiro/TransacoesManager";
+import { GraficoReceitaDespesa } from "@/components/admin/financeiro/GraficoReceitaDespesa";
+import { GraficoDespesasPorCategoria } from "@/components/admin/financeiro/GraficoDespesasPorCategoria";
 import { getDictionary } from "@/lib/i18n/getDictionary";
-import { buscarDadosFinanceiro, type FinanceiroSearchParams } from "@/app/admin/financeiro/data";
+import { buscarDadosFinanceiro, buscarHistoricoMensal, type FinanceiroSearchParams } from "@/app/admin/financeiro/data";
 import { buscarResumoCaixinhas } from "@/app/admin/financeiro/caixinhas/data";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +37,13 @@ interface FinanceiroPageProps {
 export default async function FinanceiroPage({ searchParams }: FinanceiroPageProps) {
   const { dict } = await getDictionary();
   const params = await searchParams;
+  // As três buscas são independentes entre si — `Promise.all` evita uma
+  // fila de 3 idas ao banco em série só porque estão no mesmo componente.
+  const [dadosFinanceiro, { saldoTotal: saldoCaixinhas, qtd: qtdCaixinhas }, historicoMensal] = await Promise.all([
+    buscarDadosFinanceiro(params),
+    buscarResumoCaixinhas(),
+    buscarHistoricoMensal(params),
+  ]);
   const {
     referencia,
     contexto,
@@ -39,8 +57,19 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
     despesasDoMes,
     saldoTotal,
     limiteDisponivelTotal,
-  } = await buscarDadosFinanceiro(params);
-  const { saldoTotal: saldoCaixinhas, qtd: qtdCaixinhas } = await buscarResumoCaixinhas();
+  } = dadosFinanceiro;
+
+  // "Estou fechando o mês no positivo ou no negativo?" — pedido explícito do
+  // dono da conta: cor do StatTile e do texto seguem o mesmo tone bom/
+  // crítico/neutro usado no resto do app, nunca uma cor nova.
+  const saldoDoMes = receitasDoMes - despesasDoMes;
+  const toneSaldoDoMes = saldoDoMes > 0 ? "good" : saldoDoMes < 0 ? "critical" : "neutral";
+  const hintSaldoDoMes =
+    saldoDoMes > 0
+      ? dict.financeiro.resultadoPositivoHint
+      : saldoDoMes < 0
+        ? dict.financeiro.resultadoNegativoHint
+        : dict.financeiro.resultadoNeutroHint;
 
   const qs = new URLSearchParams({ mes: mesParamStr, ...(contexto !== "todos" ? { contexto } : {}) }).toString();
 
@@ -84,7 +113,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
         <Link href={`/admin/financeiro/contas?${qs}`} className="block transition hover:opacity-90">
           <StatTile
             icon={IconWallet}
@@ -127,6 +156,33 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
             hint={dict.financeiro.caixinhas.hintCaixinhasQtd.replace("{n}", String(qtdCaixinhas))}
           />
         </Link>
+        <StatTile
+          icon={IconBarChart2}
+          label={dict.financeiro.statResultadoMes}
+          value={<ValorPrivado valor={fmtBRL(saldoDoMes)} />}
+          tone={toneSaldoDoMes}
+          hint={hintSaldoDoMes}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <Card className="lg:col-span-3">
+          <div className="mb-4 flex items-center gap-2">
+            <IconBarChart2 className="h-4 w-4 text-ink-muted" />
+            <div>
+              <h2 className="text-sm font-semibold text-ink-primary">{dict.financeiro.graficoReceitaDespesaTitulo}</h2>
+              <p className="text-xs text-ink-muted">{dict.financeiro.graficoReceitaDespesaSubtitulo}</p>
+            </div>
+          </div>
+          <GraficoReceitaDespesa dados={historicoMensal} />
+        </Card>
+        <Card className="lg:col-span-2">
+          <div className="mb-4 flex items-center gap-2">
+            <IconTag className="h-4 w-4 text-ink-muted" />
+            <h2 className="text-sm font-semibold text-ink-primary">{dict.financeiro.despesasPorCategoriaTitulo}</h2>
+          </div>
+          <GraficoDespesasPorCategoria transacoes={transacoes} categorias={categorias} />
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
