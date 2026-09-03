@@ -52,7 +52,7 @@ const NAV_GRUPOS = [
       // (`/admin/relatorios/page.tsx`, mesmo padrão de `cardVisivel` já
       // usado no Dashboard) — um funcionário sem nenhuma permissão extra
       // simplesmente vê o Hub vazio, com uma orientação pra falar com o
-      // admin, em vez do link sumir do menu.
+      // admin, em vej do link sumir do menu.
       { href: "/admin/relatorios", labelKey: "relatorios", icon: IconBarChart2, chave: null },
     ],
   },
@@ -228,7 +228,7 @@ export function AdminShell({ logoUrl, nomeApp, nome, email, colapsadoPadrao, pap
 
       {/* Fixo no canto superior direito da VIEWPORT (não da sidebar/main), pra
           ficar sempre no mesmo lugar em toda tela do painel — mesmo padrão de
-          posição usado na tela de login e no portal do cliente. *}
+          posição usado na tela de login e no portal do cliente. */}
       <div className="fixed right-4 top-4 z-30">
         <LanguageSwitcher />
       </div>
