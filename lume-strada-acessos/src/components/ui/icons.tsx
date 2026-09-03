@@ -493,7 +493,7 @@ export function IconBuilding(props: IconProps) {
 
 /** Ícones do módulo Info-Produtos (dentro de Tráfego & Metas). */
 
-export function IconFill(props: IconProps) {
+export function IconFilm(props: IconProps) {
   return (
     <svg {...BASE} {...props}>
       <rect x="3.5" y="4" width="17" height="16" rx="1.5" />
