@@ -125,13 +125,19 @@ export function GraficoDespesasPorCategoria({ transacoes, categorias }: GraficoD
             key={fatia.categoria.id}
             onMouseEnter={() => setHoverId(fatia.categoria.id)}
             onMouseLeave={() => limparHover(fatia.categoria.id)}
-            className={`flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 transition ${
+            // `flex-wrap` (não `truncate` no nome) de propósito — nome de
+            // categoria real é bem mais longo que no mock ("Equipamentos &
+            // Manutenção", "Freelancers & Terceirizados"...); truncar cortava
+            // o nome quase inteiro ("🏠..."). Deixando o valor (a única parte
+            // curta e "sacrificável") cair pra uma segunda linha quando não
+            // couber do lado do nome, o nome nunca perde informação.
+            className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 rounded-lg px-2 py-1.5 transition ${
               hoverId === fatia.categoria.id ? "bg-base-800/70" : ""
             }`}
           >
             <div className="flex min-w-0 items-center gap-2">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: fatia.categoria.cor ?? "#8a8783" }} />
-              <span className="truncate text-sm text-ink-secondary">
+              <span className="text-sm text-ink-secondary">
                 {fatia.categoria.emoji ? `${fatia.categoria.emoji} ` : ""}
                 {fatia.categoria.nome}
               </span>
