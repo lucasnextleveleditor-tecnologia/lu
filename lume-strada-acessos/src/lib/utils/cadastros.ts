@@ -5,7 +5,10 @@ export const MODULOS_PERMISSAO: { chave: keyof PermissoesFuncionario; label: str
   { chave: "clientes", label: "Clientes", hint: "Ver e editar o cadastro de clientes" },
   { chave: "comercial", label: "CRM & Vendas", hint: "Funil comercial e leads" },
   { chave: "orcamentos", label: "Orçamentos", hint: "Catálogo de serviços e propostas pra cliente" },
-  { chave: "whatsapp", label: "WhatsApp", hint: "Inbox e conexão do número" },
+  // WhatsApp foi escondido/desativado dentro do app (ver
+  // `src/app/admin/whatsapp/layout.tsx`) — removido desta lista de
+  // propósito pra não oferecer um toggle de permissão pra um módulo que
+  // ninguém consegue acessar mais, admin incluso.
   { chave: "financeiro", label: "Financeiro", hint: "Contas, cartões e transações" },
   { chave: "producao", label: "Produção & Tarefas", hint: "Board de tarefas e entregas" },
   { chave: "trafego", label: "Tráfego & Metas", hint: "Metas e lançamentos de tráfego" },
@@ -34,7 +37,10 @@ export const CARDS_DASHBOARD: { chave: DashboardCardChave; label: string }[] = [
   { chave: "financeiroDoMes", label: "Financeiro do Mês" },
   { chave: "resumoInventario", label: "Itens em Manutenção" },
   { chave: "resumoTrafegoHoje", label: "Investido em Ads Hoje" },
-  { chave: "whatsapp", label: "WhatsApp" },
+  // WhatsApp foi escondido/desativado dentro do app — removido desta lista
+  // pelo mesmo motivo (ver comentário em `MODULOS_PERMISSAO` acima); o
+  // Dashboard já força `podeVerWhatsapp = false`, então o card nunca
+  // aparece de qualquer forma.
   { chave: "agendaDoDia", label: "Agenda de Hoje" },
 ];
 
