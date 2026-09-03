@@ -39,7 +39,11 @@ export default async function DashboardPage() {
   const podeVerFinanceiro = perfil?.role === "admin" || perfil?.permissoes?.financeiro === true;
   const podeVerInventario = perfil?.role === "admin" || perfil?.permissoes?.inventario === true;
   const podeVerTrafego = perfil?.role === "admin" || perfil?.permissoes?.trafego === true;
-  const podeVerWhatsapp = perfil?.role === "admin" || perfil?.permissoes?.whatsapp === true;
+  // WhatsApp foi escondido/desativado dentro do app (ver
+  // `src/app/admin/whatsapp/layout.tsx`) — sempre `false` aqui pra o card
+  // de resumo nunca aparecer no Dashboard, mesmo pra admin. Reversível
+  // junto com o resto do módulo.
+  const podeVerWhatsapp = false;
 
   // Além do módulo (segurança), cada funcionário pode ter cards individuais
   // escondidos por preferência do admin (`dashboard_config` — NUNCA é
