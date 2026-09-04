@@ -156,6 +156,10 @@ export const financeiro: FinanceiroDict = {
   categoriasVazio: "Todavía no hay categorías registradas.",
   cliqueParaExcluirTitle: "Haz clic para eliminar",
 
+  fornecedoresTitulo: "Proveedores",
+  btnNovoFornecedor: "+ Nuevo",
+  fornecedoresVazio: "Todavía no hay proveedores registrados.",
+
   contasCarteirasTitulo: "Cuentas y Billeteras",
   btnNovaConta: "+ Nueva",
   contasVazio: "Todavía no hay cuentas registradas.",
@@ -175,6 +179,11 @@ export const financeiro: FinanceiroDict = {
   corLabel: "Color",
   escolherCorAria: "Elegir color {hex}",
   criarCategoriaBtn: "Crear Categoría",
+
+  novoFornecedorTitulo: "Nuevo Proveedor",
+  nomeFornecedorObrigatorio: "Nombre *",
+  placeholderNomeFornecedor: "Ej: Amazon",
+  criarFornecedorBtn: "Crear Proveedor",
 
   novaContaTitulo: "Nueva Cuenta / Billetera",
   editarContaTitulo: "Editar Cuenta / Billetera",
@@ -206,9 +215,11 @@ export const financeiro: FinanceiroDict = {
 
   editarTransacaoTitulo: "Editar Transacción",
   novaTransacaoTitulo: "Nueva Transacción",
-  descricaoObrigatorio: "Descripción *",
+  descricaoOpcionalLabel: "Descripción (opcional)",
   placeholderDescricaoTransferencia: "Ej: Transferencia a reserva",
   placeholderDescricaoGeral: "Ej: Suscripción Adobe CC",
+  fornecedorLabel: "Proveedor",
+  semFornecedorOpcao: "Sin proveedor",
   valorTotalCompraLabel: "Valor Total de la Compra *",
   valorObrigatorioLabel: "Valor *",
   contextoObrigatorio: "Contexto *",
@@ -246,12 +257,13 @@ export const financeiro: FinanceiroDict = {
   selecioneCartaoErro: "Selecciona la tarjeta.",
   selecioneOrigemDestinoErro: "Selecciona la cuenta de origen y la de destino.",
   cotacaoNaoConfirmadaErro: "No pudimos confirmar la cotización del día — intenta actualizar antes de guardar.",
+  selecioneFornecedorOuDescricaoErro: "Selecciona un proveedor o completa la descripción.",
   lancarTransacaoBtn: "Registrar Transacción",
 
   transacoesDoMesTitulo: "Transacciones del Mes",
   lancamentosContagem: "{filtradas} de {total} movimiento(s)",
   vencidasContagem: "{vencidas} vencido(s)",
-  placeholderBusca: "Descripción, categoría, cuenta...",
+  placeholderBusca: "Descripción, proveedor, categoría, cuenta...",
   semContaOuCartaoVazio: "Registra primero una cuenta o tarjeta para empezar a registrar transacciones.",
   semTransacoesMes: "No hay transacciones registradas este mes.",
   semTransacoesFiltro: "Ninguna transacción coincide con los filtros actuales.",

@@ -28,8 +28,18 @@ interface CategoriaTransacaoPageProps {
 export async function CategoriaTransacaoPage({ tipo, searchParams }: CategoriaTransacaoPageProps) {
   const { dict } = await getDictionary();
   const dados = await buscarDadosFinanceiro(searchParams);
-  const { referencia, contexto, mesParamStr, categorias, transacoes, contasFiltradas, cartoesFiltrados, receitasDoMes, despesasDoMes } =
-    dados;
+  const {
+    referencia,
+    contexto,
+    mesParamStr,
+    categorias,
+    fornecedores,
+    transacoes,
+    contasFiltradas,
+    cartoesFiltrados,
+    receitasDoMes,
+    despesasDoMes,
+  } = dados;
 
   const mesAnteriorRef = addMeses(referencia, -1);
   const dadosMesAnterior = await buscarDadosFinanceiro({
@@ -85,6 +95,7 @@ export async function CategoriaTransacaoPage({ tipo, searchParams }: CategoriaTr
         contas={contasFiltradas}
         cartoes={cartoesFiltrados}
         categorias={categorias}
+        fornecedores={fornecedores}
         contexto={contexto}
         tipoFixo={tipo}
       />

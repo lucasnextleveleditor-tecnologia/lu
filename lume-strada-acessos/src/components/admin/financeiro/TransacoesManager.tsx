@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import type { CartaoComLimite, CategoriaRow, ContaComSaldo, StatusTransacao, TransacaoComRelacoes } from "@/lib/types/financeiro";
+import type {
+  CartaoComLimite,
+  CategoriaRow,
+  ContaComSaldo,
+  FornecedorRow,
+  StatusTransacao,
+  TransacaoComRelacoes,
+} from "@/lib/types/financeiro";
 import { marcarPago, removerTransacao, removerTransacaoComEscopo, type EscopoExclusaoRecorrencia } from "@/app/admin/financeiro/actions";
 import { calcularStatusTransacao } from "@/lib/types/financeiro";
 import { STATUS_TRANSACAO_META } from "@/lib/utils/financeiro";
@@ -22,6 +29,7 @@ interface TransacoesManagerProps {
   contas: ContaComSaldo[];
   cartoes: CartaoComLimite[];
   categorias: CategoriaRow[];
+  fornecedores: FornecedorRow[];
   contexto: "todos" | "pessoal" | "profissional";
   /** Presente nas telas de detalhe de Receitas/Despesas (`/admin/financeiro/receitas|despesas`) — trava o filtro nesse tipo (esconde o seletor de Tipo, já que a lista inteira é só daquele tipo) e pré-seleciona o mesmo tipo ao lançar uma transação nova. */
   tipoFixo?: "receita" | "despesa";
@@ -29,7 +37,7 @@ interface TransacoesManagerProps {
 
 const TODOS = "todos";
 
-export function TransacoesManager({ transacoes, contas, cartoes, categorias, contexto, tipoFixo }: TransacoesManagerProps) {
+export function TransacoesManager({ transacoes, contas, cartoes, categorias, fornecedores, contexto, tipoFixo }: TransacoesManagerProps) {
   const { dict } = useLocale();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
@@ -47,7 +55,7 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
       if (filtroStatus !== TODOS && status !== filtroStatus) return false;
       if (filtroTipo !== TODOS && t.tipo !== filtroTipo) return false;
       if (termo) {
-        const alvo = `${t.descricao} ${t.categoria_nome ?? ""} ${t.conta_nome ?? ""} ${t.cartao_nome ?? ""}`.toLowerCase();
+        const alvo = `${t.descricao} ${t.fornecedor_nome ?? ""} ${t.categoria_nome ?? ""} ${t.conta_nome ?? ""} ${t.cartao_nome ?? ""}`.toLowerCase();
         if (!alvo.includes(termo)) return false;
       }
       return true;
@@ -188,16 +196,23 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
                           </span>
                         )}
                       </p>
-                      <p className="text-xs text-ink-muted">
-                        {t.categoria_nome}
-                        {t.categoria_nome && t.moeda_original && " · "}
-                        {t.moeda_original && t.valor_original !== null && (
-                          <>
-                            {dict.financeiro.lancadoEmLabel}{" "}
-                            <ValorPrivado valor={fmtMoedaEstrangeira(t.valor_original, t.moeda_original)} />
-                          </>
-                        )}
-                      </p>
+                      {(() => {
+                        const detalhes = [t.fornecedor_nome !== t.descricao ? t.fornecedor_nome : null, t.categoria_nome].filter(
+                          Boolean
+                        );
+                        return (
+                          <p className="text-xs text-ink-muted">
+                            {detalhes.join(" · ")}
+                            {detalhes.length > 0 && t.moeda_original && " · "}
+                            {t.moeda_original && t.valor_original !== null && (
+                              <>
+                                {dict.financeiro.lancadoEmLabel}{" "}
+                                <ValorPrivado valor={fmtMoedaEstrangeira(t.valor_original, t.moeda_original)} />
+                              </>
+                            )}
+                          </p>
+                        );
+                      })()}
                     </td>
                     <td className="py-3 pr-4">
                       <span className="text-xs text-ink-secondary">
@@ -320,6 +335,7 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, con
           contas={contas}
           cartoes={cartoes}
           categorias={categorias}
+          fornecedores={fornecedores}
           contextoInicial={contexto}
           transacaoParaEditar={transacaoEditando}
           tipoInicial={tipoFixo}

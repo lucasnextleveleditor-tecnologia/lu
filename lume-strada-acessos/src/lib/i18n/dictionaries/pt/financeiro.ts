@@ -176,6 +176,11 @@ export interface FinanceiroDict {
   categoriasVazio: string;
   cliqueParaExcluirTitle: string;
 
+  // FornecedoresCard
+  fornecedoresTitulo: string;
+  btnNovoFornecedor: string;
+  fornecedoresVazio: string;
+
   // ContasCard
   contasCarteirasTitulo: string;
   btnNovaConta: string;
@@ -198,6 +203,12 @@ export interface FinanceiroDict {
   corLabel: string;
   escolherCorAria: string;
   criarCategoriaBtn: string;
+
+  // NovoFornecedorModal
+  novoFornecedorTitulo: string;
+  nomeFornecedorObrigatorio: string;
+  placeholderNomeFornecedor: string;
+  criarFornecedorBtn: string;
 
   // NovaContaModal
   novaContaTitulo: string;
@@ -233,9 +244,11 @@ export interface FinanceiroDict {
   // TransacaoModal
   editarTransacaoTitulo: string;
   novaTransacaoTitulo: string;
-  descricaoObrigatorio: string;
+  descricaoOpcionalLabel: string;
   placeholderDescricaoTransferencia: string;
   placeholderDescricaoGeral: string;
+  fornecedorLabel: string;
+  semFornecedorOpcao: string;
   valorTotalCompraLabel: string;
   valorObrigatorioLabel: string;
   contextoObrigatorio: string;
@@ -271,6 +284,7 @@ export interface FinanceiroDict {
   selecioneCartaoErro: string;
   selecioneOrigemDestinoErro: string;
   cotacaoNaoConfirmadaErro: string;
+  selecioneFornecedorOuDescricaoErro: string;
   lancarTransacaoBtn: string;
 
   // TransacoesManager
@@ -449,6 +463,10 @@ export const financeiro: FinanceiroDict = {
   categoriasVazio: "Nenhuma categoria cadastrada ainda.",
   cliqueParaExcluirTitle: "Clique para excluir",
 
+  fornecedoresTitulo: "Fornecedores",
+  btnNovoFornecedor: "+ Novo",
+  fornecedoresVazio: "Nenhum fornecedor cadastrado ainda.",
+
   contasCarteirasTitulo: "Contas & Carteiras",
   btnNovaConta: "+ Nova",
   contasVazio: "Nenhuma conta cadastrada ainda.",
@@ -468,6 +486,11 @@ export const financeiro: FinanceiroDict = {
   corLabel: "Cor",
   escolherCorAria: "Escolher cor {hex}",
   criarCategoriaBtn: "Criar Categoria",
+
+  novoFornecedorTitulo: "Novo Fornecedor",
+  nomeFornecedorObrigatorio: "Nome *",
+  placeholderNomeFornecedor: "Ex: Mercado Livre",
+  criarFornecedorBtn: "Criar Fornecedor",
 
   novaContaTitulo: "Nova Conta / Carteira",
   editarContaTitulo: "Editar Conta / Carteira",
@@ -499,9 +522,11 @@ export const financeiro: FinanceiroDict = {
 
   editarTransacaoTitulo: "Editar Transação",
   novaTransacaoTitulo: "Nova Transação",
-  descricaoObrigatorio: "Descrição *",
+  descricaoOpcionalLabel: "Descrição (opcional)",
   placeholderDescricaoTransferencia: "Ex: Transferência para reserva",
   placeholderDescricaoGeral: "Ex: Assinatura Adobe CC",
+  fornecedorLabel: "Fornecedor",
+  semFornecedorOpcao: "Sem fornecedor",
   valorTotalCompraLabel: "Valor Total da Compra *",
   valorObrigatorioLabel: "Valor *",
   contextoObrigatorio: "Contexto *",
@@ -539,12 +564,13 @@ export const financeiro: FinanceiroDict = {
   selecioneCartaoErro: "Selecione o cartão.",
   selecioneOrigemDestinoErro: "Selecione a conta de origem e a de destino.",
   cotacaoNaoConfirmadaErro: "Não conseguimos confirmar a cotação do dia — tente atualizar antes de salvar.",
+  selecioneFornecedorOuDescricaoErro: "Selecione um fornecedor ou preencha a descrição.",
   lancarTransacaoBtn: "Lançar Transação",
 
   transacoesDoMesTitulo: "Transações do Mês",
   lancamentosContagem: "{filtradas} de {total} lançamento(s)",
   vencidasContagem: "{vencidas} vencida(s)",
-  placeholderBusca: "Descrição, categoria, conta...",
+  placeholderBusca: "Descrição, fornecedor, categoria, conta...",
   semContaOuCartaoVazio: "Cadastre uma conta ou cartão primeiro para começar a lançar transações.",
   semTransacoesMes: "Nenhuma transação lançada nesse mês.",
   semTransacoesFiltro: "Nenhuma transação corresponde aos filtros atuais.",

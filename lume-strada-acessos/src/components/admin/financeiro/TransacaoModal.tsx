@@ -8,6 +8,7 @@ import type {
   FinContexto,
   FinRecorrencia,
   FinTipoTransacao,
+  FornecedorRow,
   MoedaEstrangeira,
   TransacaoComRelacoes,
 } from "@/lib/types/financeiro";
@@ -17,6 +18,8 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { IconPlus } from "@/components/ui/icons";
+import { NovoFornecedorModal } from "@/components/admin/financeiro/NovoFornecedorModal";
 import { fmtBRL, fmtMoedaEstrangeira } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -25,6 +28,7 @@ interface TransacaoModalProps {
   contas: ContaComSaldo[];
   cartoes: CartaoComLimite[];
   categorias: CategoriaRow[];
+  fornecedores: FornecedorRow[];
   contextoInicial: "todos" | FinContexto;
   /** Quando presente, o modal abre em modo edição pré-preenchido com essa transação (ver `TransacoesManager`). */
   transacaoParaEditar?: TransacaoComRelacoes | null;
@@ -41,6 +45,7 @@ export function TransacaoModal({
   contas,
   cartoes,
   categorias,
+  fornecedores,
   contextoInicial,
   transacaoParaEditar,
   tipoInicial,
@@ -64,6 +69,13 @@ export function TransacaoModal({
   const [contaDestinoId, setContaDestinoId] = useState(editando?.conta_destino_id ?? "");
   const [cartaoId, setCartaoId] = useState(editando?.cartao_id ?? "");
   const [categoriaId, setCategoriaId] = useState(editando?.categoria_id ?? "");
+  // Fornecedor — só faz sentido pra despesa (ver `fin_fornecedores`/pedido do
+  // usuário: "no financeiro... o fornecedor é onde eu comprei"). Mantemos uma
+  // cópia local da lista pra poder inserir o recém-criado pelo "+" sem
+  // esperar o `revalidatePath` recarregar a página inteira por trás do modal.
+  const [fornecedorId, setFornecedorId] = useState(editando?.fornecedor_id ?? "");
+  const [fornecedoresLocais, setFornecedoresLocais] = useState(fornecedores);
+  const [fornecedorModalAberto, setFornecedorModalAberto] = useState(false);
   const [recorrente, setRecorrente] = useState(editando?.recorrente ?? false);
   const [recorrenciaIntervalo, setRecorrenciaIntervalo] = useState<FinRecorrencia>(editando?.recorrencia_intervalo ?? "mensal");
   const [dataVencimento, setDataVencimento] = useState(editando?.data_vencimento ?? new Date().toISOString().slice(0, 10));
@@ -91,6 +103,10 @@ export function TransacaoModal({
   const categoriasDoTipo = useMemo(
     () => categorias.filter((c) => tipo === "transferencia" || c.tipo === tipo),
     [categorias, tipo]
+  );
+  const fornecedorSelecionado = useMemo(
+    () => fornecedoresLocais.find((f) => f.id === fornecedorId) ?? null,
+    [fornecedoresLocais, fornecedorId]
   );
 
   async function atualizarCotacao(moedaAlvo: MoedaEstrangeira) {
@@ -135,15 +151,25 @@ export function TransacaoModal({
       setError(dict.financeiro.cotacaoNaoConfirmadaErro);
       return;
     }
+    if (tipo === "despesa" && !fornecedorId && !descricao.trim()) {
+      setError(dict.financeiro.selecioneFornecedorOuDescricaoErro);
+      return;
+    }
+
+    // Sem descrição digitada, usa o nome do fornecedor — mantém `descricao`
+    // (NOT NULL no banco) sempre preenchida sem exigir nada de quem já não
+    // usa fornecedor (receita/transferência, ou despesa avulsa sem cadastro).
+    const descricaoFinal = descricao.trim() || fornecedorSelecionado?.nome || "";
 
     setLoading(true);
 
     if (!editando && parcelado) {
       const result = await criarTransacaoParcelada({
-        descricao,
+        descricao: descricaoFinal,
         valorTotal: valorFinalBRL,
         numParcelas,
         categoriaId: categoriaId || null,
+        fornecedorId: tipo === "despesa" ? fornecedorId || null : null,
         contexto,
         contaId: fonte === "conta" ? contaId : null,
         cartaoId: fonte === "cartao" ? cartaoId : null,
@@ -163,9 +189,10 @@ export function TransacaoModal({
 
     const payload = {
       tipo,
-      descricao,
+      descricao: descricaoFinal,
       valor: valorFinalBRL,
       categoriaId: tipo === "transferencia" ? null : categoriaId || null,
+      fornecedorId: tipo === "despesa" ? fornecedorId || null : null,
       contexto,
       contaId: tipo === "transferencia" ? contaId : fonte === "conta" ? contaId : null,
       contaDestinoId: tipo === "transferencia" ? contaDestinoId : null,
@@ -213,6 +240,7 @@ export function TransacaoModal({
                   onClick={() => {
                     setTipo(opcao.value);
                     setCategoriaId("");
+                    if (opcao.value !== "despesa") setFornecedorId("");
                     if (opcao.value === "receita") setFonte("conta");
                   }}
                   className={cn(
@@ -226,10 +254,34 @@ export function TransacaoModal({
             </div>
           </div>
 
+          {tipo === "despesa" && (
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.fornecedorLabel}</label>
+              <div className="flex gap-2">
+                <Select value={fornecedorId} onChange={(e) => setFornecedorId(e.target.value)} className="flex-1">
+                  <option value="">{dict.financeiro.semFornecedorOpcao}</option>
+                  {fornecedoresLocais.map((fornecedor) => (
+                    <option key={fornecedor.id} value={fornecedor.id}>
+                      {fornecedor.nome}
+                    </option>
+                  ))}
+                </Select>
+                <button
+                  type="button"
+                  onClick={() => setFornecedorModalAberto(true)}
+                  className="flex shrink-0 items-center justify-center rounded-lg border border-base-700 bg-base-950/60 px-3 text-ink-secondary hover:text-ink-primary"
+                  title={dict.financeiro.btnNovoFornecedor}
+                  aria-label={dict.financeiro.btnNovoFornecedor}
+                >
+                  <IconPlus className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.descricaoObrigatorio}</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.descricaoOpcionalLabel}</label>
             <Input
-              required
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
               placeholder={tipo === "transferencia" ? dict.financeiro.placeholderDescricaoTransferencia : dict.financeiro.placeholderDescricaoGeral}
@@ -523,6 +575,17 @@ export function TransacaoModal({
             </Button>
           </div>
         </form>
+
+        {fornecedorModalAberto && (
+          <NovoFornecedorModal
+            onClose={() => setFornecedorModalAberto(false)}
+            onCriado={(fornecedor) => {
+              setFornecedoresLocais((prev) => [...prev, fornecedor].sort((a, b) => a.nome.localeCompare(b.nome)));
+              setFornecedorId(fornecedor.id);
+              setFornecedorModalAberto(false);
+            }}
+          />
+        )}
       </div>
     </div>
   );

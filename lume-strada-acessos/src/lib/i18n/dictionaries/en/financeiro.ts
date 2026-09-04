@@ -156,6 +156,10 @@ export const financeiro: FinanceiroDict = {
   categoriasVazio: "No categories registered yet.",
   cliqueParaExcluirTitle: "Click to delete",
 
+  fornecedoresTitulo: "Suppliers",
+  btnNovoFornecedor: "+ New",
+  fornecedoresVazio: "No suppliers registered yet.",
+
   contasCarteirasTitulo: "Accounts & Wallets",
   btnNovaConta: "+ New",
   contasVazio: "No accounts registered yet.",
@@ -175,6 +179,11 @@ export const financeiro: FinanceiroDict = {
   corLabel: "Color",
   escolherCorAria: "Choose color {hex}",
   criarCategoriaBtn: "Create Category",
+
+  novoFornecedorTitulo: "New Supplier",
+  nomeFornecedorObrigatorio: "Name *",
+  placeholderNomeFornecedor: "E.g.: Amazon",
+  criarFornecedorBtn: "Create Supplier",
 
   novaContaTitulo: "New Account / Wallet",
   editarContaTitulo: "Edit Account / Wallet",
@@ -206,9 +215,11 @@ export const financeiro: FinanceiroDict = {
 
   editarTransacaoTitulo: "Edit Transaction",
   novaTransacaoTitulo: "New Transaction",
-  descricaoObrigatorio: "Description *",
+  descricaoOpcionalLabel: "Description (optional)",
   placeholderDescricaoTransferencia: "E.g.: Transfer to savings",
   placeholderDescricaoGeral: "E.g.: Adobe CC Subscription",
+  fornecedorLabel: "Supplier",
+  semFornecedorOpcao: "No supplier",
   valorTotalCompraLabel: "Total Purchase Amount *",
   valorObrigatorioLabel: "Amount *",
   contextoObrigatorio: "Context *",
@@ -246,12 +257,13 @@ export const financeiro: FinanceiroDict = {
   selecioneCartaoErro: "Select the card.",
   selecioneOrigemDestinoErro: "Select the source and destination accounts.",
   cotacaoNaoConfirmadaErro: "We couldn't confirm today's exchange rate — try refreshing before saving.",
+  selecioneFornecedorOuDescricaoErro: "Select a supplier or fill in the description.",
   lancarTransacaoBtn: "Record Transaction",
 
   transacoesDoMesTitulo: "Transactions This Month",
   lancamentosContagem: "{filtradas} of {total} entries",
   vencidasContagem: "{vencidas} overdue",
-  placeholderBusca: "Description, category, account...",
+  placeholderBusca: "Description, supplier, category, account...",
   semContaOuCartaoVazio: "Register an account or card first to start recording transactions.",
   semTransacoesMes: "No transactions recorded this month.",
   semTransacoesFiltro: "No transactions match the current filters.",

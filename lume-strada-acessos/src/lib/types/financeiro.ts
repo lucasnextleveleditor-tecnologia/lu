@@ -49,12 +49,21 @@ export interface CategoriaRow {
   created_at: string;
 }
 
+/** Cadastro de fornecedor — só nome, reaproveitável entre lançamentos (ver `supabase/financeiro-fornecedores.sql`). Sem tipo/cor/emoji: diferente de categoria, fornecedor não precisa de nenhum dos três. */
+export interface FornecedorRow {
+  id: string;
+  nome: string;
+  created_at: string;
+}
+
 export interface TransacaoRow {
   id: string;
   tipo: FinTipoTransacao;
   descricao: string;
   valor: number;
   categoria_id: string | null;
+  /** Onde a compra foi feita — opcional, separado de `descricao` (ver `supabase/financeiro-fornecedores.sql`). `null` em transações antigas (lançadas antes desse campo existir) e em transferências, que não têm fornecedor. */
+  fornecedor_id: string | null;
   contexto: FinContexto;
   conta_id: string | null;
   conta_destino_id: string | null;
@@ -80,6 +89,7 @@ export interface TransacaoRow {
 
 export type TransacaoComRelacoes = TransacaoRow & {
   categoria_nome: string | null;
+  fornecedor_nome: string | null;
   conta_nome: string | null;
   conta_destino_nome: string | null;
   cartao_nome: string | null;

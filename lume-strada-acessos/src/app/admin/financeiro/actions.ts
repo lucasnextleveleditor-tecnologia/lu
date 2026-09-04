@@ -200,6 +200,43 @@ export async function removerCategoria(id: string): Promise<ActionResult> {
 }
 
 // ----------------------------------------------------------------------------
+// Fornecedores
+// ----------------------------------------------------------------------------
+/**
+ * Cadastro reaproveitável de fornecedor (ver `supabase/financeiro-fornecedores.sql`)
+ * — chamada tanto pelo `FornecedoresCard` (tela cheia) quanto pelo botão "+"
+ * dentro do `TransacaoModal` (`NovoFornecedorModal`), que precisa do `id`
+ * de volta pra já deixar o fornecedor recém-criado selecionado no
+ * formulário sem fechar o modal.
+ */
+export async function criarFornecedor(input: { nome: string }): Promise<ActionResultId> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+    if (!input.nome.trim()) return { ok: false, error: "Informe o nome do fornecedor." };
+
+    const { data, error } = await supabase.from("fin_fornecedores").insert({ nome: input.nome.trim() }).select("id").single();
+    // 23505 = já existe um fornecedor com esse nome nesta empresa (constraint única).
+    if (error) return { ok: false, error: error.code === "23505" ? "Já existe um fornecedor com esse nome." : error.message };
+    revalidatePath(PATH);
+    return { ok: true, id: data.id };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+export async function removerFornecedor(id: string): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+    const { error } = await supabase.from("fin_fornecedores").delete().eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+// ----------------------------------------------------------------------------
 // Transações
 // ----------------------------------------------------------------------------
 export interface CriarTransacaoInput {
@@ -208,6 +245,8 @@ export interface CriarTransacaoInput {
   /** Sempre em BRL — se a transação foi lançada em moeda estrangeira, já vem convertida (ver `moedaOriginal`/`taxaCambio` abaixo). */
   valor: number;
   categoriaId: string | null;
+  /** Onde a compra foi feita — `null` pra transferência (não se aplica) e opcional pra receita/despesa. */
+  fornecedorId: string | null;
   contexto: FinContexto;
   contaId: string | null;
   contaDestinoId: string | null;
@@ -253,6 +292,7 @@ export async function criarTransacao(input: CriarTransacaoInput): Promise<Action
         descricao: input.descricao.trim(),
         valor: input.valor,
         categoria_id: input.categoriaId,
+        fornecedor_id: input.fornecedorId,
         contexto: input.contexto,
         conta_id: input.cartaoId ? null : input.contaId,
         conta_destino_id: null,
@@ -279,6 +319,7 @@ export async function criarTransacao(input: CriarTransacaoInput): Promise<Action
       descricao: input.descricao.trim(),
       valor: input.valor,
       categoria_id: input.tipo === "transferencia" ? null : input.categoriaId,
+      fornecedor_id: input.tipo === "transferencia" ? null : input.fornecedorId,
       contexto: input.contexto,
       conta_id: input.tipo === "transferencia" ? input.contaId : input.cartaoId ? null : input.contaId,
       conta_destino_id: input.tipo === "transferencia" ? input.contaDestinoId : null,
@@ -348,6 +389,7 @@ export async function atualizarTransacao(id: string, input: CriarTransacaoInput)
         descricao: input.descricao.trim(),
         valor: input.valor,
         categoria_id: input.tipo === "transferencia" ? null : input.categoriaId,
+        fornecedor_id: input.tipo === "transferencia" ? null : input.fornecedorId,
         contexto: input.contexto,
         conta_id: input.tipo === "transferencia" ? input.contaId : input.cartaoId ? null : input.contaId,
         conta_destino_id: input.tipo === "transferencia" ? input.contaDestinoId : null,
@@ -378,6 +420,7 @@ export async function atualizarTransacao(id: string, input: CriarTransacaoInput)
           descricao: input.descricao.trim(),
           valor: input.valor,
           categoria_id: input.categoriaId,
+          fornecedor_id: input.fornecedorId,
           contexto: input.contexto,
           conta_id: input.cartaoId ? null : input.contaId,
           conta_destino_id: null,
@@ -543,6 +586,7 @@ export interface CriarTransacaoParceladaInput {
   valorTotal: number;
   numParcelas: number;
   categoriaId: string | null;
+  fornecedorId: string | null;
   contexto: FinContexto;
   contaId: string | null;
   cartaoId: string | null;
@@ -594,6 +638,7 @@ export async function criarTransacaoParcelada(input: CriarTransacaoParceladaInpu
         descricao: input.descricao.trim(),
         valor: centavosParcela / 100,
         categoria_id: input.categoriaId,
+        fornecedor_id: input.fornecedorId,
         contexto: input.contexto,
         conta_id: input.cartaoId ? null : input.contaId,
         conta_destino_id: null,

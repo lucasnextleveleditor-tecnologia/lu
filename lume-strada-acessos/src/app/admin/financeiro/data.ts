@@ -6,6 +6,7 @@ import type {
   ContaRow,
   ContaSaldoRow,
   FinContexto,
+  FornecedorRow,
   TransacaoComRelacoes,
   TransacaoRow,
 } from "@/lib/types/financeiro";
@@ -31,12 +32,13 @@ export async function buscarDadosFinanceiro(searchParams: FinanceiroSearchParams
     searchParams.contexto === "pessoal" || searchParams.contexto === "profissional" ? searchParams.contexto : "todos";
   const { inicio, fim } = limitesDoMes(referencia);
 
-  const [contasRes, contasSaldoRes, cartoesRes, cartoesLimiteRes, categoriasRes, transacoesRes] = await Promise.all([
+  const [contasRes, contasSaldoRes, cartoesRes, cartoesLimiteRes, categoriasRes, fornecedoresRes, transacoesRes] = await Promise.all([
     supabase.from("fin_contas").select("*").order("nome").overrideTypes<ContaRow[], { merge: false }>(),
     supabase.from("fin_contas_saldo").select("*").overrideTypes<ContaSaldoRow[], { merge: false }>(),
     supabase.from("fin_cartoes").select("*").order("nome").overrideTypes<CartaoRow[], { merge: false }>(),
     supabase.from("fin_cartoes_limite").select("*").overrideTypes<CartaoLimiteRow[], { merge: false }>(),
     supabase.from("fin_categorias").select("*").order("nome").overrideTypes<CategoriaRow[], { merge: false }>(),
+    supabase.from("fin_fornecedores").select("*").order("nome").overrideTypes<FornecedorRow[], { merge: false }>(),
     supabase
       .from("fin_transacoes")
       .select("*")
@@ -51,6 +53,7 @@ export async function buscarDadosFinanceiro(searchParams: FinanceiroSearchParams
   const cartoes = cartoesRes.data ?? [];
   const limites = cartoesLimiteRes.data ?? [];
   const categorias = categoriasRes.data ?? [];
+  const fornecedores = fornecedoresRes.data ?? [];
   const transacoesBrutas = transacoesRes.data ?? [];
 
   // Junta as views calculadas (saldo/limite) nas tabelas base em memória —
@@ -61,6 +64,7 @@ export async function buscarDadosFinanceiro(searchParams: FinanceiroSearchParams
   const nomeConta = new Map(contas.map((c) => [c.id, c.nome]));
   const nomeCartao = new Map(cartoes.map((c) => [c.id, c.nome]));
   const nomeCategoria = new Map(categorias.map((c) => [c.id, c.emoji ? `${c.emoji} ${c.nome}` : c.nome]));
+  const nomeFornecedor = new Map(fornecedores.map((f) => [f.id, f.nome]));
 
   const contasComSaldo = contas.map((c) => ({ ...c, saldo_atual: saldoPorConta.get(c.id) ?? c.saldo_inicial }));
   const cartoesComLimite = cartoes.map((c) => {
@@ -73,6 +77,7 @@ export async function buscarDadosFinanceiro(searchParams: FinanceiroSearchParams
     .map((t) => ({
       ...t,
       categoria_nome: t.categoria_id ? (nomeCategoria.get(t.categoria_id) ?? null) : null,
+      fornecedor_nome: t.fornecedor_id ? (nomeFornecedor.get(t.fornecedor_id) ?? null) : null,
       conta_nome: t.conta_id ? (nomeConta.get(t.conta_id) ?? null) : null,
       conta_destino_nome: t.conta_destino_id ? (nomeConta.get(t.conta_destino_id) ?? null) : null,
       cartao_nome: t.cartao_id ? (nomeCartao.get(t.cartao_id) ?? null) : null,
@@ -93,6 +98,7 @@ export async function buscarDadosFinanceiro(searchParams: FinanceiroSearchParams
     contasComSaldo,
     cartoesComLimite,
     categorias,
+    fornecedores,
     transacoes,
     contasFiltradas,
     cartoesFiltrados,

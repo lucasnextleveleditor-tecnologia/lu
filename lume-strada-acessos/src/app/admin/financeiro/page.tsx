@@ -21,6 +21,7 @@ import { ContextoToggle } from "@/components/admin/financeiro/ContextoToggle";
 import { ContasCard } from "@/components/admin/financeiro/ContasCard";
 import { CartoesCard } from "@/components/admin/financeiro/CartoesCard";
 import { CategoriasCard } from "@/components/admin/financeiro/CategoriasCard";
+import { FornecedoresCard } from "@/components/admin/financeiro/FornecedoresCard";
 import { TransacoesManager } from "@/components/admin/financeiro/TransacoesManager";
 import { GraficoReceitaDespesa } from "@/components/admin/financeiro/GraficoReceitaDespesa";
 import { GraficoDespesasPorCategoria } from "@/components/admin/financeiro/GraficoDespesasPorCategoria";
@@ -50,6 +51,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
     mesParamStr,
     contasComSaldo,
     categorias,
+    fornecedores,
     transacoes,
     contasFiltradas,
     cartoesFiltrados,
@@ -93,6 +95,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
               tipo: t.tipo,
               valor: t.valor.toFixed(2),
               status: STATUS_TRANSACAO_META[calcularStatusTransacao(t)].label,
+              fornecedor: t.fornecedor_nome ?? "",
               categoria: t.categoria_nome ?? "",
               conta: t.conta_nome ?? t.cartao_nome ?? "",
               parcela: t.parcela_total ? `${t.parcela_numero}/${t.parcela_total}` : "",
@@ -104,6 +107,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
               { chave: "tipo", rotulo: dict.financeiro.tipoLabel },
               { chave: "valor", rotulo: dict.financeiro.valorReaisLabel },
               { chave: "status", rotulo: dict.common.status },
+              { chave: "fornecedor", rotulo: dict.financeiro.fornecedorLabel },
               { chave: "categoria", rotulo: dict.common.categoria },
               { chave: "conta", rotulo: dict.financeiro.contaCartaoLabel },
               { chave: "parcela", rotulo: dict.financeiro.parcelaLabel },
@@ -201,10 +205,11 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
         <ContasCard contas={contasFiltradas} />
         <CartoesCard cartoes={cartoesFiltrados} contas={contasComSaldo} referencia={referencia} />
         <CategoriasCard categorias={categorias} />
+        <FornecedoresCard fornecedores={fornecedores} />
       </div>
 
       <div id="financeiro-transacoes-export">
@@ -213,6 +218,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
           contas={contasFiltradas}
           cartoes={cartoesFiltrados}
           categorias={categorias}
+          fornecedores={fornecedores}
           contexto={contexto}
         />
       </div>
