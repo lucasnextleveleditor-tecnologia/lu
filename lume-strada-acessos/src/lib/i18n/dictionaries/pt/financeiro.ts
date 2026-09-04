@@ -88,12 +88,44 @@ export interface CaixinhasDict {
   confirmarRendimentoBtn: string;
 }
 
+/**
+ * Sub-módulo Fluxo de Caixa (`/admin/financeiro/fluxo-caixa`) — projeção de
+ * saldo dia a dia, opcional, em tela própria (ver comentário na página).
+ */
+export interface FluxoCaixaDict {
+  tituloPagina: string;
+  subtituloPagina: string;
+  periodoLabel: string;
+  periodoOpcaoDias: string;
+
+  statSaldoAtual: string;
+  statSaldoProjetado: string;
+  hintSaldoProjetadoFim: string;
+  statMenorSaldo: string;
+  hintMenorSaldoData: string;
+  alertaSaldoNegativoTexto: string;
+
+  graficoTitulo: string;
+  graficoSubtitulo: string;
+  graficoSaldoPositivoLegenda: string;
+  graficoSaldoNegativoLegenda: string;
+  graficoTooltip: string;
+  semDados: string;
+}
+
 export interface FinanceiroDict {
   caixinhas: CaixinhasDict;
+  fluxoCaixa: FluxoCaixaDict;
 
   // Geral / reaproveitado em vários componentes do módulo
   tituloPagina: string;
   subtituloPagina: string;
+
+  // Links de navegação pra Fluxo de Caixa/Fornecedores no cabeçalho da
+  // página principal — as duas telas viraram sub-rotas próprias, fora do
+  // dashboard principal (pedido explícito do dono da conta).
+  btnFluxoCaixa: string;
+  btnFornecedoresLink: string;
 
   // Telas de detalhe por categoria (StatTiles clicáveis: /receitas, /despesas, /contas, /cartoes)
   voltarParaFinanceiro: string;
@@ -180,6 +212,10 @@ export interface FinanceiroDict {
   fornecedoresTitulo: string;
   btnNovoFornecedor: string;
   fornecedoresVazio: string;
+
+  // Página própria /admin/financeiro/fornecedores (reaproveita o FornecedoresCard acima)
+  fornecedoresTituloPagina: string;
+  fornecedoresSubtituloPagina: string;
 
   // ContasCard
   contasCarteirasTitulo: string;
@@ -386,8 +422,32 @@ export const financeiro: FinanceiroDict = {
     confirmarRendimentoBtn: "Confirmar Rendimento",
   },
 
+  fluxoCaixa: {
+    tituloPagina: "Fluxo de Caixa",
+    subtituloPagina: "Projeção dia a dia do saldo das contas, a partir das receitas e despesas pendentes já lançadas.",
+    periodoLabel: "Período",
+    periodoOpcaoDias: "{n} dias",
+
+    statSaldoAtual: "Saldo Atual",
+    statSaldoProjetado: "Saldo Projetado",
+    hintSaldoProjetadoFim: "Previsto para {data}",
+    statMenorSaldo: "Menor Saldo do Período",
+    hintMenorSaldoData: "Ponto mais baixo em {data}",
+    alertaSaldoNegativoTexto: "O saldo projetado fica negativo em {data} — as pendências já lançadas superam o saldo atual das contas.",
+
+    graficoTitulo: "Projeção de Saldo",
+    graficoSubtitulo: "Saldo das contas dia a dia, somando receitas e descontando despesas pendentes conforme o vencimento.",
+    graficoSaldoPositivoLegenda: "Saldo positivo",
+    graficoSaldoNegativoLegenda: "Saldo negativo",
+    graficoTooltip: "{data}: {valor}",
+    semDados: "Nenhuma conta cadastrada para projetar o saldo.",
+  },
+
   tituloPagina: "Financeiro",
   subtituloPagina: "Contas, cartões e lançamentos da agência.",
+
+  btnFluxoCaixa: "Fluxo de Caixa",
+  btnFornecedoresLink: "Fornecedores",
 
   voltarParaFinanceiro: "Voltar pro Financeiro",
   receitasTituloPagina: "Receitas",
@@ -466,6 +526,9 @@ export const financeiro: FinanceiroDict = {
   fornecedoresTitulo: "Fornecedores",
   btnNovoFornecedor: "+ Novo",
   fornecedoresVazio: "Nenhum fornecedor cadastrado ainda.",
+
+  fornecedoresTituloPagina: "Fornecedores",
+  fornecedoresSubtituloPagina: "Cadastro de fornecedores reaproveitável nos lançamentos de despesa — edite ou remova sem precisar abrir uma transação.",
 
   contasCarteirasTitulo: "Contas & Carteiras",
   btnNovaConta: "+ Nova",

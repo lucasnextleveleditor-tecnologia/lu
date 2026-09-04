@@ -101,6 +101,23 @@ export type ContaComSaldo = ContaRow & { saldo_atual: number };
 /** Cartão enriquecido com o limite calculado (view `fin_cartoes_limite`). */
 export type CartaoComLimite = CartaoRow & { limite_consumido: number; limite_disponivel: number };
 
+/**
+ * Um dia da projeção de fluxo de caixa (`buscarFluxoCaixa`,
+ * `/admin/financeiro/fluxo-caixa`) — saldo acumulado dia a dia a partir do
+ * saldo atual das contas, somando receitas e descontando despesas
+ * PENDENTES (não pagas) vinculadas a uma conta (`conta_id`, nunca cartão —
+ * fatura de cartão só afeta o saldo quando a própria fatura é paga, que já
+ * é uma transação separada com `conta_id`) que vencem naquele dia.
+ * Transações vencidas (não pagas, com vencimento no passado) entram todas
+ * no dia 0 — não têm outro dia "certo" pra cair.
+ */
+export interface FluxoCaixaPonto {
+  data: string; // ISO date
+  saldoProjetado: number;
+  receitas: number;
+  despesas: number;
+}
+
 export type StatusTransacao = "pendente" | "paga" | "vencida";
 
 export function calcularStatusTransacao(t: Pick<TransacaoRow, "pago" | "data_vencimento">): StatusTransacao {

@@ -79,8 +79,32 @@ export const financeiro: FinanceiroDict = {
     confirmarRendimentoBtn: "Confirm Yield",
   },
 
+  fluxoCaixa: {
+    tituloPagina: "Cash Flow",
+    subtituloPagina: "Day-by-day projection of your account balance, based on pending income and expenses already logged.",
+    periodoLabel: "Period",
+    periodoOpcaoDias: "{n} days",
+
+    statSaldoAtual: "Current Balance",
+    statSaldoProjetado: "Projected Balance",
+    hintSaldoProjetadoFim: "Projected for {data}",
+    statMenorSaldo: "Lowest Balance in Period",
+    hintMenorSaldoData: "Lowest point on {data}",
+    alertaSaldoNegativoTexto: "Projected balance goes negative on {data} — pending items already logged exceed the current account balance.",
+
+    graficoTitulo: "Balance Projection",
+    graficoSubtitulo: "Account balance day by day, adding pending income and subtracting pending expenses by due date.",
+    graficoSaldoPositivoLegenda: "Positive balance",
+    graficoSaldoNegativoLegenda: "Negative balance",
+    graficoTooltip: "{data}: {valor}",
+    semDados: "No accounts registered to project a balance.",
+  },
+
   tituloPagina: "Finance",
   subtituloPagina: "Accounts, cards and transactions for the agency.",
+
+  btnFluxoCaixa: "Cash Flow",
+  btnFornecedoresLink: "Suppliers",
 
   voltarParaFinanceiro: "Back to Finance",
   receitasTituloPagina: "Income",
@@ -159,6 +183,9 @@ export const financeiro: FinanceiroDict = {
   fornecedoresTitulo: "Suppliers",
   btnNovoFornecedor: "+ New",
   fornecedoresVazio: "No suppliers registered yet.",
+
+  fornecedoresTituloPagina: "Suppliers",
+  fornecedoresSubtituloPagina: "Reusable supplier registry for expense entries — edit or remove without opening a transaction.",
 
   contasCarteirasTitulo: "Accounts & Wallets",
   btnNovaConta: "+ New",

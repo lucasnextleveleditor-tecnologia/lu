@@ -79,8 +79,32 @@ export const financeiro: FinanceiroDict = {
     confirmarRendimentoBtn: "Confirmar Rendimiento",
   },
 
+  fluxoCaixa: {
+    tituloPagina: "Flujo de Caja",
+    subtituloPagina: "Proyección día a día del saldo de tus cuentas, a partir de los ingresos y gastos pendientes ya registrados.",
+    periodoLabel: "Período",
+    periodoOpcaoDias: "{n} días",
+
+    statSaldoAtual: "Saldo Actual",
+    statSaldoProjetado: "Saldo Proyectado",
+    hintSaldoProjetadoFim: "Previsto para {data}",
+    statMenorSaldo: "Saldo Más Bajo del Período",
+    hintMenorSaldoData: "Punto más bajo el {data}",
+    alertaSaldoNegativoTexto: "El saldo proyectado se vuelve negativo el {data} — las pendientes ya registradas superan el saldo actual de las cuentas.",
+
+    graficoTitulo: "Proyección de Saldo",
+    graficoSubtitulo: "Saldo de las cuentas día a día, sumando ingresos y restando gastos pendientes según el vencimiento.",
+    graficoSaldoPositivoLegenda: "Saldo positivo",
+    graficoSaldoNegativoLegenda: "Saldo negativo",
+    graficoTooltip: "{data}: {valor}",
+    semDados: "No hay cuentas registradas para proyectar el saldo.",
+  },
+
   tituloPagina: "Finanzas",
   subtituloPagina: "Cuentas, tarjetas y movimientos de la agencia.",
+
+  btnFluxoCaixa: "Flujo de Caja",
+  btnFornecedoresLink: "Proveedores",
 
   voltarParaFinanceiro: "Volver a Finanzas",
   receitasTituloPagina: "Ingresos",
@@ -159,6 +183,9 @@ export const financeiro: FinanceiroDict = {
   fornecedoresTitulo: "Proveedores",
   btnNovoFornecedor: "+ Nuevo",
   fornecedoresVazio: "Todavía no hay proveedores registrados.",
+
+  fornecedoresTituloPagina: "Proveedores",
+  fornecedoresSubtituloPagina: "Registro de proveedores reutilizable en los gastos — edita o elimina sin abrir una transacción.",
 
   contasCarteirasTitulo: "Cuentas y Billeteras",
   btnNovaConta: "+ Nueva",

@@ -15,13 +15,14 @@ import {
   IconPiggyBank,
   IconBarChart2,
   IconTag,
+  IconActivity,
+  IconShoppingBag,
 } from "@/components/ui/icons";
 import { MesNav } from "@/components/admin/financeiro/MesNav";
 import { ContextoToggle } from "@/components/admin/financeiro/ContextoToggle";
 import { ContasCard } from "@/components/admin/financeiro/ContasCard";
 import { CartoesCard } from "@/components/admin/financeiro/CartoesCard";
 import { CategoriasCard } from "@/components/admin/financeiro/CategoriasCard";
-import { FornecedoresCard } from "@/components/admin/financeiro/FornecedoresCard";
 import { TransacoesManager } from "@/components/admin/financeiro/TransacoesManager";
 import { GraficoReceitaDespesa } from "@/components/admin/financeiro/GraficoReceitaDespesa";
 import { GraficoDespesasPorCategoria } from "@/components/admin/financeiro/GraficoDespesasPorCategoria";
@@ -83,6 +84,25 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
           <p className="mt-0.5 text-sm text-ink-muted">{dict.financeiro.subtituloPagina}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          {/* Fluxo de Caixa e Fornecedores viraram telas próprias, fora do
+              dashboard principal (pedido explícito do dono da conta: aqui
+              "já está carregado demais") — o único rastro deles aqui são
+              esses dois links, no mesmo estilo `ghost` do `Button` (que não
+              suporta `href`, daí não dar pra usar o componente em si). */}
+          <Link
+            href="/admin/financeiro/fluxo-caixa"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-base-600 bg-transparent px-3 py-1.5 text-xs font-medium text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+          >
+            <IconActivity className="h-3.5 w-3.5" />
+            {dict.financeiro.btnFluxoCaixa}
+          </Link>
+          <Link
+            href="/admin/financeiro/fornecedores"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-base-600 bg-transparent px-3 py-1.5 text-xs font-medium text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+          >
+            <IconShoppingBag className="h-3.5 w-3.5" />
+            {dict.financeiro.btnFornecedoresLink}
+          </Link>
           <OlhoValoresToggle />
           <ContextoToggle referencia={referencia} contexto={contexto} />
           <MesNav referencia={referencia} contexto={contexto} />
@@ -205,11 +225,10 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ContasCard contas={contasFiltradas} />
         <CartoesCard cartoes={cartoesFiltrados} contas={contasComSaldo} referencia={referencia} />
         <CategoriasCard categorias={categorias} />
-        <FornecedoresCard fornecedores={fornecedores} />
       </div>
 
       <div id="financeiro-transacoes-export">

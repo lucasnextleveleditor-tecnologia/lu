@@ -109,6 +109,19 @@ export async function buscarDadosFinanceiro(searchParams: FinanceiroSearchParams
   };
 }
 
+/**
+ * Só o cadastro de fornecedores, sem o resto dos dados do mês — usada pela
+ * tela própria `/admin/financeiro/fornecedores` (ver pedido do dono da
+ * conta de tirar o card de Fornecedores do dashboard principal). Reaproveita
+ * o mesmo `fin_fornecedores` que `buscarDadosFinanceiro` já busca, mas sem
+ * trazer contas/cartões/transações do mês à toa.
+ */
+export async function buscarFornecedores(): Promise<FornecedorRow[]> {
+  const { supabase } = await requireModuloOuRedirect("financeiro");
+  const { data } = await supabase.from("fin_fornecedores").select("*").order("nome").overrideTypes<FornecedorRow[], { merge: false }>();
+  return data ?? [];
+}
+
 const MESES_HISTORICO = 6;
 
 export interface HistoricoMensalPonto {
