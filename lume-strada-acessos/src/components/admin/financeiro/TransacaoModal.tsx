@@ -131,11 +131,20 @@ export function TransacaoModal({
   const valorFinalBRL = moeda === "BRL" ? valorDigitado : (taxaCambio ?? 0) * valorDigitado;
   const valorPorParcela = parcelado && numParcelas > 0 ? valorFinalBRL / numParcelas : 0;
 
+  // Conta só é EXIGIDA aqui quando a transação já nasce paga ("Já paga"
+  // marcado) — pedido explícito do dono da conta: numa despesa/receita
+  // pendente, escolher a conta agora é bobagem (pode mudar até lá, pode
+  // existir mais de uma conta pessoal/empresarial); a conta só é perguntada
+  // de verdade na hora de "Dar Baixa" (ver `DarBaixaModal`/`marcarPago`).
+  // Parcelado nunca exige — toda parcela nasce pendente, cada uma escolhe
+  // sua própria conta na hora da baixa dela.
+  const precisaContaAgora = fonte === "conta" && jaPaga && !parcelado;
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (tipo !== "transferencia" && fonte === "conta" && !contaId) {
+    if (tipo !== "transferencia" && precisaContaAgora && !contaId) {
       setError(dict.financeiro.selecioneContaErro);
       return;
     }
@@ -171,7 +180,7 @@ export function TransacaoModal({
         categoriaId: categoriaId || null,
         fornecedorId: tipo === "despesa" ? fornecedorId || null : null,
         contexto,
-        contaId: fonte === "conta" ? contaId : null,
+        contaId: fonte === "conta" ? contaId || null : null,
         cartaoId: fonte === "cartao" ? cartaoId : null,
         dataPrimeiraParcela: dataVencimento,
         moedaOriginal: moeda === "BRL" ? null : moeda,
@@ -194,7 +203,7 @@ export function TransacaoModal({
       categoriaId: tipo === "transferencia" ? null : categoriaId || null,
       fornecedorId: tipo === "despesa" ? fornecedorId || null : null,
       contexto,
-      contaId: tipo === "transferencia" ? contaId : fonte === "conta" ? contaId : null,
+      contaId: tipo === "transferencia" ? contaId : fonte === "conta" ? contaId || null : null,
       contaDestinoId: tipo === "transferencia" ? contaDestinoId : null,
       cartaoId: tipo === "transferencia" ? null : fonte === "cartao" ? cartaoId : null,
       recorrente,
@@ -395,26 +404,37 @@ export function TransacaoModal({
               )}
 
               {fonte === "conta" ? (
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.contaObrigatorio}</label>
-                  {contasDoContexto.length === 0 ? (
-                    <p className="text-xs text-ink-muted">
-                      {dict.financeiro.nenhumaContaContexto.replace(
-                        "{contexto}",
-                        (contexto === "pessoal" ? dict.financeiro.contextoPessoal : dict.financeiro.contextoProfissional).toLowerCase()
-                      )}
+                precisaContaAgora ? (
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.contaObrigatorio}</label>
+                    {contasDoContexto.length === 0 ? (
+                      <p className="text-xs text-ink-muted">
+                        {dict.financeiro.nenhumaContaContexto.replace(
+                          "{contexto}",
+                          (contexto === "pessoal" ? dict.financeiro.contextoPessoal : dict.financeiro.contextoProfissional).toLowerCase()
+                        )}
+                      </p>
+                    ) : (
+                      <Select required value={contaId} onChange={(e) => setContaId(e.target.value)}>
+                        <option value="">{dict.common.selecione}</option>
+                        {contasDoContexto.map((conta) => (
+                          <option key={conta.id} value={conta.id}>
+                            {conta.nome}
+                          </option>
+                        ))}
+                      </Select>
+                    )}
+                  </div>
+                ) : (
+                  // Pendente — não pede a conta agora de propósito (ver
+                  // `precisaContaAgora`), só na hora de "Dar Baixa".
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.contaOpcionalLabel}</label>
+                    <p className="rounded-lg border border-dashed border-base-700 bg-base-950/40 p-3 text-xs text-ink-muted">
+                      {dict.financeiro.contaEscolhidaNaBaixaHint}
                     </p>
-                  ) : (
-                    <Select required value={contaId} onChange={(e) => setContaId(e.target.value)}>
-                      <option value="">{dict.common.selecione}</option>
-                      {contasDoContexto.map((conta) => (
-                        <option key={conta.id} value={conta.id}>
-                          {conta.nome}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
-                </div>
+                  </div>
+                )
               ) : (
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.cartaoObrigatorio}</label>

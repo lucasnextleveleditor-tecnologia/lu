@@ -212,6 +212,8 @@ export interface FinanceiroDict {
   fornecedoresTitulo: string;
   btnNovoFornecedor: string;
   fornecedoresVazio: string;
+  editarFornecedorAria: string;
+  excluirFornecedorAria: string;
 
   // Página própria /admin/financeiro/fornecedores (reaproveita o FornecedoresCard acima)
   fornecedoresTituloPagina: string;
@@ -245,6 +247,20 @@ export interface FinanceiroDict {
   nomeFornecedorObrigatorio: string;
   placeholderNomeFornecedor: string;
   criarFornecedorBtn: string;
+
+  // EditarFornecedorModal — dados de contato, TODOS opcionais (só nome é obrigatório)
+  editarFornecedorTitulo: string;
+  camposOpcionaisFornecedorHint: string;
+  responsavelLabel: string;
+  placeholderResponsavel: string;
+  cnpjLabel: string;
+  placeholderCnpj: string;
+  emailFornecedorLabel: string;
+  placeholderEmailFornecedor: string;
+  telefoneFornecedorLabel: string;
+  placeholderTelefoneFornecedor: string;
+  enderecoFornecedorLabel: string;
+  placeholderEnderecoFornecedor: string;
 
   // NovaContaModal
   novaContaTitulo: string;
@@ -300,6 +316,12 @@ export interface FinanceiroDict {
   cartaoCreditoOpcaoLabel: string;
   contaObrigatorio: string;
   nenhumaContaContexto: string;
+  // Conta fica OPCIONAL na criação enquanto a transação não está paga — só
+  // vira obrigatória de novo em duas situações: "Já paga" marcado aqui, ou
+  // no momento de "Dar Baixa" depois (ver `DarBaixaModal`/pedido do dono da
+  // conta: evitar errar a conta quando existe mais de uma pessoal/empresarial).
+  contaOpcionalLabel: string;
+  contaEscolhidaNaBaixaHint: string;
   cartaoObrigatorio: string;
   nenhumCartaoContexto: string;
   parcelarCompraLabel: string;
@@ -335,6 +357,13 @@ export interface FinanceiroDict {
   baixaInteligenteTitle: string;
   reabrirBtn: string;
   darBaixaBtn: string;
+
+  // DarBaixaModal — só aparece quando a transação ainda não tem conta vinculada
+  darBaixaTitulo: string;
+  darBaixaDescricao: string;
+  contaQuePagouLabel: string;
+  confirmarBaixaBtn: string;
+  nenhumaContaParaBaixa: string;
 
   // Exclusão de transação recorrente (TransacoesManager)
   excluirRecorrenciaPergunta: string;
@@ -526,6 +555,8 @@ export const financeiro: FinanceiroDict = {
   fornecedoresTitulo: "Fornecedores",
   btnNovoFornecedor: "+ Novo",
   fornecedoresVazio: "Nenhum fornecedor cadastrado ainda.",
+  editarFornecedorAria: "Editar fornecedor",
+  excluirFornecedorAria: "Excluir fornecedor",
 
   fornecedoresTituloPagina: "Fornecedores",
   fornecedoresSubtituloPagina: "Cadastro de fornecedores reaproveitável nos lançamentos de despesa — edite ou remova sem precisar abrir uma transação.",
@@ -554,6 +585,19 @@ export const financeiro: FinanceiroDict = {
   nomeFornecedorObrigatorio: "Nome *",
   placeholderNomeFornecedor: "Ex: Mercado Livre",
   criarFornecedorBtn: "Criar Fornecedor",
+
+  editarFornecedorTitulo: "Dados do Fornecedor",
+  camposOpcionaisFornecedorHint: "Preencha só o que quiser — nada aqui é obrigatório além do nome.",
+  responsavelLabel: "Responsável",
+  placeholderResponsavel: "Ex: João, do financeiro",
+  cnpjLabel: "CNPJ",
+  placeholderCnpj: "00.000.000/0000-00",
+  emailFornecedorLabel: "E-mail",
+  placeholderEmailFornecedor: "contato@fornecedor.com",
+  telefoneFornecedorLabel: "Telefone",
+  placeholderTelefoneFornecedor: "(00) 00000-0000",
+  enderecoFornecedorLabel: "Endereço",
+  placeholderEnderecoFornecedor: "Rua, número, cidade",
 
   novaContaTitulo: "Nova Conta / Carteira",
   editarContaTitulo: "Editar Conta / Carteira",
@@ -605,6 +649,8 @@ export const financeiro: FinanceiroDict = {
   cartaoCreditoOpcaoLabel: "Cartão de Crédito",
   contaObrigatorio: "Conta *",
   nenhumaContaContexto: "Nenhuma conta {contexto} cadastrada ainda.",
+  contaOpcionalLabel: "Conta",
+  contaEscolhidaNaBaixaHint: "Você escolhe a conta na hora de dar baixa (marcar como paga) — evita errar quando existe mais de uma conta pessoal ou empresarial.",
   cartaoObrigatorio: "Cartão *",
   nenhumCartaoContexto: "Nenhum cartão {contexto} cadastrado ainda.",
   parcelarCompraLabel: "Parcelar essa compra",
@@ -641,6 +687,12 @@ export const financeiro: FinanceiroDict = {
   baixaInteligenteTitle: "Baixa Inteligente — marca como paga/pendente",
   reabrirBtn: "Reabrir",
   darBaixaBtn: "Dar Baixa",
+
+  darBaixaTitulo: "Dar Baixa",
+  darBaixaDescricao: "De qual conta saiu o pagamento de \"{descricao}\" ({valor})?",
+  contaQuePagouLabel: "Conta",
+  confirmarBaixaBtn: "Confirmar Baixa",
+  nenhumaContaParaBaixa: "Nenhuma conta cadastrada nesse contexto — cadastre uma conta antes de dar baixa.",
 
   excluirRecorrenciaPergunta: "Essa transação é recorrente. O que você quer excluir?",
   excluirSomenteEstaBtn: "Só esta",

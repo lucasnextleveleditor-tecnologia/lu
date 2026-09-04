@@ -203,22 +203,78 @@ export async function removerCategoria(id: string): Promise<ActionResult> {
 // Fornecedores
 // ----------------------------------------------------------------------------
 /**
+ * Todos os campos além de `nome` são OPCIONAIS de propósito (ver comentário
+ * em `FornecedorRow`) — usada tanto por `criarFornecedor` (o `NovoFornecedorModal`
+ * só envia `nome`, o resto fica `undefined`/vira `null`) quanto por
+ * `atualizarFornecedor` (o `EditarFornecedorModal`, que expõe os 5 campos).
+ */
+export interface FornecedorInput {
+  nome: string;
+  email?: string | null;
+  cnpj?: string | null;
+  endereco?: string | null;
+  telefone?: string | null;
+  responsavel?: string | null;
+}
+
+/**
  * Cadastro reaproveitável de fornecedor (ver `supabase/financeiro-fornecedores.sql`)
  * — chamada tanto pelo `FornecedoresCard` (tela cheia) quanto pelo botão "+"
  * dentro do `TransacaoModal` (`NovoFornecedorModal`), que precisa do `id`
  * de volta pra já deixar o fornecedor recém-criado selecionado no
  * formulário sem fechar o modal.
  */
-export async function criarFornecedor(input: { nome: string }): Promise<ActionResultId> {
+export async function criarFornecedor(input: FornecedorInput): Promise<ActionResultId> {
   try {
     const { supabase } = await requireModulo("financeiro");
     if (!input.nome.trim()) return { ok: false, error: "Informe o nome do fornecedor." };
 
-    const { data, error } = await supabase.from("fin_fornecedores").insert({ nome: input.nome.trim() }).select("id").single();
+    const { data, error } = await supabase
+      .from("fin_fornecedores")
+      .insert({
+        nome: input.nome.trim(),
+        email: input.email?.trim() || null,
+        cnpj: input.cnpj?.trim() || null,
+        endereco: input.endereco?.trim() || null,
+        telefone: input.telefone?.trim() || null,
+        responsavel: input.responsavel?.trim() || null,
+      })
+      .select("id")
+      .single();
     // 23505 = já existe um fornecedor com esse nome nesta empresa (constraint única).
     if (error) return { ok: false, error: error.code === "23505" ? "Já existe um fornecedor com esse nome." : error.message };
     revalidatePath(PATH);
     return { ok: true, id: data.id };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Completa/edita os dados de um fornecedor já cadastrado — ver `supabase/financeiro-fornecedores-detalhes.sql`
+ * e `EditarFornecedorModal` (tela `/admin/financeiro/fornecedores`). Só
+ * `nome` é validado como obrigatório; os demais campos aceitam string vazia
+ * (vira `null`) sem erro nenhum — dá pra "esvaziar" um campo já preenchido.
+ */
+export async function atualizarFornecedor(id: string, input: FornecedorInput): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+    if (!input.nome.trim()) return { ok: false, error: "Informe o nome do fornecedor." };
+
+    const { error } = await supabase
+      .from("fin_fornecedores")
+      .update({
+        nome: input.nome.trim(),
+        email: input.email?.trim() || null,
+        cnpj: input.cnpj?.trim() || null,
+        endereco: input.endereco?.trim() || null,
+        telefone: input.telefone?.trim() || null,
+        responsavel: input.responsavel?.trim() || null,
+      })
+      .eq("id", id);
+    if (error) return { ok: false, error: error.code === "23505" ? "Já existe um fornecedor com esse nome." : error.message };
+    revalidatePath(PATH);
+    return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
@@ -271,7 +327,13 @@ export async function criarTransacao(input: CriarTransacaoInput): Promise<Action
     if (input.tipo === "transferencia") {
       if (!input.contaId || !input.contaDestinoId) return { ok: false, error: "Selecione a conta de origem e a de destino." };
       if (input.contaId === input.contaDestinoId) return { ok: false, error: "A conta de origem e destino não podem ser a mesma." };
-    } else if (!input.contaId && !input.cartaoId) {
+    } else if (!input.contaId && !input.cartaoId && input.jaPaga) {
+      // Conta só é exigida aqui quando a transação já nasce PAGA — pendente
+      // pode ficar sem conta vinculada até a hora real de "Dar Baixa" (ver
+      // `marcarPago`/`DarBaixaModal` e pedido explícito do dono da conta:
+      // evitar errar a conta quando existe mais de uma pessoal/empresarial).
+      // Cartão continua sempre obrigatório quando `fonte === "cartao"`
+      // (validado no cliente, `TransacaoModal`) — isso não muda aqui.
       return { ok: false, error: "Selecione a conta ou o cartão dessa transação." };
     }
 
@@ -364,7 +426,13 @@ export async function atualizarTransacao(id: string, input: CriarTransacaoInput)
     if (input.tipo === "transferencia") {
       if (!input.contaId || !input.contaDestinoId) return { ok: false, error: "Selecione a conta de origem e a de destino." };
       if (input.contaId === input.contaDestinoId) return { ok: false, error: "A conta de origem e destino não podem ser a mesma." };
-    } else if (!input.contaId && !input.cartaoId) {
+    } else if (!input.contaId && !input.cartaoId && input.jaPaga) {
+      // Conta só é exigida aqui quando a transação já nasce PAGA — pendente
+      // pode ficar sem conta vinculada até a hora real de "Dar Baixa" (ver
+      // `marcarPago`/`DarBaixaModal` e pedido explícito do dono da conta:
+      // evitar errar a conta quando existe mais de uma pessoal/empresarial).
+      // Cartão continua sempre obrigatório quando `fonte === "cartao"`
+      // (validado no cliente, `TransacaoModal`) — isso não muda aqui.
       return { ok: false, error: "Selecione a conta ou o cartão dessa transação." };
     }
 
@@ -453,14 +521,26 @@ export async function atualizarTransacao(id: string, input: CriarTransacaoInput)
  * Baixa Inteligente — alterna `pago`. Não mexe em nenhum saldo diretamente:
  * as views `fin_contas_saldo`/`fin_cartoes_limite` recalculam sozinhas a
  * partir dessa mudança (ver comentário no schema).
+ *
+ * `contaId` — pedido explícito do dono da conta: a conta bancária de uma
+ * despesa/receita paga com "Conta" (nunca cartão nem transferência, que já
+ * têm conta desde a criação) não precisa mais ser escolhida no momento de
+ * lançar a transação — só aqui, na hora real de dar baixa (ver
+ * `DarBaixaModal`), evitando errar quando existe mais de uma conta pessoal
+ * ou empresarial. Só é usado quando `pago = true` E a transação ainda não
+ * tem `conta_id` (o `TransacoesManager` só passa esse argumento nesse caso);
+ * reabrir (`pago = false`) nunca mexe em `conta_id`.
  */
-export async function marcarPago(id: string, pago: boolean): Promise<ActionResult> {
+export async function marcarPago(id: string, pago: boolean, contaId?: string): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("financeiro");
-    const { error } = await supabase
-      .from("fin_transacoes")
-      .update({ pago, data_pagamento: pago ? new Date().toISOString() : null })
-      .eq("id", id);
+    const update: { pago: boolean; data_pagamento: string | null; conta_id?: string } = {
+      pago,
+      data_pagamento: pago ? new Date().toISOString() : null,
+    };
+    if (pago && contaId) update.conta_id = contaId;
+
+    const { error } = await supabase.from("fin_transacoes").update(update).eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
     return { ok: true };
@@ -616,7 +696,12 @@ export async function criarTransacaoParcelada(input: CriarTransacaoParceladaInpu
     if (!Number.isInteger(input.numParcelas) || input.numParcelas < 2 || input.numParcelas > 60) {
       return { ok: false, error: "Número de parcelas inválido — use um valor entre 2 e 60." };
     }
-    if (!input.contaId && !input.cartaoId) return { ok: false, error: "Selecione a conta ou o cartão dessa compra." };
+    // Sem exigir conta/cartão aqui de propósito: toda parcela nasce PENDENTE
+    // (ver comentário acima), então quando `fonte === "conta"` a conta só é
+    // escolhida depois, parcela por parcela, na hora real de "Dar Baixa" de
+    // cada uma (ver `marcarPago`/`DarBaixaModal`) — cada parcela pode até
+    // acabar saindo de uma conta diferente. Cartão continua sempre exigido
+    // no cliente quando `fonte === "cartao"` (`TransacaoModal`), isso não muda.
 
     const grupoId = randomUUID();
     const n = input.numParcelas;

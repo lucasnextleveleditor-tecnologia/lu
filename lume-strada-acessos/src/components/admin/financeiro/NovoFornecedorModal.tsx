@@ -49,7 +49,16 @@ export function NovoFornecedorModal({ onClose, onCriado }: NovoFornecedorModalPr
       setError(result.error);
       return;
     }
-    onCriado({ id: result.id, nome: nome.trim(), created_at: new Date().toISOString() });
+    onCriado({
+      id: result.id,
+      nome: nome.trim(),
+      email: null,
+      cnpj: null,
+      endereco: null,
+      telefone: null,
+      responsavel: null,
+      created_at: new Date().toISOString(),
+    });
   }
 
   return (

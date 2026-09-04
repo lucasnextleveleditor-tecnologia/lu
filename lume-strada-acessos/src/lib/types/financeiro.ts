@@ -49,10 +49,24 @@ export interface CategoriaRow {
   created_at: string;
 }
 
-/** Cadastro de fornecedor — só nome, reaproveitável entre lançamentos (ver `supabase/financeiro-fornecedores.sql`). Sem tipo/cor/emoji: diferente de categoria, fornecedor não precisa de nenhum dos três. */
+/**
+ * Cadastro de fornecedor — só `nome` é obrigatório, reaproveitável entre
+ * lançamentos (ver `supabase/financeiro-fornecedores.sql`). Os demais campos
+ * (ver `supabase/financeiro-fornecedores-detalhes.sql`) são TODOS opcionais
+ * de propósito — pedido explícito do dono da conta: o cadastro rápido feito
+ * de dentro de "Nova Transação" continua só com o nome, sem burocracia; esses
+ * campos só existem pra quando ele quiser "levar mais a sério" um fornecedor
+ * específico (pessoa jurídica, por exemplo) e completar depois, na tela
+ * própria de Fornecedores.
+ */
 export interface FornecedorRow {
   id: string;
   nome: string;
+  email: string | null;
+  cnpj: string | null;
+  endereco: string | null;
+  telefone: string | null;
+  responsavel: string | null;
   created_at: string;
 }
 

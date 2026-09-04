@@ -22,6 +22,7 @@ import { Select } from "@/components/ui/Select";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { IconArrowRightLeft, IconPlus } from "@/components/ui/icons";
 import { TransacaoModal } from "@/components/admin/financeiro/TransacaoModal";
+import { DarBaixaModal } from "@/components/admin/financeiro/DarBaixaModal";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface TransacoesManagerProps {
@@ -44,6 +45,7 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, for
   const [filtroTipo, setFiltroTipo] = useState<string>(tipoFixo ?? TODOS);
   const [modalAberto, setModalAberto] = useState(false);
   const [transacaoEditando, setTransacaoEditando] = useState<TransacaoComRelacoes | null>(null);
+  const [dandoBaixa, setDandoBaixa] = useState<TransacaoComRelacoes | null>(null);
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +66,19 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, for
 
   const vencidas = transacoes.filter((t) => calcularStatusTransacao(t) === "vencida").length;
 
+  /**
+   * Dar Baixa numa despesa/receita paga com "Conta" que ainda não tem
+   * `conta_id` (nunca lançou "Já paga", nem foi editada com conta desde
+   * então) — pergunta a conta agora, ao invés de já ter perguntado lá na
+   * criação (ver `DarBaixaModal`/pedido do dono da conta). Cartão,
+   * transferência ou qualquer transação que já tenha conta vinculada
+   * continuam dando baixa/reabrindo na hora, sem perguntar nada.
+   */
   function handleTogglePago(t: TransacaoComRelacoes) {
+    if (!t.pago && !t.conta_id && !t.cartao_id && t.tipo !== "transferencia") {
+      setDandoBaixa(t);
+      return;
+    }
     setError(null);
     startTransition(async () => {
       const result = await marcarPago(t.id, !t.pago);
@@ -343,6 +357,15 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, for
             setModalAberto(false);
             setTransacaoEditando(null);
           }}
+        />
+      )}
+
+      {dandoBaixa && (
+        <DarBaixaModal
+          transacao={dandoBaixa}
+          contas={contas}
+          onConfirmado={() => setDandoBaixa(null)}
+          onClose={() => setDandoBaixa(null)}
         />
       )}
     </Card>
