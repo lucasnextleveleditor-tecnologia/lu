@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fonte fixa da plataforma (ver import de "@fontsource/outfit" em
+   `app/layout.tsx`) — arredondada/geométrica, nunca customizável por
+   branding, igual nos dois modos de cor. */
+:root {
+  --font-sans: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Modo ESCURO — identidade histórica/fixa da plataforma (preto absoluto +
+   acento branco/zinc). Continua sendo o padrão de quem nunca escolheu um
+   tema (ver `DEFAULT_THEME` em `lib/theme/theme.ts`). Formato "r g b"
+   (space-separated) exigido pelo `rgb(var(--x) / <alpha-value>)` dinâmico
+   configurado em `tailwind.config.ts`. */
+.dark {
+  --color-accent: 255 255 255; /* branco puro — ações primárias, links, destaques */
+  --color-accent-strong: 228 228 231; /* zinc-200 — hover do branco */
+  --color-accent-2: 161 161 170; /* zinc-400 — glow/destaque secundário sutil */
+
+  --color-base-950: 0 0 0; /* fundo da página — preto absoluto */
+  --color-base-900: 9 9 11; /* superfície de card */
+  --color-base-850: 17 17 19;
+  --color-base-800: 24 24 27; /* fundo de item ativo/selecionado */
+  --color-base-700: 39 39 42; /* borda padrão */
+  --color-base-600: 63 63 70; /* borda em destaque/hover */
+
+  --color-ink-primary: 255 255 255;
+  --color-ink-secondary: 161 161 170;
+  --color-ink-muted: 113 113 122;
+
+  /* Usado por efeitos decorativos de brilho (`shadow-[...rgba(255,255,255,X)]`
+     em ~15 componentes) via `rgb(var(--glow-rgb) / X)` — no escuro é um
+     brilho claro subindo da superfície; no claro (ver `.light` abaixo) vira
+     sombra escura, o equivalente visual correto pra cada fundo. */
+  --glow-rgb: 255 255 255;
+}
+
+/* Modo CLARO — segundo modo de cor, preferência pessoal de quem usa o
+   painel (pedido explícito: botão ao lado do seletor de idioma). Os passos
+   de `base`/`ink`/`accent` são o espelho dos do modo escuro (mesma
+   hierarquia, ordem invertida de claridade) pra qualquer componente que já
+   usa esses tokens continuar coerente sem precisar saber que o modo claro
+   existe. `status`/`danger` NÃO aparecem aqui de propósito — são fixos nos
+   dois modos (skill de dataviz interna: paleta de status nunca é
+   "temática"), sempre com ícone + rótulo, nunca só cor. */
+.light {
+  --color-accent: 24 24 27; /* zinc-900 — ações primárias quase-pretas sobre fundo claro */
+  --color-accent-strong: 63 63 70; /* zinc-700 — hover do acento */
+  --color-accent-2: 113 113 122; /* zinc-500 — glow/destaque secundário sutil */
+
+  --color-base-950: 250 250 250; /* fundo da página — quase-branco (zinc-50) */
+  --color-base-900: 255 255 255; /* superfície de card — branco puro, "flutua" sobre a página */
+  --color-base-850: 244 244 245;
+  --color-base-800: 228 228 231; /* fundo de item ativo/selecionado */
+  --color-base-700: 212 212 216; /* borda padrão */
+  --color-base-600: 161 161 170; /* borda em destaque/hover */
+
+  --color-ink-primary: 24 24 27;
+  --color-ink-secondary: 82 82 91;
+  --color-ink-muted: 113 113 122;
+
+  --glow-rgb: 0 0 0;
+}
+
+html,
+body {
+  background-color: theme("colors.base.950");
+  color: theme("colors.ink.primary");
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+}
+
+::selection {
+  /* Mesmo mecanismo de `--glow-rgb`: destaque claro no escuro, escuro no
+     claro — antes era um branco fixo (e, antes disso, um dourado antigo que
+     sobrou de antes da identidade preto/branco, nunca mais usado). */
+  background: rgb(var(--glow-rgb) / 0.2);
+}
+
+/* Padrões de fundo da tela de login (painel de Aparência > Personalização
+   do Login) — usados quando o admin não faz upload de uma imagem própria.
+   São classes CSS de verdade (não classes arbitrárias do Tailwind) porque
+   misturam gradientes com a cor de acentuação dinâmica (`--color-accent-2`)
+   e ficam mais fáceis de auditar/ajustar aqui do que em uma string JIT. */
+.login-bg-grain {
+  background-color: theme("colors.base.950");
+  background-image: radial-gradient(circle at 1px 1px, rgb(var(--glow-rgb) / 0.035) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+.login-bg-projector {
+  background-color: theme("colors.base.950");
+  background-image: radial-gradient(ellipse at top, rgb(var(--color-accent-2) / 0.16), transparent 60%);
+}
+
+.login-bg-film-strip {
+  background-color: theme("colors.base.950");
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgb(var(--glow-rgb) / 0.035) 0px,
+    rgb(var(--glow-rgb) / 0.035) 2px,
+    transparent 2px,
+    transparent 26px
+  );
+}
+
+.login-bg-none {
+  background-color: theme("colors.base.950");
+}

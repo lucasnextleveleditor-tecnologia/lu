@@ -8,10 +8,18 @@ import type { Config } from "tailwindcss";
 // + `app/login/page.tsx` vs. `app/admin/layout.tsx` / `app/dashboard/layout.tsx`).
 //
 // `accent`/`accent2` continuam no formato `rgb(var(--x) / <alpha-value>)` —
-// é o que permite `bg-accent/10`, `border-accent/30` etc. — mas agora as
-// variáveis CSS são CONSTANTES fixas declaradas em `globals.css` (não lidas
-// mais de `branding_config`/admin). `base`, `ink`, `status` e `danger`
-// seguem FIXOS e validados por contraste (skill de dataviz).
+// é o que permite `bg-accent/10`, `border-accent/30` etc. `base` e `ink`
+// agora usam o MESMO mecanismo: cada um vira uma variável CSS que troca de
+// valor conforme a classe `dark`/`light` na tag `<html>` (ver `globals.css`),
+// então nenhum componente precisa saber que existe um modo claro — ele só
+// usa `bg-base-950`/`text-ink-primary` como sempre usou, e o valor certo
+// (preto no escuro, quase-branco no claro) vem da variável ativa. A
+// identidade preto/branco do escuro continua FIXA e não-customizável por
+// `branding_config` — o que mudou é que agora existe um segundo modo de cor
+// pessoal (preferência de quem usa, não do cliente/agência), pedido
+// explícito do dono do produto. `status` e `danger` seguem FIXOS nos dois
+// modos (skill de dataviz interna: "status palette — fixed, never themed"),
+// sempre acompanhados de ícone + rótulo, nunca só cor.
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   darkMode: "class",
@@ -19,24 +27,24 @@ const config: Config = {
     extend: {
       colors: {
         base: {
-          950: "#000000",
-          900: "#09090b",
-          850: "#111113",
-          800: "#18181b",
-          700: "#27272a",
-          600: "#3f3f46",
+          950: "rgb(var(--color-base-950) / <alpha-value>)",
+          900: "rgb(var(--color-base-900) / <alpha-value>)",
+          850: "rgb(var(--color-base-850) / <alpha-value>)",
+          800: "rgb(var(--color-base-800) / <alpha-value>)",
+          700: "rgb(var(--color-base-700) / <alpha-value>)",
+          600: "rgb(var(--color-base-600) / <alpha-value>)",
         },
         ink: {
-          primary: "#ffffff",
-          secondary: "#a1a1aa",
-          muted: "#71717a",
+          primary: "rgb(var(--color-ink-primary) / <alpha-value>)",
+          secondary: "rgb(var(--color-ink-secondary) / <alpha-value>)",
+          muted: "rgb(var(--color-ink-muted) / <alpha-value>)",
         },
         accent: {
           DEFAULT: "rgb(var(--color-accent) / <alpha-value>)",
           strong: "rgb(var(--color-accent-strong) / <alpha-value>)",
         },
         // Acento secundário — usado no glow sutil do fundo da tela de login e
-        // como destaque secundário. Fixo (ver acima), não customizável.
+        // como destaque secundário.
         accent2: {
           DEFAULT: "rgb(var(--color-accent-2) / <alpha-value>)",
         },
