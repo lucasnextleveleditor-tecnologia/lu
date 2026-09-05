@@ -38,10 +38,12 @@ export interface RelatorioTrafegoData {
   serieDiaria: { data: string; investimento: number; receitaBruta: number }[];
   totalInvestimento: number;
   totalReceitaBruta: number;
-  roas: number | null; // receita / investimento
-  roi: number | null; // (receita - investimento) / investimento
+  /** Já descontada a taxa da plataforma de cada anúncio (ver `calcularReceitaLiquida`) — é essa, não a bruta, que entra em `lucroLiquido`. */
+  totalReceitaLiquida: number;
+  roas: number | null; // receita bruta / investimento
+  roi: number | null; // (receita bruta - investimento) / investimento
   totalReembolsos: number;
-  lucroLiquido: number; // receita - investimento - reembolsos
+  lucroLiquido: number; // receita líquida - investimento - reembolsos
   fechamentosNoPeriodo: { semanaInicio: string; semanaFim: string; lucroLiquidoReal: number; reembolsos: number }[];
   investimentoPorCliente: { clienteId: string; nome: string; investido: number; leads: number }[];
 }

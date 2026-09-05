@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import type { AnuncioComRelacoes, ProdutoRow } from "@/lib/types/infoprodutos";
+import type { AnuncioComRelacoes, ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import { removerAnuncio } from "@/app/admin/trafego/infoprodutos-actions";
+import { calcularReceitaLiquida } from "@/lib/utils/infoprodutos";
 import { fmtBRL, fmtDataExtensa, addDaysISO, todayISO } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -15,9 +16,15 @@ interface AnunciosManagerProps {
   anuncios: AnuncioComRelacoes[];
   produtos: ProdutoRow[];
   clienteCadastroId: string;
+  taxaPadrao: TaxaPadraoRow | null;
 }
 
-export function AnunciosManager({ anuncios, produtos, clienteCadastroId }: AnunciosManagerProps) {
+/** Receita líquida de um anúncio já lançado — desconta a taxa da plataforma GRAVADA naquele lançamento (nunca a padrão atual, que pode ter mudado desde então). */
+function receitaLiquidaDoAnuncio(a: AnuncioComRelacoes): number {
+  return calcularReceitaLiquida(Number(a.receita_bruta), Number(a.taxa_percentual), Number(a.taxa_fixa), Number(a.vendas_principal) + Number(a.vendas_order_bump));
+}
+
+export function AnunciosManager({ anuncios, produtos, clienteCadastroId, taxaPadrao }: AnunciosManagerProps) {
   const { dict } = useLocale();
   const [dataSelecionada, setDataSelecionada] = useState(todayISO());
   const [modalAberto, setModalAberto] = useState(false);
@@ -31,7 +38,8 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId }: Anunc
   const resumoDoDia = useMemo(() => {
     const investimento = anunciosDoDia.reduce((acc, a) => acc + Number(a.investimento), 0);
     const receita = anunciosDoDia.reduce((acc, a) => acc + Number(a.receita_bruta), 0);
-    return { investimento, receita, lucro: receita - investimento };
+    const receitaLiquida = anunciosDoDia.reduce((acc, a) => acc + receitaLiquidaDoAnuncio(a), 0);
+    return { investimento, receita, receitaLiquida, lucro: receitaLiquida - investimento };
   }, [anunciosDoDia]);
 
   function abrirEdicao(anuncio: AnuncioComRelacoes) {
@@ -91,7 +99,7 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId }: Anunc
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card className="p-4">
           <p className="text-xs text-ink-muted">{dict.trafego.investimentoDoDiaCard}</p>
           <p className="mt-1 text-xl font-semibold text-ink-primary">{fmtBRL(resumoDoDia.investimento)}</p>
@@ -99,6 +107,10 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId }: Anunc
         <Card className="p-4">
           <p className="text-xs text-ink-muted">{dict.trafego.receitaBrutaDoDiaCard}</p>
           <p className="mt-1 text-xl font-semibold text-ink-primary">{fmtBRL(resumoDoDia.receita)}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-ink-muted">{dict.trafego.receitaLiquidaDoDiaCard}</p>
+          <p className="mt-1 text-xl font-semibold text-ink-primary">{fmtBRL(resumoDoDia.receitaLiquida)}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs text-ink-muted">{dict.trafego.lucroBrutoDoDiaCard}</p>
@@ -120,7 +132,8 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId }: Anunc
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {anunciosDoDia.map((anuncio) => {
-            const lucro = Number(anuncio.receita_bruta) - Number(anuncio.investimento);
+            const receitaLiquida = receitaLiquidaDoAnuncio(anuncio);
+            const lucro = receitaLiquida - Number(anuncio.investimento);
             return (
               <Card key={anuncio.id} className="p-4">
                 <CriativoUploader anuncioId={anuncio.id} criativoUrl={anuncio.criativo_url} criativoTipo={anuncio.criativo_tipo} />
@@ -139,6 +152,9 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId }: Anunc
                   </p>
                   <p className="text-ink-muted">
                     {dict.trafego.receitaAbrevLabel} <span className="text-ink-primary">{fmtBRL(anuncio.receita_bruta)}</span>
+                  </p>
+                  <p className="text-ink-muted">
+                    {dict.trafego.receitaLiquidaAbrevLabel} <span className="text-ink-primary">{fmtBRL(receitaLiquida)}</span>
                   </p>
                   <p className="text-ink-muted">
                     {dict.trafego.viewsAbrevLabel} <span className="text-ink-primary">{anuncio.visualizacoes}</span>
@@ -194,6 +210,7 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId }: Anunc
           produtos={produtos}
           clienteCadastroId={clienteCadastroId}
           dataPadrao={dataSelecionada}
+          taxaPadrao={taxaPadrao}
           onClose={fecharModal}
         />
       )}

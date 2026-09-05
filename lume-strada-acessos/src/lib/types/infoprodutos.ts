@@ -44,6 +44,9 @@ export interface AnuncioTrackingRow {
   vendas_principal: number;
   vendas_order_bump: number;
   receita_bruta: number; // calculada na criação, sempre editável depois
+  /** Taxa da plataforma (Hotmart/Kiwify/etc) perdida NESSE lançamento — percentual sobre a receita bruta + valor fixo por venda. Pode ser 0 nos dois (ver `supabase/infoprodutos-taxa-plataforma.sql`); nunca null — sempre um número explícito. */
+  taxa_percentual: number;
+  taxa_fixa: number;
   created_at: string;
   updated_at: string;
 }
@@ -74,9 +77,19 @@ export interface FechamentoSemanalRow {
   semana_inicio: string; // ISO date (segunda-feira)
   semana_fim: string; // ISO date (domingo)
   receita_bruta_total: number;
+  /** Receita já descontada da taxa da plataforma de cada anúncio somado (ver `calcularReceitaLiquida`) — é a base real do `lucro_liquido_real`, não a bruta. */
+  receita_liquida_total: number;
   investimento_total: number;
   reembolsos: number;
   lucro_liquido_real: number;
   fechado_em: string;
   created_at: string;
+}
+
+/** Taxa padrão da plataforma por cliente (marca/infoproduto) — pré-preenche todo NOVO lançamento de anúncio, mas fica livre pra sobrescrever por lançamento (ver `AnuncioModal`). Ausência de linha pro cliente = padrão 0%/R$0,00. */
+export interface TaxaPadraoRow {
+  id: string;
+  cliente_cadastro_id: string;
+  taxa_percentual: number;
+  taxa_fixa: number;
 }

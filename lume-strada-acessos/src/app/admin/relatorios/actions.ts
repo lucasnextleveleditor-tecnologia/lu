@@ -4,6 +4,7 @@ import { requireModulo } from "@/lib/auth/requireAdmin";
 import { STATUS_LEAD_META } from "@/lib/utils/comercial";
 import { isTarefaAtrasada } from "@/lib/utils/producao";
 import { PALETA_CATEGORIAS } from "@/lib/utils/financeiro";
+import { calcularReceitaLiquida } from "@/lib/utils/infoprodutos";
 import type { StatusLead } from "@/lib/types/comercial";
 import type { StatusTarefa } from "@/lib/types/producao";
 import type {
@@ -261,10 +262,21 @@ export async function buscarRelatorioTrafego(dataInicio: string, dataFim: string
     const [anunciosRes, fechamentosRes, clientesRes] = await Promise.all([
       supabase
         .from("anuncios_tracking")
-        .select("data, investimento, receita_bruta")
+        .select("data, investimento, receita_bruta, taxa_percentual, taxa_fixa, vendas_principal, vendas_order_bump")
         .gte("data", dataInicio)
         .lte("data", dataFim)
-        .overrideTypes<{ data: string; investimento: number; receita_bruta: number }[], { merge: false }>(),
+        .overrideTypes<
+          {
+            data: string;
+            investimento: number;
+            receita_bruta: number;
+            taxa_percentual: number;
+            taxa_fixa: number;
+            vendas_principal: number;
+            vendas_order_bump: number;
+          }[],
+          { merge: false }
+        >(),
       supabase
         .from("fechamentos_semanais")
         .select("semana_inicio, semana_fim, reembolsos, lucro_liquido_real")
@@ -296,6 +308,12 @@ export async function buscarRelatorioTrafego(dataInicio: string, dataFim: string
 
     const totalInvestimento = anuncios.reduce((s, a) => s + a.investimento, 0);
     const totalReceitaBruta = anuncios.reduce((s, a) => s + a.receita_bruta, 0);
+    // Líquida = já descontada a taxa da plataforma GRAVADA em cada
+    // lançamento — é ela, não a bruta, que forma o Lucro Líquido do relatório.
+    const totalReceitaLiquida = anuncios.reduce(
+      (s, a) => s + calcularReceitaLiquida(a.receita_bruta, a.taxa_percentual, a.taxa_fixa, a.vendas_principal + a.vendas_order_bump),
+      0
+    );
     const totalReembolsos = fechamentos.reduce((s, f) => s + f.reembolsos, 0);
 
     // Clientes do fluxo por-cliente — busca metas + registros do período em
@@ -345,10 +363,11 @@ export async function buscarRelatorioTrafego(dataInicio: string, dataFim: string
           .sort((a, b) => a.data.localeCompare(b.data)),
         totalInvestimento,
         totalReceitaBruta,
+        totalReceitaLiquida,
         roas: totalInvestimento > 0 ? totalReceitaBruta / totalInvestimento : null,
         roi: totalInvestimento > 0 ? (totalReceitaBruta - totalInvestimento) / totalInvestimento : null,
         totalReembolsos,
-        lucroLiquido: totalReceitaBruta - totalInvestimento - totalReembolsos,
+        lucroLiquido: totalReceitaLiquida - totalInvestimento - totalReembolsos,
         fechamentosNoPeriodo: fechamentos.map((f) => ({
           semanaInicio: f.semana_inicio,
           semanaFim: f.semana_fim,

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
-import { segundaFeiraISO, domingoISO } from "@/lib/utils/infoprodutos";
+import { segundaFeiraISO, domingoISO, calcularReceitaLiquida } from "@/lib/utils/infoprodutos";
 import { ehImagemPermitida, ehVideoPermitido } from "@/lib/utils/upload";
 import type { TipoProduto } from "@/lib/types/infoprodutos";
 
@@ -112,6 +112,8 @@ export interface AnuncioInput {
   vendasPrincipal: number;
   vendasOrderBump: number;
   receitaBruta: number; // já vem calculado (com possível override) do client
+  taxaPercentual: number; // taxa da plataforma sobre a receita — 0 é um valor válido, nunca omitido
+  taxaFixa: number; // taxa fixa em R$ por venda — 0 é um valor válido, nunca omitido
 }
 
 export async function criarAnuncio(clienteCadastroId: string, input: AnuncioInput): Promise<ActionResultId> {
@@ -133,6 +135,8 @@ export async function criarAnuncio(clienteCadastroId: string, input: AnuncioInpu
         vendas_principal: input.vendasPrincipal,
         vendas_order_bump: input.vendasOrderBump,
         receita_bruta: input.receitaBruta,
+        taxa_percentual: input.taxaPercentual,
+        taxa_fixa: input.taxaFixa,
       })
       .select("id")
       .single();
@@ -163,6 +167,8 @@ export async function atualizarAnuncio(id: string, input: AnuncioInput): Promise
         vendas_principal: input.vendasPrincipal,
         vendas_order_bump: input.vendasOrderBump,
         receita_bruta: input.receitaBruta,
+        taxa_percentual: input.taxaPercentual,
+        taxa_fixa: input.taxaFixa,
       })
       .eq("id", id);
 
@@ -293,14 +299,27 @@ export async function fecharSemana(clienteCadastroId: string, semanaInicio: stri
 
     const { data: anuncios, error: erroAnuncios } = await supabase
       .from("anuncios_tracking")
-      .select("investimento, receita_bruta")
+      .select("investimento, receita_bruta, taxa_percentual, taxa_fixa, vendas_principal, vendas_order_bump")
       .eq("cliente_cadastro_id", clienteCadastroId)
       .eq("semana_inicio", semanaInicio);
     if (erroAnuncios) return { ok: false, error: erroAnuncios.message };
 
     const investimentoTotal = (anuncios ?? []).reduce((acc, a) => acc + Number(a.investimento), 0);
     const receitaBrutaTotal = (anuncios ?? []).reduce((acc, a) => acc + Number(a.receita_bruta), 0);
-    const lucroLiquidoReal = receitaBrutaTotal - investimentoTotal - reembolsos;
+    // Lucro é sempre em cima da Receita LÍQUIDA (já descontada a taxa da
+    // plataforma de cada lançamento), nunca da bruta — ver `calcularReceitaLiquida`.
+    const receitaLiquidaTotal = (anuncios ?? []).reduce(
+      (acc, a) =>
+        acc +
+        calcularReceitaLiquida(
+          Number(a.receita_bruta),
+          Number(a.taxa_percentual),
+          Number(a.taxa_fixa),
+          Number(a.vendas_principal) + Number(a.vendas_order_bump)
+        ),
+      0
+    );
+    const lucroLiquidoReal = receitaLiquidaTotal - investimentoTotal - reembolsos;
 
     const { error } = await supabase.from("fechamentos_semanais").upsert(
       {
@@ -308,6 +327,7 @@ export async function fecharSemana(clienteCadastroId: string, semanaInicio: stri
         semana_inicio: semanaInicio,
         semana_fim: domingoISO(semanaInicio),
         receita_bruta_total: receitaBrutaTotal,
+        receita_liquida_total: receitaLiquidaTotal,
         investimento_total: investimentoTotal,
         reembolsos,
         lucro_liquido_real: lucroLiquidoReal,
@@ -315,6 +335,32 @@ export async function fecharSemana(clienteCadastroId: string, semanaInicio: stri
       },
       { onConflict: "cliente_cadastro_id,semana_inicio" }
     );
+
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Taxa Padrão da Plataforma — um valor por cliente que pré-preenche todo
+// NOVO lançamento de anúncio (ver `AnuncioModal`), editável a qualquer
+// momento aqui na aba Produtos. Upsert por `cliente_cadastro_id` — cadastrar
+// de novo só atualiza o valor existente.
+// ----------------------------------------------------------------------------
+export async function salvarTaxaPadrao(clienteCadastroId: string, taxaPercentual: number, taxaFixa: number): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("trafego");
+    if (taxaPercentual < 0 || taxaFixa < 0) return { ok: false, error: "A taxa não pode ser negativa." };
+
+    const { error } = await supabase
+      .from("infoprodutos_taxas_padrao")
+      .upsert(
+        { cliente_cadastro_id: clienteCadastroId, taxa_percentual: taxaPercentual, taxa_fixa: taxaFixa },
+        { onConflict: "company_id,cliente_cadastro_id" }
+      );
 
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);

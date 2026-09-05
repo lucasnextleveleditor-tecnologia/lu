@@ -79,11 +79,16 @@ export const trafego: TrafegoDict = {
   receitaBrutaHint:
     "Calculado automáticamente a partir de las ventas × precio del producto — edítalo aquí si la plataforma (Hotmart/Kiwify) muestra un valor distinto.",
   criarAnuncioBotao: "Crear Anuncio",
+  taxaPercentualLabel: "Comisión de la Plataforma (%)",
+  taxaFixaLabel: "Comisión Fija por Venta (R$)",
+  taxaAnuncioHint: "Puedes dejar los dos campos en 0 si la plataforma no cobra nada en esta venta.",
+  receitaLiquidaLabel: "Ingreso Neto (comisión ya descontada)",
 
   novoAnuncioBotao: "Nuevo Anuncio",
   cadastreProdutoPrincipalPrimeiro: "Registra primero un Producto Principal",
   investimentoDoDiaCard: "Inversión del Día",
   receitaBrutaDoDiaCard: "Ingreso Bruto del Día",
+  receitaLiquidaDoDiaCard: "Ingreso Neto del Día",
   lucroBrutoDoDiaCard: "Ganancia Bruta del Día",
   cadastreProdutoPrincipalAviso: 'Registra al menos un Producto Principal en la pestaña "Productos" antes de registrar un anuncio.',
   nenhumAnuncioNoDia: "Todavía no hay anuncios registrados en este día.",
@@ -91,6 +96,7 @@ export const trafego: TrafegoDict = {
   semProdutoPrincipalTexto: "Sin producto principal",
   investAbrevLabel: "Inv.:",
   receitaAbrevLabel: "Ingreso:",
+  receitaLiquidaAbrevLabel: "Neto:",
   viewsAbrevLabel: "Vistas:",
   cliquesAbrevLabel: "Clics:",
   vendasPrincAbrevLabel: "Ventas Princ.:",
@@ -135,6 +141,7 @@ export const trafego: TrafegoDict = {
   editarFechamentoTitulo: "Editar Cierre",
   fechamentoDaSemanaTitulo: "Cierre de la Semana",
   receitaBrutaTotalLabel: "Ingreso Bruto Total",
+  receitaLiquidaTotalLabel: "Ingreso Neto Total",
   investimentoTotalLabel: "Inversión Total",
   valorReembolsosLabel: "Monto de Reembolsos / Contracargos (R$)",
   estornosGarantiaHint: "Reembolsos de la garantía de 7 días de este período.",
@@ -146,7 +153,7 @@ export const trafego: TrafegoDict = {
   calendarioMetasAba: "Calendario de Metas",
   produtosAba: "Productos",
   infoProdutosClienteLabel: "Cliente",
-  nenhumClienteParaInfoprodutos: 'Registra un cliente en la pestaña "Clientes" antes de usar Infoproductos.',
+  nenhumClienteParaInfoprodutos: "Registra un cliente antes de usar Infoproductos.",
 
   editarProdutoTitulo: "Editar Producto",
   novoProdutoTitulo: "Nuevo Producto",
@@ -165,4 +172,10 @@ export const trafego: TrafegoDict = {
   novoProdutoBotao: "Nuevo Producto",
   produtosPrincipaisTitulo: "Productos Principales",
   orderBumpsTitulo: "Order Bumps",
+
+  taxaPadraoTitulo: "Comisión Predeterminada de la Plataforma",
+  taxaPadraoDescricao:
+    "Se completa sola en cada nuevo anuncio registrado de este cliente (puedes ajustarla por registro si una venta específica tuvo una comisión distinta).",
+  salvarTaxaPadraoBotao: "Guardar Comisión Predeterminada",
+  taxaPadraoSalvaTexto: "Guardado.",
 };

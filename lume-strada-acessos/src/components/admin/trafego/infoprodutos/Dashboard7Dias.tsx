@@ -2,7 +2,14 @@
 
 import { useMemo, useState } from "react";
 import type { AnuncioComRelacoes, FechamentoSemanalRow, MetaCalendarioRow } from "@/lib/types/infoprodutos";
-import { domingoISO, calcularStatusPeriodo, STATUS_PERIODO_META, metaBatida, STATUS_META_LUCRO } from "@/lib/utils/infoprodutos";
+import {
+  domingoISO,
+  calcularStatusPeriodo,
+  STATUS_PERIODO_META,
+  metaBatida,
+  STATUS_META_LUCRO,
+  calcularReceitaLiquida,
+} from "@/lib/utils/infoprodutos";
 import { addDaysISO, fmtBRL, todayISO } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { StatTile } from "@/components/ui/StatTile";
@@ -23,6 +30,7 @@ interface ResumoSemana {
   semanaInicio: string;
   semanaFim: string;
   receitaBrutaTotal: number;
+  receitaLiquidaTotal: number;
   investimentoTotal: number;
   fechamento: FechamentoSemanalRow | null;
 }
@@ -40,15 +48,22 @@ export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, cliente
 
   const janela7Dias = useMemo(() => Array.from({ length: 7 }, (_, i) => addDaysISO(hoje, -i)), [hoje]);
 
+  // Receita líquida SEMPRE a partir da taxa gravada em cada lançamento (nunca
+  // a taxa padrão atual, que pode ter mudado desde então) — é ela, não a
+  // bruta, que entra em todo cálculo de Lucro daqui pra baixo.
+  function receitaLiquida(a: AnuncioComRelacoes): number {
+    return calcularReceitaLiquida(Number(a.receita_bruta), Number(a.taxa_percentual), Number(a.taxa_fixa), Number(a.vendas_principal) + Number(a.vendas_order_bump));
+  }
+
   const resumoHoje = useMemo(() => {
     const doDia = anuncios.filter((a) => a.data === hoje);
-    const lucro = doDia.reduce((acc, a) => acc + (Number(a.receita_bruta) - Number(a.investimento)), 0);
+    const lucro = doDia.reduce((acc, a) => acc + (receitaLiquida(a) - Number(a.investimento)), 0);
     return { lucro, meta: metaPorDia.get(hoje) ?? 0 };
   }, [anuncios, hoje, metaPorDia]);
 
   const resumoSemana = useMemo(() => {
     const doPeriodo = anuncios.filter((a) => janela7Dias.includes(a.data));
-    const lucro = doPeriodo.reduce((acc, a) => acc + (Number(a.receita_bruta) - Number(a.investimento)), 0);
+    const lucro = doPeriodo.reduce((acc, a) => acc + (receitaLiquida(a) - Number(a.investimento)), 0);
     const meta = janela7Dias.reduce((acc, d) => acc + (metaPorDia.get(d) ?? 0), 0);
     return { lucro, meta };
   }, [anuncios, janela7Dias, metaPorDia]);
@@ -56,10 +71,11 @@ export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, cliente
   // Semanas de fechamento — agrupa os anúncios por `semana_inicio` (já vem
   // denormalizado do banco) pra montar a lista de "Fechamento da Semana".
   const semanas = useMemo(() => {
-    const mapa = new Map<string, { receita: number; investimento: number }>();
+    const mapa = new Map<string, { receita: number; receitaLiquidaTotal: number; investimento: number }>();
     anuncios.forEach((a) => {
-      const atual = mapa.get(a.semana_inicio) ?? { receita: 0, investimento: 0 };
+      const atual = mapa.get(a.semana_inicio) ?? { receita: 0, receitaLiquidaTotal: 0, investimento: 0 };
       atual.receita += Number(a.receita_bruta);
+      atual.receitaLiquidaTotal += receitaLiquida(a);
       atual.investimento += Number(a.investimento);
       mapa.set(a.semana_inicio, atual);
     });
@@ -70,6 +86,7 @@ export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, cliente
       semanaInicio,
       semanaFim: domingoISO(semanaInicio),
       receitaBrutaTotal: totais.receita,
+      receitaLiquidaTotal: totais.receitaLiquidaTotal,
       investimentoTotal: totais.investimento,
       fechamento: fechamentoPorSemana.get(semanaInicio) ?? null,
     }));
@@ -150,7 +167,7 @@ export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, cliente
             {semanas.map((semana) => {
               const status = calcularStatusPeriodo(semana.semanaFim, Boolean(semana.fechamento));
               const statusMeta = STATUS_PERIODO_META[status];
-              const lucro = semana.fechamento ? semana.fechamento.lucro_liquido_real : semana.receitaBrutaTotal - semana.investimentoTotal;
+              const lucro = semana.fechamento ? semana.fechamento.lucro_liquido_real : semana.receitaLiquidaTotal - semana.investimentoTotal;
               return (
                 <Card key={semana.semanaInicio} className="flex flex-wrap items-center justify-between gap-3 p-4">
                   <div>
@@ -188,6 +205,7 @@ export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, cliente
           semanaInicio={semanaAbrindoFechamento.semanaInicio}
           semanaFim={semanaAbrindoFechamento.semanaFim}
           receitaBrutaTotal={semanaAbrindoFechamento.receitaBrutaTotal}
+          receitaLiquidaTotal={semanaAbrindoFechamento.receitaLiquidaTotal}
           investimentoTotal={semanaAbrindoFechamento.investimentoTotal}
           fechamentoExistente={semanaAbrindoFechamento.fechamento}
           clienteCadastroId={clienteCadastroId}

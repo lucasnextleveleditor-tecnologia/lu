@@ -94,12 +94,17 @@ export interface TrafegoDict {
   receitaBrutaLabel: string;
   receitaBrutaHint: string;
   criarAnuncioBotao: string;
+  taxaPercentualLabel: string;
+  taxaFixaLabel: string;
+  taxaAnuncioHint: string;
+  receitaLiquidaLabel: string;
 
   // Lista/gestão de anúncios (`AnunciosManager.tsx`).
   novoAnuncioBotao: string;
   cadastreProdutoPrincipalPrimeiro: string;
   investimentoDoDiaCard: string;
   receitaBrutaDoDiaCard: string;
+  receitaLiquidaDoDiaCard: string;
   lucroBrutoDoDiaCard: string;
   cadastreProdutoPrincipalAviso: string;
   nenhumAnuncioNoDia: string;
@@ -107,6 +112,7 @@ export interface TrafegoDict {
   semProdutoPrincipalTexto: string;
   investAbrevLabel: string;
   receitaAbrevLabel: string;
+  receitaLiquidaAbrevLabel: string;
   viewsAbrevLabel: string;
   cliquesAbrevLabel: string;
   vendasPrincAbrevLabel: string;
@@ -155,6 +161,7 @@ export interface TrafegoDict {
   editarFechamentoTitulo: string;
   fechamentoDaSemanaTitulo: string;
   receitaBrutaTotalLabel: string;
+  receitaLiquidaTotalLabel: string;
   investimentoTotalLabel: string;
   valorReembolsosLabel: string;
   estornosGarantiaHint: string;
@@ -190,6 +197,12 @@ export interface TrafegoDict {
   novoProdutoBotao: string;
   produtosPrincipaisTitulo: string;
   orderBumpsTitulo: string;
+
+  // Taxa padrão da plataforma (`TaxaPlataformaCard.tsx`).
+  taxaPadraoTitulo: string;
+  taxaPadraoDescricao: string;
+  salvarTaxaPadraoBotao: string;
+  taxaPadraoSalvaTexto: string;
 }
 
 export const trafego: TrafegoDict = {
@@ -271,11 +284,16 @@ export const trafego: TrafegoDict = {
   receitaBrutaHint:
     "Calculado automaticamente pelas vendas × valor do produto — edite aqui se a plataforma (Hotmart/Kiwify) mostrar um valor diferente.",
   criarAnuncioBotao: "Criar Anúncio",
+  taxaPercentualLabel: "Taxa da Plataforma (%)",
+  taxaFixaLabel: "Taxa Fixa por Venda (R$)",
+  taxaAnuncioHint: "Pode deixar 0 nos dois campos se a plataforma não cobrar nada nessa venda.",
+  receitaLiquidaLabel: "Receita Líquida (já com a taxa descontada)",
 
   novoAnuncioBotao: "Novo Anúncio",
   cadastreProdutoPrincipalPrimeiro: "Cadastre um Produto Principal primeiro",
   investimentoDoDiaCard: "Investimento do Dia",
   receitaBrutaDoDiaCard: "Receita Bruta do Dia",
+  receitaLiquidaDoDiaCard: "Receita Líquida do Dia",
   lucroBrutoDoDiaCard: "Lucro Bruto do Dia",
   cadastreProdutoPrincipalAviso: 'Cadastre pelo menos um Produto Principal na aba "Produtos" antes de lançar um anúncio.',
   nenhumAnuncioNoDia: "Nenhum anúncio lançado nesse dia ainda.",
@@ -283,6 +301,7 @@ export const trafego: TrafegoDict = {
   semProdutoPrincipalTexto: "Sem produto principal",
   investAbrevLabel: "Invest.:",
   receitaAbrevLabel: "Receita:",
+  receitaLiquidaAbrevLabel: "Líquida:",
   viewsAbrevLabel: "Views:",
   cliquesAbrevLabel: "Cliques:",
   vendasPrincAbrevLabel: "Vendas Princ.:",
@@ -327,6 +346,7 @@ export const trafego: TrafegoDict = {
   editarFechamentoTitulo: "Editar Fechamento",
   fechamentoDaSemanaTitulo: "Fechamento da Semana",
   receitaBrutaTotalLabel: "Receita Bruta Total",
+  receitaLiquidaTotalLabel: "Receita Líquida Total",
   investimentoTotalLabel: "Investimento Total",
   valorReembolsosLabel: "Valor de Reembolsos / Chargebacks (R$)",
   estornosGarantiaHint: "Estornos da garantia de 7 dias desse período.",
@@ -338,7 +358,7 @@ export const trafego: TrafegoDict = {
   calendarioMetasAba: "Calendário de Metas",
   produtosAba: "Produtos",
   infoProdutosClienteLabel: "Cliente",
-  nenhumClienteParaInfoprodutos: 'Cadastre um cliente na aba "Clientes" antes de usar o Info-Produtos.',
+  nenhumClienteParaInfoprodutos: "Cadastre um cliente antes de usar o Info-Produtos.",
 
   editarProdutoTitulo: "Editar Produto",
   novoProdutoTitulo: "Novo Produto",
@@ -357,4 +377,10 @@ export const trafego: TrafegoDict = {
   novoProdutoBotao: "Novo Produto",
   produtosPrincipaisTitulo: "Produtos Principais",
   orderBumpsTitulo: "Order Bumps",
+
+  taxaPadraoTitulo: "Taxa Padrão da Plataforma",
+  taxaPadraoDescricao:
+    "Preenche sozinha todo novo lançamento de anúncio desse cliente (dá pra ajustar por lançamento se uma venda específica tiver taxa diferente).",
+  salvarTaxaPadraoBotao: "Salvar Taxa Padrão",
+  taxaPadraoSalvaTexto: "Salvo.",
 };

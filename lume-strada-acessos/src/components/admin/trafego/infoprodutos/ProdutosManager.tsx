@@ -1,21 +1,23 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import type { ProdutoRow } from "@/lib/types/infoprodutos";
+import type { ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import { alternarAtivoProduto, removerProduto } from "@/app/admin/trafego/infoprodutos-actions";
 import { fmtBRL } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ProdutoModal } from "@/components/admin/trafego/infoprodutos/ProdutoModal";
+import { TaxaPlataformaCard } from "@/components/admin/trafego/infoprodutos/TaxaPlataformaCard";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface ProdutosManagerProps {
   produtos: ProdutoRow[];
   clienteCadastroId: string;
+  taxaPadrao: TaxaPadraoRow | null;
 }
 
-export function ProdutosManager({ produtos, clienteCadastroId }: ProdutosManagerProps) {
+export function ProdutosManager({ produtos, clienteCadastroId, taxaPadrao }: ProdutosManagerProps) {
   const { dict } = useLocale();
   const [modalAberto, setModalAberto] = useState(false);
   const [produtoEditando, setProdutoEditando] = useState<ProdutoRow | null>(null);
@@ -138,6 +140,8 @@ export function ProdutosManager({ produtos, clienteCadastroId }: ProdutosManager
       </div>
 
       {error && <p className="text-sm text-danger">{error}</p>}
+
+      <TaxaPlataformaCard clienteCadastroId={clienteCadastroId} taxaPadrao={taxaPadrao} />
 
       <Grupo titulo={dict.trafego.produtosPrincipaisTitulo} itens={principais} />
       <Grupo titulo={dict.trafego.orderBumpsTitulo} itens={orderBumps} />

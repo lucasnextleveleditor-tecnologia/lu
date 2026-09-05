@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { AnuncioComRelacoes, FechamentoSemanalRow, MetaCalendarioRow, ProdutoRow } from "@/lib/types/infoprodutos";
+import type { AnuncioComRelacoes, FechamentoSemanalRow, MetaCalendarioRow, ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import { cn } from "@/lib/utils/cn";
 import { Card } from "@/components/ui/Card";
@@ -19,6 +19,7 @@ interface InfoProdutosWorkspaceProps {
   anuncios: AnuncioComRelacoes[];
   metasCalendario: MetaCalendarioRow[];
   fechamentos: FechamentoSemanalRow[];
+  taxasPadrao: TaxaPadraoRow[];
 }
 
 // Ordem pensada pro fluxo natural de preenchimento: primeiro cadastra o
@@ -38,7 +39,7 @@ type SubAba = "produtos" | "anuncios" | "calendario" | "visao_geral";
  * cliente só. Lucro Líquido é sempre (Receita Bruta - Investimento) -
  * Reembolsos, nunca faturamento bruto.
  */
-export function InfoProdutosWorkspace({ clientes, produtos, anuncios, metasCalendario, fechamentos }: InfoProdutosWorkspaceProps) {
+export function InfoProdutosWorkspace({ clientes, produtos, anuncios, metasCalendario, fechamentos, taxasPadrao }: InfoProdutosWorkspaceProps) {
   const { dict } = useLocale();
   const [subAba, setSubAba] = useState<SubAba>("produtos");
   const [clienteId, setClienteId] = useState<string>(clientes[0]?.id ?? "");
@@ -60,6 +61,7 @@ export function InfoProdutosWorkspace({ clientes, produtos, anuncios, metasCalen
     [metasCalendario, clienteId]
   );
   const fechamentosDoCliente = useMemo(() => fechamentos.filter((f) => f.cliente_cadastro_id === clienteId), [fechamentos, clienteId]);
+  const taxaPadraoDoCliente = useMemo(() => taxasPadrao.find((t) => t.cliente_cadastro_id === clienteId) ?? null, [taxasPadrao, clienteId]);
 
   if (clientes.length === 0) {
     return (
@@ -103,9 +105,17 @@ export function InfoProdutosWorkspace({ clientes, produtos, anuncios, metasCalen
       {/* `key={clienteId}` força um remount limpo de cada sub-aba ao trocar
           de cliente — evita que estado local (dia selecionado, modal aberto,
           confirmação de exclusão pendente) vaze de um cliente pro outro. */}
-      {subAba === "produtos" && <ProdutosManager key={clienteId} produtos={produtosDoCliente} clienteCadastroId={clienteId} />}
+      {subAba === "produtos" && (
+        <ProdutosManager key={clienteId} produtos={produtosDoCliente} clienteCadastroId={clienteId} taxaPadrao={taxaPadraoDoCliente} />
+      )}
       {subAba === "anuncios" && (
-        <AnunciosManager key={clienteId} anuncios={anunciosDoCliente} produtos={produtosDoCliente} clienteCadastroId={clienteId} />
+        <AnunciosManager
+          key={clienteId}
+          anuncios={anunciosDoCliente}
+          produtos={produtosDoCliente}
+          clienteCadastroId={clienteId}
+          taxaPadrao={taxaPadraoDoCliente}
+        />
       )}
       {subAba === "calendario" && <CalendarioMetas key={clienteId} metasCalendario={metasCalendarioDoCliente} clienteCadastroId={clienteId} />}
       {subAba === "visao_geral" && (

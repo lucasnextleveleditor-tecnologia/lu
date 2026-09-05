@@ -12,6 +12,7 @@ interface FechamentoModalProps {
   semanaInicio: string;
   semanaFim: string;
   receitaBrutaTotal: number;
+  receitaLiquidaTotal: number;
   investimentoTotal: number;
   fechamentoExistente: FechamentoSemanalRow | null;
   clienteCadastroId: string;
@@ -19,16 +20,20 @@ interface FechamentoModalProps {
 }
 
 /**
- * "Fechamento da Semana" — a matemática do lucro real: (Receita Bruta -
- * Investimento) - Reembolsos = Lucro Líquido Real. Os totais de receita/
- * investimento mostrados aqui vêm dos anúncios já lançados (client-side,
- * pra pré-visualização); o valor TRAVADO de verdade é recalculado no
- * servidor no momento do fechamento (`fecharSemana`), direto do banco.
+ * "Fechamento da Semana" — a matemática do lucro real: (Receita Líquida -
+ * já descontada a taxa da plataforma de cada anúncio - Investimento) -
+ * Reembolsos = Lucro Líquido Real. A Receita Bruta continua exibida como
+ * referência informativa (o quanto entrou antes da taxa), mas quem entra na
+ * conta do lucro é sempre a líquida. Os totais mostrados aqui vêm dos
+ * anúncios já lançados (client-side, pra pré-visualização); o valor
+ * TRAVADO de verdade é recalculado no servidor no momento do fechamento
+ * (`fecharSemana`), direto do banco.
  */
 export function FechamentoModal({
   semanaInicio,
   semanaFim,
   receitaBrutaTotal,
+  receitaLiquidaTotal,
   investimentoTotal,
   fechamentoExistente,
   clienteCadastroId,
@@ -39,7 +44,7 @@ export function FechamentoModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const lucroBruto = receitaBrutaTotal - investimentoTotal;
+  const lucroBruto = receitaLiquidaTotal - investimentoTotal;
   const lucroLiquidoPrevisto = lucroBruto - (Number(reembolsos) || 0);
 
   async function handleFechar() {
@@ -72,6 +77,10 @@ export function FechamentoModal({
           <div className="flex justify-between">
             <span className="text-ink-muted">{dict.trafego.receitaBrutaTotalLabel}</span>
             <span className="text-ink-primary">{fmtBRL(receitaBrutaTotal)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-ink-muted">{dict.trafego.receitaLiquidaTotalLabel}</span>
+            <span className="text-ink-primary">{fmtBRL(receitaLiquidaTotal)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-ink-muted">{dict.trafego.investimentoTotalLabel}</span>

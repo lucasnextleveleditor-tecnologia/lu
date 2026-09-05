@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { AnuncioComRelacoes } from "@/lib/types/infoprodutos";
+import type { AnuncioComRelacoes, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import type { ProdutoRow } from "@/lib/types/infoprodutos";
 import { criarAnuncio, atualizarAnuncio } from "@/app/admin/trafego/infoprodutos-actions";
-import { calcularReceitaBruta } from "@/lib/utils/infoprodutos";
+import { calcularReceitaBruta, calcularReceitaLiquida } from "@/lib/utils/infoprodutos";
+import { fmtBRL } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -16,12 +17,13 @@ interface AnuncioModalProps {
   produtos: ProdutoRow[];
   clienteCadastroId: string;
   dataPadrao: string;
+  taxaPadrao: TaxaPadraoRow | null;
   onClose: () => void;
 }
 
 const SEM_ORDER_BUMP = "__nenhum__";
 
-export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao, onClose }: AnuncioModalProps) {
+export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao, taxaPadrao, onClose }: AnuncioModalProps) {
   const { dict } = useLocale();
   const principais = produtos.filter((p) => p.tipo === "principal");
   const orderBumps = produtos.filter((p) => p.tipo === "order_bump");
@@ -37,10 +39,18 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
   const [vendasOrderBump, setVendasOrderBump] = useState(String(anuncio?.vendas_order_bump ?? ""));
   const [receitaBruta, setReceitaBruta] = useState(String(anuncio?.receita_bruta ?? "0"));
   const [receitaAuto, setReceitaAuto] = useState(true); // enquanto true, recalcula sozinho; vira false assim que o usuário edita o campo direto
+  // Pré-preenche da Taxa Padrão do cliente SÓ num anúncio novo — editando um
+  // já lançado, usa o valor GRAVADO naquele lançamento (nunca o padrão atual,
+  // que pode ter mudado depois).
+  const [taxaPercentual, setTaxaPercentual] = useState(String(anuncio?.taxa_percentual ?? taxaPadrao?.taxa_percentual ?? 0));
+  const [taxaFixa, setTaxaFixa] = useState(String(anuncio?.taxa_fixa ?? taxaPadrao?.taxa_fixa ?? 0));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const editando = Boolean(anuncio);
+
+  const totalVendas = (Number(vendasPrincipal) || 0) + (Number(vendasOrderBump) || 0);
+  const receitaLiquida = calcularReceitaLiquida(Number(receitaBruta) || 0, Number(taxaPercentual) || 0, Number(taxaFixa) || 0, totalVendas);
 
   function recalcularReceita(novosValores: { vp?: string; vob?: string; principalId?: string; bumpId?: string }) {
     if (!receitaAuto) return;
@@ -69,6 +79,8 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
       vendasPrincipal: Number(vendasPrincipal) || 0,
       vendasOrderBump: Number(vendasOrderBump) || 0,
       receitaBruta: Number(receitaBruta) || 0,
+      taxaPercentual: Number(taxaPercentual) || 0,
+      taxaFixa: Number(taxaFixa) || 0,
     };
 
     const result = anuncio ? await atualizarAnuncio(anuncio.id, input) : await criarAnuncio(clienteCadastroId, input);
@@ -210,6 +222,25 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
               }}
             />
             <p className="mt-1 text-xs text-ink-muted">{dict.trafego.receitaBrutaHint}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.taxaPercentualLabel}</label>
+              <Input type="number" min="0" step="0.01" value={taxaPercentual} onChange={(e) => setTaxaPercentual(e.target.value)} />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.taxaFixaLabel}</label>
+              <Input type="number" min="0" step="0.01" value={taxaFixa} onChange={(e) => setTaxaFixa(e.target.value)} />
+            </div>
+            <p className="col-span-2 -mt-1 text-xs text-ink-muted">{dict.trafego.taxaAnuncioHint}</p>
+          </div>
+
+          <div className="rounded-xl border border-base-700 bg-base-950/60 p-3">
+            <p className="text-xs uppercase tracking-wide text-ink-muted">{dict.trafego.receitaLiquidaLabel}</p>
+            <p className={`mt-0.5 text-lg font-semibold ${receitaLiquida >= 0 ? "text-status-good" : "text-status-critical"}`}>
+              {fmtBRL(receitaLiquida)}
+            </p>
           </div>
 
           {error && <p className="text-sm text-danger">{error}</p>}

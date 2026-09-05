@@ -79,11 +79,16 @@ export const trafego: TrafegoDict = {
   receitaBrutaHint:
     "Automatically calculated from sales × product price — edit here if the platform (Hotmart/Kiwify) shows a different value.",
   criarAnuncioBotao: "Create Ad",
+  taxaPercentualLabel: "Platform Fee (%)",
+  taxaFixaLabel: "Fixed Fee per Sale (R$)",
+  taxaAnuncioHint: "You can leave both fields at 0 if the platform doesn't charge anything on this sale.",
+  receitaLiquidaLabel: "Net Revenue (fee already deducted)",
 
   novoAnuncioBotao: "New Ad",
   cadastreProdutoPrincipalPrimeiro: "Register a Main Product first",
   investimentoDoDiaCard: "Investment for the Day",
   receitaBrutaDoDiaCard: "Gross Revenue for the Day",
+  receitaLiquidaDoDiaCard: "Net Revenue for the Day",
   lucroBrutoDoDiaCard: "Gross Profit for the Day",
   cadastreProdutoPrincipalAviso: 'Register at least one Main Product in the "Products" tab before logging an ad.',
   nenhumAnuncioNoDia: "No ads logged for this day yet.",
@@ -91,6 +96,7 @@ export const trafego: TrafegoDict = {
   semProdutoPrincipalTexto: "No main product",
   investAbrevLabel: "Invest.:",
   receitaAbrevLabel: "Revenue:",
+  receitaLiquidaAbrevLabel: "Net:",
   viewsAbrevLabel: "Views:",
   cliquesAbrevLabel: "Clicks:",
   vendasPrincAbrevLabel: "Main Sales:",
@@ -135,6 +141,7 @@ export const trafego: TrafegoDict = {
   editarFechamentoTitulo: "Edit Closeout",
   fechamentoDaSemanaTitulo: "Weekly Closeout",
   receitaBrutaTotalLabel: "Total Gross Revenue",
+  receitaLiquidaTotalLabel: "Total Net Revenue",
   investimentoTotalLabel: "Total Investment",
   valorReembolsosLabel: "Refunds / Chargebacks Amount (R$)",
   estornosGarantiaHint: "Refunds from the 7-day guarantee for this period.",
@@ -146,7 +153,7 @@ export const trafego: TrafegoDict = {
   calendarioMetasAba: "Goals Calendar",
   produtosAba: "Products",
   infoProdutosClienteLabel: "Client",
-  nenhumClienteParaInfoprodutos: 'Register a client in the "Clients" tab before using Info-Products.',
+  nenhumClienteParaInfoprodutos: "Register a client before using Info-Products.",
 
   editarProdutoTitulo: "Edit Product",
   novoProdutoTitulo: "New Product",
@@ -165,4 +172,10 @@ export const trafego: TrafegoDict = {
   novoProdutoBotao: "New Product",
   produtosPrincipaisTitulo: "Main Products",
   orderBumpsTitulo: "Order Bumps",
+
+  taxaPadraoTitulo: "Default Platform Fee",
+  taxaPadraoDescricao:
+    "Automatically fills in every new ad entry for this client (you can adjust it per entry if a specific sale had a different fee).",
+  salvarTaxaPadraoBotao: "Save Default Fee",
+  taxaPadraoSalvaTexto: "Saved.",
 };

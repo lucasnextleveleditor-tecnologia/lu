@@ -93,6 +93,23 @@ export function calcularReceitaBruta(
 }
 
 // ----------------------------------------------------------------------------
+// Receita Líquida — Receita Bruta já descontada da taxa da plataforma
+// (Hotmart/Kiwify/etc), que tem duas partes independentes: um percentual
+// sobre a receita e um valor fixo por venda (qualquer uma das duas pode ser
+// 0 — ver `supabase/infoprodutos-taxa-plataforma.sql`). É essa Receita
+// Líquida, não a Bruta, que entra no cálculo de Lucro em todo o módulo
+// (Dashboard 7 Dias, Fechamento da Semana, Relatórios).
+// ----------------------------------------------------------------------------
+export function calcularReceitaLiquida(
+  receitaBruta: number,
+  taxaPercentual: number,
+  taxaFixa: number,
+  totalVendas: number
+): number {
+  return receitaBruta - (receitaBruta * taxaPercentual) / 100 - taxaFixa * totalVendas;
+}
+
+// ----------------------------------------------------------------------------
 // Status do Período de Garantia — nunca gravado, sempre CALCULADO a partir
 // de `semana_fim` + a existência (ou não) de um `FechamentoSemanalRow` —
 // mesmo padrão de `calcularStatus`/StatusAcesso em lib/utils/status.ts.
