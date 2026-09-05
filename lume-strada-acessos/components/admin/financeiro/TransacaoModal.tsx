@@ -394,6 +394,137 @@ export function TransacaoModal({
 
           {tipo !== "transferencia" && (
             <>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.categoria}</label>
+                <Select value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)}>
+                  <option value="">{dict.common.semCategoria}</option>
+                  {categoriasDoTipo.map((categoria) => (
+                    <option key={categoria.id} value={categoria.id}>
+                      {categoria.emoji ? `${categoria.emoji} ${categoria.nome}` : categoria.nome}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              {/* Parcelamento — só na criação de uma despesa nova; editar um
+                  lançamento avulso ou uma parcela específica não "reparcela"
+                  nada, é só uma edição normal do valor/data desse lançamento. */}
+              {tipo === "despesa" && !editando && (
+                <div className="space-y-2 rounded-lg border border-base-700 bg-base-950/40 p-3">
+                  <label className="flex items-center gap-2 text-xs font-medium text-ink-secondary">
+                    <input
+                      type="checkbox"
+                      checked={parcelado}
+                      onChange={(e) => setParcelado(e.target.checked)}
+                      className="h-4 w-4 rounded border-base-600 bg-base-900 accent-white"
+                    />
+                    {dict.financeiro.parcelarCompraLabel}
+                  </label>
+                  {parcelado && (
+                    <>
+                      <div>
+                        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.numeroParcelasLabel}</label>
+                        <Input
+                          required
+                          type="number"
+                          min={2}
+                          max={60}
+                          step={1}
+                          value={numParcelas}
+                          onChange={(e) => setNumParcelas(Math.max(2, Math.min(60, Number(e.target.value) || 2)))}
+                        />
+                      </div>
+                      <p className="text-xs text-ink-muted">
+                        {dict.financeiro.parcelaPreviewPrefixo.replace("{n}", String(numParcelas))}{" "}
+                        <span className="font-medium text-ink-primary">{fmtBRL(valorPorParcela)}</span> {dict.financeiro.parcelaPreviewSufixo}
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
+                {parcelado ? dict.financeiro.dataPrimeiraParcelaLabel : dict.financeiro.dataVencimentoLabel}
+              </label>
+              <DatePicker required value={dataVencimento} onChange={setDataVencimento} />
+            </div>
+            {!parcelado && mostrarJaPaga && (
+              <div className="flex items-end pb-2">
+                <label className="flex items-center gap-2 text-xs font-medium text-ink-secondary">
+                  <input
+                    type="checkbox"
+                    checked={jaPaga}
+                    onChange={(e) => setJaPaga(e.target.checked)}
+                    className="h-4 w-4 rounded border-base-600 bg-base-900 accent-white"
+                  />
+                  {dict.financeiro.jaPagaLabel}
+                </label>
+              </div>
+            )}
+          </div>
+
+          {tipo !== "transferencia" && !parcelado && (
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs font-medium text-ink-secondary">
+                <input
+                  type="checkbox"
+                  checked={recorrente}
+                  onChange={(e) => setRecorrente(e.target.checked)}
+                  className="h-4 w-4 rounded border-base-600 bg-base-900 accent-white"
+                />
+                {dict.financeiro.transacaoRecorrenteLabel}
+              </label>
+              {recorrente && (
+                <>
+                  <Select value={recorrenciaIntervalo} onChange={(e) => setRecorrenciaIntervalo(e.target.value as FinRecorrencia)}>
+                    <option value="semanal">{dict.financeiro.semanalLabel}</option>
+                    <option value="mensal">{dict.financeiro.mensalLabel}</option>
+                    <option value="anual">{dict.financeiro.anualLabel}</option>
+                  </Select>
+                  <p className="text-xs text-ink-muted">{dict.financeiro.recorrenciaPreviewTexto}</p>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Pagar com — pedido explícito do dono da conta: "de onde sai o
+              dinheiro" fica por último no formulário, depois de categoria,
+              parcelamento, data e recorrência. Transferência já é "de onde
+              pra onde" por natureza, então sua versão (origem/destino)
+              também fica aqui, no mesmo lugar. */}
+          {tipo === "transferencia" ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.contaOrigemLabel}</label>
+                <Select required value={contaId} onChange={(e) => setContaId(e.target.value)}>
+                  <option value="">{dict.common.selecione}</option>
+                  {contasDoContexto.map((conta) => (
+                    <option key={conta.id} value={conta.id}>
+                      {conta.nome}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.contaDestinoLabel}</label>
+                <Select required value={contaDestinoId} onChange={(e) => setContaDestinoId(e.target.value)}>
+                  <option value="">{dict.common.selecione}</option>
+                  {contasDoContexto
+                    .filter((c) => c.id !== contaId)
+                    .map((conta) => (
+                      <option key={conta.id} value={conta.id}>
+                        {conta.nome}
+                      </option>
+                    ))}
+                </Select>
+              </div>
+            </div>
+          ) : (
+            <>
               {tipo === "despesa" && (
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.pagarComLabel}</label>
@@ -469,131 +600,7 @@ export function TransacaoModal({
                   )}
                 </div>
               )}
-
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.categoria}</label>
-                <Select value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)}>
-                  <option value="">{dict.common.semCategoria}</option>
-                  {categoriasDoTipo.map((categoria) => (
-                    <option key={categoria.id} value={categoria.id}>
-                      {categoria.emoji ? `${categoria.emoji} ${categoria.nome}` : categoria.nome}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-
-              {/* Parcelamento — só na criação de uma despesa nova; editar um
-                  lançamento avulso ou uma parcela específica não "reparcela"
-                  nada, é só uma edição normal do valor/data desse lançamento. */}
-              {tipo === "despesa" && !editando && (
-                <div className="space-y-2 rounded-lg border border-base-700 bg-base-950/40 p-3">
-                  <label className="flex items-center gap-2 text-xs font-medium text-ink-secondary">
-                    <input
-                      type="checkbox"
-                      checked={parcelado}
-                      onChange={(e) => setParcelado(e.target.checked)}
-                      className="h-4 w-4 rounded border-base-600 bg-base-900 accent-white"
-                    />
-                    {dict.financeiro.parcelarCompraLabel}
-                  </label>
-                  {parcelado && (
-                    <>
-                      <div>
-                        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.numeroParcelasLabel}</label>
-                        <Input
-                          required
-                          type="number"
-                          min={2}
-                          max={60}
-                          step={1}
-                          value={numParcelas}
-                          onChange={(e) => setNumParcelas(Math.max(2, Math.min(60, Number(e.target.value) || 2)))}
-                        />
-                      </div>
-                      <p className="text-xs text-ink-muted">
-                        {dict.financeiro.parcelaPreviewPrefixo.replace("{n}", String(numParcelas))}{" "}
-                        <span className="font-medium text-ink-primary">{fmtBRL(valorPorParcela)}</span> {dict.financeiro.parcelaPreviewSufixo}
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
             </>
-          )}
-
-          {tipo === "transferencia" && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.contaOrigemLabel}</label>
-                <Select required value={contaId} onChange={(e) => setContaId(e.target.value)}>
-                  <option value="">{dict.common.selecione}</option>
-                  {contasDoContexto.map((conta) => (
-                    <option key={conta.id} value={conta.id}>
-                      {conta.nome}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.financeiro.contaDestinoLabel}</label>
-                <Select required value={contaDestinoId} onChange={(e) => setContaDestinoId(e.target.value)}>
-                  <option value="">{dict.common.selecione}</option>
-                  {contasDoContexto
-                    .filter((c) => c.id !== contaId)
-                    .map((conta) => (
-                      <option key={conta.id} value={conta.id}>
-                        {conta.nome}
-                      </option>
-                    ))}
-                </Select>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
-                {parcelado ? dict.financeiro.dataPrimeiraParcelaLabel : dict.financeiro.dataVencimentoLabel}
-              </label>
-              <DatePicker required value={dataVencimento} onChange={setDataVencimento} />
-            </div>
-            {!parcelado && mostrarJaPaga && (
-              <div className="flex items-end pb-2">
-                <label className="flex items-center gap-2 text-xs font-medium text-ink-secondary">
-                  <input
-                    type="checkbox"
-                    checked={jaPaga}
-                    onChange={(e) => setJaPaga(e.target.checked)}
-                    className="h-4 w-4 rounded border-base-600 bg-base-900 accent-white"
-                  />
-                  {dict.financeiro.jaPagaLabel}
-                </label>
-              </div>
-            )}
-          </div>
-
-          {tipo !== "transferencia" && !parcelado && (
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-medium text-ink-secondary">
-                <input
-                  type="checkbox"
-                  checked={recorrente}
-                  onChange={(e) => setRecorrente(e.target.checked)}
-                  className="h-4 w-4 rounded border-base-600 bg-base-900 accent-white"
-                />
-                {dict.financeiro.transacaoRecorrenteLabel}
-              </label>
-              {recorrente && (
-                <>
-                  <Select value={recorrenciaIntervalo} onChange={(e) => setRecorrenciaIntervalo(e.target.value as FinRecorrencia)}>
-                    <option value="semanal">{dict.financeiro.semanalLabel}</option>
-                    <option value="mensal">{dict.financeiro.mensalLabel}</option>
-                    <option value="anual">{dict.financeiro.anualLabel}</option>
-                  </Select>
-                  <p className="text-xs text-ink-muted">{dict.financeiro.recorrenciaPreviewTexto}</p>
-                </>
-              )}
-            </div>
           )}
 
           {error && <p className="text-sm text-danger">{error}</p>}
