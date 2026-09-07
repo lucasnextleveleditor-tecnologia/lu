@@ -95,3 +95,30 @@ export function calcularStatusExibicao(o: Pick<OrcamentoRow, "status" | "data_ex
   if (o.data_expiracao && o.data_expiracao < hoje) return "expirado";
   return o.status;
 }
+
+// ----------------------------------------------------------------------------
+// Fase 1 — Portfólio + Marca da agência (ver `supabase/orcamentos-portfolio-e-marca.sql`)
+// ----------------------------------------------------------------------------
+export type TipoMidiaPortfolio = "imagem" | "video";
+
+export interface PortfolioItemRow {
+  id: string;
+  titulo: string;
+  tipo_midia: TipoMidiaPortfolio;
+  /** Path dentro do bucket "orcamentos-midia" — a URL pública é resolvida no data.ts, nunca gravada no banco. */
+  path: string;
+  categoria_profissao: string | null;
+  ordem: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Item de portfólio já com a URL pública resolvida (bucket público) — o que os componentes de fato usam pra `<img>`/`<video src>`. */
+export type PortfolioItemComUrl = PortfolioItemRow & { url: string };
+
+/** `companies.orc_logo_path`/`orc_banner_path`/`orc_rodape_path` já resolvidos pra URL pública — mesmo raciocínio de `PortfolioItemComUrl`. */
+export interface MarcaOrcamentoComUrls {
+  orcLogoUrl: string | null;
+  orcBannerUrl: string | null;
+  orcRodapeUrl: string | null;
+}

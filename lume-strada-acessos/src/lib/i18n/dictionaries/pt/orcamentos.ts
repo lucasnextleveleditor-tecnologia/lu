@@ -159,6 +159,33 @@ export interface OrcamentosDict {
   rodapePublico: string;
   linkInvalidoTitulo: string;
   linkInvalidoDescricao: string;
+
+  // Portfólio + Marca da agência (Fase 1 do sistema guiado de Orçamentos/Contratos)
+  portfolioBtn: string;
+  portfolioTitulo: string;
+  portfolioSubtitulo: string;
+  portfolioAdicionarBtn: string;
+  portfolioEnviando: string;
+  portfolioVazioTitulo: string;
+  portfolioVazioDescricao: string;
+  portfolioEditarTitulo: string;
+  portfolioTituloLabel: string;
+  placeholderPortfolioTitulo: string;
+  portfolioCategoriaLabel: string;
+  portfolioCategoriaNenhuma: string;
+  categoriasProfissao: Record<
+    "filmmaker" | "videomaker" | "social_media" | "storymaker" | "designer" | "fotografo" | "agencia_marketing",
+    string
+  >;
+
+  marcaAgenciaTitulo: string;
+  marcaAgenciaSubtitulo: string;
+  marcaLogoLabel: string;
+  marcaLogoHint: string;
+  marcaBannerLabel: string;
+  marcaBannerHint: string;
+  marcaRodapeLabel: string;
+  marcaRodapeHint: string;
 }
 
 export const orcamentos: OrcamentosDict = {
@@ -305,4 +332,35 @@ export const orcamentos: OrcamentosDict = {
   rodapePublico: "Proposta gerada por {empresa}.",
   linkInvalidoTitulo: "Link não encontrado",
   linkInvalidoDescricao: "Este link de orçamento não existe ou foi removido.",
+
+  portfolioBtn: "Portfólio",
+  portfolioTitulo: "Itens de Portfólio",
+  portfolioSubtitulo: "Fotos e vídeos dos seus trabalhos, reutilizáveis em vários orçamentos.",
+  portfolioAdicionarBtn: "Adicionar Item",
+  portfolioEnviando: "Enviando...",
+  portfolioVazioTitulo: "Nenhum item de portfólio ainda.",
+  portfolioVazioDescricao: "Envie fotos ou vídeos dos seus trabalhos — eles ficam disponíveis pra anexar em qualquer orçamento.",
+  portfolioEditarTitulo: "Editar Item de Portfólio",
+  portfolioTituloLabel: "Título",
+  placeholderPortfolioTitulo: "Ex: Making of — Campanha Verão",
+  portfolioCategoriaLabel: "Categoria (opcional)",
+  portfolioCategoriaNenhuma: "Qualquer categoria",
+  categoriasProfissao: {
+    filmmaker: "Filmmaker",
+    videomaker: "Videomaker",
+    social_media: "Social Media",
+    storymaker: "Storymaker",
+    designer: "Designer",
+    fotografo: "Fotógrafo",
+    agencia_marketing: "Agência de Marketing",
+  },
+
+  marcaAgenciaTitulo: "Marca da Agência",
+  marcaAgenciaSubtitulo: "Logo, banner e rodapé estampados nos orçamentos e contratos enviados aos seus clientes.",
+  marcaLogoLabel: "Logo",
+  marcaLogoHint: "Aparece no topo de orçamentos e contratos.",
+  marcaBannerLabel: "Banner de topo",
+  marcaBannerHint: "Imagem larga usada na capa do orçamento/contrato.",
+  marcaRodapeLabel: "Rodapé",
+  marcaRodapeHint: "Imagem de assinatura/contato no fim do documento.",
 };

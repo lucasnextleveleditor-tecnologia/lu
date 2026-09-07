@@ -16,3 +16,22 @@ export function urlPublicaOrcamento(token: string, origem?: string): string {
   const base = process.env.NEXT_PUBLIC_SITE_URL || origem || "";
   return `${base.replace(/\/$/, "")}/orcamento/${token}`;
 }
+
+/**
+ * Tags livres (não FK — ver `orc_portfolio_itens.categoria_profissao`) pra
+ * filtrar o portfólio por tipo de profissional/agência ao montar um
+ * orçamento. Mesma lista dos 7 perfis previstos pra fase seguinte (tipos de
+ * orçamento) — cadastrada aqui desde já pra já poder taguear o portfólio
+ * enquanto aquela fase ainda não existe.
+ */
+export const CATEGORIAS_PORTFOLIO = [
+  "filmmaker",
+  "videomaker",
+  "social_media",
+  "storymaker",
+  "designer",
+  "fotografo",
+  "agencia_marketing",
+] as const;
+
+export type CategoriaProfissaoPortfolio = (typeof CATEGORIAS_PORTFOLIO)[number];
