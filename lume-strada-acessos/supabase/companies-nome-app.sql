@@ -1,0 +1,33 @@
+-- ============================================================================
+-- Nome do App por empresa — nunca mostrar o nome de uma empresa específica
+-- ============================================================================
+-- Rode DEPOIS de `multitenant-migration.sql` (precisa da tabela
+-- `public.companies` já existindo). Idempotente: seguro rodar de novo.
+--
+-- Contexto: a sidebar do admin e o header do portal do cliente tinham o
+-- texto "Lume Strada Filmes" HARDCODED no componente (`AdminShell.tsx` /
+-- `dashboard/layout.tsx`), ignorando qualquer configuração — todo cliente
+-- novo, de qualquer empresa, via o nome de uma agência que não é a dele.
+--
+-- `nome_app` é o nome exibido pro time/clientes DENTRO do app — diferente
+-- de `companies.nome` (o nome da LICENÇA, usado só pelo super-admin em
+-- `/super-admin` pra identificar a empresa compradora). Toda empresa nasce
+-- com "App Gestão" e o admin de cada empresa personaliza em Aparência
+-- (`atualizarNomeApp`, em `src/app/admin/aparencia/actions.ts`) — sem
+-- precisar mexer no registro da licença.
+--
+-- Leitura: `companies_select_own` (RLS, já criada em
+-- `multitenant-migration.sql`) já deixa qualquer admin/funcionário/cliente
+-- autenticado ler a PRÓPRIA empresa — nenhuma policy nova precisa ser
+-- criada aqui.
+--
+-- Escrita: de propósito NÃO abrimos uma policy de update pra `admin` nesta
+-- tabela — `companies` só tem policy de escrita pra `super_admin`
+-- (`companies_super_admin_all`), pra ninguém além do dono do SaaS mexer em
+-- `status`/`expires_at`/`created_by` (campos da licença). `atualizarNomeApp`
+-- usa a Service Role, escrevendo só a coluna `nome_app`, travada por
+-- `.eq("id", companyId)` vindo de `requireAdmin()` (nunca do client) — ver
+-- o comentário completo na própria Server Action.
+-- ============================================================================
+
+alter table public.companies add column if not exists nome_app text not null default 'App Gestão';
