@@ -1,0 +1,25 @@
+-- ============================================================================
+-- Agência Hub — Dashboard: cards liberados por funcionário
+-- ============================================================================
+-- Rode DEPOIS de `cadastros.sql` (é quem cria `profiles.permissoes` — essa
+-- coluna nova segue o mesmo espírito, só que pra outra coisa, ver abaixo).
+-- Idempotente — seguro rodar de novo.
+--
+-- O QUE MUDA: `profiles` ganha a coluna `dashboard_config` (jsonb) — quais
+-- cards da Visão Geral (`/admin/dashboard`) aparecem pra CADA funcionário,
+-- editável em Cadastros → Equipe → Permissões (mesmo modal de sempre, seção
+-- nova "Cards do Dashboard").
+--
+-- IMPORTANTE — ao contrário de `permissoes` (RBAC: chave ausente = SEM
+-- acesso, por segurança), aqui é o OPOSTO: chave ausente = card VISÍVEL.
+-- `dashboard_config` nunca é uma barreira de segurança — o dado sensível
+-- (saldo, valor patrimonial, verba de anúncio, conversa) já é barrado por
+-- MÓDULO antes de chegar aqui (`profiles.permissoes`, checado na aplicação
+-- — ver `src/app/admin/dashboard/page.tsx`). É só "o que esse funcionário
+-- quer/precisa ver no dia a dia dele" — um "declutter", não RBAC. Por isso
+-- o padrão aqui é o oposto do de sempre: começar com tudo visível (jamais
+-- esvaziar a dashboard de quem já tinha acesso, só porque essa coluna
+-- passou a existir).
+-- ============================================================================
+
+alter table public.profiles add column if not exists dashboard_config jsonb not null default '{}'::jsonb;
