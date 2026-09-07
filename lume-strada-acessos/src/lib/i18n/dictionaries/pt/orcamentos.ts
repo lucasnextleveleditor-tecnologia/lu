@@ -93,6 +93,8 @@ export interface OrcamentosDict {
 
   // Construtor de orçamento
   dadosDoOrcamentoTitulo: string;
+  tipoDeOrcamentoLabel: string;
+  usarItensDoModeloBtn: string;
   tituloOrcamentoLabel: string;
   placeholderTituloOrcamento: string;
   clienteExistenteLabel: string;
@@ -124,6 +126,8 @@ export interface OrcamentosDict {
   removerItemBtn: string;
   itemPersonalizadoBtn: string;
   itemPersonalizadoTitulo: string;
+  portfolioAnexarTitulo: string;
+  portfolioAnexarHint: string;
 
   subtotalLabel: string;
   totalLabel: string;
@@ -143,6 +147,7 @@ export interface OrcamentosDict {
   hintItensOpcionaisPublico: string;
   condicoesDePagamentoTitulo: string;
   observacoesTitulo: string;
+  nossosTrabalhosTitulo: string;
 
   aprovarOrcamentoBtn: string;
   recusarOrcamentoBtn: string;
@@ -186,6 +191,14 @@ export interface OrcamentosDict {
   marcaBannerHint: string;
   marcaRodapeLabel: string;
   marcaRodapeHint: string;
+
+  // Tipos de Orçamento / Modelos por profissão (Fase 2)
+  tiposBtn: string;
+  tiposSubtitulo: string;
+  tiposItensTitulo: string;
+  tiposItensVazio: string;
+  tiposSalvarBtn: string;
+  tiposSalvoMsg: string;
 }
 
 export const orcamentos: OrcamentosDict = {
@@ -267,6 +280,8 @@ export const orcamentos: OrcamentosDict = {
   catalogoVazioDescricao: "Cadastre os serviços da sua produtora com valor padrão — eles aparecem no painel de seleção ao montar um orçamento novo.",
 
   dadosDoOrcamentoTitulo: "Dados do Orçamento",
+  tipoDeOrcamentoLabel: "Tipo de orçamento",
+  usarItensDoModeloBtn: "Usar itens do modelo",
   tituloOrcamentoLabel: "Título da proposta",
   placeholderTituloOrcamento: "Ex: Vídeo Institucional — Empresa XYZ",
   clienteExistenteLabel: "Cliente já cadastrado (opcional)",
@@ -298,6 +313,8 @@ export const orcamentos: OrcamentosDict = {
   removerItemBtn: "Remover",
   itemPersonalizadoBtn: "Item personalizado",
   itemPersonalizadoTitulo: "Adicionar item personalizado",
+  portfolioAnexarTitulo: "Anexar Portfólio",
+  portfolioAnexarHint: "Escolha fotos e vídeos do seu portfólio pra mostrar junto com essa proposta.",
 
   subtotalLabel: "Subtotal",
   totalLabel: "Total",
@@ -316,6 +333,7 @@ export const orcamentos: OrcamentosDict = {
   hintItensOpcionaisPublico: "Marque os itens adicionais que você quer incluir na proposta — o total é atualizado na hora.",
   condicoesDePagamentoTitulo: "Condições de Pagamento",
   observacoesTitulo: "Observações",
+  nossosTrabalhosTitulo: "Nossos Trabalhos",
 
   aprovarOrcamentoBtn: "Aprovar Orçamento",
   recusarOrcamentoBtn: "Recusar",
@@ -363,4 +381,11 @@ export const orcamentos: OrcamentosDict = {
   marcaBannerHint: "Imagem larga usada na capa do orçamento/contrato.",
   marcaRodapeLabel: "Rodapé",
   marcaRodapeHint: "Imagem de assinatura/contato no fim do documento.",
+
+  tiposBtn: "Modelos",
+  tiposSubtitulo: "Monte um modelo de proposta pra cada tipo de trabalho — itens padrão, condições de pagamento e validade já vêm preenchidos ao escolher esse tipo num orçamento novo.",
+  tiposItensTitulo: "Itens padrão do modelo",
+  tiposItensVazio: "Nenhum item padrão ainda — adicione os serviços que costumam entrar nesse tipo de trabalho.",
+  tiposSalvarBtn: "Salvar Modelo",
+  tiposSalvoMsg: "Modelo salvo!",
 };

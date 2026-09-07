@@ -118,6 +118,34 @@ export async function removerPortfolioItem(id: string): Promise<ActionResult> {
   }
 }
 
+/**
+ * Substitui por completo a seleção de itens de Portfólio anexados a um
+ * orçamento (apaga e recria, mesmo padrão de `salvarOrderBumpVendas` em
+ * `admin/trafego/infoprodutos-actions.ts`) — mais simples que diffar uma
+ * lista curta, e um vínculo de portfólio não carrega estado próprio que
+ * precisasse sobreviver entre chamadas.
+ */
+export async function salvarPortfolioDoOrcamento(orcamentoId: string, portfolioItemIds: string[]): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("orcamentos");
+
+    const { error: erroLimpar } = await supabase.from("orc_orcamento_portfolio").delete().eq("orcamento_id", orcamentoId);
+    if (erroLimpar) return { ok: false, error: erroLimpar.message };
+
+    if (portfolioItemIds.length > 0) {
+      const { error: erroInserir } = await supabase
+        .from("orc_orcamento_portfolio")
+        .insert(portfolioItemIds.map((portfolioItemId, index) => ({ orcamento_id: orcamentoId, portfolio_item_id: portfolioItemId, ordem: index })));
+      if (erroInserir) return { ok: false, error: erroInserir.message };
+    }
+
+    revalidatePath("/admin/orcamentos");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
 // ----------------------------------------------------------------------------
 // Marca da agência (logo/banner/rodapé) — POR EMPRESA, escrita via Service
 // Role. Mesmo precedente/mesma justificativa de `atualizarNomeApp` em

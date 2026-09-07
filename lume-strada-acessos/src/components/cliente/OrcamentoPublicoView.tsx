@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { IconPrinter, IconDownload, IconCheckCircle } from "@/components/ui/icons";
+import { IconPrinter, IconDownload, IconCheckCircle, IconFilm, IconImage } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type OrcamentoPublico = NonNullable<Awaited<ReturnType<typeof buscarOrcamentoPublicoPorToken>>>;
@@ -197,6 +197,27 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
                       {fmtBRL(item.quantidade * item.valor_unitario)}
                     </p>
                   </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {orcamento.portfolio.length > 0 && (
+            <div className="mb-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.orcamentos.nossosTrabalhosTitulo}</p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {orcamento.portfolio.map((item) => (
+                  <div key={item.id} className="relative aspect-video overflow-hidden rounded-lg border border-base-800" title={item.titulo}>
+                    {item.tipo_midia === "video" ? (
+                      <video src={item.url} className="h-full w-full object-cover" muted controls />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.url} alt={item.titulo} className="h-full w-full object-cover" />
+                    )}
+                    <div className="absolute left-1 top-1 flex h-4 w-4 items-center justify-center rounded bg-black/70 text-white print:hidden">
+                      {item.tipo_midia === "video" ? <IconFilm className="h-2.5 w-2.5" /> : <IconImage className="h-2.5 w-2.5" />}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { StatTile } from "@/components/ui/StatTile";
 import { Button } from "@/components/ui/Button";
-import { IconClipboardList, IconCheckCircle, IconPercent, IconPlus, IconLayers, IconImage } from "@/components/ui/icons";
+import { IconClipboardList, IconCheckCircle, IconPercent, IconPlus, IconLayers, IconImage, IconFileText } from "@/components/ui/icons";
 import { OrcamentosManager } from "@/components/admin/orcamentos/OrcamentosManager";
 import { fmtBRL, fmtPercent } from "@/lib/utils/format";
 import { getDictionary } from "@/lib/i18n/getDictionary";
@@ -28,6 +28,12 @@ export default async function OrcamentosPage() {
           <p className="mt-0.5 text-sm text-ink-muted">{dict.orcamentos.subtituloPagina}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <Link href="/admin/orcamentos/tipos">
+            <Button variant="ghost" className="gap-1.5">
+              <IconFileText className="h-4 w-4" />
+              {dict.orcamentos.tiposBtn}
+            </Button>
+          </Link>
           <Link href="/admin/orcamentos/portfolio">
             <Button variant="ghost" className="gap-1.5">
               <IconImage className="h-4 w-4" />

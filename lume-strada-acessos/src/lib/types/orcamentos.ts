@@ -26,9 +26,19 @@ export type ServicoComCategoria = OrcServicoRow & { categoria_nome: string | nul
 export type StatusOrcamento = "rascunho" | "enviado" | "visualizado" | "aprovado" | "recusado" | "expirado";
 export type DescontoTipo = "percentual" | "fixo";
 
+/**
+ * Perfil profissional escolhido ao criar um orçamento — mesma lista de
+ * `CATEGORIAS_PORTFOLIO` em `src/lib/utils/orcamentos.ts` (mantidas
+ * separadas só porque este arquivo não pode importar de `utils/` sem criar
+ * import circular; se uma lista mudar, atualize a outra junto).
+ */
+export type PerfilOrcamento = "filmmaker" | "videomaker" | "social_media" | "storymaker" | "designer" | "fotografo" | "agencia_marketing";
+
 export interface OrcamentoRow {
   id: string;
   titulo: string;
+  /** Tag do perfil profissional usado ao criar (ver `PerfilOrcamento`) — só sugestão/rótulo, nunca restringe o catálogo disponível. Null = orçamento avulso, sem tipo. */
+  tipo_perfil: PerfilOrcamento | null;
   cliente_id: string | null;
   lead_id: string | null;
   nome_destinatario: string;
@@ -122,3 +132,31 @@ export interface MarcaOrcamentoComUrls {
   orcBannerUrl: string | null;
   orcRodapeUrl: string | null;
 }
+
+// ----------------------------------------------------------------------------
+// Fase 2 — Tipos de Orçamento por perfil (ver `supabase/orcamentos-tipos.sql`)
+// ----------------------------------------------------------------------------
+export interface OrcTipoOrcamentoRow {
+  id: string;
+  perfil: PerfilOrcamento;
+  condicoes_pagamento_padrao: string | null;
+  observacoes_padrao: string | null;
+  validade_dias_padrao: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrcTipoOrcamentoItemRow {
+  id: string;
+  tipo_orcamento_id: string;
+  servico_id: string | null;
+  nome: string;
+  descricao: string | null;
+  quantidade: number;
+  valor_unitario: number;
+  opcional: boolean;
+  ordem: number;
+  created_at: string;
+}
+
+export type TipoOrcamentoComItens = OrcTipoOrcamentoRow & { itens: OrcTipoOrcamentoItemRow[] };

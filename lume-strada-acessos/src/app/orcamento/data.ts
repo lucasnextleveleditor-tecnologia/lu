@@ -1,7 +1,9 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { calcularStatusExibicao, calcularTotalOrcamento } from "@/lib/types/orcamentos";
-import type { OrcamentoRow, OrcItemRow } from "@/lib/types/orcamentos";
+import type { OrcamentoRow, OrcItemRow, PortfolioItemRow, PortfolioItemComUrl } from "@/lib/types/orcamentos";
+
+const BUCKET_ORCAMENTOS_MIDIA = "orcamentos-midia";
 
 /**
  * Busca o orçamento pelo TOKEN da URL — sempre via Service Role
@@ -54,6 +56,21 @@ export async function buscarOrcamentoPublicoPorToken(token: string) {
 
   const { subtotal, desconto, total } = calcularTotalOrcamento(itens ?? [], orcamento.desconto_tipo, orcamento.desconto_valor);
 
+  // Itens de Portfólio anexados (Fase 2) — exibidos como "Nossos Trabalhos"
+  // pro cliente. Via Service Role, igual o resto desta função (não existe
+  // sessão/RLS aqui — só o token na URL).
+  const { data: portfolioLinks } = await admin
+    .from("orc_orcamento_portfolio")
+    .select("ordem, orc_portfolio_itens(*)")
+    .eq("orcamento_id", orcamento.id)
+    .order("ordem")
+    .overrideTypes<{ ordem: number; orc_portfolio_itens: PortfolioItemRow | null }[], { merge: false }>();
+
+  const portfolio: PortfolioItemComUrl[] = (portfolioLinks ?? [])
+    .map((link) => link.orc_portfolio_itens)
+    .filter((item): item is PortfolioItemRow => !!item)
+    .map((item) => ({ ...item, url: admin.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl }));
+
   return {
     ...orcamento,
     empresaNome: orcamento.companies?.nome ?? null,
@@ -63,5 +80,6 @@ export async function buscarOrcamentoPublicoPorToken(token: string) {
     total,
     statusExibicao,
     podeInteragir,
+    portfolio,
   };
 }

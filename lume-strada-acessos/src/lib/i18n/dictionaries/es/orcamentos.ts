@@ -79,6 +79,8 @@ export const orcamentos: OrcamentosDict = {
   catalogoVazioDescricao: "Registra los servicios de tu productora con un precio predeterminado — aparecen en el panel de selección al armar un presupuesto nuevo.",
 
   dadosDoOrcamentoTitulo: "Datos del Presupuesto",
+  tipoDeOrcamentoLabel: "Tipo de presupuesto",
+  usarItensDoModeloBtn: "Usar ítems de la plantilla",
   tituloOrcamentoLabel: "Título de la propuesta",
   placeholderTituloOrcamento: "Ej: Video Institucional — Empresa XYZ",
   clienteExistenteLabel: "Cliente ya registrado (opcional)",
@@ -110,6 +112,8 @@ export const orcamentos: OrcamentosDict = {
   removerItemBtn: "Quitar",
   itemPersonalizadoBtn: "Ítem personalizado",
   itemPersonalizadoTitulo: "Agregar ítem personalizado",
+  portfolioAnexarTitulo: "Adjuntar Portafolio",
+  portfolioAnexarHint: "Elige fotos y videos de tu portafolio para mostrar junto con esta propuesta.",
 
   subtotalLabel: "Subtotal",
   totalLabel: "Total",
@@ -128,6 +132,7 @@ export const orcamentos: OrcamentosDict = {
   hintItensOpcionaisPublico: "Marca los adicionales que quieras incluir en la propuesta — el total se actualiza al instante.",
   condicoesDePagamentoTitulo: "Condiciones de Pago",
   observacoesTitulo: "Notas",
+  nossosTrabalhosTitulo: "Nuestros Trabajos",
 
   aprovarOrcamentoBtn: "Aprobar Presupuesto",
   recusarOrcamentoBtn: "Rechazar",
@@ -175,4 +180,11 @@ export const orcamentos: OrcamentosDict = {
   marcaBannerHint: "Imagen ancha usada en la portada del presupuesto/contrato.",
   marcaRodapeLabel: "Pie de página",
   marcaRodapeHint: "Imagen de firma/contacto al final del documento.",
+
+  tiposBtn: "Plantillas",
+  tiposSubtitulo: "Arma una plantilla de propuesta para cada tipo de trabajo — ítems predeterminados, condiciones de pago y vigencia ya vienen completos al elegir ese tipo en un presupuesto nuevo.",
+  tiposItensTitulo: "Ítems predeterminados de la plantilla",
+  tiposItensVazio: "Aún no hay ítems predeterminados — agrega los servicios que suelen incluirse en este tipo de trabajo.",
+  tiposSalvarBtn: "Guardar Plantilla",
+  tiposSalvoMsg: "¡Plantilla guardada!",
 };

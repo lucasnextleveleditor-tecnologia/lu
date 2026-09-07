@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
 import { addDaysISO, todayISO } from "@/lib/utils/format";
-import type { DescontoTipo, UnidadeServico } from "@/lib/types/orcamentos";
+import type { DescontoTipo, PerfilOrcamento, UnidadeServico } from "@/lib/types/orcamentos";
 
 const PATH = "/admin/orcamentos";
 
@@ -183,6 +183,8 @@ export interface OrcamentoHeaderInput {
   descontoValor: number;
   condicoesPagamento: string | null;
   observacoes: string | null;
+  /** Perfil escolhido no construtor (Fase 2) — só rótulo, ver `PerfilOrcamento`. */
+  tipoPerfil: PerfilOrcamento | null;
 }
 
 function normalizarItens(itens: ItemInput[]) {
@@ -220,6 +222,7 @@ export async function criarOrcamentoCompleto(header: OrcamentoHeaderInput, itens
         desconto_valor: header.descontoValor,
         condicoes_pagamento: header.condicoesPagamento?.trim() || null,
         observacoes: header.observacoes?.trim() || null,
+        tipo_perfil: header.tipoPerfil,
         criado_por: user.id,
       })
       .select("id")
@@ -259,6 +262,7 @@ export async function atualizarOrcamentoCompleto(id: string, header: OrcamentoHe
         desconto_valor: header.descontoValor,
         condicoes_pagamento: header.condicoesPagamento?.trim() || null,
         observacoes: header.observacoes?.trim() || null,
+        tipo_perfil: header.tipoPerfil,
       })
       .eq("id", id);
     if (erroOrcamento) return { ok: false, error: erroOrcamento.message };
@@ -318,6 +322,7 @@ export async function duplicarOrcamento(id: string): Promise<ActionResultId> {
         desconto_valor: original.desconto_valor,
         condicoes_pagamento: original.condicoes_pagamento,
         observacoes: original.observacoes,
+        tipo_perfil: original.tipo_perfil,
         criado_por: user.id,
       })
       .select("id")

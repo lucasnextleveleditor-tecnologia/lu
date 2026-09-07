@@ -79,6 +79,8 @@ export const orcamentos: OrcamentosDict = {
   catalogoVazioDescricao: "Register your production company's services with a default price — they show up in the picker when building a new quote.",
 
   dadosDoOrcamentoTitulo: "Quote Details",
+  tipoDeOrcamentoLabel: "Quote type",
+  usarItensDoModeloBtn: "Use template items",
   tituloOrcamentoLabel: "Proposal title",
   placeholderTituloOrcamento: "E.g.: Corporate Video — Company XYZ",
   clienteExistenteLabel: "Existing client (optional)",
@@ -110,6 +112,8 @@ export const orcamentos: OrcamentosDict = {
   removerItemBtn: "Remove",
   itemPersonalizadoBtn: "Custom item",
   itemPersonalizadoTitulo: "Add a custom item",
+  portfolioAnexarTitulo: "Attach Portfolio",
+  portfolioAnexarHint: "Pick photos and videos from your portfolio to show alongside this proposal.",
 
   subtotalLabel: "Subtotal",
   totalLabel: "Total",
@@ -128,6 +132,7 @@ export const orcamentos: OrcamentosDict = {
   hintItensOpcionaisPublico: "Check the add-ons you'd like to include in the proposal — the total updates instantly.",
   condicoesDePagamentoTitulo: "Payment Terms",
   observacoesTitulo: "Notes",
+  nossosTrabalhosTitulo: "Our Work",
 
   aprovarOrcamentoBtn: "Approve Quote",
   recusarOrcamentoBtn: "Decline",
@@ -175,4 +180,11 @@ export const orcamentos: OrcamentosDict = {
   marcaBannerHint: "Wide image used on the quote/contract cover.",
   marcaRodapeLabel: "Footer",
   marcaRodapeHint: "Signature/contact image at the bottom of the document.",
+
+  tiposBtn: "Templates",
+  tiposSubtitulo: "Build a proposal template for each type of work — default items, payment terms and validity are pre-filled when you pick that type on a new quote.",
+  tiposItensTitulo: "Template default items",
+  tiposItensVazio: "No default items yet — add the services that usually go into this type of work.",
+  tiposSalvarBtn: "Save Template",
+  tiposSalvoMsg: "Template saved!",
 };

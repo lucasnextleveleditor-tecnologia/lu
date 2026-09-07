@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function NovoOrcamentoPage() {
   const { dict } = await getDictionary();
-  const { categorias, servicosComCategoria, clientes } = await buscarDadosConstrutor();
+  const { categorias, servicosComCategoria, clientes, tiposOrcamento, portfolioItens } = await buscarDadosConstrutor();
 
   return (
     <div className="space-y-6">
@@ -20,7 +20,13 @@ export default async function NovoOrcamentoPage() {
         <h1 className="text-lg font-semibold tracking-tight">{dict.orcamentos.novoOrcamentoBtn}</h1>
       </div>
 
-      <OrcamentoBuilder categorias={categorias} servicosComCategoria={servicosComCategoria} clientes={clientes} />
+      <OrcamentoBuilder
+        categorias={categorias}
+        servicosComCategoria={servicosComCategoria}
+        clientes={clientes}
+        tiposOrcamento={tiposOrcamento}
+        portfolioItens={portfolioItens}
+      />
     </div>
   );
 }

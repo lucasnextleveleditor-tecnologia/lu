@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { OrcamentoComRelacoes, StatusOrcamento } from "@/lib/types/orcamentos";
+import type { OrcamentoComRelacoes, StatusOrcamento, PortfolioItemComUrl } from "@/lib/types/orcamentos";
 import { STATUS_ORCAMENTO_TONE, urlPublicaOrcamento } from "@/lib/utils/orcamentos";
 import { duplicarOrcamento, enviarOrcamento, marcarStatusManual, removerOrcamento } from "@/app/admin/orcamentos/actions";
 import { exportarElementoComoPDF, ExportError } from "@/lib/utils/export";
@@ -11,10 +11,19 @@ import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { IconCopy, IconPrinter, IconDownload, IconSend, IconCheckCircle } from "@/components/ui/icons";
+import { IconCopy, IconPrinter, IconDownload, IconSend, IconCheckCircle, IconFilm, IconImage } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
-type OrcamentoDetalheProps = { orcamento: OrcamentoComRelacoes & { cliente_nome: string | null; subtotal: number; desconto: number; total: number; statusExibicao: StatusOrcamento } };
+type OrcamentoDetalheProps = {
+  orcamento: OrcamentoComRelacoes & {
+    cliente_nome: string | null;
+    subtotal: number;
+    desconto: number;
+    total: number;
+    statusExibicao: StatusOrcamento;
+    portfolio: PortfolioItemComUrl[];
+  };
+};
 
 const PRINT_ID = "orcamento-detalhe-conteudo";
 
@@ -227,6 +236,27 @@ export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
                       {item.quantidade > 1 && `${item.quantidade}x `}
                       {fmtBRL(item.quantidade * item.valor_unitario)}
                     </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {orcamento.portfolio.length > 0 && (
+            <div className="mb-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.orcamentos.nossosTrabalhosTitulo}</p>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                {orcamento.portfolio.map((item) => (
+                  <div key={item.id} className="relative aspect-video overflow-hidden rounded-lg border border-base-800" title={item.titulo}>
+                    {item.tipo_midia === "video" ? (
+                      <video src={item.url} className="h-full w-full object-cover" muted />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.url} alt={item.titulo} className="h-full w-full object-cover" />
+                    )}
+                    <div className="absolute left-1 top-1 flex h-4 w-4 items-center justify-center rounded bg-black/70 text-white">
+                      {item.tipo_midia === "video" ? <IconFilm className="h-2.5 w-2.5" /> : <IconImage className="h-2.5 w-2.5" />}
+                    </div>
                   </div>
                 ))}
               </div>

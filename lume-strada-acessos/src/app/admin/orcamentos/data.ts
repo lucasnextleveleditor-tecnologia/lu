@@ -1,7 +1,22 @@
 import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import { notFound } from "next/navigation";
-import type { OrcamentoRow, OrcCategoriaRow, OrcServicoRow, OrcItemRow, ServicoComCategoria } from "@/lib/types/orcamentos";
+import type {
+  OrcamentoRow,
+  OrcCategoriaRow,
+  OrcServicoRow,
+  OrcItemRow,
+  ServicoComCategoria,
+  OrcTipoOrcamentoRow,
+  OrcTipoOrcamentoItemRow,
+  TipoOrcamentoComItens,
+  PerfilOrcamento,
+  PortfolioItemRow,
+  PortfolioItemComUrl,
+} from "@/lib/types/orcamentos";
 import { calcularStatusExibicao, calcularTotalOrcamento } from "@/lib/types/orcamentos";
+import { CATEGORIAS_PORTFOLIO } from "@/lib/utils/orcamentos";
+
+const BUCKET_ORCAMENTOS_MIDIA = "orcamentos-midia";
 
 export interface OrcamentosSearchParams {
   status?: string;
@@ -101,20 +116,53 @@ export async function buscarDadosCatalogo() {
   return { categorias, servicosComCategoria: enriquecerServicos(servicos, categorias) };
 }
 
-/** Dados de apoio pro construtor (`/novo` e `/[id]/editar`): catálogo pra montar itens + lista de clientes pra pré-preencher o destinatário. */
+/**
+ * Dados de apoio pro construtor (`/novo` e `/[id]/editar`): catálogo pra
+ * montar itens, lista de clientes pra pré-preencher o destinatário, os
+ * modelos por perfil (Fase 2 — pré-preenchem o construtor quando um tipo é
+ * escolhido) e a biblioteca de Portfólio (Fase 1 — seleção de itens pra
+ * anexar ao orçamento).
+ */
 export async function buscarDadosConstrutor() {
   const { supabase } = await requireModuloOuRedirect("orcamentos");
 
-  const [categoriasRes, servicosRes, clientesRes] = await Promise.all([
+  const [categoriasRes, servicosRes, clientesRes, tiposRes, portfolioRes] = await Promise.all([
     supabase.from("orc_categorias").select("*").order("ordem").overrideTypes<OrcCategoriaRow[], { merge: false }>(),
     supabase.from("orc_servicos").select("*").eq("ativo", true).order("nome").overrideTypes<OrcServicoRow[], { merge: false }>(),
     supabase.from("clientes").select("id, nome, email, telefone").order("nome").overrideTypes<{ id: string; nome: string; email: string | null; telefone: string | null }[], { merge: false }>(),
+    supabase.from("orc_tipos_orcamento").select("*").overrideTypes<OrcTipoOrcamentoRow[], { merge: false }>(),
+    supabase.from("orc_portfolio_itens").select("*").order("ordem").order("created_at", { ascending: false }).overrideTypes<PortfolioItemRow[], { merge: false }>(),
   ]);
 
   const categorias = categoriasRes.data ?? [];
   const servicos = servicosRes.data ?? [];
+  const tipos = tiposRes.data ?? [];
 
-  return { categorias, servicosComCategoria: enriquecerServicos(servicos, categorias), clientes: clientesRes.data ?? [] };
+  const tipoIds = tipos.map((t) => t.id);
+  const { data: tipoItens } =
+    tipoIds.length > 0
+      ? await supabase.from("orc_tipos_orcamento_itens").select("*").in("tipo_orcamento_id", tipoIds).order("ordem").overrideTypes<OrcTipoOrcamentoItemRow[], { merge: false }>()
+      : { data: [] as OrcTipoOrcamentoItemRow[] };
+
+  const itensPorTipo = new Map<string, OrcTipoOrcamentoItemRow[]>();
+  for (const item of tipoItens ?? []) {
+    const lista = itensPorTipo.get(item.tipo_orcamento_id) ?? [];
+    lista.push(item);
+    itensPorTipo.set(item.tipo_orcamento_id, lista);
+  }
+
+  const tiposOrcamento = {} as Record<PerfilOrcamento, TipoOrcamentoComItens | null>;
+  for (const perfil of CATEGORIAS_PORTFOLIO) {
+    const tipo = tipos.find((t) => t.perfil === perfil) ?? null;
+    tiposOrcamento[perfil] = tipo ? { ...tipo, itens: itensPorTipo.get(tipo.id) ?? [] } : null;
+  }
+
+  const portfolioItens: PortfolioItemComUrl[] = (portfolioRes.data ?? []).map((item) => ({
+    ...item,
+    url: supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl,
+  }));
+
+  return { categorias, servicosComCategoria: enriquecerServicos(servicos, categorias), clientes: clientesRes.data ?? [], tiposOrcamento, portfolioItens };
 }
 
 /** Um orçamento completo (cabeçalho + itens + nome do cliente vinculado) — usado pelas telas de detalhe e edição. Chama `notFound()` se o id não existir (ou não pertencer à empresa — RLS já filtra isso sozinho). */
@@ -137,6 +185,23 @@ export async function buscarOrcamentoPorId(id: string) {
 
   const { total, subtotal, desconto } = calcularTotalOrcamento(itens ?? [], orcamento.desconto_tipo, orcamento.desconto_valor);
 
+  // Itens de Portfólio já anexados a este orçamento (Fase 2) — resolvidos
+  // com URL pública pra exibição direta (detalhe admin, construtor de
+  // edição). `orc_portfolio_itens` embutido via o relacionamento de FK de
+  // `orc_orcamento_portfolio.portfolio_item_id`, mesmo padrão de
+  // `clientes(nome)` usado acima.
+  const { data: portfolioLinks } = await supabase
+    .from("orc_orcamento_portfolio")
+    .select("ordem, orc_portfolio_itens(*)")
+    .eq("orcamento_id", id)
+    .order("ordem")
+    .overrideTypes<{ ordem: number; orc_portfolio_itens: PortfolioItemRow | null }[], { merge: false }>();
+
+  const portfolio: PortfolioItemComUrl[] = (portfolioLinks ?? [])
+    .map((link) => link.orc_portfolio_itens)
+    .filter((item): item is PortfolioItemRow => !!item)
+    .map((item) => ({ ...item, url: supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl }));
+
   return {
     ...orcamento,
     cliente_nome: orcamento.clientes?.nome ?? null,
@@ -145,5 +210,6 @@ export async function buscarOrcamentoPorId(id: string) {
     desconto,
     total,
     statusExibicao: calcularStatusExibicao(orcamento),
+    portfolio,
   };
 }

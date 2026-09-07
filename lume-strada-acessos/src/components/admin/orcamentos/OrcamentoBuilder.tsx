@@ -2,17 +2,19 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { OrcCategoriaRow, ServicoComCategoria, DescontoTipo } from "@/lib/types/orcamentos";
+import type { OrcCategoriaRow, ServicoComCategoria, DescontoTipo, PerfilOrcamento, TipoOrcamentoComItens, PortfolioItemComUrl } from "@/lib/types/orcamentos";
 import { calcularTotalOrcamento } from "@/lib/types/orcamentos";
 import { criarOrcamentoCompleto, atualizarOrcamentoCompleto, enviarOrcamento, type ItemInput } from "@/app/admin/orcamentos/actions";
+import { salvarPortfolioDoOrcamento } from "@/app/admin/orcamentos/portfolio-actions";
 import type { buscarOrcamentoPorId } from "@/app/admin/orcamentos/data";
+import { CATEGORIAS_PORTFOLIO } from "@/lib/utils/orcamentos";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { IconPlus, IconTrash, IconSearch } from "@/components/ui/icons";
+import { IconPlus, IconTrash, IconSearch, IconImage, IconFilm } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { fmtBRL } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
@@ -44,10 +46,12 @@ interface OrcamentoBuilderProps {
   categorias: OrcCategoriaRow[];
   servicosComCategoria: ServicoComCategoria[];
   clientes: ClienteOpcao[];
+  tiposOrcamento: Record<PerfilOrcamento, TipoOrcamentoComItens | null>;
+  portfolioItens: PortfolioItemComUrl[];
   orcamentoParaEditar?: OrcamentoParaEditar;
 }
 
-export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, orcamentoParaEditar }: OrcamentoBuilderProps) {
+export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, tiposOrcamento, portfolioItens, orcamentoParaEditar }: OrcamentoBuilderProps) {
   const { dict } = useLocale();
   const router = useRouter();
   const editando = !!orcamentoParaEditar;
@@ -62,6 +66,8 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, o
   const [observacoes, setObservacoes] = useState(orcamentoParaEditar?.observacoes ?? "");
   const [descontoTipo, setDescontoTipo] = useState<DescontoTipo | "">(orcamentoParaEditar?.desconto_tipo ?? "");
   const [descontoValor, setDescontoValor] = useState(orcamentoParaEditar?.desconto_valor ?? 0);
+  const [tipoPerfil, setTipoPerfil] = useState<PerfilOrcamento | null>(orcamentoParaEditar?.tipo_perfil ?? null);
+  const [portfolioSelecionado, setPortfolioSelecionado] = useState<string[]>(orcamentoParaEditar?.portfolio.map((p) => p.id) ?? []);
 
   const [itens, setItens] = useState<ItemLocal[]>(
     orcamentoParaEditar?.itens.map((i) => ({
@@ -150,6 +156,48 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, o
     setPersonalizadoAberto(false);
   }
 
+  /**
+   * Aplica o modelo de um perfil (Fase 2): sempre marca a tag `tipoPerfil`;
+   * se o orçamento ainda está vazio (nenhum item adicionado ainda), também
+   * pré-preenche condições/observações/validade e carrega os itens padrão
+   * do modelo — nunca sobrescreve algo que o usuário já preencheu na tela.
+   * `forcarItens` (botão "Usar itens do modelo") ignora essa checagem e
+   * ACRESCENTA os itens do modelo à lista atual, pra quem quer reaproveitar
+   * o modelo depois de já ter começado a editar.
+   */
+  function escolherPerfil(perfil: PerfilOrcamento, forcarItens = false) {
+    setTipoPerfil(perfil);
+    const modelo = tiposOrcamento[perfil];
+    if (!modelo) return;
+
+    if (itens.length === 0 || forcarItens) {
+      if (!forcarItens) {
+        if (modelo.condicoes_pagamento_padrao && !condicoesPagamento) setCondicoesPagamento(modelo.condicoes_pagamento_padrao);
+        if (modelo.observacoes_padrao && !observacoes) setObservacoes(modelo.observacoes_padrao);
+        setValidadeDias(modelo.validade_dias_padrao);
+      }
+      if (modelo.itens.length > 0) {
+        setItens((prev) => [
+          ...prev,
+          ...modelo.itens.map((i) => ({
+            key: novaChave(),
+            servicoId: i.servico_id,
+            nome: i.nome,
+            descricao: i.descricao,
+            quantidade: i.quantidade,
+            valorUnitario: i.valor_unitario,
+            opcional: i.opcional,
+            selecionado: true,
+          })),
+        ]);
+      }
+    }
+  }
+
+  function alternarPortfolioItem(id: string) {
+    setPortfolioSelecionado((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
+  }
+
   function atualizarItem(key: string, patch: Partial<ItemLocal>) {
     setItens((prev) => prev.map((i) => (i.key === key ? { ...i, ...patch } : i)));
   }
@@ -172,6 +220,7 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, o
       descontoValor,
       condicoesPagamento: condicoesPagamento || null,
       observacoes: observacoes || null,
+      tipoPerfil,
     };
     const itensInput: ItemInput[] = itens.map((i) => ({
       servicoId: i.servicoId,
@@ -200,6 +249,13 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, o
         }
         id = result.id;
       }
+
+      const resultPortfolio = await salvarPortfolioDoOrcamento(id, portfolioSelecionado);
+      if (!resultPortfolio.ok) {
+        setError(resultPortfolio.error);
+        return;
+      }
+
       if (enviarDepois) {
         const resultEnvio = await enviarOrcamento(id);
         if (!resultEnvio.ok) {
@@ -217,6 +273,30 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, o
         <Card>
           <h2 className="mb-4 text-sm font-semibold">{dict.orcamentos.dadosDoOrcamentoTitulo}</h2>
           <div className="space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.tipoDeOrcamentoLabel}</label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIAS_PORTFOLIO.map((perfil) => (
+                  <button
+                    key={perfil}
+                    type="button"
+                    onClick={() => escolherPerfil(perfil)}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                      tipoPerfil === perfil ? "border-accent bg-accent/15 text-ink-primary" : "border-base-600 text-ink-secondary hover:text-ink-primary"
+                    )}
+                  >
+                    {dict.orcamentos.categoriasProfissao[perfil]}
+                  </button>
+                ))}
+              </div>
+              {tipoPerfil && tiposOrcamento[tipoPerfil] && tiposOrcamento[tipoPerfil]!.itens.length > 0 && (
+                <button type="button" onClick={() => escolherPerfil(tipoPerfil, true)} className="mt-2 text-xs font-medium text-accent hover:underline">
+                  {dict.orcamentos.usarItensDoModeloBtn}
+                </button>
+              )}
+            </div>
+
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.tituloOrcamentoLabel}</label>
               <Input required value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder={dict.orcamentos.placeholderTituloOrcamento} />
@@ -416,6 +496,41 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, o
             </div>
           )}
         </Card>
+
+        {portfolioItens.length > 0 && (
+          <Card>
+            <h2 className="mb-1 text-sm font-semibold">{dict.orcamentos.portfolioAnexarTitulo}</h2>
+            <p className="mb-3 text-xs text-ink-muted">{dict.orcamentos.portfolioAnexarHint}</p>
+            <div className="grid max-h-72 grid-cols-3 gap-2 overflow-y-auto">
+              {portfolioItens.map((item) => {
+                const selecionado = portfolioSelecionado.includes(item.id);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => alternarPortfolioItem(item.id)}
+                    className={cn(
+                      "relative aspect-video overflow-hidden rounded-lg border-2 transition",
+                      selecionado ? "border-accent" : "border-transparent"
+                    )}
+                    title={item.titulo}
+                  >
+                    {item.tipo_midia === "video" ? (
+                      <video src={item.url} className="h-full w-full object-cover" muted />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.url} alt={item.titulo} className="h-full w-full object-cover" />
+                    )}
+                    <div className="absolute left-1 top-1 flex h-4 w-4 items-center justify-center rounded bg-black/70 text-white">
+                      {item.tipo_midia === "video" ? <IconFilm className="h-2.5 w-2.5" /> : <IconImage className="h-2.5 w-2.5" />}
+                    </div>
+                    {selecionado && <div className="absolute inset-0 bg-accent/20" />}
+                  </button>
+                );
+              })}
+            </div>
+          </Card>
+        )}
 
         <Card>
           <div className="space-y-1.5 text-sm">
