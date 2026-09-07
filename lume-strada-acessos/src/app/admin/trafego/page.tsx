@@ -5,6 +5,7 @@ import type {
   AnuncioTrackingRow,
   FechamentoSemanalRow,
   MetaCalendarioRow,
+  OrderBumpVendaLinha,
   ProdutoRow,
   TaxaPadraoRow,
 } from "@/lib/types/infoprodutos";
@@ -39,22 +40,37 @@ export default async function TrafegoPage() {
   // Escala de ferramenta interna (poucas dezenas/centenas de linhas), então
   // busca tudo de uma vez e agrupa em memória no client, mesmo padrão já
   // usado em Produção/Comercial.
-  const [produtosRes, anunciosRes, metasCalendarioRes, fechamentosRes, taxasPadraoRes] = await Promise.all([
+  const [produtosRes, anunciosRes, metasCalendarioRes, fechamentosRes, taxasPadraoRes, orderBumpVendasRes] = await Promise.all([
     supabase.from("produtos").select("*").order("nome").overrideTypes<ProdutoRow[], { merge: false }>(),
     supabase.from("anuncios_tracking").select("*").order("data", { ascending: false }).overrideTypes<AnuncioTrackingRow[], { merge: false }>(),
     supabase.from("metas_calendario").select("*").overrideTypes<MetaCalendarioRow[], { merge: false }>(),
     supabase.from("fechamentos_semanais").select("*").overrideTypes<FechamentoSemanalRow[], { merge: false }>(),
     supabase.from("infoprodutos_taxas_padrao").select("*").overrideTypes<TaxaPadraoRow[], { merge: false }>(),
+    supabase
+      .from("anuncio_order_bump_vendas")
+      .select("anuncio_id, produto_id, quantidade")
+      .overrideTypes<{ anuncio_id: string; produto_id: string; quantidade: number }[], { merge: false }>(),
   ]);
 
   const produtos = produtosRes.data ?? [];
   const produtosPorId = new Map(produtos.map((p) => [p.id, p]));
+
+  // Linhas de order bump vendido (produto + quantidade), agrupadas por anúncio
+  // — um anúncio pode ter várias (ver `OrderBumpVendaLinha`).
+  const orderBumpVendasPorAnuncio = new Map<string, OrderBumpVendaLinha[]>();
+  for (const linha of orderBumpVendasRes.data ?? []) {
+    const produto = produtosPorId.get(linha.produto_id);
+    const lista = orderBumpVendasPorAnuncio.get(linha.anuncio_id) ?? [];
+    lista.push({ produtoId: linha.produto_id, nome: produto?.nome ?? "?", valor: produto?.valor ?? 0, quantidade: linha.quantidade });
+    orderBumpVendasPorAnuncio.set(linha.anuncio_id, lista);
+  }
 
   const anuncios: AnuncioComRelacoes[] = (anunciosRes.data ?? []).map((a) => ({
     ...a,
     criativo_url: a.criativo_path ? supabase.storage.from(BUCKET_INFOPRODUTOS).getPublicUrl(a.criativo_path).data.publicUrl : null,
     produto_principal_nome: a.produto_principal_id ? produtosPorId.get(a.produto_principal_id)?.nome ?? null : null,
     order_bump_nome: a.order_bump_id ? produtosPorId.get(a.order_bump_id)?.nome ?? null : null,
+    order_bump_vendas: orderBumpVendasPorAnuncio.get(a.id) ?? [],
   }));
 
   return (

@@ -51,11 +51,28 @@ export interface AnuncioTrackingRow {
   updated_at: string;
 }
 
-/** `AnuncioTrackingRow` com a URL pública do criativo já resolvida (ver `getPublicUrl` no server) e os nomes dos produtos, pra não cruzar tabela nenhuma em tela. */
+/**
+ * Uma linha de order bump vendido num anúncio — ver `anuncio_order_bump_vendas`
+ * em `supabase/anuncio-order-bump-vendas.sql`. Um anúncio pode ter VÁRIAS
+ * linhas (ex.: 1 unidade do produto X + 2 unidades do produto Y no mesmo
+ * lançamento), por isso deixou de ser um único `order_bump_id` +
+ * `vendas_order_bump` em `AnuncioTrackingRow` — esses dois campos continuam
+ * na tabela só como AGREGADO (mantido automaticamente pela Server Action),
+ * pra não quebrar quem lê a soma (fecharSemana, Relatórios, Dashboard 7 Dias).
+ */
+export interface OrderBumpVendaLinha {
+  produtoId: string;
+  nome: string;
+  valor: number;
+  quantidade: number;
+}
+
+/** `AnuncioTrackingRow` com a URL pública do criativo já resolvida (ver `getPublicUrl` no server), os nomes dos produtos e as linhas de order bump vendido, pra não cruzar tabela nenhuma em tela. */
 export interface AnuncioComRelacoes extends AnuncioTrackingRow {
   criativo_url: string | null;
   produto_principal_nome: string | null;
   order_bump_nome: string | null;
+  order_bump_vendas: OrderBumpVendaLinha[];
 }
 
 /** Meta de LUCRO LÍQUIDO (não faturamento) de um dia específico, setada no calendário — uma por cliente+dia (ver `ProdutoRow`). */

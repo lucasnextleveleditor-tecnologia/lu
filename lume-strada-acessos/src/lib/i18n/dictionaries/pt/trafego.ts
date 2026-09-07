@@ -86,6 +86,11 @@ export interface TrafegoDict {
   produtoPrincipalLabel: string;
   orderBumpOpcionalLabel: string;
   nenhumOrderBump: string;
+  /** Lista de order bumps vendidos nesse anúncio (produto + quantidade) — um anúncio pode ter várias linhas, ver `OrderBumpVendaLinha`. */
+  orderBumpsVendidosLabel: string;
+  nenhumOrderBumpVendidoTexto: string;
+  adicionarOrderBumpBotao: string;
+  removerOrderBumpAria: string;
   investimentoDiaLabel: string;
   visualizacoesLabel: string;
   cliquesLabel: string;
@@ -275,6 +280,10 @@ export const trafego: TrafegoDict = {
   produtoPrincipalLabel: "Produto Principal",
   orderBumpOpcionalLabel: "Order Bump (opcional)",
   nenhumOrderBump: "Nenhum",
+  orderBumpsVendidosLabel: "Order Bumps Vendidos",
+  nenhumOrderBumpVendidoTexto: "Nenhum order bump vendido nesse anúncio.",
+  adicionarOrderBumpBotao: "Adicionar Order Bump",
+  removerOrderBumpAria: "Remover order bump",
   investimentoDiaLabel: "Investimento do Dia (R$)",
   visualizacoesLabel: "Visualizações",
   cliquesLabel: "Cliques",

@@ -140,10 +140,12 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId, taxaPad
 
                 <div className="mt-3 mb-3">
                   <p className="truncate text-sm font-medium text-ink-primary">{anuncio.nome_anuncio || dict.trafego.anuncioSemNome}</p>
-                  <p className="truncate text-xs text-ink-muted">
-                    {anuncio.produto_principal_nome ?? dict.trafego.semProdutoPrincipalTexto}
-                    {anuncio.order_bump_nome && ` + ${anuncio.order_bump_nome}`}
-                  </p>
+                  <p className="truncate text-xs text-ink-muted">{anuncio.produto_principal_nome ?? dict.trafego.semProdutoPrincipalTexto}</p>
+                  {anuncio.order_bump_vendas.length > 0 && (
+                    <p className="truncate text-xs text-ink-muted">
+                      + {anuncio.order_bump_vendas.map((v) => `${v.nome} ×${v.quantidade}`).join(", ")}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">

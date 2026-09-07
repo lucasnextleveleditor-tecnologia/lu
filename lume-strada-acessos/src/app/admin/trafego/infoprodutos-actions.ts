@@ -101,19 +101,54 @@ export async function removerProduto(id: string): Promise<ActionResult> {
 // ----------------------------------------------------------------------------
 // Anúncios (cards diários)
 // ----------------------------------------------------------------------------
+export interface OrderBumpVendaInput {
+  produtoId: string;
+  quantidade: number;
+}
+
 export interface AnuncioInput {
   data: string; // ISO date
   nomeAnuncio: string | null;
   produtoPrincipalId: string | null;
-  orderBumpId: string | null;
+  /**
+   * Substituiu o antigo `orderBumpId` único — agora um anúncio pode ter
+   * VÁRIAS linhas de order bump vendido (produto + quantidade), ver
+   * `anuncio_order_bump_vendas`. `vendas_order_bump` continua sendo gravado
+   * em `anuncios_tracking`, mas como AGREGADO calculado aqui (soma das
+   * quantidades), nunca mais como entrada manual — é o que mantém
+   * `fecharSemana`/Relatórios/Dashboard 7 Dias funcionando sem mudança.
+   */
+  orderBumpVendas: OrderBumpVendaInput[];
   investimento: number;
   visualizacoes: number;
   cliques: number;
   vendasPrincipal: number;
-  vendasOrderBump: number;
   receitaBruta: number; // já vem calculado (com possível override) do client
   taxaPercentual: number; // taxa da plataforma sobre a receita — 0 é um valor válido, nunca omitido
   taxaFixa: number; // taxa fixa em R$ por venda — 0 é um valor válido, nunca omitido
+}
+
+/** Grava as linhas de order bump vendido de um anúncio — sempre substitui tudo (apaga e recria), mais simples que fazer diff numa lista curta. */
+async function salvarOrderBumpVendas(
+  supabase: Awaited<ReturnType<typeof requireModulo>>["supabase"],
+  anuncioId: string,
+  linhas: OrderBumpVendaInput[]
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { error: erroDelete } = await supabase.from("anuncio_order_bump_vendas").delete().eq("anuncio_id", anuncioId);
+  if (erroDelete) return { ok: false, error: erroDelete.message };
+
+  const validas = linhas.filter((l) => l.produtoId && l.quantidade > 0);
+  if (validas.length === 0) return { ok: true };
+
+  const { error: erroInsert } = await supabase
+    .from("anuncio_order_bump_vendas")
+    .insert(validas.map((l) => ({ anuncio_id: anuncioId, produto_id: l.produtoId, quantidade: l.quantidade })));
+  if (erroInsert) return { ok: false, error: erroInsert.message };
+  return { ok: true };
+}
+
+function somaVendasOrderBump(linhas: OrderBumpVendaInput[]): number {
+  return linhas.reduce((acc, l) => acc + (l.quantidade > 0 ? l.quantidade : 0), 0);
 }
 
 export async function criarAnuncio(clienteCadastroId: string, input: AnuncioInput): Promise<ActionResultId> {
@@ -128,12 +163,12 @@ export async function criarAnuncio(clienteCadastroId: string, input: AnuncioInpu
         semana_inicio: segundaFeiraISO(input.data),
         nome_anuncio: input.nomeAnuncio?.trim() || null,
         produto_principal_id: input.produtoPrincipalId,
-        order_bump_id: input.orderBumpId,
+        order_bump_id: null,
         investimento: input.investimento,
         visualizacoes: input.visualizacoes,
         cliques: input.cliques,
         vendas_principal: input.vendasPrincipal,
-        vendas_order_bump: input.vendasOrderBump,
+        vendas_order_bump: somaVendasOrderBump(input.orderBumpVendas),
         receita_bruta: input.receitaBruta,
         taxa_percentual: input.taxaPercentual,
         taxa_fixa: input.taxaFixa,
@@ -142,8 +177,13 @@ export async function criarAnuncio(clienteCadastroId: string, input: AnuncioInpu
       .single();
 
     if (error) return { ok: false, error: error.message };
+    const anuncioId = data!.id as string;
+
+    const resultLinhas = await salvarOrderBumpVendas(supabase, anuncioId, input.orderBumpVendas);
+    if (!resultLinhas.ok) return resultLinhas;
+
     revalidatePath(PATH);
-    return { ok: true, id: data!.id as string };
+    return { ok: true, id: anuncioId };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
@@ -160,12 +200,12 @@ export async function atualizarAnuncio(id: string, input: AnuncioInput): Promise
         semana_inicio: segundaFeiraISO(input.data),
         nome_anuncio: input.nomeAnuncio?.trim() || null,
         produto_principal_id: input.produtoPrincipalId,
-        order_bump_id: input.orderBumpId,
+        order_bump_id: null,
         investimento: input.investimento,
         visualizacoes: input.visualizacoes,
         cliques: input.cliques,
         vendas_principal: input.vendasPrincipal,
-        vendas_order_bump: input.vendasOrderBump,
+        vendas_order_bump: somaVendasOrderBump(input.orderBumpVendas),
         receita_bruta: input.receitaBruta,
         taxa_percentual: input.taxaPercentual,
         taxa_fixa: input.taxaFixa,
@@ -173,6 +213,10 @@ export async function atualizarAnuncio(id: string, input: AnuncioInput): Promise
       .eq("id", id);
 
     if (error) return { ok: false, error: error.message };
+
+    const resultLinhas = await salvarOrderBumpVendas(supabase, id, input.orderBumpVendas);
+    if (!resultLinhas.ok) return resultLinhas;
+
     revalidatePath(PATH);
     return { ok: true };
   } catch (err) {

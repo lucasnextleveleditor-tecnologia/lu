@@ -86,10 +86,10 @@ export function gradeDoMes(referencia: Date): (string | null)[][] {
 export function calcularReceitaBruta(
   vendasPrincipal: number,
   valorPrincipal: number,
-  vendasOrderBump: number,
-  valorOrderBump: number
+  orderBumpsVendidos: { valor: number; quantidade: number }[]
 ): number {
-  return vendasPrincipal * valorPrincipal + vendasOrderBump * valorOrderBump;
+  const totalOrderBumps = orderBumpsVendidos.reduce((acc, ob) => acc + ob.valor * ob.quantidade, 0);
+  return vendasPrincipal * valorPrincipal + totalOrderBumps;
 }
 
 // ----------------------------------------------------------------------------

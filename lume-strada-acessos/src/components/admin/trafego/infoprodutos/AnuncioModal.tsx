@@ -3,13 +3,14 @@
 import { useState, type FormEvent } from "react";
 import type { AnuncioComRelacoes, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import type { ProdutoRow } from "@/lib/types/infoprodutos";
-import { criarAnuncio, atualizarAnuncio } from "@/app/admin/trafego/infoprodutos-actions";
+import { criarAnuncio, atualizarAnuncio, type OrderBumpVendaInput } from "@/app/admin/trafego/infoprodutos-actions";
 import { calcularReceitaBruta, calcularReceitaLiquida } from "@/lib/utils/infoprodutos";
 import { fmtBRL } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
+import { IconPlus, IconTrash } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface AnuncioModalProps {
@@ -21,7 +22,12 @@ interface AnuncioModalProps {
   onClose: () => void;
 }
 
-const SEM_ORDER_BUMP = "__nenhum__";
+/** Uma linha de order bump vendido dentro do formulário — `key` é só identidade de UI (React), nunca vai pro server. */
+interface OrderBumpLinhaForm {
+  key: number;
+  produtoId: string;
+  quantidade: string;
+}
 
 export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao, taxaPadrao, onClose }: AnuncioModalProps) {
   const { dict } = useLocale();
@@ -31,12 +37,22 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
   const [data, setData] = useState(anuncio?.data ?? dataPadrao);
   const [nomeAnuncio, setNomeAnuncio] = useState(anuncio?.nome_anuncio ?? "");
   const [produtoPrincipalId, setProdutoPrincipalId] = useState(anuncio?.produto_principal_id ?? principais[0]?.id ?? "");
-  const [orderBumpId, setOrderBumpId] = useState(anuncio?.order_bump_id ?? SEM_ORDER_BUMP);
+
+  // Cada anúncio pode ter VÁRIAS linhas de order bump vendido (produto +
+  // quantidade) — ex.: 1 unidade do produto X + 2 unidades do produto Y no
+  // mesmo lançamento. `key` é só pra identidade de item de lista no React.
+  const linhasIniciais: OrderBumpLinhaForm[] = (anuncio?.order_bump_vendas ?? []).map((v, i) => ({
+    key: i,
+    produtoId: v.produtoId,
+    quantidade: String(v.quantidade),
+  }));
+  const [orderBumpLinhas, setOrderBumpLinhas] = useState<OrderBumpLinhaForm[]>(linhasIniciais);
+  const [proximaChave, setProximaChave] = useState(linhasIniciais.length);
+
   const [investimento, setInvestimento] = useState(String(anuncio?.investimento ?? ""));
   const [visualizacoes, setVisualizacoes] = useState(String(anuncio?.visualizacoes ?? ""));
   const [cliques, setCliques] = useState(String(anuncio?.cliques ?? ""));
   const [vendasPrincipal, setVendasPrincipal] = useState(String(anuncio?.vendas_principal ?? ""));
-  const [vendasOrderBump, setVendasOrderBump] = useState(String(anuncio?.vendas_order_bump ?? ""));
   const [receitaBruta, setReceitaBruta] = useState(String(anuncio?.receita_bruta ?? "0"));
   const [receitaAuto, setReceitaAuto] = useState(true); // enquanto true, recalcula sozinho; vira false assim que o usuário edita o campo direto
   // Pré-preenche da Taxa Padrão do cliente SÓ num anúncio novo — editando um
@@ -49,18 +65,41 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
 
   const editando = Boolean(anuncio);
 
-  const totalVendas = (Number(vendasPrincipal) || 0) + (Number(vendasOrderBump) || 0);
+  const totalVendasOrderBump = orderBumpLinhas.reduce((acc, l) => acc + (Number(l.quantidade) || 0), 0);
+  const totalVendas = (Number(vendasPrincipal) || 0) + totalVendasOrderBump;
   const receitaLiquida = calcularReceitaLiquida(Number(receitaBruta) || 0, Number(taxaPercentual) || 0, Number(taxaFixa) || 0, totalVendas);
 
-  function recalcularReceita(novosValores: { vp?: string; vob?: string; principalId?: string; bumpId?: string }) {
+  function recalcularReceita(novosValores: { vp?: string; principalId?: string; linhas?: OrderBumpLinhaForm[] }) {
     if (!receitaAuto) return;
     const vp = Number(novosValores.vp ?? vendasPrincipal) || 0;
-    const vob = Number(novosValores.vob ?? vendasOrderBump) || 0;
     const pId = novosValores.principalId ?? produtoPrincipalId;
-    const bId = novosValores.bumpId ?? orderBumpId;
+    const linhas = novosValores.linhas ?? orderBumpLinhas;
     const valorPrincipal = principais.find((p) => p.id === pId)?.valor ?? 0;
-    const valorBump = bId !== SEM_ORDER_BUMP ? orderBumps.find((p) => p.id === bId)?.valor ?? 0 : 0;
-    setReceitaBruta(String(calcularReceitaBruta(vp, valorPrincipal, vob, valorBump)));
+    const orderBumpsVendidos = linhas.map((l) => ({
+      valor: orderBumps.find((p) => p.id === l.produtoId)?.valor ?? 0,
+      quantidade: Number(l.quantidade) || 0,
+    }));
+    setReceitaBruta(String(calcularReceitaBruta(vp, valorPrincipal, orderBumpsVendidos)));
+  }
+
+  function adicionarLinhaOrderBump() {
+    const novaLinha: OrderBumpLinhaForm = { key: proximaChave, produtoId: orderBumps[0]?.id ?? "", quantidade: "1" };
+    const novasLinhas = [...orderBumpLinhas, novaLinha];
+    setOrderBumpLinhas(novasLinhas);
+    setProximaChave((k) => k + 1);
+    recalcularReceita({ linhas: novasLinhas });
+  }
+
+  function removerLinhaOrderBump(key: number) {
+    const novasLinhas = orderBumpLinhas.filter((l) => l.key !== key);
+    setOrderBumpLinhas(novasLinhas);
+    recalcularReceita({ linhas: novasLinhas });
+  }
+
+  function atualizarLinhaOrderBump(key: number, campo: "produtoId" | "quantidade", valor: string) {
+    const novasLinhas = orderBumpLinhas.map((l) => (l.key === key ? { ...l, [campo]: valor } : l));
+    setOrderBumpLinhas(novasLinhas);
+    recalcularReceita({ linhas: novasLinhas });
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -68,16 +107,19 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
     setLoading(true);
     setError(null);
 
+    const orderBumpVendas: OrderBumpVendaInput[] = orderBumpLinhas
+      .filter((l) => l.produtoId && (Number(l.quantidade) || 0) > 0)
+      .map((l) => ({ produtoId: l.produtoId, quantidade: Number(l.quantidade) || 0 }));
+
     const input = {
       data,
       nomeAnuncio: nomeAnuncio || null,
       produtoPrincipalId: produtoPrincipalId || null,
-      orderBumpId: orderBumpId !== SEM_ORDER_BUMP ? orderBumpId : null,
+      orderBumpVendas,
       investimento: Number(investimento) || 0,
       visualizacoes: Number(visualizacoes) || 0,
       cliques: Number(cliques) || 0,
       vendasPrincipal: Number(vendasPrincipal) || 0,
-      vendasOrderBump: Number(vendasOrderBump) || 0,
       receitaBruta: Number(receitaBruta) || 0,
       taxaPercentual: Number(taxaPercentual) || 0,
       taxaFixa: Number(taxaFixa) || 0,
@@ -118,41 +160,71 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.produtoPrincipalLabel}</label>
-              <Select
-                value={produtoPrincipalId}
-                onChange={(e) => {
-                  setProdutoPrincipalId(e.target.value);
-                  recalcularReceita({ principalId: e.target.value });
-                }}
-              >
-                <option value="">{dict.common.selecione}</option>
-                {principais.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nome}
-                  </option>
-                ))}
-              </Select>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.produtoPrincipalLabel}</label>
+            <Select
+              value={produtoPrincipalId}
+              onChange={(e) => {
+                setProdutoPrincipalId(e.target.value);
+                recalcularReceita({ principalId: e.target.value });
+              }}
+            >
+              <option value="">{dict.common.selecione}</option>
+              {principais.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nome}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.orderBumpsVendidosLabel}</label>
+            {orderBumpLinhas.length === 0 && <p className="mb-2 text-xs text-ink-muted">{dict.trafego.nenhumOrderBumpVendidoTexto}</p>}
+            <div className="space-y-2">
+              {orderBumpLinhas.map((linha) => (
+                <div key={linha.key} className="flex items-center gap-2">
+                  <Select
+                    className="flex-1"
+                    value={linha.produtoId}
+                    onChange={(e) => atualizarLinhaOrderBump(linha.key, "produtoId", e.target.value)}
+                  >
+                    <option value="">{dict.common.selecione}</option>
+                    {orderBumps.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.nome}
+                      </option>
+                    ))}
+                  </Select>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    className="w-20"
+                    value={linha.quantidade}
+                    onChange={(e) => atualizarLinhaOrderBump(linha.key, "quantidade", e.target.value)}
+                    placeholder={dict.trafego.quantidadePlaceholder}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removerLinhaOrderBump(linha.key)}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-ink-muted transition hover:bg-base-800 hover:text-danger"
+                    aria-label={dict.trafego.removerOrderBumpAria}
+                  >
+                    <IconTrash className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
             </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.orderBumpOpcionalLabel}</label>
-              <Select
-                value={orderBumpId}
-                onChange={(e) => {
-                  setOrderBumpId(e.target.value);
-                  recalcularReceita({ bumpId: e.target.value });
-                }}
-              >
-                <option value={SEM_ORDER_BUMP}>{dict.trafego.nenhumOrderBump}</option>
-                {orderBumps.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nome}
-                  </option>
-                ))}
-              </Select>
-            </div>
+            <button
+              type="button"
+              onClick={adicionarLinhaOrderBump}
+              disabled={orderBumps.length === 0}
+              className="mt-2 flex items-center gap-1.5 text-xs font-medium text-accent hover:underline disabled:cursor-not-allowed disabled:text-ink-muted disabled:no-underline"
+            >
+              <IconPlus className="h-3.5 w-3.5" />
+              {dict.trafego.adicionarOrderBumpBotao}
+            </button>
           </div>
 
           <div>
@@ -178,35 +250,19 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.vendasPrincipalLabel}</label>
-              <Input
-                type="number"
-                min="0"
-                step="1"
-                value={vendasPrincipal}
-                onChange={(e) => {
-                  setVendasPrincipal(e.target.value);
-                  recalcularReceita({ vp: e.target.value });
-                }}
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.vendasOrderBumpLabel}</label>
-              <Input
-                type="number"
-                min="0"
-                step="1"
-                value={vendasOrderBump}
-                onChange={(e) => {
-                  setVendasOrderBump(e.target.value);
-                  recalcularReceita({ vob: e.target.value });
-                }}
-                placeholder="0"
-              />
-            </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.vendasPrincipalLabel}</label>
+            <Input
+              type="number"
+              min="0"
+              step="1"
+              value={vendasPrincipal}
+              onChange={(e) => {
+                setVendasPrincipal(e.target.value);
+                recalcularReceita({ vp: e.target.value });
+              }}
+              placeholder="0"
+            />
           </div>
 
           <div>
