@@ -67,6 +67,8 @@ export const trafego: TrafegoDict = {
   dataObrigatoriaLabel: "Date *",
   nomeAnuncioLabel: "Ad / Creative Name",
   nomeAnuncioPlaceholder: "E.g.: Creative A - Testimonial",
+  criativoObrigatorioLabel: "Creative *",
+  selecioneCriativoErro: "Select a Creative.",
   produtoPrincipalLabel: "Main Product",
   orderBumpOpcionalLabel: "Order Bump (optional)",
   nenhumOrderBump: "None",
@@ -154,6 +156,7 @@ export const trafego: TrafegoDict = {
 
   visaoGeralAba: "Overview",
   anunciosAba: "Ads",
+  criativosAba: "Creatives",
   calendarioMetasAba: "Goals Calendar",
   produtosAba: "Products",
   infoProdutosClienteLabel: "Client",
@@ -176,6 +179,20 @@ export const trafego: TrafegoDict = {
   novoProdutoBotao: "New Product",
   produtosPrincipaisTitulo: "Main Products",
   orderBumpsTitulo: "Order Bumps",
+
+  editarCriativoTitulo: "Edit Creative",
+  novoCriativoTitulo: "New Creative",
+  nomeCriativoLabel: "Creative Name *",
+  nomeCriativoPlaceholder: "E.g.: Creative A - Testimonial",
+  orcamentoDiarioLabel: "Daily Budget (R$)",
+  orcamentoDiarioHint: "Pre-fills the Investment for the Day on a new ad using this Creative — you can still adjust it per entry; it never enters the profit calculation directly.",
+  criarCriativoBotao: "Create Creative",
+  nenhumCriativoCadastrado: "No creatives registered yet.",
+  criativoHeader: "Creative",
+  criativosCadastradosContagem: "{count} creative(s) registered",
+  novoCriativoBotao: "New Creative",
+  cadastreCriativoPrimeiro: "Register a Creative first",
+  cadastreCriativoAviso: 'Register at least one Creative in the "Creatives" tab before logging an ad.',
 
   taxaPadraoTitulo: "Default Platform Fee",
   taxaPadraoDescricao:

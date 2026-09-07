@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import type { AnuncioComRelacoes, ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
+import type { AnuncioComRelacoes, CriativoRow, ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import { removerAnuncio } from "@/app/admin/trafego/infoprodutos-actions";
 import { calcularReceitaLiquida } from "@/lib/utils/infoprodutos";
 import { fmtBRL, fmtDataExtensa, addDaysISO, todayISO } from "@/lib/utils/format";
@@ -15,6 +15,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 interface AnunciosManagerProps {
   anuncios: AnuncioComRelacoes[];
   produtos: ProdutoRow[];
+  criativos: CriativoRow[];
   clienteCadastroId: string;
   taxaPadrao: TaxaPadraoRow | null;
 }
@@ -24,7 +25,7 @@ function receitaLiquidaDoAnuncio(a: AnuncioComRelacoes): number {
   return calcularReceitaLiquida(Number(a.receita_bruta), Number(a.taxa_percentual), Number(a.taxa_fixa), Number(a.vendas_principal) + Number(a.vendas_order_bump));
 }
 
-export function AnunciosManager({ anuncios, produtos, clienteCadastroId, taxaPadrao }: AnunciosManagerProps) {
+export function AnunciosManager({ anuncios, produtos, criativos, clienteCadastroId, taxaPadrao }: AnunciosManagerProps) {
   const { dict } = useLocale();
   const [dataSelecionada, setDataSelecionada] = useState(todayISO());
   const [modalAberto, setModalAberto] = useState(false);
@@ -62,6 +63,7 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId, taxaPad
   }
 
   const semProdutoPrincipal = !produtos.some((p) => p.tipo === "principal");
+  const semCriativo = criativos.length === 0;
 
   return (
     <div className="space-y-5">
@@ -92,8 +94,8 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId, taxaPad
         </div>
         <Button
           onClick={() => setModalAberto(true)}
-          disabled={semProdutoPrincipal}
-          title={semProdutoPrincipal ? dict.trafego.cadastreProdutoPrincipalPrimeiro : undefined}
+          disabled={semProdutoPrincipal || semCriativo}
+          title={semProdutoPrincipal ? dict.trafego.cadastreProdutoPrincipalPrimeiro : semCriativo ? dict.trafego.cadastreCriativoPrimeiro : undefined}
         >
           + {dict.trafego.novoAnuncioBotao}
         </Button>
@@ -121,6 +123,7 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId, taxaPad
       </div>
 
       {semProdutoPrincipal && <p className="text-xs text-ink-muted">{dict.trafego.cadastreProdutoPrincipalAviso}</p>}
+      {semCriativo && <p className="text-xs text-ink-muted">{dict.trafego.cadastreCriativoAviso}</p>}
 
       {error && <p className="text-sm text-danger">{error}</p>}
 
@@ -139,7 +142,9 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId, taxaPad
                 <CriativoUploader anuncioId={anuncio.id} criativoUrl={anuncio.criativo_url} criativoTipo={anuncio.criativo_tipo} />
 
                 <div className="mt-3 mb-3">
-                  <p className="truncate text-sm font-medium text-ink-primary">{anuncio.nome_anuncio || dict.trafego.anuncioSemNome}</p>
+                  <p className="truncate text-sm font-medium text-ink-primary">
+                    {anuncio.criativo_nome ?? anuncio.nome_anuncio ?? dict.trafego.anuncioSemNome}
+                  </p>
                   <p className="truncate text-xs text-ink-muted">{anuncio.produto_principal_nome ?? dict.trafego.semProdutoPrincipalTexto}</p>
                   {anuncio.order_bump_vendas.length > 0 && (
                     <p className="truncate text-xs text-ink-muted">
@@ -210,6 +215,7 @@ export function AnunciosManager({ anuncios, produtos, clienteCadastroId, taxaPad
         <AnuncioModal
           anuncio={anuncioEditando}
           produtos={produtos}
+          criativos={criativos}
           clienteCadastroId={clienteCadastroId}
           dataPadrao={dataSelecionada}
           taxaPadrao={taxaPadrao}

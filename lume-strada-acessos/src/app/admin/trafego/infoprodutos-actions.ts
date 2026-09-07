@@ -99,6 +99,83 @@ export async function removerProduto(id: string): Promise<ActionResult> {
 }
 
 // ----------------------------------------------------------------------------
+// Criativos (cadastro — separado do lançamento diário, ver `CriativoRow`)
+// ----------------------------------------------------------------------------
+export interface CriativoInput {
+  nome: string;
+  orcamentoDiario: number;
+}
+
+export async function criarCriativo(clienteCadastroId: string, input: CriativoInput): Promise<ActionResultId> {
+  try {
+    const { supabase } = await requireModulo("trafego");
+    if (!input.nome.trim()) return { ok: false, error: "Informe o nome do criativo." };
+    if (input.orcamentoDiario < 0) return { ok: false, error: "O orçamento diário não pode ser negativo." };
+
+    const { data, error } = await supabase
+      .from("criativos")
+      .insert({ cliente_cadastro_id: clienteCadastroId, nome: input.nome.trim(), orcamento_diario: input.orcamentoDiario })
+      .select("id")
+      .single();
+
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true, id: data!.id as string };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+export async function atualizarCriativo(id: string, input: CriativoInput): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("trafego");
+    if (!input.nome.trim()) return { ok: false, error: "Informe o nome do criativo." };
+    if (input.orcamentoDiario < 0) return { ok: false, error: "O orçamento diário não pode ser negativo." };
+
+    const { error } = await supabase
+      .from("criativos")
+      .update({ nome: input.nome.trim(), orcamento_diario: input.orcamentoDiario })
+      .eq("id", id);
+
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+export async function alternarAtivoCriativo(id: string, ativo: boolean): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("trafego");
+    const { error } = await supabase.from("criativos").update({ ativo }).eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Nome `removerCriativoCadastro` (não `removerCriativo`) de propósito — esse
+ * segundo nome já existe mais abaixo pra uma coisa BEM diferente (remove o
+ * arquivo de mídia enviado num anúncio, ver `criativo_path`). Isso aqui
+ * apaga a linha do CADASTRO de criativos (ver `CriativoRow`).
+ */
+export async function removerCriativoCadastro(id: string): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("trafego");
+    const { error } = await supabase.from("criativos").delete().eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+// ----------------------------------------------------------------------------
 // Anúncios (cards diários)
 // ----------------------------------------------------------------------------
 export interface OrderBumpVendaInput {
@@ -108,7 +185,7 @@ export interface OrderBumpVendaInput {
 
 export interface AnuncioInput {
   data: string; // ISO date
-  nomeAnuncio: string | null;
+  criativoId: string;
   produtoPrincipalId: string | null;
   /**
    * Substituiu o antigo `orderBumpId` único — agora um anúncio pode ter
@@ -154,6 +231,7 @@ function somaVendasOrderBump(linhas: OrderBumpVendaInput[]): number {
 export async function criarAnuncio(clienteCadastroId: string, input: AnuncioInput): Promise<ActionResultId> {
   try {
     const { supabase } = await requireModulo("trafego");
+    if (!input.criativoId) return { ok: false, error: "Selecione um Criativo." };
 
     const { data, error } = await supabase
       .from("anuncios_tracking")
@@ -161,7 +239,8 @@ export async function criarAnuncio(clienteCadastroId: string, input: AnuncioInpu
         cliente_cadastro_id: clienteCadastroId,
         data: input.data,
         semana_inicio: segundaFeiraISO(input.data),
-        nome_anuncio: input.nomeAnuncio?.trim() || null,
+        nome_anuncio: null,
+        criativo_id: input.criativoId,
         produto_principal_id: input.produtoPrincipalId,
         order_bump_id: null,
         investimento: input.investimento,
@@ -192,13 +271,15 @@ export async function criarAnuncio(clienteCadastroId: string, input: AnuncioInpu
 export async function atualizarAnuncio(id: string, input: AnuncioInput): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("trafego");
+    if (!input.criativoId) return { ok: false, error: "Selecione um Criativo." };
 
     const { error } = await supabase
       .from("anuncios_tracking")
       .update({
         data: input.data,
         semana_inicio: segundaFeiraISO(input.data),
-        nome_anuncio: input.nomeAnuncio?.trim() || null,
+        nome_anuncio: null,
+        criativo_id: input.criativoId,
         produto_principal_id: input.produtoPrincipalId,
         order_bump_id: null,
         investimento: input.investimento,

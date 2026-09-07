@@ -67,6 +67,8 @@ export const trafego: TrafegoDict = {
   dataObrigatoriaLabel: "Fecha *",
   nomeAnuncioLabel: "Nombre del Anuncio / Creativo",
   nomeAnuncioPlaceholder: "Ej: Creativo A - Testimonio",
+  criativoObrigatorioLabel: "Creativo *",
+  selecioneCriativoErro: "Selecciona un Creativo.",
   produtoPrincipalLabel: "Producto Principal",
   orderBumpOpcionalLabel: "Order Bump (opcional)",
   nenhumOrderBump: "Ninguno",
@@ -154,6 +156,7 @@ export const trafego: TrafegoDict = {
 
   visaoGeralAba: "Visión General",
   anunciosAba: "Anuncios",
+  criativosAba: "Creativos",
   calendarioMetasAba: "Calendario de Metas",
   produtosAba: "Productos",
   infoProdutosClienteLabel: "Cliente",
@@ -176,6 +179,20 @@ export const trafego: TrafegoDict = {
   novoProdutoBotao: "Nuevo Producto",
   produtosPrincipaisTitulo: "Productos Principales",
   orderBumpsTitulo: "Order Bumps",
+
+  editarCriativoTitulo: "Editar Creativo",
+  novoCriativoTitulo: "Nuevo Creativo",
+  nomeCriativoLabel: "Nombre del Creativo *",
+  nomeCriativoPlaceholder: "Ej: Creativo A - Testimonio",
+  orcamentoDiarioLabel: "Presupuesto Diario (R$)",
+  orcamentoDiarioHint: "Completa automáticamente la Inversión del Día en un anuncio nuevo con este Creativo — puedes ajustarlo por registro; nunca entra directo en el cálculo de ganancia.",
+  criarCriativoBotao: "Crear Creativo",
+  nenhumCriativoCadastrado: "Aún no hay creativos registrados.",
+  criativoHeader: "Creativo",
+  criativosCadastradosContagem: "{count} creativo(s) registrado(s)",
+  novoCriativoBotao: "Nuevo Creativo",
+  cadastreCriativoPrimeiro: "Registra primero un Creativo",
+  cadastreCriativoAviso: 'Registra al menos un Creativo en la pestaña "Creativos" antes de registrar un anuncio.',
 
   taxaPadraoTitulo: "Comisión Predeterminada de la Plataforma",
   taxaPadraoDescricao:

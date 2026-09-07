@@ -26,14 +26,35 @@ export interface ProdutoRow {
 
 export type TipoCriativo = "imagem" | "video";
 
-/** Um card de anúncio/criativo rodando em um dia — ligado a UM produto principal + UM order bump (ver nota de simplificação no SQL) e a UM cliente (ver `ProdutoRow`). */
+/**
+ * Cadastro de Criativo — separado do lançamento diário de performance (ver
+ * `criativos` em `supabase/criativos-cadastro.sql`). Cadastra uma vez
+ * (nome + orçamento diário planejado), reaproveita em vários lançamentos de
+ * `AnuncioTrackingRow` (`criativo_id`). `orcamento_diario` é só o valor
+ * PADRÃO que pré-preenche "Investimento do Dia" num anúncio NOVO — nunca
+ * entra em cálculo de lucro/receita, só o `investimento` gravado no
+ * lançamento em si.
+ */
+export interface CriativoRow {
+  id: string;
+  cliente_cadastro_id: string | null; // uuid -> clientes.id
+  nome: string;
+  orcamento_diario: number;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Um card de anúncio/lançamento diário — ligado a UM Criativo (cadastro, ver `CriativoRow`), UM produto principal + order bumps vendidos (ver `OrderBumpVendaLinha`) e a UM cliente (ver `ProdutoRow`). */
 export interface AnuncioTrackingRow {
   id: string;
   cliente_cadastro_id: string | null; // uuid -> clientes.id
   cliente_id: string | null; // uuid -> profiles.id — sempre null por enquanto
   data: string; // ISO date (yyyy-mm-dd)
   semana_inicio: string; // ISO date — segunda-feira da semana de `data`
+  /** @deprecated Texto livre antigo, antes de existir o cadastro de Criativos — mantido só pra exibir lançamentos feitos antes dessa migração (ver `criativo_id`). */
   nome_anuncio: string | null;
+  criativo_id: string | null; // uuid -> criativos.id — obrigatório na tela pra lançamentos novos (ver AnuncioModal)
   criativo_path: string | null; // caminho no bucket "infoprodutos"
   criativo_tipo: TipoCriativo | null;
   produto_principal_id: string | null;
@@ -70,6 +91,8 @@ export interface OrderBumpVendaLinha {
 /** `AnuncioTrackingRow` com a URL pública do criativo já resolvida (ver `getPublicUrl` no server), os nomes dos produtos e as linhas de order bump vendido, pra não cruzar tabela nenhuma em tela. */
 export interface AnuncioComRelacoes extends AnuncioTrackingRow {
   criativo_url: string | null;
+  /** Nome do `CriativoRow` vinculado (`criativo_id`) — null em lançamentos antigos sem Criativo cadastrado (ver `nome_anuncio`). */
+  criativo_nome: string | null;
   produto_principal_nome: string | null;
   order_bump_nome: string | null;
   order_bump_vendas: OrderBumpVendaLinha[];

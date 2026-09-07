@@ -3,6 +3,7 @@ import type { ClienteRow } from "@/lib/types/cadastros";
 import type {
   AnuncioComRelacoes,
   AnuncioTrackingRow,
+  CriativoRow,
   FechamentoSemanalRow,
   MetaCalendarioRow,
   OrderBumpVendaLinha,
@@ -40,8 +41,9 @@ export default async function TrafegoPage() {
   // Escala de ferramenta interna (poucas dezenas/centenas de linhas), então
   // busca tudo de uma vez e agrupa em memória no client, mesmo padrão já
   // usado em Produção/Comercial.
-  const [produtosRes, anunciosRes, metasCalendarioRes, fechamentosRes, taxasPadraoRes, orderBumpVendasRes] = await Promise.all([
+  const [produtosRes, criativosRes, anunciosRes, metasCalendarioRes, fechamentosRes, taxasPadraoRes, orderBumpVendasRes] = await Promise.all([
     supabase.from("produtos").select("*").order("nome").overrideTypes<ProdutoRow[], { merge: false }>(),
+    supabase.from("criativos").select("*").order("nome").overrideTypes<CriativoRow[], { merge: false }>(),
     supabase.from("anuncios_tracking").select("*").order("data", { ascending: false }).overrideTypes<AnuncioTrackingRow[], { merge: false }>(),
     supabase.from("metas_calendario").select("*").overrideTypes<MetaCalendarioRow[], { merge: false }>(),
     supabase.from("fechamentos_semanais").select("*").overrideTypes<FechamentoSemanalRow[], { merge: false }>(),
@@ -54,6 +56,8 @@ export default async function TrafegoPage() {
 
   const produtos = produtosRes.data ?? [];
   const produtosPorId = new Map(produtos.map((p) => [p.id, p]));
+  const criativos = criativosRes.data ?? [];
+  const criativosPorId = new Map(criativos.map((c) => [c.id, c]));
 
   // Linhas de order bump vendido (produto + quantidade), agrupadas por anúncio
   // — um anúncio pode ter várias (ver `OrderBumpVendaLinha`).
@@ -68,6 +72,7 @@ export default async function TrafegoPage() {
   const anuncios: AnuncioComRelacoes[] = (anunciosRes.data ?? []).map((a) => ({
     ...a,
     criativo_url: a.criativo_path ? supabase.storage.from(BUCKET_INFOPRODUTOS).getPublicUrl(a.criativo_path).data.publicUrl : null,
+    criativo_nome: a.criativo_id ? criativosPorId.get(a.criativo_id)?.nome ?? null : null,
     produto_principal_nome: a.produto_principal_id ? produtosPorId.get(a.produto_principal_id)?.nome ?? null : null,
     order_bump_nome: a.order_bump_id ? produtosPorId.get(a.order_bump_id)?.nome ?? null : null,
     order_bump_vendas: orderBumpVendasPorAnuncio.get(a.id) ?? [],
@@ -77,6 +82,7 @@ export default async function TrafegoPage() {
     <TrafegoWorkspace
       clientes={clientes ?? []}
       produtos={produtos}
+      criativos={criativos}
       anuncios={anuncios}
       metasCalendario={metasCalendarioRes.data ?? []}
       fechamentos={fechamentosRes.data ?? []}

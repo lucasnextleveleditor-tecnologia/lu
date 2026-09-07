@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { AnuncioComRelacoes, FechamentoSemanalRow, MetaCalendarioRow, ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
+import type { AnuncioComRelacoes, CriativoRow, FechamentoSemanalRow, MetaCalendarioRow, ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import { cn } from "@/lib/utils/cn";
 import { Card } from "@/components/ui/Card";
@@ -10,12 +10,14 @@ import { Dashboard7Dias } from "@/components/admin/trafego/infoprodutos/Dashboar
 import { AnunciosManager } from "@/components/admin/trafego/infoprodutos/AnunciosManager";
 import { CalendarioMetas } from "@/components/admin/trafego/infoprodutos/CalendarioMetas";
 import { ProdutosManager } from "@/components/admin/trafego/infoprodutos/ProdutosManager";
-import { IconBarChart2, IconFilm, IconCalendar, IconTag, IconUsers } from "@/components/ui/icons";
+import { CriativosManager } from "@/components/admin/trafego/infoprodutos/CriativosManager";
+import { IconBarChart2, IconFilm, IconMegaphone, IconCalendar, IconTag, IconUsers } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface InfoProdutosWorkspaceProps {
   clientes: ClienteRow[];
   produtos: ProdutoRow[];
+  criativos: CriativoRow[];
   anuncios: AnuncioComRelacoes[];
   metasCalendario: MetaCalendarioRow[];
   fechamentos: FechamentoSemanalRow[];
@@ -23,12 +25,13 @@ interface InfoProdutosWorkspaceProps {
 }
 
 // Ordem pensada pro fluxo natural de preenchimento: primeiro cadastra o
-// produto (o que está sendo vendido), depois lança os anúncios do dia (que
-// referenciam esses produtos), depois define as metas de lucro no
-// calendário, e só então a Visão Geral faz sentido (ela agrega os outros
-// três). Antes a ordem era Visão Geral -> Anúncios -> Calendário -> Produtos,
-// o que obrigava a olhar um resumo vazio antes de ter cadastrado qualquer coisa.
-type SubAba = "produtos" | "anuncios" | "calendario" | "visao_geral";
+// produto (o que está sendo vendido) e o criativo (o material usado no
+// anúncio), depois lança os anúncios do dia (que referenciam ambos), depois
+// define as metas de lucro no calendário, e só então a Visão Geral faz
+// sentido (ela agrega os outros). Antes a ordem era Visão Geral -> Anúncios
+// -> Calendário -> Produtos, o que obrigava a olhar um resumo vazio antes de
+// ter cadastrado qualquer coisa.
+type SubAba = "produtos" | "criativos" | "anuncios" | "calendario" | "visao_geral";
 
 /**
  * Tracking de anúncios dos infoprodutos — SEPARADO POR CLIENTE (ver migração
@@ -39,22 +42,32 @@ type SubAba = "produtos" | "anuncios" | "calendario" | "visao_geral";
  * cliente só. Lucro Líquido é sempre (Receita Bruta - Investimento) -
  * Reembolsos, nunca faturamento bruto.
  */
-export function InfoProdutosWorkspace({ clientes, produtos, anuncios, metasCalendario, fechamentos, taxasPadrao }: InfoProdutosWorkspaceProps) {
+export function InfoProdutosWorkspace({
+  clientes,
+  produtos,
+  criativos,
+  anuncios,
+  metasCalendario,
+  fechamentos,
+  taxasPadrao,
+}: InfoProdutosWorkspaceProps) {
   const { dict } = useLocale();
   const [subAba, setSubAba] = useState<SubAba>("produtos");
   const [clienteId, setClienteId] = useState<string>(clientes[0]?.id ?? "");
 
   const SUB_ABAS: { chave: SubAba; label: string; icon: typeof IconBarChart2 }[] = [
     { chave: "produtos", label: dict.trafego.produtosAba, icon: IconTag },
-    { chave: "anuncios", label: dict.trafego.anunciosAba, icon: IconFilm },
+    { chave: "criativos", label: dict.trafego.criativosAba, icon: IconFilm },
+    { chave: "anuncios", label: dict.trafego.anunciosAba, icon: IconMegaphone },
     { chave: "calendario", label: dict.trafego.calendarioMetasAba, icon: IconCalendar },
     { chave: "visao_geral", label: dict.trafego.visaoGeralAba, icon: IconBarChart2 },
   ];
 
-  // Cada uma das 4 tabelas guarda `cliente_cadastro_id` — filtra em memória
+  // Cada uma das tabelas guarda `cliente_cadastro_id` — filtra em memória
   // pro cliente selecionado (mesmo espírito de "busca tudo de uma vez,
   // agrupa em memória" já usado no resto do módulo, ver `page.tsx`).
   const produtosDoCliente = useMemo(() => produtos.filter((p) => p.cliente_cadastro_id === clienteId), [produtos, clienteId]);
+  const criativosDoCliente = useMemo(() => criativos.filter((c) => c.cliente_cadastro_id === clienteId), [criativos, clienteId]);
   const anunciosDoCliente = useMemo(() => anuncios.filter((a) => a.cliente_cadastro_id === clienteId), [anuncios, clienteId]);
   const metasCalendarioDoCliente = useMemo(
     () => metasCalendario.filter((m) => m.cliente_cadastro_id === clienteId),
@@ -108,11 +121,13 @@ export function InfoProdutosWorkspace({ clientes, produtos, anuncios, metasCalen
       {subAba === "produtos" && (
         <ProdutosManager key={clienteId} produtos={produtosDoCliente} clienteCadastroId={clienteId} taxaPadrao={taxaPadraoDoCliente} />
       )}
+      {subAba === "criativos" && <CriativosManager key={clienteId} criativos={criativosDoCliente} clienteCadastroId={clienteId} />}
       {subAba === "anuncios" && (
         <AnunciosManager
           key={clienteId}
           anuncios={anunciosDoCliente}
           produtos={produtosDoCliente}
+          criativos={criativosDoCliente}
           clienteCadastroId={clienteId}
           taxaPadrao={taxaPadraoDoCliente}
         />

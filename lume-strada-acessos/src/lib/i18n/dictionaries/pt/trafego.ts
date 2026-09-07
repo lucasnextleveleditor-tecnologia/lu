@@ -81,8 +81,12 @@ export interface TrafegoDict {
   editarAnuncioTitulo: string;
   novoAnuncioTitulo: string;
   dataObrigatoriaLabel: string;
+  /** @deprecated Campo de texto livre antigo, substituído pelo Select obrigatório de Criativo — ver `criativoObrigatorioLabel`. */
   nomeAnuncioLabel: string;
+  /** @deprecated Ver `nomeAnuncioLabel`. */
   nomeAnuncioPlaceholder: string;
+  criativoObrigatorioLabel: string;
+  selecioneCriativoErro: string;
   produtoPrincipalLabel: string;
   orderBumpOpcionalLabel: string;
   nenhumOrderBump: string;
@@ -178,6 +182,7 @@ export interface TrafegoDict {
   // cliente (ver comentário no componente).
   visaoGeralAba: string;
   anunciosAba: string;
+  criativosAba: string;
   calendarioMetasAba: string;
   produtosAba: string;
   infoProdutosClienteLabel: string;
@@ -202,6 +207,22 @@ export interface TrafegoDict {
   novoProdutoBotao: string;
   produtosPrincipaisTitulo: string;
   orderBumpsTitulo: string;
+
+  // Modal de criativo (`CriativoModal.tsx`) e lista/gestão (`CriativosManager.tsx`)
+  // — cadastro de Criativos, separado do lançamento diário de anúncios.
+  editarCriativoTitulo: string;
+  novoCriativoTitulo: string;
+  nomeCriativoLabel: string;
+  nomeCriativoPlaceholder: string;
+  orcamentoDiarioLabel: string;
+  orcamentoDiarioHint: string;
+  criarCriativoBotao: string;
+  nenhumCriativoCadastrado: string;
+  criativoHeader: string;
+  criativosCadastradosContagem: string;
+  novoCriativoBotao: string;
+  cadastreCriativoPrimeiro: string;
+  cadastreCriativoAviso: string;
 
   // Taxa padrão da plataforma (`TaxaPlataformaCard.tsx`).
   taxaPadraoTitulo: string;
@@ -277,6 +298,8 @@ export const trafego: TrafegoDict = {
   dataObrigatoriaLabel: "Data *",
   nomeAnuncioLabel: "Nome do Anúncio / Criativo",
   nomeAnuncioPlaceholder: "Ex: Criativo A - Depoimento",
+  criativoObrigatorioLabel: "Criativo *",
+  selecioneCriativoErro: "Selecione um Criativo.",
   produtoPrincipalLabel: "Produto Principal",
   orderBumpOpcionalLabel: "Order Bump (opcional)",
   nenhumOrderBump: "Nenhum",
@@ -364,6 +387,7 @@ export const trafego: TrafegoDict = {
 
   visaoGeralAba: "Visão Geral",
   anunciosAba: "Anúncios",
+  criativosAba: "Criativos",
   calendarioMetasAba: "Calendário de Metas",
   produtosAba: "Produtos",
   infoProdutosClienteLabel: "Cliente",
@@ -386,6 +410,20 @@ export const trafego: TrafegoDict = {
   novoProdutoBotao: "Novo Produto",
   produtosPrincipaisTitulo: "Produtos Principais",
   orderBumpsTitulo: "Order Bumps",
+
+  editarCriativoTitulo: "Editar Criativo",
+  novoCriativoTitulo: "Novo Criativo",
+  nomeCriativoLabel: "Nome do Criativo *",
+  nomeCriativoPlaceholder: "Ex: Criativo A - Depoimento",
+  orcamentoDiarioLabel: "Orçamento Diário (R$)",
+  orcamentoDiarioHint: "Pré-preenche o Investimento do Dia num anúncio novo com esse Criativo — você pode ajustar por lançamento, nunca entra direto no cálculo de lucro.",
+  criarCriativoBotao: "Criar Criativo",
+  nenhumCriativoCadastrado: "Nenhum criativo cadastrado ainda.",
+  criativoHeader: "Criativo",
+  criativosCadastradosContagem: "{count} criativo(s) cadastrado(s)",
+  novoCriativoBotao: "Novo Criativo",
+  cadastreCriativoPrimeiro: "Cadastre um Criativo primeiro",
+  cadastreCriativoAviso: 'Cadastre pelo menos um Criativo na aba "Criativos" antes de lançar um anúncio.',
 
   taxaPadraoTitulo: "Taxa Padrão da Plataforma",
   taxaPadraoDescricao:

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ClienteRow } from "@/lib/types/cadastros";
-import type { AnuncioComRelacoes, FechamentoSemanalRow, MetaCalendarioRow, ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
+import type { AnuncioComRelacoes, CriativoRow, FechamentoSemanalRow, MetaCalendarioRow, ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import { InfoProdutosWorkspace } from "@/components/admin/trafego/infoprodutos/InfoProdutosWorkspace";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -9,6 +9,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 interface TrafegoWorkspaceProps {
   clientes: ClienteRow[];
   produtos: ProdutoRow[];
+  criativos: CriativoRow[];
   anuncios: AnuncioComRelacoes[];
   metasCalendario: MetaCalendarioRow[];
   fechamentos: FechamentoSemanalRow[];
@@ -27,7 +28,7 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
 
   const csvAnuncios = props.anuncios.map((a) => ({
     data: a.data,
-    anuncio: a.nome_anuncio ?? "",
+    anuncio: a.criativo_nome ?? a.nome_anuncio ?? "",
     investimento: a.investimento.toFixed(2),
     receitaBruta: a.receita_bruta.toFixed(2),
     vendas: a.vendas_principal + a.vendas_order_bump,
@@ -58,6 +59,7 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
         <InfoProdutosWorkspace
           clientes={props.clientes}
           produtos={props.produtos}
+          criativos={props.criativos}
           anuncios={props.anuncios}
           metasCalendario={props.metasCalendario}
           fechamentos={props.fechamentos}

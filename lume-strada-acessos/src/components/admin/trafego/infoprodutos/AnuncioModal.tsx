@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { AnuncioComRelacoes, TaxaPadraoRow } from "@/lib/types/infoprodutos";
+import type { AnuncioComRelacoes, CriativoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import type { ProdutoRow } from "@/lib/types/infoprodutos";
 import { criarAnuncio, atualizarAnuncio, type OrderBumpVendaInput } from "@/app/admin/trafego/infoprodutos-actions";
 import { calcularReceitaBruta, calcularReceitaLiquida } from "@/lib/utils/infoprodutos";
@@ -16,6 +16,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 interface AnuncioModalProps {
   anuncio?: AnuncioComRelacoes | null;
   produtos: ProdutoRow[];
+  criativos: CriativoRow[];
   clienteCadastroId: string;
   dataPadrao: string;
   taxaPadrao: TaxaPadraoRow | null;
@@ -29,13 +30,14 @@ interface OrderBumpLinhaForm {
   quantidade: string;
 }
 
-export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao, taxaPadrao, onClose }: AnuncioModalProps) {
+export function AnuncioModal({ anuncio, produtos, criativos, clienteCadastroId, dataPadrao, taxaPadrao, onClose }: AnuncioModalProps) {
   const { dict } = useLocale();
   const principais = produtos.filter((p) => p.tipo === "principal");
   const orderBumps = produtos.filter((p) => p.tipo === "order_bump");
 
   const [data, setData] = useState(anuncio?.data ?? dataPadrao);
-  const [nomeAnuncio, setNomeAnuncio] = useState(anuncio?.nome_anuncio ?? "");
+  const [criativoId, setCriativoId] = useState(anuncio?.criativo_id ?? criativos[0]?.id ?? "");
+  const [criativoErro, setCriativoErro] = useState<string | null>(null);
   const [produtoPrincipalId, setProdutoPrincipalId] = useState(anuncio?.produto_principal_id ?? principais[0]?.id ?? "");
 
   // Cada anúncio pode ter VÁRIAS linhas de order bump vendido (produto +
@@ -49,7 +51,15 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
   const [orderBumpLinhas, setOrderBumpLinhas] = useState<OrderBumpLinhaForm[]>(linhasIniciais);
   const [proximaChave, setProximaChave] = useState(linhasIniciais.length);
 
-  const [investimento, setInvestimento] = useState(String(anuncio?.investimento ?? ""));
+  // Pré-preenche o Investimento do Dia com o `orcamento_diario` do Criativo
+  // selecionado, SÓ num anúncio NOVO (editando um já lançado, usa o valor
+  // GRAVADO naquele lançamento — mesmo espírito da Taxa Padrão, ver abaixo).
+  // `investimentoAuto` vira false assim que o usuário editar o campo direto,
+  // ou trocar de Criativo depois de já ter mexido nele manualmente.
+  const [investimentoAuto, setInvestimentoAuto] = useState(!anuncio);
+  const [investimento, setInvestimento] = useState(
+    String(anuncio?.investimento ?? criativos.find((c) => c.id === criativoId)?.orcamento_diario ?? "")
+  );
   const [visualizacoes, setVisualizacoes] = useState(String(anuncio?.visualizacoes ?? ""));
   const [cliques, setCliques] = useState(String(anuncio?.cliques ?? ""));
   const [vendasPrincipal, setVendasPrincipal] = useState(String(anuncio?.vendas_principal ?? ""));
@@ -102,8 +112,24 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
     recalcularReceita({ linhas: novasLinhas });
   }
 
+  function handleCriativoChange(novoId: string) {
+    setCriativoId(novoId);
+    if (novoId) setCriativoErro(null);
+    // Só troca o Investimento sozinho enquanto o usuário não tiver editado
+    // esse campo na mão (ver `investimentoAuto`) — nunca em edição de um
+    // anúncio já lançado.
+    if (investimentoAuto) {
+      const orcamento = criativos.find((c) => c.id === novoId)?.orcamento_diario ?? 0;
+      setInvestimento(String(orcamento));
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!criativoId) {
+      setCriativoErro(dict.trafego.selecioneCriativoErro);
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -113,7 +139,7 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
 
     const input = {
       data,
-      nomeAnuncio: nomeAnuncio || null,
+      criativoId,
       produtoPrincipalId: produtoPrincipalId || null,
       orderBumpVendas,
       investimento: Number(investimento) || 0,
@@ -155,8 +181,21 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
               <DatePicker required value={data} onChange={setData} />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.nomeAnuncioLabel}</label>
-              <Input value={nomeAnuncio} onChange={(e) => setNomeAnuncio(e.target.value)} placeholder={dict.trafego.nomeAnuncioPlaceholder} />
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.trafego.criativoObrigatorioLabel}</label>
+              <Select
+                required
+                value={criativoId}
+                onChange={(e) => handleCriativoChange(e.target.value)}
+                className={criativoErro ? "border-danger" : undefined}
+              >
+                <option value="">{dict.common.selecione}</option>
+                {criativos.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome}
+                  </option>
+                ))}
+              </Select>
+              {criativoErro && <p className="mt-1 text-xs text-danger">{criativoErro}</p>}
             </div>
           </div>
 
@@ -234,7 +273,10 @@ export function AnuncioModal({ anuncio, produtos, clienteCadastroId, dataPadrao,
               min="0"
               step="0.01"
               value={investimento}
-              onChange={(e) => setInvestimento(e.target.value)}
+              onChange={(e) => {
+                setInvestimentoAuto(false);
+                setInvestimento(e.target.value);
+              }}
               placeholder={dict.trafego.valorPlaceholder}
             />
           </div>
