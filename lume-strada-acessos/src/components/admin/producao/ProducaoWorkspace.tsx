@@ -42,7 +42,11 @@ export function ProducaoWorkspace({
   // que o cliente "sumiu" até lá).
   const [clientes, setClientes] = useState(clientesIniciais);
   function handleClienteCriado(novo: Pick<ClienteRow, "id" | "nome" | "cor">) {
-    setClientes((atual) => [...atual, { ...novo, documento: null, email: null, telefone: null, nome_responsavel: null, endereco: null, profile_id: null, created_at: "", updated_at: "" }].sort((a, b) => a.nome.localeCompare(b.nome)));
+    setClientes((atual) =>
+      [...atual, { ...novo, documento: null, email: null, telefone: null, nome_responsavel: null, endereco: null, profile_id: null, portal_token: "", created_at: "", updated_at: "" }].sort((a, b) =>
+        a.nome.localeCompare(b.nome)
+      )
+    );
   }
   const VISOES: { value: Visao; label: string; icon: ComponentType<{ className?: string }> }[] = [
     { value: "kanban", label: dict.producao.visaoKanban, icon: IconColumns },

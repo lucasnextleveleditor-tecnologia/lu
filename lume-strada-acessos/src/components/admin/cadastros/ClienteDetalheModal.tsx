@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { AcessoStatusControls } from "@/components/admin/cadastros/AcessoStatusControls";
 import { AtividadesManager } from "@/components/admin/cadastros/AtividadesManager";
 import { GerarAcessoClienteModal } from "@/components/admin/cadastros/GerarAcessoClienteModal";
-import { IconKey } from "@/components/ui/icons";
+import { urlPublicaPortal } from "@/lib/utils/portal";
+import { IconKey, IconCopy } from "@/components/ui/icons";
 
 interface ClienteDetalheModalProps {
   cliente: ClienteRow;
@@ -21,6 +22,13 @@ interface ClienteDetalheModalProps {
 export function ClienteDetalheModal({ cliente, profile, souAdmin, onClose }: ClienteDetalheModalProps) {
   const { dict } = useLocale();
   const [modalAcessoAberto, setModalAcessoAberto] = useState(false);
+  const [linkCopiado, setLinkCopiado] = useState(false);
+
+  async function handleCopiarLinkPortal() {
+    await navigator.clipboard.writeText(urlPublicaPortal(cliente.portal_token, typeof window !== "undefined" ? window.location.origin : undefined));
+    setLinkCopiado(true);
+    setTimeout(() => setLinkCopiado(false), 2000);
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
@@ -28,14 +36,20 @@ export function ClienteDetalheModal({ cliente, profile, souAdmin, onClose }: Cli
         className="max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-base-700 bg-base-900 p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-5 flex items-start justify-between">
-          <div>
+        <div className="mb-5 flex items-start justify-between gap-3">
+          <div className="min-w-0">
             <h3 className="text-base font-semibold">{cliente.nome}</h3>
             <p className="mt-0.5 text-xs text-ink-muted">{cliente.documento || dict.cadastros.semDocumentoCadastrado}</p>
           </div>
-          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
-            ×
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button variant="ghost" onClick={handleCopiarLinkPortal} className="gap-1.5 px-3 py-1.5 text-xs">
+              <IconCopy className="h-3.5 w-3.5" />
+              {linkCopiado ? dict.portal.linkCopiadoMsg : dict.portal.copiarLinkPortalBtn}
+            </Button>
+            <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
+              ×
+            </button>
+          </div>
         </div>
 
         <div className="mb-6 grid grid-cols-1 gap-x-6 gap-y-3 rounded-xl border border-base-800 bg-base-950/40 p-4 sm:grid-cols-2">

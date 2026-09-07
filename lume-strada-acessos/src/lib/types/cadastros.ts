@@ -9,6 +9,8 @@ export interface ClienteRow {
   endereco: string | null;
   profile_id: string | null; // uuid -> profiles.id — null até "Gerar Acesso" ser usado
   cor: string | null; // hex ("#RRGGBB") escolhido no cadastro — usado nas etiquetas do Calendário (Produção) pra identificar o cliente visualmente
+  /** Token do link fixo do Portal do Cliente (Fase 4) — ver `supabase/portal.sql`. Sempre preenchido (default no banco), nunca null. */
+  portal_token: string;
   created_at: string;
   updated_at: string;
 }

@@ -6,6 +6,8 @@ import { financeiro } from "./financeiro";
 import { producao } from "./producao";
 import { comercial } from "./comercial";
 import { orcamentos } from "./orcamentos";
+import { contratos } from "./contratos";
+import { portal } from "./portal";
 import { trafego } from "./trafego";
 import { inventario } from "./inventario";
 import { cadastros } from "./cadastros";
@@ -23,6 +25,8 @@ export const es: Dictionary = {
   producao,
   comercial,
   orcamentos,
+  contratos,
+  portal,
   trafego,
   inventario,
   cadastros,

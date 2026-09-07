@@ -5,6 +5,8 @@ import { financeiro, type FinanceiroDict } from "./financeiro";
 import { producao, type ProducaoDict } from "./producao";
 import { comercial, type ComercialDict } from "./comercial";
 import { orcamentos, type OrcamentosDict } from "./orcamentos";
+import { contratos, type ContratosDict } from "./contratos";
+import { portal, type PortalDict } from "./portal";
 import { trafego, type TrafegoDict } from "./trafego";
 import { inventario, type InventarioDict } from "./inventario";
 import { cadastros, type CadastrosDict } from "./cadastros";
@@ -29,6 +31,8 @@ export interface Dictionary {
   producao: ProducaoDict;
   comercial: ComercialDict;
   orcamentos: OrcamentosDict;
+  contratos: ContratosDict;
+  portal: PortalDict;
   trafego: TrafegoDict;
   inventario: InventarioDict;
   cadastros: CadastrosDict;
@@ -47,6 +51,8 @@ export const pt: Dictionary = {
   producao,
   comercial,
   orcamentos,
+  contratos,
+  portal,
   trafego,
   inventario,
   cadastros,
