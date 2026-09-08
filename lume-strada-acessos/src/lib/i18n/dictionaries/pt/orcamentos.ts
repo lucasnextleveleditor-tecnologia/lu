@@ -12,6 +12,7 @@ export interface OrcamentosDict {
   subtituloPagina: string;
   novoOrcamentoBtn: string;
   catalogoBtn: string;
+  calculadoraBtn: string;
   contratosBtn: string;
   voltarParaOrcamentos: string;
 
@@ -85,6 +86,9 @@ export interface OrcamentosDict {
   placeholderDescricaoServico: string;
   categoriaLabel: string;
   valorPadraoLabel: string;
+  custoPadraoLabel: string;
+  custoPadraoHint: string;
+  margemAbreviada: string;
   unidadeLabel: string;
   unidadeUnico: string;
   unidadeHora: string;
@@ -253,6 +257,23 @@ export interface OrcamentosDict {
   abaOrcamentoLabel: string;
   abaContratoLabel: string;
   abaContratoBloqueadaHint: string;
+
+  // Calculadora de Margem
+  calculadoraTitulo: string;
+  calculadoraSubtitulo: string;
+  calcStatSubtotalVenda: string;
+  calcStatCustoTotal: string;
+  calcStatLucro: string;
+  calcStatMargem: string;
+  calcAdicionarItensTitulo: string;
+  calcItensTitulo: string;
+  calcItensVazio: string;
+  calcColVendaUnit: string;
+  calcColCustoUnit: string;
+  calcItemNomeLabel: string;
+  calcItemNomePlaceholder: string;
+  calcCriarOrcamentoBtn: string;
+  calcAvisoNaoSalva: string;
 }
 
 export const orcamentos: OrcamentosDict = {
@@ -260,6 +281,7 @@ export const orcamentos: OrcamentosDict = {
   subtituloPagina: "Monte propostas comerciais a partir do seu catálogo de serviços e acompanhe o funil de aprovação.",
   novoOrcamentoBtn: "Novo Orçamento",
   catalogoBtn: "Catálogo de Serviços",
+  calculadoraBtn: "Calculadora de Margem",
   contratosBtn: "Contratos",
   voltarParaOrcamentos: "Voltar pros Orçamentos",
 
@@ -327,6 +349,9 @@ export const orcamentos: OrcamentosDict = {
   placeholderDescricaoServico: "O que está incluso, prazos, entregáveis...",
   categoriaLabel: "Categoria",
   valorPadraoLabel: "Valor padrão",
+  custoPadraoLabel: "Custo estimado (opcional)",
+  custoPadraoHint: "Usado só na Calculadora de Margem pra sugerir o custo automaticamente — nunca aparece pro cliente nem entra no PDF.",
+  margemAbreviada: "margem {pct}%",
   unidadeLabel: "Unidade",
   unidadeUnico: "Valor único",
   unidadeHora: "Por hora",
@@ -493,4 +518,20 @@ export const orcamentos: OrcamentosDict = {
   abaOrcamentoLabel: "Orçamento",
   abaContratoLabel: "Contrato",
   abaContratoBloqueadaHint: "Aprove o orçamento pra liberar o contrato.",
+
+  calculadoraTitulo: "Calculadora de Margem",
+  calculadoraSubtitulo: "Simule preço, custo e margem antes de transformar isso num orçamento de verdade — nada aqui é salvo automaticamente.",
+  calcStatSubtotalVenda: "Total (venda)",
+  calcStatCustoTotal: "Custo total",
+  calcStatLucro: "Lucro estimado",
+  calcStatMargem: "Margem",
+  calcAdicionarItensTitulo: "Adicionar itens à simulação",
+  calcItensTitulo: "Itens da Simulação",
+  calcItensVazio: "Nenhum item ainda — adicione serviços do catálogo ou um item personalizado pra começar a simular.",
+  calcColVendaUnit: "Venda unit.",
+  calcColCustoUnit: "Custo unit.",
+  calcItemNomeLabel: "Nome do item",
+  calcItemNomePlaceholder: "Ex: Sessão de 2h",
+  calcCriarOrcamentoBtn: "Criar orçamento com esses itens",
+  calcAvisoNaoSalva: "Essa simulação não é salva em lugar nenhum — se você sair da página, os números somem. Quando fechar o preço, use \"Criar orçamento com esses itens\" pra levar tudo pro construtor de verdade.",
 };

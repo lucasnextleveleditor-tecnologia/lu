@@ -73,6 +73,8 @@ interface ServicoInput {
   nome: string;
   descricao: string | null;
   valorPadrao: number;
+  /** Opcional — 0 quando o usuário não quer cadastrar custo. Só alimenta a Calculadora de Margem, nunca aparece pro cliente. */
+  custoPadrao: number;
   unidade: UnidadeServico;
 }
 
@@ -88,6 +90,7 @@ export async function criarServico(input: ServicoInput): Promise<ActionResultId>
         nome: input.nome.trim(),
         descricao: input.descricao?.trim() || null,
         valor_padrao: input.valorPadrao,
+        custo_padrao: input.custoPadrao,
         unidade: input.unidade,
       })
       .select("id")
@@ -113,6 +116,7 @@ export async function atualizarServico(id: string, input: ServicoInput): Promise
         nome: input.nome.trim(),
         descricao: input.descricao?.trim() || null,
         valor_padrao: input.valorPadrao,
+        custo_padrao: input.custoPadrao,
         unidade: input.unidade,
       })
       .eq("id", id);

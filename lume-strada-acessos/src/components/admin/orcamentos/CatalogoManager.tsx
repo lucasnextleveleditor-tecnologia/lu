@@ -138,6 +138,11 @@ export function CatalogoManager({ categorias, servicosComCategoria }: { categori
                         <div className="text-right">
                           <p className="text-sm font-semibold text-ink-primary">{fmtBRL(servico.valor_padrao)}</p>
                           <p className="text-[11px] text-ink-muted">{dict.orcamentos[UNIDADE_KEY[servico.unidade]]}</p>
+                          {servico.custo_padrao > 0 && servico.valor_padrao > 0 && (
+                            <p className="text-[11px] text-ink-muted">
+                              {dict.orcamentos.margemAbreviada.replace("{pct}", (((servico.valor_padrao - servico.custo_padrao) / servico.valor_padrao) * 100).toFixed(0))}
+                            </p>
+                          )}
                         </div>
                         <div className="flex items-center gap-1">
                           <button

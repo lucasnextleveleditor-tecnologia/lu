@@ -23,6 +23,7 @@ export function ServicoModal({ onClose, categorias, servico }: ServicoModalProps
   const [nome, setNome] = useState(servico?.nome ?? "");
   const [descricao, setDescricao] = useState(servico?.descricao ?? "");
   const [valorPadrao, setValorPadrao] = useState(servico?.valor_padrao ?? 0);
+  const [custoPadrao, setCustoPadrao] = useState(servico?.custo_padrao ?? 0);
   const [unidade, setUnidade] = useState<UnidadeServico>(servico?.unidade ?? "unico");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +33,7 @@ export function ServicoModal({ onClose, categorias, servico }: ServicoModalProps
     setLoading(true);
     setError(null);
 
-    const input = { categoriaId: categoriaId || null, nome, descricao: descricao.trim() || null, valorPadrao, unidade };
+    const input = { categoriaId: categoriaId || null, nome, descricao: descricao.trim() || null, valorPadrao, custoPadrao, unidade };
     const result = editando ? await atualizarServico(servico.id, input) : await criarServico(input);
 
     setLoading(false);
@@ -92,10 +93,17 @@ export function ServicoModal({ onClose, categorias, servico }: ServicoModalProps
             </div>
           </div>
 
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.valorPadraoLabel}</label>
-            <CurrencyInput value={valorPadrao} onChange={setValorPadrao} className="max-w-[220px]" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.valorPadraoLabel}</label>
+              <CurrencyInput value={valorPadrao} onChange={setValorPadrao} />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.custoPadraoLabel}</label>
+              <CurrencyInput value={custoPadrao} onChange={setCustoPadrao} />
+            </div>
           </div>
+          <p className="-mt-2 text-[11px] text-ink-muted">{dict.orcamentos.custoPadraoHint}</p>
 
           {error && <p className="text-sm text-danger">{error}</p>}
 

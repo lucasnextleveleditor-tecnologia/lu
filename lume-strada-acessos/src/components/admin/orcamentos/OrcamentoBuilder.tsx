@@ -8,7 +8,7 @@ import { calcularTotalOrcamento } from "@/lib/types/orcamentos";
 import { criarOrcamentoCompleto, atualizarOrcamentoCompleto, enviarOrcamento, type ItemInput } from "@/app/admin/orcamentos/actions";
 import { salvarPortfolioDoOrcamento } from "@/app/admin/orcamentos/portfolio-actions";
 import type { buscarOrcamentoPorId } from "@/app/admin/orcamentos/data";
-import { CATEGORIAS_PORTFOLIO } from "@/lib/utils/orcamentos";
+import { CATEGORIAS_PORTFOLIO, CALCULADORA_HANDOFF_KEY, type ItemHandoffCalculadora } from "@/lib/utils/orcamentos";
 import { listarModelosPorPerfil } from "@/lib/contratos/modelos/mapeamento";
 import { OrcamentoPropostaPreview, type ItemPreview } from "@/components/cliente/OrcamentoPropostaPreview";
 import { MarcaApresentacaoCard } from "@/components/admin/orcamentos/MarcaApresentacaoCard";
@@ -91,18 +91,44 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
     setInstitucionalState((prev) => ({ ...prev, ...patch }));
   }
 
-  const [itens, setItens] = useState<ItemLocal[]>(
-    orcamentoParaEditar?.itens.map((i) => ({
-      key: novaChave(),
-      servicoId: i.servico_id,
-      nome: i.nome,
-      descricao: i.descricao,
-      quantidade: i.quantidade,
-      valorUnitario: i.valor_unitario,
-      opcional: i.opcional,
-      selecionado: i.selecionado,
-    })) ?? []
-  );
+  const [itens, setItens] = useState<ItemLocal[]>(() => {
+    if (orcamentoParaEditar) {
+      return orcamentoParaEditar.itens.map((i) => ({
+        key: novaChave(),
+        servicoId: i.servico_id,
+        nome: i.nome,
+        descricao: i.descricao,
+        quantidade: i.quantidade,
+        valorUnitario: i.valor_unitario,
+        opcional: i.opcional,
+        selecionado: i.selecionado,
+      }));
+    }
+
+    // Sem orçamento pra editar (ou seja, `/novo`): checa se veio uma
+    // simulação da Calculadora de Margem esperando pra virar orçamento (ver
+    // `CalculadoraMargem.tsx`) — só client-side, nunca passa pelo servidor.
+    // Lida com o handoff uma única vez (consome e limpa a chave) pra não
+    // reaplicar os mesmos itens numa navegação de volta pra essa tela.
+    try {
+      const bruto = sessionStorage.getItem(CALCULADORA_HANDOFF_KEY);
+      if (!bruto) return [];
+      sessionStorage.removeItem(CALCULADORA_HANDOFF_KEY);
+      const itensHandoff = JSON.parse(bruto) as ItemHandoffCalculadora[];
+      return itensHandoff.map((i) => ({
+        key: novaChave(),
+        servicoId: null,
+        nome: i.nome,
+        descricao: null,
+        quantidade: i.quantidade,
+        valorUnitario: i.valorUnitario,
+        opcional: false,
+        selecionado: true,
+      }));
+    } catch {
+      return [];
+    }
+  });
 
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<string | null>(null);
   const [buscaServico, setBuscaServico] = useState("");

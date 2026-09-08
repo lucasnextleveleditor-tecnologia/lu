@@ -46,6 +46,12 @@ export default async function OrcamentosPage() {
               {dict.orcamentos.catalogoBtn}
             </Button>
           </Link>
+          <Link href="/admin/orcamentos/calculadora">
+            <Button variant="ghost" className="gap-1.5">
+              <IconPercent className="h-4 w-4" />
+              {dict.orcamentos.calculadoraBtn}
+            </Button>
+          </Link>
           <Link href="/admin/contratos">
             <Button variant="ghost" className="gap-1.5">
               <IconShieldCheck className="h-4 w-4" />

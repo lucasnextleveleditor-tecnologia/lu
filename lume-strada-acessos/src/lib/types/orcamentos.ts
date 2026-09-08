@@ -14,6 +14,8 @@ export interface OrcServicoRow {
   nome: string;
   descricao: string | null;
   valor_padrao: number;
+  /** Custo estimado (mão de obra, equipamento, terceirizados...) — opcional, usado só pra sugerir a margem na Calculadora de Margem (`/admin/orcamentos/calculadora`). Nunca aparece pro cliente nem entra no PDF/proposta. 0 = custo não cadastrado ainda. */
+  custo_padrao: number;
   unidade: UnidadeServico;
   ativo: boolean;
   created_at: string;
