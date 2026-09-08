@@ -7,6 +7,8 @@ export interface ContratoRow {
   /** Orçamento de origem (aprovado), quando o contrato não é avulso — ver comentário na migração. */
   orcamento_id: string | null;
   tipo_perfil: PerfilOrcamento | null;
+  /** Slug do tipo de serviço escolhido dentro do perfil (ver `ModeloContratoServico.tipoServico` em `src/lib/contratos/modelos/`) — livre, validado em código de app. Null = sem tipo de serviço específico. */
+  tipo_servico: string | null;
   titulo: string;
   cliente_id: string | null;
   nome_cliente: string;

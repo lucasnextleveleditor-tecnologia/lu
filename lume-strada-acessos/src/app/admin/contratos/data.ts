@@ -75,6 +75,7 @@ export interface OrcamentoParaVincular {
   id: string;
   titulo: string;
   tipo_perfil: PerfilOrcamento | null;
+  tipo_servico: string | null;
   cliente_id: string | null;
   cliente_nome: string | null;
   nome_destinatario: string;
@@ -84,18 +85,31 @@ export interface OrcamentoParaVincular {
   itens: { nome: string; descricao: string | null; quantidade: number; valor_unitario: number }[];
 }
 
+/** Dados jurídicos da própria empresa (o CONTRATADO) — ver `supabase/contratos-modelos-integracao.sql`. Alimenta só os modelos ricos do banco de modelos (`BANCO_DE_MODELOS`); nada a ver com `nomeEmpresa`/`getNomeApp()` (branding, prop separada em `ContratoBuilder.tsx`). */
+export interface EmpresaContratante {
+  nome: string;
+  cpfCnpj: string | null;
+  endereco: string | null;
+}
+
 /**
  * Dados de apoio pro construtor (`/novo` e `/[id]/editar`): clientes pra um
  * contrato avulso, os modelos de cláusula por perfil (pré-preenchem o
- * construtor quando um perfil é escolhido) e os orçamentos JÁ APROVADOS —
+ * construtor quando um perfil é escolhido), os orçamentos JÁ APROVADOS —
  * pra opção "gerar a partir de um orçamento", que herda cliente/itens/valor
- * automaticamente (ver `escolherOrcamento` em `ContratoBuilder.tsx`).
+ * automaticamente (ver `escolherOrcamento` em `ContratoBuilder.tsx`) — e os
+ * dados jurídicos da própria empresa (CONTRATADO), pro auto-preenchimento
+ * dos modelos ricos do banco de modelos (`BANCO_DE_MODELOS`).
  */
 export async function buscarDadosConstrutorContrato() {
   const { supabase } = await requireModuloOuRedirect("orcamentos");
 
-  const [clientesRes, tiposRes, orcamentosRes] = await Promise.all([
-    supabase.from("clientes").select("id, nome, email, telefone").order("nome").overrideTypes<{ id: string; nome: string; email: string | null; telefone: string | null }[], { merge: false }>(),
+  const [clientesRes, tiposRes, orcamentosRes, empresaRes] = await Promise.all([
+    supabase
+      .from("clientes")
+      .select("id, nome, email, telefone, documento, endereco")
+      .order("nome")
+      .overrideTypes<{ id: string; nome: string; email: string | null; telefone: string | null; documento: string | null; endereco: string | null }[], { merge: false }>(),
     supabase.from("contratos_tipos").select("*").overrideTypes<ContratoTipoRow[], { merge: false }>(),
     supabase
       .from("orcamentos")
@@ -103,6 +117,11 @@ export async function buscarDadosConstrutorContrato() {
       .eq("status", "aprovado")
       .order("aprovado_em", { ascending: false })
       .overrideTypes<(OrcamentoRow & { clientes: { nome: string } | null })[], { merge: false }>(),
+    // Mesmo padrão RLS-scoped de `getNomeApp()` (ver `src/lib/branding/getNomeApp.ts`):
+    // `companies_select_own` já restringe a UMA linha só (a própria empresa de
+    // quem chama), então não precisa `.eq()`. Diferente de `getNomeApp()`, aqui
+    // é a razão social real (`nome`), não o nome de marca (`nome_app`).
+    supabase.from("companies").select("nome, cpf_cnpj, endereco").maybeSingle<{ nome: string | null; cpf_cnpj: string | null; endereco: string | null }>(),
   ]);
 
   const tipos = tiposRes.data ?? [];
@@ -129,6 +148,7 @@ export async function buscarDadosConstrutorContrato() {
     id: o.id,
     titulo: o.titulo,
     tipo_perfil: o.tipo_perfil,
+    tipo_servico: o.tipo_servico,
     cliente_id: o.cliente_id,
     cliente_nome: o.clientes?.nome ?? null,
     nome_destinatario: o.nome_destinatario,
@@ -140,7 +160,13 @@ export async function buscarDadosConstrutorContrato() {
       .map((i) => ({ nome: i.nome, descricao: i.descricao, quantidade: i.quantidade, valor_unitario: i.valor_unitario })),
   }));
 
-  return { clientes: clientesRes.data ?? [], tiposContrato, orcamentosParaVincular };
+  const empresa: EmpresaContratante = {
+    nome: empresaRes.data?.nome?.trim() || "",
+    cpfCnpj: empresaRes.data?.cpf_cnpj || null,
+    endereco: empresaRes.data?.endereco || null,
+  };
+
+  return { clientes: clientesRes.data ?? [], tiposContrato, orcamentosParaVincular, empresa };
 }
 
 /** Um contrato completo (cabeçalho + itens + nomes vinculados) — usado pelas telas de detalhe e edição. */

@@ -20,7 +20,7 @@ interface PageProps {
 export default async function NovoContratoPage({ searchParams }: PageProps) {
   const { orcamentoId } = await searchParams;
   const { dict } = await getDictionary();
-  const [{ clientes, tiposContrato, orcamentosParaVincular }, nomeEmpresa] = await Promise.all([buscarDadosConstrutorContrato(), getNomeApp()]);
+  const [{ clientes, tiposContrato, orcamentosParaVincular, empresa }, nomeEmpresa] = await Promise.all([buscarDadosConstrutorContrato(), getNomeApp()]);
 
   return (
     <div className="space-y-6">
@@ -32,7 +32,7 @@ export default async function NovoContratoPage({ searchParams }: PageProps) {
         <h1 className="text-lg font-semibold tracking-tight">{dict.contratos.novoContratoBtn}</h1>
       </div>
 
-      <ContratoBuilder nomeEmpresa={nomeEmpresa} clientes={clientes} tiposContrato={tiposContrato} orcamentosParaVincular={orcamentosParaVincular} orcamentoIdInicial={orcamentoId} />
+      <ContratoBuilder nomeEmpresa={nomeEmpresa} empresa={empresa} clientes={clientes} tiposContrato={tiposContrato} orcamentosParaVincular={orcamentosParaVincular} orcamentoIdInicial={orcamentoId} />
     </div>
   );
 }

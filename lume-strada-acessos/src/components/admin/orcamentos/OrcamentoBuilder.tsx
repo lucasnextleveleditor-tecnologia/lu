@@ -8,6 +8,7 @@ import { criarOrcamentoCompleto, atualizarOrcamentoCompleto, enviarOrcamento, ty
 import { salvarPortfolioDoOrcamento } from "@/app/admin/orcamentos/portfolio-actions";
 import type { buscarOrcamentoPorId } from "@/app/admin/orcamentos/data";
 import { CATEGORIAS_PORTFOLIO } from "@/lib/utils/orcamentos";
+import { listarModelosPorPerfil } from "@/lib/contratos/modelos/mapeamento";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -67,6 +68,8 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
   const [descontoTipo, setDescontoTipo] = useState<DescontoTipo | "">(orcamentoParaEditar?.desconto_tipo ?? "");
   const [descontoValor, setDescontoValor] = useState(orcamentoParaEditar?.desconto_valor ?? 0);
   const [tipoPerfil, setTipoPerfil] = useState<PerfilOrcamento | null>(orcamentoParaEditar?.tipo_perfil ?? null);
+  const [tipoServico, setTipoServico] = useState<string | null>(orcamentoParaEditar?.tipo_servico ?? null);
+  const modelosDoTipoServico = useMemo(() => listarModelosPorPerfil(tipoPerfil), [tipoPerfil]);
   const [portfolioSelecionado, setPortfolioSelecionado] = useState<string[]>(orcamentoParaEditar?.portfolio.map((p) => p.id) ?? []);
 
   const [itens, setItens] = useState<ItemLocal[]>(
@@ -166,6 +169,7 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
    * o modelo depois de já ter começado a editar.
    */
   function escolherPerfil(perfil: PerfilOrcamento, forcarItens = false) {
+    if (perfil !== tipoPerfil) setTipoServico(null);
     setTipoPerfil(perfil);
     const modelo = tiposOrcamento[perfil];
     if (!modelo) return;
@@ -221,6 +225,7 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
       condicoesPagamento: condicoesPagamento || null,
       observacoes: observacoes || null,
       tipoPerfil,
+      tipoServico,
     };
     const itensInput: ItemInput[] = itens.map((i) => ({
       servicoId: i.servicoId,
@@ -294,6 +299,20 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
                 <button type="button" onClick={() => escolherPerfil(tipoPerfil, true)} className="mt-2 text-xs font-medium text-accent hover:underline">
                   {dict.orcamentos.usarItensDoModeloBtn}
                 </button>
+              )}
+              {tipoPerfil && modelosDoTipoServico.length > 0 && (
+                <div className="mt-3">
+                  <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.tipoServicoLabel}</label>
+                  <Select value={tipoServico ?? ""} onChange={(e) => setTipoServico(e.target.value || null)}>
+                    <option value="">{dict.orcamentos.tipoServicoVazio}</option>
+                    {modelosDoTipoServico.map((m) => (
+                      <option key={m.tipoServico} value={m.tipoServico}>
+                        {m.nome}
+                      </option>
+                    ))}
+                  </Select>
+                  <p className="mt-1 text-[11px] text-ink-muted">{dict.orcamentos.tipoServicoHint}</p>
+                </div>
               )}
             </div>
 

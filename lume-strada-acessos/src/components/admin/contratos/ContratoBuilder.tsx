@@ -7,8 +7,10 @@ import { calcularTotalContrato } from "@/lib/types/contratos";
 import type { PerfilOrcamento } from "@/lib/types/orcamentos";
 import { CATEGORIAS_PORTFOLIO } from "@/lib/utils/orcamentos";
 import { montarClausulasPadrao, substituirPlaceholders } from "@/lib/utils/contratos";
+import { listarModelosPorPerfil, buscarModelo, montarValoresAutoPreenchiveis } from "@/lib/contratos/modelos/mapeamento";
+import { substituirPlaceholders as substituirPlaceholdersModelo, listarPlaceholdersPendentes, type CampoDinamicoModelo } from "@/lib/contratos/modelos/tipos";
 import { criarContratoCompleto, atualizarContratoCompleto, enviarContrato, type ContratoItemInput } from "@/app/admin/contratos/actions";
-import type { buscarContratoPorId, OrcamentoParaVincular } from "@/app/admin/contratos/data";
+import type { buscarContratoPorId, OrcamentoParaVincular, EmpresaContratante } from "@/app/admin/contratos/data";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -26,6 +28,8 @@ interface ClienteOpcao {
   nome: string;
   email: string | null;
   telefone: string | null;
+  documento: string | null;
+  endereco: string | null;
 }
 
 interface ItemLocal {
@@ -41,7 +45,10 @@ function novaChave(): string {
 }
 
 interface ContratoBuilderProps {
+  /** Nome de MARCA (branding, `companies.nome_app` via `getNomeApp()`) — usado só pelo modelo simples legado (placeholder `{{empresa}}`). Nunca usar aqui pro CONTRATADO jurídico dos modelos ricos — ver prop `empresa`. */
   nomeEmpresa: string;
+  /** Dados jurídicos reais da própria empresa (CONTRATADO) — razão social (`companies.nome`) + CPF/CNPJ + endereço, usados só pra auto-preencher os `[TAG]` do banco de modelos ricos (`BANCO_DE_MODELOS`). Prop separada de `nomeEmpresa` de propósito (ver comentário acima). */
+  empresa: EmpresaContratante;
   clientes: ClienteOpcao[];
   tiposContrato: Record<PerfilOrcamento, ContratoTipoRow | null>;
   orcamentosParaVincular: OrcamentoParaVincular[];
@@ -50,13 +57,23 @@ interface ContratoBuilderProps {
   orcamentoIdInicial?: string;
 }
 
-export function ContratoBuilder({ nomeEmpresa, clientes, tiposContrato, orcamentosParaVincular, contratoParaEditar, orcamentoIdInicial }: ContratoBuilderProps) {
+export function ContratoBuilder({ nomeEmpresa, empresa, clientes, tiposContrato, orcamentosParaVincular, contratoParaEditar, orcamentoIdInicial }: ContratoBuilderProps) {
   const { dict } = useLocale();
   const router = useRouter();
   const editando = !!contratoParaEditar;
 
   const [orcamentoId, setOrcamentoId] = useState<string | null>(contratoParaEditar?.orcamento_id ?? null);
   const [tipoPerfil, setTipoPerfil] = useState<PerfilOrcamento | null>(contratoParaEditar?.tipo_perfil ?? null);
+  // Fonte das cláusulas: `true` (padrão) usa o banco de modelos ricos
+  // (`BANCO_DE_MODELOS`, `[TAG]`, dezenas de modelos por perfil × tipo de
+  // serviço); `false` volta pro caminho legado (`contratos_tipos` +
+  // `montarClausulasPadrao`, `{{tag}}`, um modelo só por perfil, editável em
+  // Aparência > Modelos). Trocar o modo NUNCA mexe em `clausulas` sozinho —
+  // só um clique explícito em "Aplicar modelo"/"Gerar cláusulas" aplica.
+  const [usarModeloNovo, setUsarModeloNovo] = useState(true);
+  const [tipoServico, setTipoServico] = useState<string | null>(contratoParaEditar?.tipo_servico ?? null);
+  const [valoresManuais, setValoresManuais] = useState<Record<string, string>>({});
+  const [camposPendentes, setCamposPendentes] = useState<string[]>([]);
   const [titulo, setTitulo] = useState(contratoParaEditar?.titulo ?? "");
   const [clienteId, setClienteId] = useState(contratoParaEditar?.cliente_id ?? "");
   const [nomeCliente, setNomeCliente] = useState(contratoParaEditar?.nome_cliente ?? "");
@@ -104,6 +121,12 @@ export function ContratoBuilder({ nomeEmpresa, clientes, tiposContrato, orcament
     if (orc.tipo_perfil) {
       setTipoPerfil(orc.tipo_perfil);
     }
+    // Só pré-seleciona o tipo de serviço — nunca gera as cláusulas sozinho
+    // aqui (mesmo espírito do resto desta função: herda dados, mas quem
+    // decide gerar o texto é sempre um clique explícito em "Aplicar modelo").
+    if (orc.tipo_servico) {
+      setTipoServico(orc.tipo_servico);
+    }
   }
 
   // Roda só uma vez, na montagem — pré-seleciona a origem quando a tela
@@ -138,6 +161,56 @@ export function ContratoBuilder({ nomeEmpresa, clientes, tiposContrato, orcament
     setClausulas(textoFinal);
   }
 
+  /**
+   * Equivalente a `aplicarModelo`, mas pro banco de modelos ricos
+   * (`BANCO_DE_MODELOS`, `[TAG]`): busca o modelo do (perfil, tipo de
+   * serviço) escolhidos, monta os valores auto-preenchíveis a partir do
+   * cliente/empresa/total já na tela e substitui — igual ao legado, só
+   * dispara com um clique explícito, nunca sozinho. Depois de gerar,
+   * recalcula `camposPendentes` (os `[TAG]` que sobraram sem dado conhecido)
+   * pro formulário lateral aparecer, e zera `valoresManuais` (texto novo,
+   * preenchimento manual anterior não faz mais sentido).
+   */
+  function aplicarModeloNovo() {
+    if (!tipoPerfil || !tipoServico) return;
+    const modelo = buscarModelo(tipoPerfil, tipoServico);
+    if (!modelo) return;
+
+    const valoresAuto = montarValoresAutoPreenchiveis({
+      cliente: clientes.find((c) => c.id === clienteId) ?? null,
+      nomeDestinatario: nomeCliente,
+      empresa,
+      valorTotal: total,
+      condicoesPagamento,
+      dataAssinatura: new Date().toLocaleDateString("pt-BR"),
+    });
+
+    const resultado = substituirPlaceholdersModelo(modelo.texto, valoresAuto);
+    setClausulas(resultado);
+    setCamposPendentes(listarPlaceholdersPendentes(resultado));
+    setValoresManuais({});
+  }
+
+  /** Reaplica o modelo atual combinando os valores auto-preenchíveis (recalculados na hora) com o que o usuário preencheu à mão no formulário de campos pendentes — chamado pelo botão "Preencher e aplicar". */
+  function preencherCamposPendentes() {
+    if (!tipoPerfil || !tipoServico) return;
+    const modelo = buscarModelo(tipoPerfil, tipoServico);
+    if (!modelo) return;
+
+    const valoresAuto = montarValoresAutoPreenchiveis({
+      cliente: clientes.find((c) => c.id === clienteId) ?? null,
+      nomeDestinatario: nomeCliente,
+      empresa,
+      valorTotal: total,
+      condicoesPagamento,
+      dataAssinatura: new Date().toLocaleDateString("pt-BR"),
+    });
+
+    const resultado = substituirPlaceholdersModelo(modelo.texto, { ...valoresAuto, ...valoresManuais });
+    setClausulas(resultado);
+    setCamposPendentes(listarPlaceholdersPendentes(resultado));
+  }
+
   function adicionarItem() {
     if (!pNome.trim()) return;
     setItens((prev) => [...prev, { key: novaChave(), nome: pNome.trim(), descricao: null, quantidade: 1, valorUnitario: pValor }]);
@@ -158,6 +231,7 @@ export function ContratoBuilder({ nomeEmpresa, clientes, tiposContrato, orcament
     const header = {
       orcamentoId: editando ? (contratoParaEditar?.orcamento_id ?? null) : orcamentoId,
       tipoPerfil,
+      tipoServico: usarModeloNovo ? tipoServico : null,
       titulo,
       clienteId: clienteId || null,
       nomeCliente,
@@ -220,13 +294,44 @@ export function ContratoBuilder({ nomeEmpresa, clientes, tiposContrato, orcament
           <h2 className="mb-4 text-sm font-semibold">{dict.contratos.dadosDoContratoTitulo}</h2>
           <div className="space-y-4">
             <div>
+              <div className="mb-2 flex gap-1.5 rounded-lg border border-base-800 bg-base-900/60 p-1">
+                <button
+                  type="button"
+                  onClick={() => setUsarModeloNovo(true)}
+                  className={cn(
+                    "flex-1 rounded-md px-2.5 py-1 text-xs font-medium transition",
+                    usarModeloNovo ? "bg-accent/15 text-ink-primary" : "text-ink-muted hover:text-ink-secondary"
+                  )}
+                >
+                  {dict.contratos.modeloOrigemNovoBtn}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUsarModeloNovo(false)}
+                  className={cn(
+                    "flex-1 rounded-md px-2.5 py-1 text-xs font-medium transition",
+                    !usarModeloNovo ? "bg-accent/15 text-ink-primary" : "text-ink-muted hover:text-ink-secondary"
+                  )}
+                >
+                  {dict.contratos.modeloOrigemLegadoBtn}
+                </button>
+              </div>
+
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.contratos.tipoDeContratoLabel}</label>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIAS_PORTFOLIO.map((perfil) => (
                   <button
                     key={perfil}
                     type="button"
-                    onClick={() => aplicarModelo(perfil)}
+                    onClick={() => {
+                      if (usarModeloNovo) {
+                        setTipoPerfil(perfil);
+                        setTipoServico(null);
+                        setCamposPendentes([]);
+                      } else {
+                        aplicarModelo(perfil);
+                      }
+                    }}
                     className={cn(
                       "rounded-full border px-3 py-1.5 text-xs font-medium transition",
                       tipoPerfil === perfil ? "border-accent bg-accent/15 text-ink-primary" : "border-base-600 text-ink-secondary hover:text-ink-primary"
@@ -236,10 +341,45 @@ export function ContratoBuilder({ nomeEmpresa, clientes, tiposContrato, orcament
                   </button>
                 ))}
               </div>
-              {tipoPerfil && (
+
+              {!usarModeloNovo && tipoPerfil && (
                 <button type="button" onClick={() => aplicarModelo(tipoPerfil)} className="mt-2 text-xs font-medium text-accent hover:underline">
                   {dict.contratos.aplicarModeloBtn}
                 </button>
+              )}
+
+              {usarModeloNovo && tipoPerfil && (
+                <div className="mt-3">
+                  <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.contratos.tipoServicoLabel}</label>
+                  {listarModelosPorPerfil(tipoPerfil).length === 0 ? (
+                    <p className="text-xs text-ink-muted">{dict.contratos.tipoServicoVazioSemModelos}</p>
+                  ) : (
+                    <>
+                      <Select
+                        value={tipoServico ?? ""}
+                        onChange={(e) => {
+                          setTipoServico(e.target.value || null);
+                          setCamposPendentes([]);
+                        }}
+                      >
+                        <option value="">{dict.contratos.tipoServicoVazio}</option>
+                        {listarModelosPorPerfil(tipoPerfil).map((m) => (
+                          <option key={m.tipoServico} value={m.tipoServico}>
+                            {m.nome}
+                          </option>
+                        ))}
+                      </Select>
+                      {tipoServico && buscarModelo(tipoPerfil, tipoServico) && (
+                        <p className="mt-1 text-xs text-ink-muted">{buscarModelo(tipoPerfil, tipoServico)!.descricao}</p>
+                      )}
+                      {tipoServico && (
+                        <button type="button" onClick={aplicarModeloNovo} className="mt-2 text-xs font-medium text-accent hover:underline">
+                          {dict.contratos.aplicarModeloNovoBtn}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
               )}
             </div>
 
@@ -288,6 +428,44 @@ export function ContratoBuilder({ nomeEmpresa, clientes, tiposContrato, orcament
             </div>
           </div>
         </Card>
+
+        {usarModeloNovo && tipoServico && camposPendentes.length > 0 && (
+          <Card>
+            <h2 className="mb-1 text-sm font-semibold">{dict.contratos.camposPendentesTitulo}</h2>
+            <p className="mb-3 text-xs text-ink-muted">{dict.contratos.camposPendentesHint}</p>
+            <div className="space-y-3">
+              {camposPendentes.map((tag) => {
+                const campo: CampoDinamicoModelo | undefined = tipoPerfil ? buscarModelo(tipoPerfil, tipoServico)?.camposDinamicos.find((c) => c.tag === tag) : undefined;
+                const label = campo?.label ?? tag.replace(/_/g, " ");
+                return (
+                  <div key={tag}>
+                    <label className="mb-1 block text-xs text-ink-secondary">{label}</label>
+                    {campo?.tipo === "textarea" ? (
+                      <Textarea
+                        rows={2}
+                        value={valoresManuais[tag] ?? ""}
+                        placeholder={campo?.exemplo}
+                        onChange={(e) => setValoresManuais((v) => ({ ...v, [tag]: e.target.value }))}
+                      />
+                    ) : campo?.tipo === "moeda" ? (
+                      <CurrencyInput value={Number(valoresManuais[tag] ?? 0)} onChange={(n) => setValoresManuais((v) => ({ ...v, [tag]: String(n) }))} />
+                    ) : (
+                      <Input
+                        type={campo?.tipo === "data" ? "date" : campo?.tipo === "numero" || campo?.tipo === "percentual" ? "number" : "text"}
+                        value={valoresManuais[tag] ?? ""}
+                        placeholder={campo?.exemplo}
+                        onChange={(e) => setValoresManuais((v) => ({ ...v, [tag]: e.target.value }))}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <Button variant="ghost" className="mt-3 px-3 py-1.5 text-xs" onClick={preencherCamposPendentes}>
+              {dict.contratos.preencherEAplicarBtn}
+            </Button>
+          </Card>
+        )}
 
         <Card>
           <h2 className="mb-1 text-sm font-semibold">{dict.contratos.clausulasTitulo}</h2>

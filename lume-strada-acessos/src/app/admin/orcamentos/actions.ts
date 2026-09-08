@@ -185,6 +185,8 @@ export interface OrcamentoHeaderInput {
   observacoes: string | null;
   /** Perfil escolhido no construtor (Fase 2) — só rótulo, ver `PerfilOrcamento`. */
   tipoPerfil: PerfilOrcamento | null;
+  /** Slug do tipo de serviço dentro do perfil (ver `ModeloContratoServico.tipoServico`, `src/lib/contratos/modelos/`) — opcional, independente do modelo de itens padrão de `orc_tipos_orcamento`. */
+  tipoServico: string | null;
 }
 
 function normalizarItens(itens: ItemInput[]) {
@@ -223,6 +225,7 @@ export async function criarOrcamentoCompleto(header: OrcamentoHeaderInput, itens
         condicoes_pagamento: header.condicoesPagamento?.trim() || null,
         observacoes: header.observacoes?.trim() || null,
         tipo_perfil: header.tipoPerfil,
+        tipo_servico: header.tipoServico,
         criado_por: user.id,
       })
       .select("id")
@@ -263,6 +266,7 @@ export async function atualizarOrcamentoCompleto(id: string, header: OrcamentoHe
         condicoes_pagamento: header.condicoesPagamento?.trim() || null,
         observacoes: header.observacoes?.trim() || null,
         tipo_perfil: header.tipoPerfil,
+        tipo_servico: header.tipoServico,
       })
       .eq("id", id);
     if (erroOrcamento) return { ok: false, error: erroOrcamento.message };

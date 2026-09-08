@@ -48,6 +48,15 @@ export interface ContratosDict {
   dadosDoContratoTitulo: string;
   tipoDeContratoLabel: string;
   aplicarModeloBtn: string;
+  modeloOrigemNovoBtn: string;
+  modeloOrigemLegadoBtn: string;
+  tipoServicoLabel: string;
+  tipoServicoVazio: string;
+  tipoServicoVazioSemModelos: string;
+  aplicarModeloNovoBtn: string;
+  camposPendentesTitulo: string;
+  camposPendentesHint: string;
+  preencherEAplicarBtn: string;
   tituloContratoLabel: string;
   placeholderTituloContrato: string;
   nomeClienteLabel: string;
@@ -123,6 +132,15 @@ export const contratos: ContratosDict = {
   dadosDoContratoTitulo: "Dados do Contrato",
   tipoDeContratoLabel: "Tipo de contrato",
   aplicarModeloBtn: "Aplicar modelo deste tipo",
+  modeloOrigemNovoBtn: "Modelo padrão do sistema",
+  modeloOrigemLegadoBtn: "Modelo simples da empresa",
+  tipoServicoLabel: "Tipo de Serviço",
+  tipoServicoVazio: "Selecione o tipo de serviço...",
+  tipoServicoVazioSemModelos: "Modelos deste perfil ainda não foram redigidos — em breve.",
+  aplicarModeloNovoBtn: "Gerar cláusulas deste modelo",
+  camposPendentesTitulo: "Campos pendentes",
+  camposPendentesHint: "Preencha os campos abaixo pra substituir os marcadores que ainda faltam no texto.",
+  preencherEAplicarBtn: "Preencher e aplicar",
   tituloContratoLabel: "Título do contrato",
   placeholderTituloContrato: "Ex: Contrato de Prestação de Serviços — Empresa XYZ",
   nomeClienteLabel: "Nome do cliente",

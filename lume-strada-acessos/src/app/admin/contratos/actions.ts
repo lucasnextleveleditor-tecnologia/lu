@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
 import type { PerfilOrcamento } from "@/lib/types/orcamentos";
 import type { StatusContrato } from "@/lib/types/contratos";
+import { listarPlaceholdersPendentes } from "@/lib/contratos/modelos/tipos";
 
 const PATH = "/admin/contratos";
 
@@ -20,6 +21,8 @@ export interface ContratoItemInput {
 export interface ContratoHeaderInput {
   orcamentoId: string | null;
   tipoPerfil: PerfilOrcamento | null;
+  /** Slug do tipo de serviço dentro do perfil (ver `ModeloContratoServico.tipoServico`, `src/lib/contratos/modelos/`) — opcional, sempre acompanhando `tipoPerfil`. */
+  tipoServico?: string | null;
   titulo: string;
   clienteId: string | null;
   nomeCliente: string;
@@ -53,6 +56,7 @@ export async function criarContratoCompleto(header: ContratoHeaderInput, itens: 
       .insert({
         orcamento_id: header.orcamentoId,
         tipo_perfil: header.tipoPerfil,
+        tipo_servico: header.tipoServico ?? null,
         titulo: header.titulo.trim(),
         cliente_id: header.clienteId,
         nome_cliente: header.nomeCliente.trim(),
@@ -90,6 +94,7 @@ export async function atualizarContratoCompleto(id: string, header: ContratoHead
       .from("contratos")
       .update({
         tipo_perfil: header.tipoPerfil,
+        tipo_servico: header.tipoServico ?? null,
         titulo: header.titulo.trim(),
         cliente_id: header.clienteId,
         nome_cliente: header.nomeCliente.trim(),
@@ -136,9 +141,17 @@ export async function enviarContrato(id: string): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("orcamentos");
 
-    const { data: contrato, error: erroBusca } = await supabase.from("contratos").select("status").eq("id", id).single();
+    const { data: contrato, error: erroBusca } = await supabase.from("contratos").select("status, clausulas").eq("id", id).single();
     if (erroBusca || !contrato) return { ok: false, error: erroBusca?.message ?? "Contrato não encontrado." };
     if (contrato.status === "assinado") return { ok: false, error: "Este contrato já foi assinado — crie um novo pra propor outra versão." };
+
+    // Rede de segurança: um contrato gerado a partir do banco de modelos ricos
+    // (`BANCO_DE_MODELOS`, placeholders `[TAG]`) pode ficar com campos sem
+    // preencher — nunca deixa ir pro cliente com marcador literal no texto.
+    const pendentes = listarPlaceholdersPendentes(contrato.clausulas);
+    if (pendentes.length > 0) {
+      return { ok: false, error: `Este contrato ainda tem ${pendentes.length} campo(s) pendente(s) no texto (ex.: [${pendentes[0]}]) — preencha antes de enviar.` };
+    }
 
     const { error } = await supabase.from("contratos").update({ status: "enviado", enviado_em: new Date().toISOString() }).eq("id", id);
     if (error) return { ok: false, error: error.message };

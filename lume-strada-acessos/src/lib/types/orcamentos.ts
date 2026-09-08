@@ -39,6 +39,8 @@ export interface OrcamentoRow {
   titulo: string;
   /** Tag do perfil profissional usado ao criar (ver `PerfilOrcamento`) — só sugestão/rótulo, nunca restringe o catálogo disponível. Null = orçamento avulso, sem tipo. */
   tipo_perfil: PerfilOrcamento | null;
+  /** Slug do tipo de serviço escolhido dentro do perfil (ver `ModeloContratoServico.tipoServico` em `src/lib/contratos/modelos/`) — livre, validado em código de app. Null = sem tipo de serviço específico. */
+  tipo_servico: string | null;
   cliente_id: string | null;
   lead_id: string | null;
   nome_destinatario: string;

@@ -96,6 +96,9 @@ export interface OrcamentosDict {
   dadosDoOrcamentoTitulo: string;
   tipoDeOrcamentoLabel: string;
   usarItensDoModeloBtn: string;
+  tipoServicoLabel: string;
+  tipoServicoVazio: string;
+  tipoServicoHint: string;
   tituloOrcamentoLabel: string;
   placeholderTituloOrcamento: string;
   clienteExistenteLabel: string;
@@ -284,6 +287,9 @@ export const orcamentos: OrcamentosDict = {
   dadosDoOrcamentoTitulo: "Dados do Orçamento",
   tipoDeOrcamentoLabel: "Tipo de orçamento",
   usarItensDoModeloBtn: "Usar itens do modelo",
+  tipoServicoLabel: "Tipo de Serviço",
+  tipoServicoVazio: "Nenhum específico",
+  tipoServicoHint: "Opcional — se escolhido, sugere o mesmo tipo de serviço ao gerar o contrato deste orçamento.",
   tituloOrcamentoLabel: "Título da proposta",
   placeholderTituloOrcamento: "Ex: Vídeo Institucional — Empresa XYZ",
   clienteExistenteLabel: "Cliente já cadastrado (opcional)",
