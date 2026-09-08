@@ -97,6 +97,26 @@ const NAV_GRUPOS = [
   }>;
 }>;
 
+// Mapeamento de `chave` de módulo (a mesma usada pra permissão, acima em
+// `NAV_GRUPOS`) -> cor de identidade fixa de `tailwind.config.ts`
+// `colors.module.*`. Usado SÓ pra recolorir o destaque do item ATIVO no
+// menu lateral — puramente visual/decorativo, não afeta nenhuma checagem de
+// permissão (`itemVisivel` continua sendo a única fonte de verdade pra
+// isso). Onde não há um módulo de cor com correspondência óbvia
+// (`clientes`, `trafego`), reaproveita o azul de `orcamentos` — a cor
+// "neutra"/padrão da paleta — em vez de inventar categoria nova em
+// `tailwind.config.ts`. Itens sem `chave` (Dashboard, Relatórios, Aparência)
+// não entram aqui — caem no destaque neutro de sempre.
+const MODULO_COR: Record<string, string> = {
+  comercial: "#8b6bf0",
+  orcamentos: "#4f7cff",
+  clientes: "#4f7cff",
+  producao: "#fbbf24",
+  trafego: "#4f7cff",
+  inventario: "#9ca3af",
+  financeiro: "#34d399",
+};
+
 interface AdminShellProps {
   logoUrl: string | null;
   /** Nome do APP mostrado no topo da sidebar (`companies.nome_app`, editável em Aparência) — nunca o nome literal de uma empresa específica. Default "App Gestão". */
@@ -186,6 +206,14 @@ export function AdminShell({
                   const active = item.href === "/admin" ? pathname === "/admin" : pathname?.startsWith(item.href);
                   const Icon = item.icon;
                   const label = dict.nav[item.labelKey];
+                  // Cor de módulo só entra em jogo pro item ATIVO — os
+                  // demais estados (hover, inativo) continuam neutros de
+                  // propósito, senão o menu inteiro vira um arco-íris. Cor
+                  // vem como hex direto (não classe Tailwind arbitrária: o
+                  // JIT escaneia texto estático do código-fonte, não
+                  // consegue gerar CSS pra uma interpolação de variável em
+                  // runtime como `bg-[${corModulo}]`), aplicada via `style`.
+                  const corModulo = item.chave ? MODULO_COR[item.chave] : undefined;
                   return (
                     <Link
                       key={item.href}
@@ -195,15 +223,26 @@ export function AdminShell({
                         "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition",
                         colapsado && "justify-center px-0",
                         active
-                          ? // Item ativo vira um "pill" sólido branco (mesmos tokens do botão
-                            // primário: `bg-accent` + `text-base-950`) — bem mais contrastado
-                            // que um simples highlight sutil, igual ao destaque forte do item
-                            // ativo em dashboards de referência, sem sair do preto/branco fixo.
-                            "bg-accent text-base-950 shadow-[0_8px_20px_-8px_rgb(var(--glow-rgb) / 0.45)]"
+                          ? corModulo
+                            ? // Item ativo com módulo mapeado: fundo levemente
+                              // tingido na cor do módulo + anel sutil, no
+                              // lugar do "pill" sólido genérico.
+                              "text-ink-primary ring-1 ring-inset"
+                            : // Fallback pro comportamento neutro (itens sem
+                              // `chave` de módulo, ex: Dashboard/Aparência).
+                              "bg-base-800 text-ink-primary"
                           : "font-medium text-ink-muted hover:bg-base-800 hover:text-ink-secondary"
                       )}
+                      style={
+                        active && corModulo
+                          ? { background: `${corModulo}1a`, boxShadow: `inset 0 0 0 1px ${corModulo}4d` }
+                          : undefined
+                      }
                     >
-                      <Icon className={cn("h-[18px] w-[18px] shrink-0", active ? "text-base-950" : undefined)} />
+                      <Icon
+                        className={cn("h-[18px] w-[18px] shrink-0", active && !corModulo ? "text-ink-primary" : undefined)}
+                        style={active && corModulo ? { color: corModulo } : undefined}
+                      />
                       {!colapsado && <span className="truncate">{label}</span>}
                     </Link>
                   );
@@ -236,7 +275,7 @@ export function AdminShell({
       {/* padding-left travado na largura RECOLHIDA de propósito — a sidebar
           expande por cima (fixed) ao passar o mouse, sem empurrar/redimensionar
           o conteúdo, então o `main` nunca precisa reagir ao hover. */}
-      <main className="min-h-screen pl-[72px]">
+      <main className="admin-bg-grid min-h-screen pl-[72px]">
         <div className="mx-auto max-w-6xl px-6 py-8">
           {banner && <AnnouncementBanner {...banner} className="mb-6" />}
           {children}

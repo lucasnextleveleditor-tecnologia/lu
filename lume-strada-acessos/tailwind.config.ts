@@ -1,11 +1,12 @@
 import type { Config } from "tailwindcss";
 
-// Design system "Futurista Minimalista" — fundo absoluto em preto (#000000),
-// superfícies em tons de zinc ultra-escuro e tipografia em branco puro/cinza
-// claro. É a identidade FIXA de toda a plataforma (login, admin, área de
-// membros) — não muda por personalização de cliente; a única coisa
-// configurável por área é a logotipo (ver `components/branding/BrandingLogo`
-// + `app/login/page.tsx` vs. `app/admin/layout.tsx` / `app/dashboard/layout.tsx`).
+// Design system "Futurista Minimalista" — fundo quase-preto com leve tom
+// azul (#06070C, ver `--color-base-950` em `globals.css`), superfícies em
+// tons frios ultra-escuros e acento em gradiente azul→ciano. É a identidade
+// FIXA de toda a plataforma (login, admin, área de membros) — não muda por
+// personalização de cliente; a única coisa configurável por área é a
+// logotipo (ver `components/branding/BrandingLogo` + `app/login/page.tsx`
+// vs. `app/admin/layout.tsx` / `app/dashboard/layout.tsx`).
 //
 // `accent`/`accent2` continuam no formato `rgb(var(--x) / <alpha-value>)` —
 // é o que permite `bg-accent/10`, `border-accent/30` etc. `base` e `ink`
@@ -13,9 +14,9 @@ import type { Config } from "tailwindcss";
 // valor conforme a classe `dark`/`light` na tag `<html>` (ver `globals.css`),
 // então nenhum componente precisa saber que existe um modo claro — ele só
 // usa `bg-base-950`/`text-ink-primary` como sempre usou, e o valor certo
-// (preto no escuro, quase-branco no claro) vem da variável ativa. A
-// identidade preto/branco do escuro continua FIXA e não-customizável por
-// `branding_config` — o que mudou é que agora existe um segundo modo de cor
+// (quase-preto azulado no escuro, quase-branco no claro) vem da variável
+// ativa. A identidade azul→ciano do escuro continua FIXA e não-customizável
+// por `branding_config` — o que muda é que existe um segundo modo de cor
 // pessoal (preferência de quem usa, não do cliente/agência), pedido
 // explícito do dono do produto. `status` e `danger` seguem FIXOS nos dois
 // modos (skill de dataviz interna: "status palette — fixed, never themed"),
@@ -69,6 +70,20 @@ const config: Config = {
         // normal) para textos pequenos, como mensagens de erro de formulário.
         // `danger` é a mesma família de vermelho, clareada até 5.54:1.
         danger: "#e35a5a",
+        // Cor de identidade por módulo/área de negócio — FIXA nos dois modos de
+        // cor (mesmo raciocínio de `status` acima: cor de contexto, não
+        // decorativa trocável). Usada no ícone/item ativo do menu lateral
+        // (`AdminShell.tsx`) e, opcionalmente, no badge/barra de destaque de
+        // `StatTile` via a prop `moduleColor`. Teto deliberado de 6 tons — não
+        // adicionar mais sem necessidade real, pra não virar arco-íris.
+        module: {
+          orcamentos: "#4f7cff",
+          financeiro: "#34d399",
+          comercial: "#8b6bf0",
+          producao: "#fbbf24",
+          agenda: "#fb7185",
+          inventario: "#9ca3af",
+        },
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],

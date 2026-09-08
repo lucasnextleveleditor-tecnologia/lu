@@ -9,22 +9,22 @@
   --font-sans: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-/* Modo ESCURO — identidade histórica/fixa da plataforma (preto absoluto +
-   acento branco/zinc). Continua sendo o padrão de quem nunca escolheu um
-   tema (ver `DEFAULT_THEME` em `lib/theme/theme.ts`). Formato "r g b"
-   (space-separated) exigido pelo `rgb(var(--x) / <alpha-value>)` dinâmico
-   configurado em `tailwind.config.ts`. */
+/* Modo ESCURO — identidade fixa da plataforma (quase-preto com leve tom
+   azul + acento em gradiente azul→ciano). Continua sendo o padrão de quem
+   nunca escolheu um tema (ver `DEFAULT_THEME` em `lib/theme/theme.ts`).
+   Formato "r g b" (space-separated) exigido pelo `rgb(var(--x) / <alpha-value>)`
+   dinâmico configurado em `tailwind.config.ts`. */
 .dark {
-  --color-accent: 255 255 255; /* branco puro — ações primárias, links, destaques */
-  --color-accent-strong: 228 228 231; /* zinc-200 — hover do branco */
-  --color-accent-2: 161 161 170; /* zinc-400 — glow/destaque secundário sutil */
+  --color-accent: 79 124 255; /* #4F7CFF azul — ações primárias, links, destaques */
+  --color-accent-strong: 123 157 255; /* #7B9DFF — hover do azul */
+  --color-accent-2: 34 211 238; /* #22D3EE ciano — par de gradiente do acento + glow secundário */
 
-  --color-base-950: 0 0 0; /* fundo da página — preto absoluto */
-  --color-base-900: 9 9 11; /* superfície de card */
-  --color-base-850: 17 17 19;
-  --color-base-800: 24 24 27; /* fundo de item ativo/selecionado */
-  --color-base-700: 39 39 42; /* borda padrão */
-  --color-base-600: 63 63 70; /* borda em destaque/hover */
+  --color-base-950: 6 7 12; /* #06070C fundo da página — quase-preto com leve tom azul, não mais preto absoluto */
+  --color-base-900: 11 14 23; /* #0B0E17 superfície de card */
+  --color-base-850: 16 20 31; /* #10141F */
+  --color-base-800: 21 26 39; /* #151A27 fundo de item ativo/selecionado */
+  --color-base-700: 27 32 47; /* #1B202F borda padrão */
+  --color-base-600: 42 49 66; /* #2A3142 borda em destaque/hover */
 
   --color-ink-primary: 255 255 255;
   --color-ink-secondary: 161 161 170;
@@ -46,9 +46,9 @@
    dois modos (skill de dataviz interna: paleta de status nunca é
    "temática"), sempre com ícone + rótulo, nunca só cor. */
 .light {
-  --color-accent: 24 24 27; /* zinc-900 — ações primárias quase-pretas sobre fundo claro */
-  --color-accent-strong: 63 63 70; /* zinc-700 — hover do acento */
-  --color-accent-2: 113 113 122; /* zinc-500 — glow/destaque secundário sutil */
+  --color-accent: 37 99 235; /* #2563EB azul-600 — ações primárias, legível sobre branco */
+  --color-accent-strong: 29 78 216; /* #1D4ED8 azul-700 — hover do acento */
+  --color-accent-2: 8 145 178; /* #0891B2 ciano-600 — mais escuro que o do modo escuro pra manter contraste em fundo claro */
 
   --color-base-950: 250 250 250; /* fundo da página — quase-branco (zinc-50) */
   --color-base-900: 255 255 255; /* superfície de card — branco puro, "flutua" sobre a página */
@@ -62,6 +62,15 @@
   --color-ink-muted: 113 113 122;
 
   --glow-rgb: 0 0 0;
+}
+
+/* Textura de grid pontilhado sutil pro fundo do admin (não da tela de
+   login, que já tem a própria) — mesmo mecanismo de `.login-bg-grain`
+   (pontos via `--glow-rgb`, já theme-aware: claro no escuro, escuro no
+   claro). Aplicada no wrapper do conteúdo principal do AdminShell. */
+.admin-bg-grid {
+  background-image: radial-gradient(circle at 1px 1px, rgb(var(--glow-rgb) / 0.035) 1px, transparent 0);
+  background-size: 26px 26px;
 }
 
 html,

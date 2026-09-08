@@ -6,14 +6,15 @@ import type { Tone } from "@/lib/utils/tone";
  * Cartão de KPI (ícone em badge sólido + rótulo + número grande) usado nas
  * linhas de resumo no topo de cada módulo do admin — inspirado em
  * dashboards tipo "Painel Agency" (badge de ícone bem sólido/contrastado,
- * barra de destaque no topo do card, número grande em negrito), só que
- * SEM NENHUMA cor de marca: o badge neutro é sólido em branco/preto
- * (`bg-accent` + `text-base-950`, os mesmos tokens do botão primário) e só
- * os 3 tons de status fixos (bom/atenção/crítico) usam cor — nunca uma cor
- * "decorativa" nova. Número e rótulo sempre em `ink-*`, nunca na cor do
- * tone (ver `Badge`/`lib/utils/tone.ts` — a mesma regra de "cor nunca é a
- * única portadora de sentido" vale aqui: o rótulo por extenso já diz o que
- * é, o badge colorido é reforço, não a única pista).
+ * barra de destaque no topo do card, número grande em negrito). O badge
+ * neutro (default) é sólido no `bg-accent` (mesmo token do botão primário),
+ * OPCIONALMENTE sobrescrito pela cor de identidade do módulo via a prop
+ * `moduleColor` — e os 3 tons de status fixos (bom/atenção/crítico) sempre
+ * têm prioridade sobre qualquer cor decorativa quando `tone` não é
+ * `"neutral"`. Número e rótulo sempre em `ink-*`, nunca na cor do tone (ver
+ * `Badge`/`lib/utils/tone.ts` — a mesma regra de "cor nunca é a única
+ * portadora de sentido" vale aqui: o rótulo por extenso já diz o que é, o
+ * badge colorido é reforço, não a única pista).
  */
 const STAT_TONE_META: Record<Tone, { badge: string; icon: string; dot: string }> = {
   neutral: { badge: "bg-accent", icon: "text-base-950", dot: "bg-ink-secondary" },
@@ -30,10 +31,21 @@ interface StatTileProps {
   tone?: Tone;
   hint?: string;
   className?: string;
+  /**
+   * Cor de identidade do módulo (hex, ex: `"#34d399"` — ver
+   * `colors.module.*` em `tailwind.config.ts`), OPCIONAL. Quando presente e
+   * `tone` é `"neutral"` (o default), sobrescreve o badge do ícone com um
+   * leve degradê do próprio tom no lugar do `bg-accent` fixo. Nunca
+   * sobrescreve os badges de status semântico (`good`/`warning`/`critical`)
+   * — cor de módulo é identidade, não pode competir com o significado de
+   * status. Sem esta prop, comportamento idêntico ao de antes dela existir.
+   */
+  moduleColor?: string;
 }
 
-export function StatTile({ icon: Icon, label, value, tone = "neutral", hint, className }: StatTileProps) {
+export function StatTile({ icon: Icon, label, value, tone = "neutral", hint, className, moduleColor }: StatTileProps) {
   const toneMeta = STAT_TONE_META[tone];
+  const useModuleColor = tone === "neutral" && Boolean(moduleColor);
 
   return (
     <div
@@ -46,11 +58,17 @@ export function StatTile({ icon: Icon, label, value, tone = "neutral", hint, cla
         className
       )}
     >
-      {/* Barra de destaque no topo do card — gradiente branco fixo, nunca colorido por branding. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+      {/* Barra de destaque no topo do card — gradiente azul do acento, consistente com a nova identidade. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-transparent via-accent/60 to-transparent" />
 
-      <div className={cn("mb-4 flex h-11 w-11 items-center justify-center rounded-xl shadow-sm", toneMeta.badge)}>
-        <Icon className={cn("h-[22px] w-[22px]", toneMeta.icon)} strokeWidth={2} />
+      <div
+        className={cn(
+          "mb-4 flex h-11 w-11 items-center justify-center rounded-xl shadow-sm",
+          !useModuleColor && toneMeta.badge
+        )}
+        style={useModuleColor ? { background: `linear-gradient(135deg, ${moduleColor}, ${moduleColor}dd)` } : undefined}
+      >
+        <Icon className={cn("h-[22px] w-[22px]", useModuleColor ? "text-white" : toneMeta.icon)} strokeWidth={2} />
       </div>
 
       <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{label}</p>
