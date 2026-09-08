@@ -5,6 +5,7 @@ export const orcamentos: OrcamentosDict = {
   subtituloPagina: "Build commercial proposals from your service catalog and track the approval pipeline.",
   novoOrcamentoBtn: "New Quote",
   catalogoBtn: "Service Catalog",
+  contratosBtn: "Contracts",
   voltarParaOrcamentos: "Back to Quotes",
 
   statEmAberto: "Open",
@@ -104,6 +105,13 @@ export const orcamentos: OrcamentosDict = {
   descontoTipoPercentual: "Percentage (%)",
   descontoTipoFixo: "Fixed amount ($)",
 
+  propostaTitulo: "Proposal",
+  propostaSubtitulo: "Optional — proposal text and objectives specific to this quote, shown on the proposal page of the PDF.",
+  textoPropostaLabel: "Work proposal text",
+  placeholderTextoProposta: "Describe the work proposal for this project — shown on the proposal page of the PDF.",
+  objetivosLabel: "Objectives",
+  placeholderObjetivos: "What objectives will this project achieve?",
+
   escolhaCategoriaTitulo: "Choose the service type",
   buscarServicoPlaceholder: "Search the catalog...",
   adicionarItemBtn: "Add",
@@ -191,4 +199,19 @@ export const orcamentos: OrcamentosDict = {
   tiposItensVazio: "No default items yet — add the services that usually go into this type of work.",
   tiposSalvarBtn: "Save Template",
   tiposSalvoMsg: "Template saved!",
+
+  institucionalTitulo: "About the Company",
+  institucionalSubtitulo: "Presentation text and past clients — shown on the institutional cover of the quote PDF.",
+  institucionalTextoLabel: "About the company",
+  institucionalTextoPlaceholder: "E.g.: Nice to meet you, we are Company X, we do Y, we've worked with several companies...",
+  institucionalTextoHint: "Presentation text shown on the cover of the quote PDF.",
+  institucionalClientesLabel: "Companies we've worked with",
+  institucionalClientesPlaceholder: "One company per line",
+  institucionalClientesHint: "One company/client per line — shown as a list on the PDF cover.",
+  institucionalSalvarBtn: "Save",
+  institucionalSalvoMsg: "Saved!",
+
+  abaOrcamentoLabel: "Quote",
+  abaContratoLabel: "Contract",
+  abaContratoBloqueadaHint: "Approve the quote to unlock the contract.",
 };

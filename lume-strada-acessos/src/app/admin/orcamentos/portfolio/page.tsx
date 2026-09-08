@@ -2,6 +2,7 @@ import Link from "next/link";
 import { IconChevronLeft } from "@/components/ui/icons";
 import { PortfolioManager } from "@/components/admin/orcamentos/PortfolioManager";
 import { MarcaOrcamentoForm } from "@/components/admin/orcamentos/MarcaOrcamentoForm";
+import { InstitucionalOrcamentoForm } from "@/components/admin/orcamentos/InstitucionalOrcamentoForm";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { buscarDadosPortfolio } from "@/app/admin/orcamentos/portfolio-data";
 
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function PortfolioOrcamentosPage() {
   const { dict } = await getDictionary();
-  const { itens, marca } = await buscarDadosPortfolio();
+  const { itens, marca, institucional } = await buscarDadosPortfolio();
 
   return (
     <div className="space-y-6">
@@ -28,6 +29,7 @@ export default async function PortfolioOrcamentosPage() {
       </div>
 
       <MarcaOrcamentoForm marca={marca} />
+      <InstitucionalOrcamentoForm institucional={institucional} />
       <PortfolioManager itens={itens} />
     </div>
   );

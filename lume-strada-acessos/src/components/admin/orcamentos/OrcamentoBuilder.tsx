@@ -65,6 +65,8 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
   const [validadeDias, setValidadeDias] = useState(orcamentoParaEditar?.validade_dias ?? 15);
   const [condicoesPagamento, setCondicoesPagamento] = useState(orcamentoParaEditar?.condicoes_pagamento ?? "");
   const [observacoes, setObservacoes] = useState(orcamentoParaEditar?.observacoes ?? "");
+  const [textoProposta, setTextoProposta] = useState(orcamentoParaEditar?.texto_proposta ?? "");
+  const [objetivos, setObjetivos] = useState(orcamentoParaEditar?.objetivos ?? "");
   const [descontoTipo, setDescontoTipo] = useState<DescontoTipo | "">(orcamentoParaEditar?.desconto_tipo ?? "");
   const [descontoValor, setDescontoValor] = useState(orcamentoParaEditar?.desconto_valor ?? 0);
   const [tipoPerfil, setTipoPerfil] = useState<PerfilOrcamento | null>(orcamentoParaEditar?.tipo_perfil ?? null);
@@ -224,6 +226,8 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
       descontoValor,
       condicoesPagamento: condicoesPagamento || null,
       observacoes: observacoes || null,
+      textoProposta: textoProposta || null,
+      objetivos: objetivos || null,
       tipoPerfil,
       tipoServico,
     };
@@ -386,6 +390,21 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className="mb-1 text-sm font-semibold">{dict.orcamentos.propostaTitulo}</h2>
+          <p className="mb-3 text-xs text-ink-muted">{dict.orcamentos.propostaSubtitulo}</p>
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.textoPropostaLabel}</label>
+              <Textarea rows={4} value={textoProposta} onChange={(e) => setTextoProposta(e.target.value)} placeholder={dict.orcamentos.placeholderTextoProposta} />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.objetivosLabel}</label>
+              <Textarea rows={3} value={objetivos} onChange={(e) => setObjetivos(e.target.value)} placeholder={dict.orcamentos.placeholderObjetivos} />
             </div>
           </div>
         </Card>

@@ -189,3 +189,22 @@ export async function buscarContratoPorId(id: string) {
     itens: itens ?? [],
   };
 }
+
+/**
+ * O contrato já vinculado a um orçamento (`contratos.orcamento_id`), se
+ * existir — usado pelo hub de detalhe do orçamento (`OrcamentoHub.tsx`, ver
+ * `src/app/admin/orcamentos/[id]/page.tsx`) pra decidir a aba "Contrato":
+ * mostra `ContratoDetalhe` quando já existe um contrato gerado a partir
+ * desse orçamento, ou `ContratoBuilder` pré-preenchido quando ainda não
+ * existe. `null` cobre tanto "nenhum contrato gerado ainda" quanto
+ * "orçamento não encontrado" (RLS já filtra por empresa) — sem `notFound()`
+ * de propósito, esta função nunca é a dona da página.
+ */
+export async function buscarContratoVinculado(orcamentoId: string): Promise<Awaited<ReturnType<typeof buscarContratoPorId>> | null> {
+  const { supabase } = await requireModuloOuRedirect("orcamentos");
+
+  const { data: vinculo } = await supabase.from("contratos").select("id").eq("orcamento_id", orcamentoId).maybeSingle<{ id: string }>();
+  if (!vinculo) return null;
+
+  return buscarContratoPorId(vinculo.id);
+}

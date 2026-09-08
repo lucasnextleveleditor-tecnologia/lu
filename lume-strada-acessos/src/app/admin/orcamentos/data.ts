@@ -12,9 +12,11 @@ import type {
   PerfilOrcamento,
   PortfolioItemRow,
   PortfolioItemComUrl,
+  DadosInstitucionaisOrcamento,
 } from "@/lib/types/orcamentos";
 import { calcularStatusExibicao, calcularTotalOrcamento } from "@/lib/types/orcamentos";
 import { CATEGORIAS_PORTFOLIO } from "@/lib/utils/orcamentos";
+import { getNomeApp } from "@/lib/branding/getNomeApp";
 
 const BUCKET_ORCAMENTOS_MIDIA = "orcamentos-midia";
 
@@ -169,11 +171,20 @@ export async function buscarDadosConstrutor() {
 export async function buscarOrcamentoPorId(id: string) {
   const { supabase } = await requireModuloOuRedirect("orcamentos");
 
+  // `clientes` embutido com os campos jurídicos completos (documento,
+  // endereco, email, telefone) além de `nome` — não usado pela tela de
+  // detalhe (que só lê `cliente_nome`), mas necessário pro PDF de orçamento
+  // (`OrcamentoPdfDocument.tsx`, via `src/app/api/orcamentos/[id]/pdf/route.tsx`),
+  // que exibe os dados completos do cliente no cabeçalho da proposta.
   const { data: orcamento } = await supabase
     .from("orcamentos")
-    .select("*, clientes(nome)")
+    .select("*, clientes(nome, documento, endereco, email, telefone)")
     .eq("id", id)
-    .single<OrcamentoRow & { clientes: { nome: string } | null }>();
+    .single<
+      OrcamentoRow & {
+        clientes: { nome: string; documento: string | null; endereco: string | null; email: string | null; telefone: string | null } | null;
+      }
+    >();
   if (!orcamento) notFound();
 
   const { data: itens } = await supabase
@@ -211,5 +222,51 @@ export async function buscarOrcamentoPorId(id: string) {
     total,
     statusExibicao: calcularStatusExibicao(orcamento),
     portfolio,
+  };
+}
+
+/**
+ * Dados institucionais da empresa pra capa do PDF de orçamento (ver
+ * `OrcamentoPdfDocument.tsx`) — nome de marca (`nome_app`, via `getNomeApp()`),
+ * razão social/CPF-CNPJ/endereço (dados jurídicos, rodapé da capa), logo e
+ * banner já resolvidos pra URL pública, e o conteúdo institucional livre
+ * (texto de apresentação + clientes atendidos, editados em
+ * `/admin/orcamentos/portfolio`, ver `InstitucionalOrcamentoForm.tsx`).
+ * UMA query em `companies` com tudo — chamado em paralelo com
+ * `buscarOrcamentoPorId` dentro da rota da API do PDF.
+ */
+export async function buscarDadosInstitucionaisEmpresa(): Promise<DadosInstitucionaisOrcamento> {
+  const { supabase } = await requireModuloOuRedirect("orcamentos");
+
+  const [{ data: empresa }, nomeMarca] = await Promise.all([
+    supabase
+      .from("companies")
+      .select("nome, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_texto_institucional, orc_clientes_atendidos")
+      .maybeSingle<{
+        nome: string | null;
+        cpf_cnpj: string | null;
+        endereco: string | null;
+        orc_logo_path: string | null;
+        orc_banner_path: string | null;
+        orc_texto_institucional: string | null;
+        orc_clientes_atendidos: string | null;
+      }>(),
+    getNomeApp(),
+  ]);
+
+  const clientesAtendidos = (empresa?.orc_clientes_atendidos ?? "")
+    .split("\n")
+    .map((linha) => linha.trim())
+    .filter((linha) => linha.length > 0);
+
+  return {
+    nomeMarca,
+    nomeLegal: empresa?.nome?.trim() || null,
+    cpfCnpj: empresa?.cpf_cnpj || null,
+    endereco: empresa?.endereco || null,
+    logoUrl: empresa?.orc_logo_path ? supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(empresa.orc_logo_path).data.publicUrl : null,
+    bannerUrl: empresa?.orc_banner_path ? supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(empresa.orc_banner_path).data.publicUrl : null,
+    textoInstitucional: empresa?.orc_texto_institucional || null,
+    clientesAtendidos,
   };
 }

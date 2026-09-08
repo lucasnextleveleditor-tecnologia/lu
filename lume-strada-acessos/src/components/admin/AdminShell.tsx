@@ -25,7 +25,6 @@ import {
   IconFileText,
   IconLayoutGrid,
   IconBarChart2,
-  IconShieldCheck,
 } from "@/components/ui/icons";
 
 // Menu separado em grupos — "Visão Geral" (o Dashboard, que junta Produção +
@@ -60,7 +59,11 @@ const NAV_GRUPOS = [
     itens: [
       { href: "/admin/comercial", labelKey: "crmVendas", icon: IconTarget, chave: "comercial" },
       { href: "/admin/orcamentos", labelKey: "orcamentos", icon: IconFileText, chave: "orcamentos" },
-      { href: "/admin/contratos", labelKey: "contratos", icon: IconShieldCheck, chave: "orcamentos" },
+      // "Contratos" deixou de ser item próprio do menu — fundido dentro do
+      // hub de detalhe do orçamento (`OrcamentoHub.tsx`, aba "Contrato") e
+      // acessível também via botão no cabeçalho da lista de Orçamentos
+      // (contratos avulsos). As rotas `/admin/contratos/*` continuam
+      // funcionando normalmente, só sem entrada própria aqui.
       // WhatsApp foi escondido do menu e bloqueado por completo (ver
       // `src/app/admin/whatsapp/layout.tsx`) — código e dados continuam
       // intactos, só não aparece nem é acessível dentro do app. Pra

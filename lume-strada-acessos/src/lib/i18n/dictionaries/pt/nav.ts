@@ -9,7 +9,6 @@ export interface NavDict {
   relatorios: string;
   crmVendas: string;
   orcamentos: string;
-  contratos: string;
   whatsapp: string;
   cadastros: string;
   financeiro: string;
@@ -31,7 +30,6 @@ export const nav: NavDict = {
   relatorios: "Relatórios",
   crmVendas: "CRM & Vendas",
   orcamentos: "Orçamentos",
-  contratos: "Contratos",
   whatsapp: "WhatsApp",
   cadastros: "Cadastros",
   financeiro: "Financeiro",

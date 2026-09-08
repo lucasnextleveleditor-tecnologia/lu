@@ -12,6 +12,7 @@ export interface OrcamentosDict {
   subtituloPagina: string;
   novoOrcamentoBtn: string;
   catalogoBtn: string;
+  contratosBtn: string;
   voltarParaOrcamentos: string;
 
   // StatTiles
@@ -118,6 +119,14 @@ export interface OrcamentosDict {
   descontoTipoPercentual: string;
   descontoTipoFixo: string;
 
+  // Proposta (texto de proposta + objetivos — Parte A do PDF profissional)
+  propostaTitulo: string;
+  propostaSubtitulo: string;
+  textoPropostaLabel: string;
+  placeholderTextoProposta: string;
+  objetivosLabel: string;
+  placeholderObjetivos: string;
+
   escolhaCategoriaTitulo: string;
   buscarServicoPlaceholder: string;
   adicionarItemBtn: string;
@@ -203,6 +212,23 @@ export interface OrcamentosDict {
   tiposItensVazio: string;
   tiposSalvarBtn: string;
   tiposSalvoMsg: string;
+
+  // Institucional (capa do PDF profissional — Parte A)
+  institucionalTitulo: string;
+  institucionalSubtitulo: string;
+  institucionalTextoLabel: string;
+  institucionalTextoPlaceholder: string;
+  institucionalTextoHint: string;
+  institucionalClientesLabel: string;
+  institucionalClientesPlaceholder: string;
+  institucionalClientesHint: string;
+  institucionalSalvarBtn: string;
+  institucionalSalvoMsg: string;
+
+  // Hub Orçamento + Contrato (Parte C — trava de fluxo)
+  abaOrcamentoLabel: string;
+  abaContratoLabel: string;
+  abaContratoBloqueadaHint: string;
 }
 
 export const orcamentos: OrcamentosDict = {
@@ -210,6 +236,7 @@ export const orcamentos: OrcamentosDict = {
   subtituloPagina: "Monte propostas comerciais a partir do seu catálogo de serviços e acompanhe o funil de aprovação.",
   novoOrcamentoBtn: "Novo Orçamento",
   catalogoBtn: "Catálogo de Serviços",
+  contratosBtn: "Contratos",
   voltarParaOrcamentos: "Voltar pros Orçamentos",
 
   statEmAberto: "Em Aberto",
@@ -309,6 +336,13 @@ export const orcamentos: OrcamentosDict = {
   descontoTipoPercentual: "Percentual (%)",
   descontoTipoFixo: "Valor fixo (R$)",
 
+  propostaTitulo: "Proposta",
+  propostaSubtitulo: "Opcional — texto de proposta e objetivos específicos deste orçamento, exibidos na página de proposta do PDF.",
+  textoPropostaLabel: "Texto da proposta de trabalho",
+  placeholderTextoProposta: "Descreva a proposta de trabalho pra esse projeto — aparece na página de proposta do PDF.",
+  objetivosLabel: "Objetivos",
+  placeholderObjetivos: "Quais objetivos serão alcançados com esse projeto?",
+
   escolhaCategoriaTitulo: "Escolha o tipo de serviço",
   buscarServicoPlaceholder: "Buscar serviço no catálogo...",
   adicionarItemBtn: "Adicionar",
@@ -396,4 +430,19 @@ export const orcamentos: OrcamentosDict = {
   tiposItensVazio: "Nenhum item padrão ainda — adicione os serviços que costumam entrar nesse tipo de trabalho.",
   tiposSalvarBtn: "Salvar Modelo",
   tiposSalvoMsg: "Modelo salvo!",
+
+  institucionalTitulo: "Sobre a Empresa",
+  institucionalSubtitulo: "Texto de apresentação e clientes já atendidos — aparecem na capa institucional do PDF de orçamento.",
+  institucionalTextoLabel: "Sobre a empresa",
+  institucionalTextoPlaceholder: "Ex: Muito prazer, somos a Empresa X, fazemos Y, já trabalhamos com diversas empresas...",
+  institucionalTextoHint: "Texto de apresentação que aparece na capa do PDF de orçamento.",
+  institucionalClientesLabel: "Empresas que já atendemos",
+  institucionalClientesPlaceholder: "Uma empresa por linha",
+  institucionalClientesHint: "Uma empresa/cliente por linha — aparece como lista na capa do PDF.",
+  institucionalSalvarBtn: "Salvar",
+  institucionalSalvoMsg: "Salvo!",
+
+  abaOrcamentoLabel: "Orçamento",
+  abaContratoLabel: "Contrato",
+  abaContratoBloqueadaHint: "Aprove o orçamento pra liberar o contrato.",
 };

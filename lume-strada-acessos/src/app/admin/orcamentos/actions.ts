@@ -183,6 +183,9 @@ export interface OrcamentoHeaderInput {
   descontoValor: number;
   condicoesPagamento: string | null;
   observacoes: string | null;
+  /** Texto da proposta de trabalho e objetivos específicos deste orçamento (ver `supabase/orcamentos-pdf-institucional.sql`) — exibidos na página de proposta do PDF (`OrcamentoPdfDocument.tsx`). Opcional. */
+  textoProposta?: string | null;
+  objetivos?: string | null;
   /** Perfil escolhido no construtor (Fase 2) — só rótulo, ver `PerfilOrcamento`. */
   tipoPerfil: PerfilOrcamento | null;
   /** Slug do tipo de serviço dentro do perfil (ver `ModeloContratoServico.tipoServico`, `src/lib/contratos/modelos/`) — opcional, independente do modelo de itens padrão de `orc_tipos_orcamento`. */
@@ -224,6 +227,8 @@ export async function criarOrcamentoCompleto(header: OrcamentoHeaderInput, itens
         desconto_valor: header.descontoValor,
         condicoes_pagamento: header.condicoesPagamento?.trim() || null,
         observacoes: header.observacoes?.trim() || null,
+        texto_proposta: header.textoProposta?.trim() || null,
+        objetivos: header.objetivos?.trim() || null,
         tipo_perfil: header.tipoPerfil,
         tipo_servico: header.tipoServico,
         criado_por: user.id,
@@ -265,6 +270,8 @@ export async function atualizarOrcamentoCompleto(id: string, header: OrcamentoHe
         desconto_valor: header.descontoValor,
         condicoes_pagamento: header.condicoesPagamento?.trim() || null,
         observacoes: header.observacoes?.trim() || null,
+        texto_proposta: header.textoProposta?.trim() || null,
+        objetivos: header.objetivos?.trim() || null,
         tipo_perfil: header.tipoPerfil,
         tipo_servico: header.tipoServico,
       })
@@ -326,6 +333,8 @@ export async function duplicarOrcamento(id: string): Promise<ActionResultId> {
         desconto_valor: original.desconto_valor,
         condicoes_pagamento: original.condicoes_pagamento,
         observacoes: original.observacoes,
+        texto_proposta: original.texto_proposta,
+        objetivos: original.objetivos,
         tipo_perfil: original.tipo_perfil,
         criado_por: user.id,
       })

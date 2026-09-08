@@ -200,3 +200,30 @@ export async function removerMarcaOrcamento(campo: CampoMarcaOrcamento): Promise
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
 }
+
+/**
+ * Salva o texto institucional (apresentação da empresa + lista de clientes
+ * atendidos) exibido na capa do PDF de orçamento (ver `OrcamentoPdfDocument.tsx`)
+ * — mesmo padrão de Service Role/`requireAdmin()` de `uploadMarcaOrcamento`
+ * acima (`companies` só tem policy de UPDATE pra super_admin). Diferente dos
+ * campos de upload (que salvam sozinhos ao trocar o arquivo), aqui é texto
+ * livre digitado à mão — precisa de um botão "Salvar" explícito no form.
+ */
+export async function salvarInstitucionalOrcamento(input: { textoInstitucional: string; clientesAtendidos: string }): Promise<ActionResult> {
+  try {
+    const { companyId } = await requireAdmin();
+    const admin = createAdminClient();
+    const { error } = await admin
+      .from("companies")
+      .update({
+        orc_texto_institucional: input.textoInstitucional.trim() || null,
+        orc_clientes_atendidos: input.clientesAtendidos.trim() || null,
+      })
+      .eq("id", companyId);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}

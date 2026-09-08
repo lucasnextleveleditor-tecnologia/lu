@@ -10,7 +10,6 @@ export const nav: NavDict = {
   relatorios: "Informes",
   crmVendas: "CRM y Ventas",
   orcamentos: "Presupuestos",
-  contratos: "Contratos",
   whatsapp: "WhatsApp",
   cadastros: "Registros",
   financeiro: "Finanzas",

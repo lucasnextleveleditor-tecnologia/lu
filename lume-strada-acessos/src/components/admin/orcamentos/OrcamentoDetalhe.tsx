@@ -6,12 +6,11 @@ import Link from "next/link";
 import type { OrcamentoComRelacoes, StatusOrcamento, PortfolioItemComUrl } from "@/lib/types/orcamentos";
 import { STATUS_ORCAMENTO_TONE, urlPublicaOrcamento } from "@/lib/utils/orcamentos";
 import { duplicarOrcamento, enviarOrcamento, marcarStatusManual, removerOrcamento } from "@/app/admin/orcamentos/actions";
-import { exportarElementoComoPDF, ExportError } from "@/lib/utils/export";
 import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { IconCopy, IconPrinter, IconDownload, IconSend, IconCheckCircle, IconFilm, IconImage, IconShieldCheck } from "@/components/ui/icons";
+import { IconCopy, IconPrinter, IconDownload, IconSend, IconCheckCircle, IconFilm, IconImage } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type OrcamentoDetalheProps = {
@@ -34,7 +33,6 @@ export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
   const [error, setError] = useState<string | null>(null);
   const [linkCopiado, setLinkCopiado] = useState(false);
   const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
-  const [baixandoPdf, setBaixandoPdf] = useState(false);
 
   const STATUS_LABEL: Record<StatusOrcamento, string> = {
     rascunho: dict.orcamentos.statusRascunho,
@@ -96,18 +94,6 @@ export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
     setTimeout(() => setLinkCopiado(false), 2000);
   }
 
-  async function handleBaixarPdf() {
-    setError(null);
-    setBaixandoPdf(true);
-    try {
-      await exportarElementoComoPDF(PRINT_ID, `orcamento-${orcamento.titulo.toLowerCase().replace(/\s+/g, "-")}`);
-    } catch (err) {
-      setError(err instanceof ExportError ? err.message : "Não foi possível gerar o PDF.");
-    } finally {
-      setBaixandoPdf(false);
-    }
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
@@ -130,14 +116,6 @@ export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
             <IconCopy className="h-4 w-4" />
             {dict.orcamentos.duplicarBtn}
           </Button>
-          {orcamento.statusExibicao === "aprovado" && (
-            <Link href={`/admin/contratos/novo?orcamentoId=${orcamento.id}`}>
-              <Button className="gap-1.5">
-                <IconShieldCheck className="h-4 w-4" />
-                {dict.orcamentos.gerarContratoBtn}
-              </Button>
-            </Link>
-          )}
           {linkPublico && (
             <Button variant="ghost" onClick={handleCopiarLink} className="gap-1.5">
               <IconCopy className="h-4 w-4" />
@@ -148,10 +126,12 @@ export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
             <IconPrinter className="h-4 w-4" />
             {dict.orcamentos.imprimirBtn}
           </Button>
-          <Button variant="ghost" onClick={handleBaixarPdf} disabled={baixandoPdf} className="gap-1.5">
-            <IconDownload className="h-4 w-4" />
-            {dict.orcamentos.baixarPdfBtn}
-          </Button>
+          <a href={`/api/orcamentos/${orcamento.id}/pdf`} target="_blank" rel="noopener noreferrer">
+            <Button variant="ghost" className="gap-1.5">
+              <IconDownload className="h-4 w-4" />
+              {dict.orcamentos.baixarPdfBtn}
+            </Button>
+          </a>
         </div>
 
         {confirmandoExclusao ? (

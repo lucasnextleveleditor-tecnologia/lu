@@ -5,6 +5,7 @@ export const orcamentos: OrcamentosDict = {
   subtituloPagina: "Arma propuestas comerciales desde tu catálogo de servicios y sigue el embudo de aprobación.",
   novoOrcamentoBtn: "Nuevo Presupuesto",
   catalogoBtn: "Catálogo de Servicios",
+  contratosBtn: "Contratos",
   voltarParaOrcamentos: "Volver a Presupuestos",
 
   statEmAberto: "Abiertos",
@@ -104,6 +105,13 @@ export const orcamentos: OrcamentosDict = {
   descontoTipoPercentual: "Porcentaje (%)",
   descontoTipoFixo: "Monto fijo ($)",
 
+  propostaTitulo: "Propuesta",
+  propostaSubtitulo: "Opcional — texto de propuesta y objetivos específicos de este presupuesto, mostrados en la página de propuesta del PDF.",
+  textoPropostaLabel: "Texto de la propuesta de trabajo",
+  placeholderTextoProposta: "Describe la propuesta de trabajo para este proyecto — aparece en la página de propuesta del PDF.",
+  objetivosLabel: "Objetivos",
+  placeholderObjetivos: "¿Qué objetivos se alcanzarán con este proyecto?",
+
   escolhaCategoriaTitulo: "Elige el tipo de servicio",
   buscarServicoPlaceholder: "Buscar en el catálogo...",
   adicionarItemBtn: "Agregar",
@@ -191,4 +199,19 @@ export const orcamentos: OrcamentosDict = {
   tiposItensVazio: "Aún no hay ítems predeterminados — agrega los servicios que suelen incluirse en este tipo de trabajo.",
   tiposSalvarBtn: "Guardar Plantilla",
   tiposSalvoMsg: "¡Plantilla guardada!",
+
+  institucionalTitulo: "Sobre la Empresa",
+  institucionalSubtitulo: "Texto de presentación y clientes ya atendidos — aparecen en la portada institucional del PDF de presupuesto.",
+  institucionalTextoLabel: "Sobre la empresa",
+  institucionalTextoPlaceholder: "Ej: Mucho gusto, somos la Empresa X, hacemos Y, ya trabajamos con varias empresas...",
+  institucionalTextoHint: "Texto de presentación que aparece en la portada del PDF de presupuesto.",
+  institucionalClientesLabel: "Empresas que ya atendimos",
+  institucionalClientesPlaceholder: "Una empresa por línea",
+  institucionalClientesHint: "Una empresa/cliente por línea — aparece como lista en la portada del PDF.",
+  institucionalSalvarBtn: "Guardar",
+  institucionalSalvoMsg: "¡Guardado!",
+
+  abaOrcamentoLabel: "Presupuesto",
+  abaContratoLabel: "Contrato",
+  abaContratoBloqueadaHint: "Aprueba el presupuesto para desbloquear el contrato.",
 };

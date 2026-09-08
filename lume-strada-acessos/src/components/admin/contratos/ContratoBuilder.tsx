@@ -55,9 +55,29 @@ interface ContratoBuilderProps {
   contratoParaEditar?: ContratoParaEditar;
   /** Pré-seleciona a origem quando a tela `/novo` chega com `?orcamentoId=` (ex: vindo do botão "Gerar Contrato" no orçamento aprovado). */
   orcamentoIdInicial?: string;
+  /**
+   * Quando informado, o builder cede o pós-criação a quem chama em vez do
+   * `router.push("/admin/contratos/[id]")` padrão — usado pelo `OrcamentoHub`
+   * (aba "Contrato" embutida no detalhe do orçamento), que prefere
+   * `router.refresh()` pra recarregar `buscarContratoVinculado` no server e
+   * trocar pra `ContratoDetalhe` automaticamente, sem navegar pra outra
+   * página. Nunca chamado na EDIÇÃO (só no fluxo de criação) nem nas rotas
+   * `/admin/contratos/novo` e `/[id]/editar`, que não passam essa prop e
+   * mantêm o comportamento de sempre.
+   */
+  aoCriarComSucesso?: (contratoId: string) => void;
 }
 
-export function ContratoBuilder({ nomeEmpresa, empresa, clientes, tiposContrato, orcamentosParaVincular, contratoParaEditar, orcamentoIdInicial }: ContratoBuilderProps) {
+export function ContratoBuilder({
+  nomeEmpresa,
+  empresa,
+  clientes,
+  tiposContrato,
+  orcamentosParaVincular,
+  contratoParaEditar,
+  orcamentoIdInicial,
+  aoCriarComSucesso,
+}: ContratoBuilderProps) {
   const { dict } = useLocale();
   const router = useRouter();
   const editando = !!contratoParaEditar;
@@ -267,6 +287,11 @@ export function ContratoBuilder({ nomeEmpresa, empresa, clientes, tiposContrato,
           setError(resultEnvio.error);
           return;
         }
+      }
+
+      if (!editando && aoCriarComSucesso) {
+        aoCriarComSucesso(id);
+        return;
       }
       router.push(`/admin/contratos/${id}`);
     });

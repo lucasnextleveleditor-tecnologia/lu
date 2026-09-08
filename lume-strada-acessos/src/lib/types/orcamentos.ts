@@ -53,6 +53,10 @@ export interface OrcamentoRow {
   desconto_valor: number;
   condicoes_pagamento: string | null;
   observacoes: string | null;
+  /** Texto da proposta de trabalho DESTE orçamento (não confundir com `companies.orc_texto_institucional`, que é global da empresa) — ver `supabase/orcamentos-pdf-institucional.sql`. Aparece no PDF (`OrcamentoPdfDocument.tsx`). Null = seção omitida. */
+  texto_proposta: string | null;
+  /** Objetivos alcançados com este projeto/orçamento específico — mesma origem/uso de `texto_proposta`. Null = seção omitida. */
+  objetivos: string | null;
   token: string;
   enviado_em: string | null;
   visualizado_em: string | null;
@@ -162,3 +166,23 @@ export interface OrcTipoOrcamentoItemRow {
 }
 
 export type TipoOrcamentoComItens = OrcTipoOrcamentoRow & { itens: OrcTipoOrcamentoItemRow[] };
+
+// ----------------------------------------------------------------------------
+// PDF profissional de Orçamento (capa institucional + proposta) — ver
+// `supabase/orcamentos-pdf-institucional.sql` e `src/lib/pdf/OrcamentoPdfDocument.tsx`.
+// ----------------------------------------------------------------------------
+
+/** Dados institucionais da empresa, já resolvidos (URLs públicas, lista de clientes já parseada) — o que `OrcamentoPdfDocument` de fato consome pra montar a capa. */
+export interface DadosInstitucionaisOrcamento {
+  /** Nome de MARCA (`companies.nome_app`, via `getNomeApp()`) — usado no "Muito prazer, somos a empresa X" da capa. */
+  nomeMarca: string;
+  /** Razão social real (`companies.nome`) — usado no rodapé jurídico da capa, nunca no lugar de `nomeMarca`. */
+  nomeLegal: string | null;
+  cpfCnpj: string | null;
+  endereco: string | null;
+  logoUrl: string | null;
+  bannerUrl: string | null;
+  textoInstitucional: string | null;
+  /** `companies.orc_clientes_atendidos` já dividido por linha, com `trim()` e linhas vazias removidas. */
+  clientesAtendidos: string[];
+}
