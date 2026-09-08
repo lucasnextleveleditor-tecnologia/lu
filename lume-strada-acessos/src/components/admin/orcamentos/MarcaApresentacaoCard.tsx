@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { MarcaOrcamentoUploadField } from "@/components/admin/orcamentos/MarcaOrcamentoUploadField";
-import { IconBuilding, IconChevronDown } from "@/components/ui/icons";
+import { IconBuilding, IconChevronDown, IconCheckCircle } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils/cn";
 
@@ -82,12 +82,18 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
 
       {aberto && (
         <div className="space-y-5 border-t border-base-800 pt-4">
+          <div className="flex items-start gap-2 rounded-xl border border-accent/25 bg-accent/10 p-3">
+            <IconCheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+            <p className="text-xs text-ink-secondary">{dict.orcamentos.marcaApresentacaoAvisoPadrao}</p>
+          </div>
+
           <div>
             <p className="mb-3 text-xs text-ink-muted">{dict.orcamentos.marcaAgenciaSubtitulo}</p>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div className="space-y-3">
               <MarcaOrcamentoUploadField
                 label={dict.orcamentos.marcaLogoLabel}
                 hint={dict.orcamentos.marcaLogoHint}
+                specs={dict.orcamentos.marcaLogoEspecificacoes}
                 campo="orc_logo_path"
                 valorAtual={institucional.logoUrl}
                 onChange={(url) => onChange({ logoUrl: url })}
@@ -96,6 +102,7 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
               <MarcaOrcamentoUploadField
                 label={dict.orcamentos.marcaBannerLabel}
                 hint={dict.orcamentos.marcaBannerHint}
+                specs={dict.orcamentos.marcaBannerEspecificacoes}
                 campo="orc_banner_path"
                 valorAtual={institucional.bannerUrl}
                 onChange={(url) => onChange({ bannerUrl: url })}
@@ -104,6 +111,7 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
               <MarcaOrcamentoUploadField
                 label={dict.orcamentos.marcaRodapeLabel}
                 hint={dict.orcamentos.marcaRodapeHint}
+                specs={dict.orcamentos.marcaRodapeEspecificacoes}
                 campo="orc_rodape_path"
                 valorAtual={institucional.rodapeUrl}
                 onChange={(url) => onChange({ rodapeUrl: url })}

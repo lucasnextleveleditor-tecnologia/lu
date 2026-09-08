@@ -201,9 +201,13 @@ export const orcamentos: OrcamentosDict = {
   marcaBannerHint: "Imagen ancha usada en la portada del presupuesto/contrato.",
   marcaRodapeLabel: "Pie de página",
   marcaRodapeHint: "Imagen de firma/contacto al final del documento.",
+  marcaLogoEspecificacoes: "Cuadrada, mínimo 400×400px. PNG con fondo transparente funciona mejor. Formatos aceptados: PNG, JPG, WEBP o GIF — hasta 3MB.",
+  marcaBannerEspecificacoes: "Horizontal (paisaje), recomendado 1600×500px. Formatos aceptados: PNG, JPG, WEBP o GIF — hasta 3MB.",
+  marcaRodapeEspecificacoes: "Franja ancha y baja, recomendado 1600×220px. Formatos aceptados: PNG, JPG, WEBP o GIF — hasta 3MB.",
   marcaApresentacaoResumoConfigurada: "Configurada — aplicada automáticamente a todo presupuesto",
   marcaApresentacaoResumoVazia: "Aún no configurada — agrega un logo, banner y un texto de presentación",
   marcaApresentacaoRecolherBtn: "Colapsar",
+  marcaApresentacaoAvisoPadrao: "Una vez guardado, esto se aplica automáticamente a todos los próximos presupuestos — y puedes volver a editarlo cuando quieras.",
 
   tiposBtn: "Plantillas",
   tiposSubtitulo: "Arma una plantilla de propuesta para cada tipo de trabajo — ítems predeterminados, condiciones de pago y vigencia ya vienen completos al elegir ese tipo en un presupuesto nuevo.",

@@ -201,9 +201,13 @@ export const orcamentos: OrcamentosDict = {
   marcaBannerHint: "Wide image used on the quote/contract cover.",
   marcaRodapeLabel: "Footer",
   marcaRodapeHint: "Signature/contact image at the bottom of the document.",
+  marcaLogoEspecificacoes: "Square, at least 400×400px. PNG with a transparent background works best. Accepted formats: PNG, JPG, WEBP or GIF — up to 3MB.",
+  marcaBannerEspecificacoes: "Landscape, recommended 1600×500px. Accepted formats: PNG, JPG, WEBP or GIF — up to 3MB.",
+  marcaRodapeEspecificacoes: "Wide, short strip, recommended 1600×220px. Accepted formats: PNG, JPG, WEBP or GIF — up to 3MB.",
   marcaApresentacaoResumoConfigurada: "Set up — applied automatically to every quote",
   marcaApresentacaoResumoVazia: "Not set up yet — add a logo, banner and a presentation text",
   marcaApresentacaoRecolherBtn: "Collapse",
+  marcaApresentacaoAvisoPadrao: "Once saved, this automatically applies to every future quote — and you can come back and edit it anytime.",
 
   tiposBtn: "Templates",
   tiposSubtitulo: "Build a proposal template for each type of work — default items, payment terms and validity are pre-filled when you pick that type on a new quote.",

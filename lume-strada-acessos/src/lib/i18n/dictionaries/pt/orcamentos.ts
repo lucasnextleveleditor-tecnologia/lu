@@ -211,9 +211,13 @@ export interface OrcamentosDict {
   marcaBannerHint: string;
   marcaRodapeLabel: string;
   marcaRodapeHint: string;
+  marcaLogoEspecificacoes: string;
+  marcaBannerEspecificacoes: string;
+  marcaRodapeEspecificacoes: string;
   marcaApresentacaoResumoConfigurada: string;
   marcaApresentacaoResumoVazia: string;
   marcaApresentacaoRecolherBtn: string;
+  marcaApresentacaoAvisoPadrao: string;
   portfolioGerenciarBtn: string;
   portfolioMarcaMovidaAviso: string;
 
@@ -447,9 +451,13 @@ export const orcamentos: OrcamentosDict = {
   marcaBannerHint: "Imagem larga usada na capa do orçamento/contrato.",
   marcaRodapeLabel: "Rodapé",
   marcaRodapeHint: "Imagem de assinatura/contato no fim do documento.",
+  marcaLogoEspecificacoes: "Quadrada, mínimo 400×400px. PNG com fundo transparente funciona melhor. Formatos aceitos: PNG, JPG, WEBP ou GIF — até 3MB.",
+  marcaBannerEspecificacoes: "Retangular (paisagem), recomendado 1600×500px. Formatos aceitos: PNG, JPG, WEBP ou GIF — até 3MB.",
+  marcaRodapeEspecificacoes: "Faixa larga e baixa, recomendado 1600×220px. Formatos aceitos: PNG, JPG, WEBP ou GIF — até 3MB.",
   marcaApresentacaoResumoConfigurada: "Configurada — aplicada automaticamente em todo orçamento",
   marcaApresentacaoResumoVazia: "Ainda não configurada — adicione logo, banner e um texto de apresentação",
   marcaApresentacaoRecolherBtn: "Recolher",
+  marcaApresentacaoAvisoPadrao: "Depois de salvo, isso vale automaticamente pra todos os próximos orçamentos — e você pode voltar aqui e editar quando quiser.",
 
   tiposBtn: "Modelos",
   tiposSubtitulo: "Monte um modelo de proposta pra cada tipo de trabalho — itens padrão, condições de pagamento e validade já vêm preenchidos ao escolher esse tipo num orçamento novo.",

@@ -9,6 +9,8 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 interface MarcaOrcamentoUploadFieldProps {
   label: string;
   hint?: string;
+  /** Dimensões/formato/tamanho recomendados (ex: "Quadrada, mínimo 400×400px... até 3MB") — mostrado numa linha própria, abaixo do hint, pra quem for exportar a imagem certa já saber o que preparar. */
+  specs?: string;
   campo: CampoMarcaOrcamento;
   valorAtual: string | null;
   onChange: (url: string | null) => void;
@@ -16,8 +18,19 @@ interface MarcaOrcamentoUploadFieldProps {
   formato?: "square" | "wide";
 }
 
-/** Mesmo padrão de `UploadField.tsx` (Aparência) — upload "salva sozinho" (sem depender de um botão "Salvar" separado), aqui apontado pras Server Actions de marca do orçamento (`portfolio-actions.ts`), que escrevem em `companies` em vez de `branding_config`. */
-export function MarcaOrcamentoUploadField({ label, hint, campo, valorAtual, onChange, formato = "square" }: MarcaOrcamentoUploadFieldProps) {
+/**
+ * Mesmo padrão de `UploadField.tsx` (Aparência) — upload "salva sozinho"
+ * (sem depender de um botão "Salvar" separado), aqui apontado pras Server
+ * Actions de marca do orçamento (`portfolio-actions.ts`), que escrevem em
+ * `companies` em vez de `branding_config`.
+ *
+ * Layout em COLUNA (preview em cima, botões/hint embaixo, sempre 100% de
+ * largura) de propósito, não lado a lado — este campo vive dentro do
+ * construtor de orçamento (`MarcaApresentacaoCard.tsx`), numa coluna bem
+ * mais estreita que a antiga tela cheia de Portfólio; um layout horizontal
+ * com 3 campos lado a lado nessa largura sobrepunha texto/botões.
+ */
+export function MarcaOrcamentoUploadField({ label, hint, specs, campo, valorAtual, onChange, formato = "square" }: MarcaOrcamentoUploadFieldProps) {
   const { dict } = useLocale();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
@@ -55,25 +68,25 @@ export function MarcaOrcamentoUploadField({ label, hint, campo, valorAtual, onCh
   }
 
   return (
-    <div>
-      <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{label}</label>
-      <div className="flex items-center gap-3">
-        <div
-          className={
-            formato === "square"
-              ? "flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-base-600 bg-base-950"
-              : "flex h-14 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-base-600 bg-base-950"
-          }
-        >
-          {valorAtual ? (
-            // eslint-disable-next-line @next/next/no-img-element -- preview de um arquivo recém-enviado ao bucket do próprio projeto Supabase do cliente
-            <img src={valorAtual} alt={label} className="h-full w-full object-contain" />
-          ) : (
-            <IconUpload className="h-5 w-5 text-ink-muted" />
-          )}
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <div className="flex gap-2">
+    <div className="flex items-start gap-3 rounded-xl border border-base-800 bg-base-950/30 p-3">
+      <div
+        className={
+          formato === "square"
+            ? "flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-base-600 bg-base-950"
+            : "flex h-16 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-base-600 bg-base-950"
+        }
+      >
+        {valorAtual ? (
+          // eslint-disable-next-line @next/next/no-img-element -- preview de um arquivo recém-enviado ao bucket do próprio projeto Supabase do cliente
+          <img src={valorAtual} alt={label} className="h-full w-full object-contain" />
+        ) : (
+          <IconUpload className="h-5 w-5 text-ink-muted" />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label className="text-xs font-medium text-ink-secondary">{label}</label>
+          <div className="flex shrink-0 flex-wrap gap-2">
             <Button type="button" variant="ghost" className="px-3 py-1.5 text-xs" onClick={() => inputRef.current?.click()} disabled={pending}>
               {pending ? dict.aparencia.enviando : valorAtual ? dict.aparencia.trocar : dict.aparencia.enviarImagem}
             </Button>
@@ -83,11 +96,12 @@ export function MarcaOrcamentoUploadField({ label, hint, campo, valorAtual, onCh
               </Button>
             )}
           </div>
-          {hint && <p className="text-xs text-ink-muted">{hint}</p>}
         </div>
-        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+        {hint && <p className="mt-1 text-xs text-ink-muted">{hint}</p>}
+        {specs && <p className="mt-0.5 text-[11px] text-ink-muted/70">{specs}</p>}
+        {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}
       </div>
-      {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
     </div>
   );
 }
