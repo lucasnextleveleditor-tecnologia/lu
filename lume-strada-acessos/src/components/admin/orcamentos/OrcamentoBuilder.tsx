@@ -2,20 +2,21 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { OrcCategoriaRow, ServicoComCategoria, DescontoTipo, PerfilOrcamento, TipoOrcamentoComItens, PortfolioItemComUrl } from "@/lib/types/orcamentos";
+import type { OrcCategoriaRow, ServicoComCategoria, DescontoTipo, PerfilOrcamento, TipoOrcamentoComItens, PortfolioItemComUrl, DadosInstitucionaisOrcamento } from "@/lib/types/orcamentos";
 import { calcularTotalOrcamento } from "@/lib/types/orcamentos";
 import { criarOrcamentoCompleto, atualizarOrcamentoCompleto, enviarOrcamento, type ItemInput } from "@/app/admin/orcamentos/actions";
 import { salvarPortfolioDoOrcamento } from "@/app/admin/orcamentos/portfolio-actions";
 import type { buscarOrcamentoPorId } from "@/app/admin/orcamentos/data";
 import { CATEGORIAS_PORTFOLIO } from "@/lib/utils/orcamentos";
 import { listarModelosPorPerfil } from "@/lib/contratos/modelos/mapeamento";
+import { OrcamentoPropostaPreview, type ItemPreview } from "@/components/cliente/OrcamentoPropostaPreview";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { IconPlus, IconTrash, IconSearch, IconImage, IconFilm } from "@/components/ui/icons";
+import { IconPlus, IconTrash, IconSearch, IconImage, IconFilm, IconEye } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { fmtBRL } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
@@ -43,16 +44,21 @@ function novaChave(): string {
   return typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `item-${Date.now()}-${Math.random()}`;
 }
 
+function paraItemPreview(item: ItemLocal): ItemPreview {
+  return { id: item.key, nome: item.nome, descricao: item.descricao, quantidade: item.quantidade, valorUnitario: item.valorUnitario, opcional: item.opcional, selecionado: item.selecionado };
+}
+
 interface OrcamentoBuilderProps {
   categorias: OrcCategoriaRow[];
   servicosComCategoria: ServicoComCategoria[];
   clientes: ClienteOpcao[];
   tiposOrcamento: Record<PerfilOrcamento, TipoOrcamentoComItens | null>;
   portfolioItens: PortfolioItemComUrl[];
+  institucional: DadosInstitucionaisOrcamento;
   orcamentoParaEditar?: OrcamentoParaEditar;
 }
 
-export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, tiposOrcamento, portfolioItens, orcamentoParaEditar }: OrcamentoBuilderProps) {
+export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, tiposOrcamento, portfolioItens, institucional, orcamentoParaEditar }: OrcamentoBuilderProps) {
   const { dict } = useLocale();
   const router = useRouter();
   const editando = !!orcamentoParaEditar;
@@ -112,6 +118,21 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
     descontoTipo || null,
     descontoValor
   );
+
+  // Preview ao vivo (`OrcamentoPropostaPreview`, o MESMO componente da página
+  // pública) — nada aqui é persistido, é só a leitura do estado atual do
+  // formulário. `dataExpiracao` é uma projeção (hoje + validadeDias): o valor
+  // real só é gravado no banco quando o orçamento é de fato enviado
+  // (`enviarOrcamento`), mas mostrar a data aproximada aqui já ajuda a
+  // pessoa a calibrar o prazo de validade enquanto ainda está editando.
+  const dataExpiracaoPreview = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + (validadeDias || 0));
+    return d.toISOString().slice(0, 10);
+  }, [validadeDias]);
+  const itensObrigatoriosPreview = useMemo(() => itens.filter((i) => !i.opcional).map(paraItemPreview), [itens]);
+  const itensOpcionaisPreview = useMemo(() => itens.filter((i) => i.opcional).map(paraItemPreview), [itens]);
+  const portfolioSelecionadoItens = useMemo(() => portfolioItens.filter((p) => portfolioSelecionado.includes(p.id)), [portfolioItens, portfolioSelecionado]);
 
   function handleSelecionarCliente(id: string) {
     setClienteId(id);
@@ -277,8 +298,9 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <div className="space-y-4 lg:col-span-2">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.05fr_1fr] lg:items-start">
+      {/* Coluna do formulário — rola normalmente com a página */}
+      <div className="space-y-4">
         <Card>
           <h2 className="mb-4 text-sm font-semibold">{dict.orcamentos.dadosDoOrcamentoTitulo}</h2>
           <div className="space-y-4">
@@ -485,9 +507,7 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
             )}
           </div>
         </Card>
-      </div>
 
-      <div className="space-y-4">
         <Card>
           <h2 className="mb-3 text-sm font-semibold">{dict.orcamentos.itensDoOrcamentoTitulo}</h2>
 
@@ -569,28 +589,40 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
             </div>
           </Card>
         )}
+      </div>
+
+      {/* Coluna de preview — acompanha a rolagem (sticky), mostra exatamente o que o cliente vai ver no link público */}
+      <div className="space-y-4 lg:sticky lg:top-4">
+        <div className="flex items-center gap-1.5 text-ink-muted">
+          <IconEye className="h-3.5 w-3.5" />
+          <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.previewAoVivoTitulo}</p>
+        </div>
+
+        <div className="max-h-[calc(100vh-8rem)] overflow-y-auto rounded-3xl">
+          <OrcamentoPropostaPreview
+            titulo={titulo}
+            nomeDestinatario={nomeDestinatario || dict.orcamentos.placeholderNomeDestinatario}
+            dataExpiracao={dataExpiracaoPreview}
+            textoProposta={textoProposta || null}
+            objetivos={objetivos || null}
+            itensObrigatorios={itensObrigatoriosPreview}
+            itensOpcionais={itensOpcionaisPreview}
+            interactive={false}
+            subtotal={subtotal}
+            desconto={desconto}
+            total={total}
+            temDesconto={!!descontoTipo}
+            condicoesPagamento={condicoesPagamento || null}
+            observacoes={observacoes || null}
+            portfolio={portfolioSelecionadoItens}
+            institucional={institucional}
+            empresaNome={institucional.nomeMarca || null}
+          />
+        </div>
 
         <Card>
-          <div className="space-y-1.5 text-sm">
-            <div className="flex justify-between text-ink-secondary">
-              <span>{dict.orcamentos.subtotalLabel}</span>
-              <span>{fmtBRL(subtotal)}</span>
-            </div>
-            {descontoTipo && (
-              <div className="flex justify-between text-ink-secondary">
-                <span>{dict.orcamentos.descontoLabel}</span>
-                <span>−{fmtBRL(desconto)}</span>
-              </div>
-            )}
-            <div className="flex justify-between border-t border-base-800 pt-1.5 text-base font-semibold text-ink-primary">
-              <span>{dict.orcamentos.totalLabel}</span>
-              <span>{fmtBRL(total)}</span>
-            </div>
-          </div>
-
-          {error && <p className="mt-3 text-xs text-danger">{error}</p>}
-
-          <div className="mt-4 flex flex-col gap-2">
+          {error && <p className="mb-3 text-xs text-danger">{error}</p>}
+          <div className="flex flex-col gap-2">
             <Button variant="ghost" disabled={pending} onClick={() => salvar(false)}>
               {dict.orcamentos.salvarRascunhoBtn}
             </Button>

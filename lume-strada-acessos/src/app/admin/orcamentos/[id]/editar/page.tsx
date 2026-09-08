@@ -13,7 +13,7 @@ interface PageProps {
 export default async function EditarOrcamentoPage({ params }: PageProps) {
   const { id } = await params;
   const { dict } = await getDictionary();
-  const [{ categorias, servicosComCategoria, clientes, tiposOrcamento, portfolioItens }, orcamento] = await Promise.all([buscarDadosConstrutor(), buscarOrcamentoPorId(id)]);
+  const [{ categorias, servicosComCategoria, clientes, tiposOrcamento, portfolioItens, institucional }, orcamento] = await Promise.all([buscarDadosConstrutor(), buscarOrcamentoPorId(id)]);
 
   return (
     <div className="space-y-6">
@@ -31,6 +31,7 @@ export default async function EditarOrcamentoPage({ params }: PageProps) {
         clientes={clientes}
         tiposOrcamento={tiposOrcamento}
         portfolioItens={portfolioItens}
+        institucional={institucional}
         orcamentoParaEditar={orcamento}
       />
     </div>

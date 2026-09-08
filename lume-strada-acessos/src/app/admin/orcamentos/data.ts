@@ -128,12 +128,16 @@ export async function buscarDadosCatalogo() {
 export async function buscarDadosConstrutor() {
   const { supabase } = await requireModuloOuRedirect("orcamentos");
 
-  const [categoriasRes, servicosRes, clientesRes, tiposRes, portfolioRes] = await Promise.all([
+  const [categoriasRes, servicosRes, clientesRes, tiposRes, portfolioRes, institucional] = await Promise.all([
     supabase.from("orc_categorias").select("*").order("ordem").overrideTypes<OrcCategoriaRow[], { merge: false }>(),
     supabase.from("orc_servicos").select("*").eq("ativo", true).order("nome").overrideTypes<OrcServicoRow[], { merge: false }>(),
     supabase.from("clientes").select("id, nome, email, telefone").order("nome").overrideTypes<{ id: string; nome: string; email: string | null; telefone: string | null }[], { merge: false }>(),
     supabase.from("orc_tipos_orcamento").select("*").overrideTypes<OrcTipoOrcamentoRow[], { merge: false }>(),
     supabase.from("orc_portfolio_itens").select("*").order("ordem").order("created_at", { ascending: false }).overrideTypes<PortfolioItemRow[], { merge: false }>(),
+    // Marca/institucional (Fase 1/PDF) — buscada junto pra alimentar o preview
+    // ao vivo do construtor (`OrcamentoBuilder`), que agora mostra o mesmo
+    // visual da página pública enquanto o usuário digita.
+    buscarDadosInstitucionaisEmpresa(),
   ]);
 
   const categorias = categoriasRes.data ?? [];
@@ -164,7 +168,7 @@ export async function buscarDadosConstrutor() {
     url: supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl,
   }));
 
-  return { categorias, servicosComCategoria: enriquecerServicos(servicos, categorias), clientes: clientesRes.data ?? [], tiposOrcamento, portfolioItens };
+  return { categorias, servicosComCategoria: enriquecerServicos(servicos, categorias), clientes: clientesRes.data ?? [], tiposOrcamento, portfolioItens, institucional };
 }
 
 /** Um orçamento completo (cabeçalho + itens + nome do cliente vinculado) — usado pelas telas de detalhe e edição. Chama `notFound()` se o id não existir (ou não pertencer à empresa — RLS já filtra isso sozinho). */

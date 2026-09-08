@@ -131,6 +131,7 @@ export interface OrcamentosDict {
   buscarServicoPlaceholder: string;
   adicionarItemBtn: string;
   itensDoOrcamentoTitulo: string;
+  previewAoVivoTitulo: string;
   itensVazioDescricao: string;
   quantidadeLabel: string;
   valorUnitarioLabel: string;
@@ -353,6 +354,7 @@ export const orcamentos: OrcamentosDict = {
   buscarServicoPlaceholder: "Buscar serviço no catálogo...",
   adicionarItemBtn: "Adicionar",
   itensDoOrcamentoTitulo: "Itens do Orçamento",
+  previewAoVivoTitulo: "Preview ao vivo — o que o cliente vê",
   itensVazioDescricao: "Nenhum item adicionado ainda — escolha uma categoria acima e adicione serviços do catálogo.",
   quantidadeLabel: "Qtd.",
   valorUnitarioLabel: "Valor unitário",

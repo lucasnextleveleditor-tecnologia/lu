@@ -116,6 +116,7 @@ export const orcamentos: OrcamentosDict = {
   buscarServicoPlaceholder: "Search the catalog...",
   adicionarItemBtn: "Add",
   itensDoOrcamentoTitulo: "Quote Items",
+  previewAoVivoTitulo: "Live preview — what the client sees",
   itensVazioDescricao: "No items added yet — pick a category above and add services from the catalog.",
   quantidadeLabel: "Qty.",
   valorUnitarioLabel: "Unit price",

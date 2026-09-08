@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function NovoOrcamentoPage() {
   const { dict } = await getDictionary();
-  const { categorias, servicosComCategoria, clientes, tiposOrcamento, portfolioItens } = await buscarDadosConstrutor();
+  const { categorias, servicosComCategoria, clientes, tiposOrcamento, portfolioItens, institucional } = await buscarDadosConstrutor();
 
   return (
     <div className="space-y-6">
@@ -26,6 +26,7 @@ export default async function NovoOrcamentoPage() {
         clientes={clientes}
         tiposOrcamento={tiposOrcamento}
         portfolioItens={portfolioItens}
+        institucional={institucional}
       />
     </div>
   );
