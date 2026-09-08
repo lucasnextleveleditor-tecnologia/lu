@@ -15,6 +15,7 @@ interface EmpresaPublicaRow {
   orc_rodape_path: string | null;
   orc_texto_institucional: string | null;
   orc_clientes_atendidos: string | null;
+  orc_texto_encerramento: string | null;
 }
 
 /**
@@ -40,6 +41,7 @@ function montarInstitucional(admin: ReturnType<typeof createAdminClient>, empres
     rodapeUrl: empresa?.orc_rodape_path ? admin.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(empresa.orc_rodape_path).data.publicUrl : null,
     textoInstitucional: empresa?.orc_texto_institucional || null,
     clientesAtendidos,
+    textoEncerramento: empresa?.orc_texto_encerramento || null,
   };
 }
 
@@ -64,7 +66,7 @@ export async function buscarOrcamentoPublicoPorToken(token: string) {
   const { data: orcamento } = await admin
     .from("orcamentos")
     .select(
-      "*, companies(nome, nome_app, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_rodape_path, orc_texto_institucional, orc_clientes_atendidos)"
+      "*, companies(nome, nome_app, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_rodape_path, orc_texto_institucional, orc_clientes_atendidos, orc_texto_encerramento)"
     )
     .eq("token", token)
     .single<OrcamentoRow & { companies: EmpresaPublicaRow | null }>();

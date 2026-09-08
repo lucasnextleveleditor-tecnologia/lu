@@ -1,22 +1,22 @@
 import Link from "next/link";
 import { IconChevronLeft } from "@/components/ui/icons";
 import { PortfolioManager } from "@/components/admin/orcamentos/PortfolioManager";
-import { MarcaOrcamentoForm } from "@/components/admin/orcamentos/MarcaOrcamentoForm";
-import { InstitucionalOrcamentoForm } from "@/components/admin/orcamentos/InstitucionalOrcamentoForm";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { buscarDadosPortfolio } from "@/app/admin/orcamentos/portfolio-data";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Tela dedicada ao Portfólio + Marca da agência — Fase 1 do sistema guiado
- * de Orçamentos/Contratos. Separada da lista principal e do Catálogo, mesmo
- * princípio de `/orcamentos/catalogo`: cada tela de cadastro de apoio no
- * seu próprio espaço, sem sobrecarregar a lista de orçamentos.
+ * Tela dedicada à biblioteca de Portfólio (fotos/vídeos reutilizáveis entre
+ * vários orçamentos). Marca da agência e conteúdo institucional (antes
+ * também nesta tela) foram pro construtor de orçamento — ver
+ * `MarcaApresentacaoCard.tsx` — porque eram configurações da empresa
+ * escondidas numa aba separada do fluxo de montar o orçamento, o que
+ * deixava confuso.
  */
 export default async function PortfolioOrcamentosPage() {
   const { dict } = await getDictionary();
-  const { itens, marca, institucional } = await buscarDadosPortfolio();
+  const { itens } = await buscarDadosPortfolio();
 
   return (
     <div className="space-y-6">
@@ -26,10 +26,9 @@ export default async function PortfolioOrcamentosPage() {
           {dict.orcamentos.voltarParaOrcamentos}
         </Link>
         <h1 className="text-lg font-semibold tracking-tight">{dict.orcamentos.portfolioBtn}</h1>
+        <p className="mt-1 text-xs text-ink-muted">{dict.orcamentos.portfolioMarcaMovidaAviso}</p>
       </div>
 
-      <MarcaOrcamentoForm marca={marca} />
-      <InstitucionalOrcamentoForm institucional={institucional} />
       <PortfolioManager itens={itens} />
     </div>
   );

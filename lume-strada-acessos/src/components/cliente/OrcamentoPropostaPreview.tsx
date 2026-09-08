@@ -2,7 +2,7 @@
 
 import type { DadosInstitucionaisOrcamento, PortfolioItemComUrl } from "@/lib/types/orcamentos";
 import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
-import { IconFilm, IconImage, IconBriefcase, IconTarget, IconBuilding } from "@/components/ui/icons";
+import { IconFilm, IconImage, IconBriefcase, IconTarget, IconBuilding, IconHeart } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils/cn";
 
@@ -271,6 +271,13 @@ export function OrcamentoPropostaPreview({
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {institucional.textoEncerramento && (
+          <div className="rounded-2xl border border-base-800 bg-gradient-to-br from-accent/10 via-base-950/40 to-accent2/10 p-5 text-center">
+            <IconHeart className="mx-auto h-4 w-4 text-accent" />
+            <p className="mt-2 whitespace-pre-line text-sm italic text-ink-secondary">{institucional.textoEncerramento}</p>
           </div>
         )}
 

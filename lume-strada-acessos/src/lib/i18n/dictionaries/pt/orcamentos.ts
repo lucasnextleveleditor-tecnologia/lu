@@ -211,6 +211,11 @@ export interface OrcamentosDict {
   marcaBannerHint: string;
   marcaRodapeLabel: string;
   marcaRodapeHint: string;
+  marcaApresentacaoResumoConfigurada: string;
+  marcaApresentacaoResumoVazia: string;
+  marcaApresentacaoRecolherBtn: string;
+  portfolioGerenciarBtn: string;
+  portfolioMarcaMovidaAviso: string;
 
   // Tipos de Orçamento / Modelos por profissão (Fase 2)
   tiposBtn: string;
@@ -229,6 +234,9 @@ export interface OrcamentosDict {
   institucionalClientesLabel: string;
   institucionalClientesPlaceholder: string;
   institucionalClientesHint: string;
+  institucionalEncerramentoLabel: string;
+  institucionalEncerramentoPlaceholder: string;
+  institucionalEncerramentoHint: string;
   institucionalSalvarBtn: string;
   institucionalSalvoMsg: string;
 
@@ -365,6 +373,7 @@ export const orcamentos: OrcamentosDict = {
   itemPersonalizadoTitulo: "Adicionar item personalizado",
   portfolioAnexarTitulo: "Anexar Portfólio",
   portfolioAnexarHint: "Escolha fotos e vídeos do seu portfólio pra mostrar junto com essa proposta.",
+  portfolioGerenciarBtn: "Gerenciar itens de portfólio",
 
   subtotalLabel: "Subtotal",
   totalLabel: "Total",
@@ -414,6 +423,7 @@ export const orcamentos: OrcamentosDict = {
   portfolioEnviando: "Enviando...",
   portfolioVazioTitulo: "Nenhum item de portfólio ainda.",
   portfolioVazioDescricao: "Envie fotos ou vídeos dos seus trabalhos — eles ficam disponíveis pra anexar em qualquer orçamento.",
+  portfolioMarcaMovidaAviso: "Logo, banner, rodapé e texto de apresentação agora ficam direto na tela de criação do orçamento — abra um orçamento novo ou em edição pra configurar.",
   portfolioEditarTitulo: "Editar Item de Portfólio",
   portfolioTituloLabel: "Título",
   placeholderPortfolioTitulo: "Ex: Making of — Campanha Verão",
@@ -429,14 +439,17 @@ export const orcamentos: OrcamentosDict = {
     agencia_marketing: "Agência de Marketing",
   },
 
-  marcaAgenciaTitulo: "Marca da Agência",
-  marcaAgenciaSubtitulo: "Logo, banner e rodapé estampados nos orçamentos e contratos enviados aos seus clientes.",
+  marcaAgenciaTitulo: "Marca & Apresentação",
+  marcaAgenciaSubtitulo: "Logo, banner, rodapé e textos de apresentação — configure uma vez e vale pra todo orçamento e contrato enviado aos seus clientes.",
   marcaLogoLabel: "Logo",
   marcaLogoHint: "Aparece no topo de orçamentos e contratos.",
   marcaBannerLabel: "Banner de topo",
   marcaBannerHint: "Imagem larga usada na capa do orçamento/contrato.",
   marcaRodapeLabel: "Rodapé",
   marcaRodapeHint: "Imagem de assinatura/contato no fim do documento.",
+  marcaApresentacaoResumoConfigurada: "Configurada — aplicada automaticamente em todo orçamento",
+  marcaApresentacaoResumoVazia: "Ainda não configurada — adicione logo, banner e um texto de apresentação",
+  marcaApresentacaoRecolherBtn: "Recolher",
 
   tiposBtn: "Modelos",
   tiposSubtitulo: "Monte um modelo de proposta pra cada tipo de trabalho — itens padrão, condições de pagamento e validade já vêm preenchidos ao escolher esse tipo num orçamento novo.",
@@ -453,6 +466,9 @@ export const orcamentos: OrcamentosDict = {
   institucionalClientesLabel: "Empresas que já atendemos",
   institucionalClientesPlaceholder: "Uma empresa por linha",
   institucionalClientesHint: "Uma empresa/cliente por linha — aparece como lista na capa do PDF.",
+  institucionalEncerramentoLabel: "Mensagem de encerramento",
+  institucionalEncerramentoPlaceholder: "Ex: Foi um prazer te atender! Esperamos ter um ótimo trabalho juntos.",
+  institucionalEncerramentoHint: "Aparece no final da proposta (PDF e link público), como um agradecimento padrão pra todo orçamento enviado.",
   institucionalSalvarBtn: "Salvar",
   institucionalSalvoMsg: "Salvo!",
 

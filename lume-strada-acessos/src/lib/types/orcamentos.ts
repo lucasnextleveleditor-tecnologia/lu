@@ -187,4 +187,6 @@ export interface DadosInstitucionaisOrcamento {
   textoInstitucional: string | null;
   /** `companies.orc_clientes_atendidos` já dividido por linha, com `trim()` e linhas vazias removidas. */
   clientesAtendidos: string[];
+  /** `companies.orc_texto_encerramento` — mensagem de agradecimento/encerramento exibida no fim da proposta (depois do `rodapeUrl`), ex: "Foi um prazer te atender, esperamos ter sucesso juntos!". Padrão pra todos os orçamentos. Null = seção omitida. */
+  textoEncerramento: string | null;
 }

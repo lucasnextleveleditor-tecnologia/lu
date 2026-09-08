@@ -203,13 +203,16 @@ export async function removerMarcaOrcamento(campo: CampoMarcaOrcamento): Promise
 
 /**
  * Salva o texto institucional (apresentação da empresa + lista de clientes
- * atendidos) exibido na capa do PDF de orçamento (ver `OrcamentoPdfDocument.tsx`)
- * — mesmo padrão de Service Role/`requireAdmin()` de `uploadMarcaOrcamento`
- * acima (`companies` só tem policy de UPDATE pra super_admin). Diferente dos
- * campos de upload (que salvam sozinhos ao trocar o arquivo), aqui é texto
- * livre digitado à mão — precisa de um botão "Salvar" explícito no form.
+ * atendidos + mensagem de encerramento/agradecimento) exibido na proposta
+ * (capa do PDF, ver `OrcamentoPdfDocument.tsx`, e página pública, ver
+ * `OrcamentoPropostaPreview.tsx`) — mesmo padrão de Service Role/`requireAdmin()`
+ * de `uploadMarcaOrcamento` acima (`companies` só tem policy de UPDATE pra
+ * super_admin). Diferente dos campos de upload (que salvam sozinhos ao trocar
+ * o arquivo), aqui é texto livre digitado à mão — precisa de um botão
+ * "Salvar" explícito no form (`MarcaApresentacaoCard.tsx`, dentro do próprio
+ * construtor de orçamento — não vive mais numa aba separada).
  */
-export async function salvarInstitucionalOrcamento(input: { textoInstitucional: string; clientesAtendidos: string }): Promise<ActionResult> {
+export async function salvarInstitucionalOrcamento(input: { textoInstitucional: string; clientesAtendidos: string; textoEncerramento: string }): Promise<ActionResult> {
   try {
     const { companyId } = await requireAdmin();
     const admin = createAdminClient();
@@ -218,10 +221,12 @@ export async function salvarInstitucionalOrcamento(input: { textoInstitucional: 
       .update({
         orc_texto_institucional: input.textoInstitucional.trim() || null,
         orc_clientes_atendidos: input.clientesAtendidos.trim() || null,
+        orc_texto_encerramento: input.textoEncerramento.trim() || null,
       })
       .eq("id", companyId);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
+    revalidatePath("/admin/orcamentos");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

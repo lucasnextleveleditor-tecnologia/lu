@@ -234,8 +234,8 @@ export async function buscarOrcamentoPorId(id: string) {
  * `OrcamentoPdfDocument.tsx`) — nome de marca (`nome_app`, via `getNomeApp()`),
  * razão social/CPF-CNPJ/endereço (dados jurídicos, rodapé da capa), logo e
  * banner já resolvidos pra URL pública, e o conteúdo institucional livre
- * (texto de apresentação + clientes atendidos, editados em
- * `/admin/orcamentos/portfolio`, ver `InstitucionalOrcamentoForm.tsx`).
+ * (texto de apresentação + clientes atendidos + mensagem de encerramento,
+ * editados direto no construtor de orçamento, ver `MarcaApresentacaoCard.tsx`).
  * UMA query em `companies` com tudo — chamado em paralelo com
  * `buscarOrcamentoPorId` dentro da rota da API do PDF.
  */
@@ -245,7 +245,7 @@ export async function buscarDadosInstitucionaisEmpresa(): Promise<DadosInstituci
   const [{ data: empresa }, nomeMarca] = await Promise.all([
     supabase
       .from("companies")
-      .select("nome, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_rodape_path, orc_texto_institucional, orc_clientes_atendidos")
+      .select("nome, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_rodape_path, orc_texto_institucional, orc_clientes_atendidos, orc_texto_encerramento")
       .maybeSingle<{
         nome: string | null;
         cpf_cnpj: string | null;
@@ -255,6 +255,7 @@ export async function buscarDadosInstitucionaisEmpresa(): Promise<DadosInstituci
         orc_rodape_path: string | null;
         orc_texto_institucional: string | null;
         orc_clientes_atendidos: string | null;
+        orc_texto_encerramento: string | null;
       }>(),
     getNomeApp(),
   ]);
@@ -274,5 +275,6 @@ export async function buscarDadosInstitucionaisEmpresa(): Promise<DadosInstituci
     rodapeUrl: empresa?.orc_rodape_path ? supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(empresa.orc_rodape_path).data.publicUrl : null,
     textoInstitucional: empresa?.orc_texto_institucional || null,
     clientesAtendidos,
+    textoEncerramento: empresa?.orc_texto_encerramento || null,
   };
 }

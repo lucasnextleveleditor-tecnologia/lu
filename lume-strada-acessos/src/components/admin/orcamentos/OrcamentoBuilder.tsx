@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { OrcCategoriaRow, ServicoComCategoria, DescontoTipo, PerfilOrcamento, TipoOrcamentoComItens, PortfolioItemComUrl, DadosInstitucionaisOrcamento } from "@/lib/types/orcamentos";
 import { calcularTotalOrcamento } from "@/lib/types/orcamentos";
 import { criarOrcamentoCompleto, atualizarOrcamentoCompleto, enviarOrcamento, type ItemInput } from "@/app/admin/orcamentos/actions";
@@ -10,6 +11,7 @@ import type { buscarOrcamentoPorId } from "@/app/admin/orcamentos/data";
 import { CATEGORIAS_PORTFOLIO } from "@/lib/utils/orcamentos";
 import { listarModelosPorPerfil } from "@/lib/contratos/modelos/mapeamento";
 import { OrcamentoPropostaPreview, type ItemPreview } from "@/components/cliente/OrcamentoPropostaPreview";
+import { MarcaApresentacaoCard } from "@/components/admin/orcamentos/MarcaApresentacaoCard";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -79,6 +81,15 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
   const [tipoServico, setTipoServico] = useState<string | null>(orcamentoParaEditar?.tipo_servico ?? null);
   const modelosDoTipoServico = useMemo(() => listarModelosPorPerfil(tipoPerfil), [tipoPerfil]);
   const [portfolioSelecionado, setPortfolioSelecionado] = useState<string[]>(orcamentoParaEditar?.portfolio.map((p) => p.id) ?? []);
+
+  // Marca/apresentação (logo, banner, rodapé, textos institucionais) — dado
+  // da EMPRESA, não deste orçamento (ver `MarcaApresentacaoCard`), mas
+  // mantido em estado aqui pra que o preview ao lado reflita a mudança na
+  // hora, sem precisar recarregar a página depois de salvar.
+  const [institucionalState, setInstitucionalState] = useState<DadosInstitucionaisOrcamento>(institucional);
+  function handleInstitucionalChange(patch: Partial<DadosInstitucionaisOrcamento>) {
+    setInstitucionalState((prev) => ({ ...prev, ...patch }));
+  }
 
   const [itens, setItens] = useState<ItemLocal[]>(
     orcamentoParaEditar?.itens.map((i) => ({
@@ -301,6 +312,8 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.05fr_1fr] lg:items-start">
       {/* Coluna do formulário — rola normalmente com a página */}
       <div className="space-y-4">
+        <MarcaApresentacaoCard institucional={institucionalState} onChange={handleInstitucionalChange} />
+
         <Card>
           <h2 className="mb-4 text-sm font-semibold">{dict.orcamentos.dadosDoOrcamentoTitulo}</h2>
           <div className="space-y-4">
@@ -557,8 +570,15 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
 
         {portfolioItens.length > 0 && (
           <Card>
-            <h2 className="mb-1 text-sm font-semibold">{dict.orcamentos.portfolioAnexarTitulo}</h2>
-            <p className="mb-3 text-xs text-ink-muted">{dict.orcamentos.portfolioAnexarHint}</p>
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold">{dict.orcamentos.portfolioAnexarTitulo}</h2>
+                <p className="text-xs text-ink-muted">{dict.orcamentos.portfolioAnexarHint}</p>
+              </div>
+              <Link href="/admin/orcamentos/portfolio" className="shrink-0 text-xs font-medium text-accent hover:underline">
+                {dict.orcamentos.portfolioGerenciarBtn}
+              </Link>
+            </div>
             <div className="grid max-h-72 grid-cols-3 gap-2 overflow-y-auto">
               {portfolioItens.map((item) => {
                 const selecionado = portfolioSelecionado.includes(item.id);
@@ -615,8 +635,8 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
             condicoesPagamento={condicoesPagamento || null}
             observacoes={observacoes || null}
             portfolio={portfolioSelecionadoItens}
-            institucional={institucional}
-            empresaNome={institucional.nomeMarca || null}
+            institucional={institucionalState}
+            empresaNome={institucionalState.nomeMarca || null}
           />
         </div>
 

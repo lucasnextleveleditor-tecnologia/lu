@@ -22,6 +22,8 @@ const styles = StyleSheet.create({
   capaPage: { padding: 0, fontSize: 10, fontFamily: "Helvetica", color: "#1a1a1a", lineHeight: 1.5 },
   banner: { width: "100%", height: 140, objectFit: "cover" },
   rodape: { width: "100%", height: 90, objectFit: "cover", borderRadius: 3, marginTop: 20 },
+  encerramento: { marginTop: 18, padding: 16, backgroundColor: "#f7f6f3", borderRadius: 4, textAlign: "center" },
+  encerramentoTexto: { fontSize: 10, fontStyle: "italic", lineHeight: 1.6, color: "#444444" },
   capaConteudo: { padding: 48, paddingTop: 24 },
   logo: { width: 72, height: 72, objectFit: "contain", marginBottom: 12 },
   nomeMarca: { fontSize: 22, fontFamily: "Helvetica-Bold" },
@@ -141,6 +143,12 @@ export function OrcamentoPdfDocument({
                   <Image key={idx} src={item.url} style={styles.portfolioItem} />
                 ))}
               </View>
+            </View>
+          )}
+
+          {institucional.textoEncerramento && (
+            <View style={styles.encerramento}>
+              <Text style={styles.encerramentoTexto}>{institucional.textoEncerramento}</Text>
             </View>
           )}
 
