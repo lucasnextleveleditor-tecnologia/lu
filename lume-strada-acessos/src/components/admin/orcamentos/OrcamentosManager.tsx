@@ -11,11 +11,14 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { IconPlus, IconCopy } from "@/components/ui/icons";
+import { IconPlus, IconCopy, IconColumns, IconList } from "@/components/ui/icons";
+import { OrcamentoKanbanBoard } from "@/components/admin/orcamentos/OrcamentoKanbanBoard";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { cn } from "@/lib/utils/cn";
 import { useRouter } from "next/navigation";
 
 type OrcamentoDaLista = OrcamentoRow & { cliente_nome: string | null; total: number; statusExibicao: StatusOrcamento };
+type Visao = "lista" | "funil";
 
 const TODOS = "todos";
 
@@ -24,6 +27,7 @@ export function OrcamentosManager({ orcamentos }: { orcamentos: OrcamentoDaLista
   const router = useRouter();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
+  const [visao, setVisao] = useState<Visao>("lista");
   const [confirmando, setConfirmando] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -97,10 +101,38 @@ export function OrcamentosManager({ orcamentos }: { orcamentos: OrcamentoDaLista
             {dict.common.limparFiltros}
           </Button>
         )}
+
+        <div className="ml-auto inline-flex rounded-lg border border-base-700 bg-base-900/60 p-1">
+          <button
+            onClick={() => setVisao("lista")}
+            className={cn(
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition",
+              visao === "lista" ? "bg-accent text-base-950" : "text-ink-muted hover:text-ink-primary"
+            )}
+          >
+            <IconList className="h-3.5 w-3.5" />
+            {dict.orcamentos.visaoLista}
+          </button>
+          <button
+            onClick={() => setVisao("funil")}
+            className={cn(
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition",
+              visao === "funil" ? "bg-accent text-base-950" : "text-ink-muted hover:text-ink-primary"
+            )}
+          >
+            <IconColumns className="h-3.5 w-3.5" />
+            {dict.orcamentos.visaoFunil}
+          </button>
+        </div>
       </div>
 
       {error && <p className="px-5 pt-4 text-sm text-danger">{error}</p>}
 
+      {visao === "funil" ? (
+        <div className="p-5">
+          <OrcamentoKanbanBoard orcamentos={filtrados} />
+        </div>
+      ) : (
       <div className="overflow-x-auto">
         {filtrados.length === 0 ? (
           <div className="p-10 text-center">
@@ -180,6 +212,7 @@ export function OrcamentosManager({ orcamentos }: { orcamentos: OrcamentoDaLista
           </table>
         )}
       </div>
+      )}
     </Card>
   );
 }

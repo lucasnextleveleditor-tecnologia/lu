@@ -11,6 +11,9 @@ export const STATUS_ORCAMENTO_TONE: Record<StatusOrcamento, Tone> = {
   expirado: "critical",
 };
 
+/** Ordem das colunas do Funil de Propostas (kanban, `OrcamentoKanbanBoard.tsx`) — mesma ordem já usada no filtro de status da lista (`OrcamentosManager.tsx`). */
+export const STATUS_ORCAMENTO_ORDEM: StatusOrcamento[] = ["rascunho", "enviado", "visualizado", "aprovado", "recusado", "expirado"];
+
 /** Gera uma URL absoluta do link público a partir do token — usa `NEXT_PUBLIC_SITE_URL` (mesma variável já usada pro callback de convite, ver `.env.local.example`), com fallback pro host da requisição atual quando ausente. */
 export function urlPublicaOrcamento(token: string, origem?: string): string {
   const base = process.env.NEXT_PUBLIC_SITE_URL || origem || "";

@@ -33,6 +33,11 @@ export interface OrcamentosDict {
   colTotal: string;
   listaVaziaTitulo: string;
   listaVaziaDescricao: string;
+  visaoFunil: string;
+  visaoLista: string;
+  funilColunaAutomatica: string;
+  funilColunaVazia: string;
+  funilColunaSomenteLeitura: string;
 
   // Status
   statusRascunho: string;
@@ -274,6 +279,11 @@ export const orcamentos: OrcamentosDict = {
   colTotal: "Total",
   listaVaziaTitulo: "Nenhum orçamento criado ainda.",
   listaVaziaDescricao: "Monte sua primeira proposta a partir do catálogo de serviços — categorize por Marketing, Captação, Edição e o que mais fizer sentido pra sua produtora.",
+  visaoFunil: "Funil",
+  visaoLista: "Lista",
+  funilColunaAutomatica: "Muda sozinho (visualização/validade)",
+  funilColunaVazia: "Nenhum orçamento aqui.",
+  funilColunaSomenteLeitura: "Esse status muda sozinho (quando o cliente visualiza o link, ou quando a validade vence) — não dá pra arrastar um orçamento pra cá.",
 
   statusRascunho: "Rascunho",
   statusEnviado: "Enviado",

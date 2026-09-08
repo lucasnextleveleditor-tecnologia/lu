@@ -24,6 +24,11 @@ export const orcamentos: OrcamentosDict = {
   colTotal: "Total",
   listaVaziaTitulo: "No quotes created yet.",
   listaVaziaDescricao: "Build your first proposal from the service catalog — categorize by Marketing, Filming, Editing, and whatever else fits your production company.",
+  visaoFunil: "Pipeline",
+  visaoLista: "List",
+  funilColunaAutomatica: "Changes automatically (viewed / expired)",
+  funilColunaVazia: "No quotes here.",
+  funilColunaSomenteLeitura: "This status changes on its own (when the client views the link, or when it expires) — you can't drag a quote into it.",
 
   statusRascunho: "Draft",
   statusEnviado: "Sent",

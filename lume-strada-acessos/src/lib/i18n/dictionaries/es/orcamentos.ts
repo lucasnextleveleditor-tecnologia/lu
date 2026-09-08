@@ -24,6 +24,11 @@ export const orcamentos: OrcamentosDict = {
   colTotal: "Total",
   listaVaziaTitulo: "Aún no hay presupuestos creados.",
   listaVaziaDescricao: "Arma tu primera propuesta desde el catálogo de servicios — organiza por Marketing, Filmación, Edición y lo que más se ajuste a tu productora.",
+  visaoFunil: "Embudo",
+  visaoLista: "Lista",
+  funilColunaAutomatica: "Cambia solo (visto / vencido)",
+  funilColunaVazia: "Ningún presupuesto aquí.",
+  funilColunaSomenteLeitura: "Este estado cambia solo (cuando el cliente ve el enlace, o cuando vence) — no se puede arrastrar un presupuesto hasta aquí.",
 
   statusRascunho: "Borrador",
   statusEnviado: "Enviado",
