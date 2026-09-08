@@ -8,6 +8,7 @@ export const nav: NavDict = {
   grupoFinanceiro: "Finance",
   dashboard: "Dashboard",
   relatorios: "Reports",
+  agenda: "Agenda",
   crmVendas: "CRM & Sales",
   orcamentos: "Quotes",
   whatsapp: "WhatsApp",

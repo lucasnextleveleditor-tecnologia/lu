@@ -2,6 +2,7 @@ import type { DashboardCardChave, PermissoesFuncionario } from "@/lib/types/data
 
 /** Lista fixa dos módulos que podem ser liberados/bloqueados por funcionário — mesma ordem que aparece no modal de Permissões. Rótulo bate com o nome do item no menu lateral. */
 export const MODULOS_PERMISSAO: { chave: keyof PermissoesFuncionario; label: string; hint: string }[] = [
+  { chave: "agenda", label: "Agenda", hint: "Compromissos e calendário" },
   { chave: "clientes", label: "Clientes", hint: "Ver e editar o cadastro de clientes" },
   { chave: "comercial", label: "CRM & Vendas", hint: "Funil comercial e leads" },
   { chave: "orcamentos", label: "Orçamentos", hint: "Catálogo de serviços e propostas pra cliente" },

@@ -25,6 +25,7 @@ import {
   IconFileText,
   IconLayoutGrid,
   IconBarChart2,
+  IconCalendar,
 } from "@/components/ui/icons";
 
 // Menu separado em grupos — "Visão Geral" (o Dashboard, que junta Produção +
@@ -74,6 +75,7 @@ const NAV_GRUPOS = [
   {
     tituloKey: "grupoGestao",
     itens: [
+      { href: "/admin/agenda", labelKey: "agenda", icon: IconCalendar, chave: "agenda" },
       { href: "/admin/producao", labelKey: "producaoTarefas", icon: IconColumns, chave: "producao" },
       { href: "/admin/trafego", labelKey: "trafegoMetas", icon: IconActivity, chave: "trafego" },
       { href: "/admin/inventario", labelKey: "inventarioPatrimonio", icon: IconBox, chave: "inventario" },
@@ -108,6 +110,7 @@ const NAV_GRUPOS = [
 // `tailwind.config.ts`. Itens sem `chave` (Dashboard, Relatórios, Aparência)
 // não entram aqui — caem no destaque neutro de sempre.
 const MODULO_COR: Record<string, string> = {
+  agenda: "#fb7185",
   comercial: "#8b6bf0",
   orcamentos: "#4f7cff",
   clientes: "#4f7cff",

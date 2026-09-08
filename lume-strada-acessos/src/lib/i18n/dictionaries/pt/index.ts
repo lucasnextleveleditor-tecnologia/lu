@@ -15,6 +15,7 @@ import { relatorios, type RelatoriosDict } from "./relatorios";
 import { aparencia, type AparenciaDict } from "./aparencia";
 import { dashboard, type DashboardDict } from "./dashboard";
 import { cliente, type ClienteDict } from "./cliente";
+import { agenda, type AgendaDict } from "./agenda";
 
 /**
  * Formato COMPLETO do dicionário — cada idioma (`en/index.ts`, `es/index.ts`)
@@ -41,6 +42,7 @@ export interface Dictionary {
   aparencia: AparenciaDict;
   dashboard: DashboardDict;
   cliente: ClienteDict;
+  agenda: AgendaDict;
 }
 
 export const pt: Dictionary = {
@@ -61,4 +63,5 @@ export const pt: Dictionary = {
   aparencia,
   dashboard,
   cliente,
+  agenda,
 };
