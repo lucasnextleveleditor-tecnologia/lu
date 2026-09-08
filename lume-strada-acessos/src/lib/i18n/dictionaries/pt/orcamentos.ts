@@ -161,6 +161,12 @@ export interface OrcamentosDict {
   condicoesDePagamentoTitulo: string;
   observacoesTitulo: string;
   nossosTrabalhosTitulo: string;
+  propostaSecaoTitulo: string;
+  objetivosSecaoTitulo: string;
+  quemSomosTitulo: string;
+  empresasAtendidasTitulo: string;
+  ctaDecisaoTitulo: string;
+  ctaDecisaoDescricao: string;
 
   aprovarOrcamentoBtn: string;
   recusarOrcamentoBtn: string;
@@ -376,6 +382,12 @@ export const orcamentos: OrcamentosDict = {
   condicoesDePagamentoTitulo: "Condições de Pagamento",
   observacoesTitulo: "Observações",
   nossosTrabalhosTitulo: "Nossos Trabalhos",
+  propostaSecaoTitulo: "Proposta de Trabalho",
+  objetivosSecaoTitulo: "Objetivos",
+  quemSomosTitulo: "Quem Somos",
+  empresasAtendidasTitulo: "Empresas que já atendemos",
+  ctaDecisaoTitulo: "Vamos começar?",
+  ctaDecisaoDescricao: "Revise os detalhes acima e escolha como deseja seguir com a proposta.",
 
   aprovarOrcamentoBtn: "Aprovar Orçamento",
   recusarOrcamentoBtn: "Recusar",

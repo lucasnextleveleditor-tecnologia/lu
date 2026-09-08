@@ -145,6 +145,12 @@ export const orcamentos: OrcamentosDict = {
   condicoesDePagamentoTitulo: "Payment Terms",
   observacoesTitulo: "Notes",
   nossosTrabalhosTitulo: "Our Work",
+  propostaSecaoTitulo: "Work Proposal",
+  objetivosSecaoTitulo: "Goals",
+  quemSomosTitulo: "Who We Are",
+  empresasAtendidasTitulo: "Companies we've worked with",
+  ctaDecisaoTitulo: "Shall we begin?",
+  ctaDecisaoDescricao: "Review the details above and choose how you'd like to move forward with the proposal.",
 
   aprovarOrcamentoBtn: "Approve Quote",
   recusarOrcamentoBtn: "Decline",

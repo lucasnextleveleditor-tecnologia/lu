@@ -7,17 +7,27 @@ import type { buscarOrcamentoPublicoPorToken } from "@/app/orcamento/data";
 import { alternarItemPublico, aprovarOrcamentoPublico, recusarOrcamentoPublico } from "@/app/orcamento/actions";
 import { exportarElementoComoPDF, ExportError } from "@/lib/utils/export";
 import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { IconPrinter, IconDownload, IconCheckCircle, IconFilm, IconImage } from "@/components/ui/icons";
+import { IconPrinter, IconDownload, IconCheckCircle, IconFilm, IconImage, IconBriefcase, IconTarget, IconBuilding } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { cn } from "@/lib/utils/cn";
 
 type OrcamentoPublico = NonNullable<Awaited<ReturnType<typeof buscarOrcamentoPublicoPorToken>>>;
 
 const PRINT_ID = "orcamento-publico-conteudo";
 
+/**
+ * Página pública do orçamento — reformulada pra usar de fato o conteúdo
+ * institucional que já existe no banco desde `orcamentos-pdf-institucional.sql`
+ * (banner, rodapé, texto institucional, empresas atendidas, proposta de
+ * trabalho, objetivos) mas que até então só aparecia no PDF
+ * (`OrcamentoPdfDocument.tsx`) — o link que o cliente de fato abre ficava
+ * bem mais pobre que o PDF baixado. Toda a lógica de estado/interação
+ * (seleção de item opcional, aprovar/recusar, exportar) é a mesma de
+ * sempre; o que muda aqui é só a apresentação visual.
+ */
 export function OrcamentoPublicoView({ orcamento, token }: { orcamento: OrcamentoPublico; token: string }) {
   const { dict } = useLocale();
   const [itens, setItens] = useState<OrcItemRow[]>(orcamento.itens);
@@ -46,6 +56,9 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
   const itensObrigatorios = itens.filter((i) => !i.opcional);
   const itensOpcionais = itens.filter((i) => i.opcional);
   const podeInteragir = orcamento.podeInteragir && statusLocal !== "aprovado" && statusLocal !== "recusado";
+  const institucional = orcamento.institucional;
+  const temHero = !!institucional.bannerUrl;
+  const temQuemSomos = !!(institucional.textoInstitucional || institucional.clientesAtendidos.length > 0);
 
   function handleToggleItem(item: OrcItemRow) {
     if (!podeInteragir) return;
@@ -104,7 +117,7 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="mx-auto max-w-3xl space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
         <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">{STATUS_LABEL[statusLocal]}</p>
         <div className="flex items-center gap-2">
@@ -143,19 +156,62 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
 
       {error && <p className="text-sm text-danger print:hidden">{error}</p>}
 
-      <div id={PRINT_ID}>
-        <Card>
-          <div className="mb-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.orcamentos.propostaComercialTitulo}</p>
-            <h1 className="mt-1 text-xl font-semibold tracking-tight text-ink-primary">{orcamento.titulo}</h1>
-            <p className="mt-1 text-sm text-ink-secondary">{orcamento.nome_destinatario}</p>
-            {orcamento.data_expiracao && <p className="mt-1 text-xs text-ink-muted">{dict.orcamentos.validoAte.replace("{data}", fmtDataCurta(orcamento.data_expiracao))}</p>}
+      <div id={PRINT_ID} className="overflow-hidden rounded-3xl border border-base-700 bg-base-900/80 shadow-[inset_0_1px_0_0_rgb(var(--glow-rgb) / 0.04)]">
+        {/* Capa — banner de topo se existir; sem ele, um degradê discreto na cor de marca (nunca um bloco vazio/sem graça) */}
+        <div className="relative">
+          {temHero ? (
+            <div className="relative h-56 w-full sm:h-72">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={institucional.bannerUrl!} alt="" className="h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/5" />
+            </div>
+          ) : (
+            <div className="relative h-40 overflow-hidden bg-gradient-to-br from-accent/20 via-base-900 to-accent2/10 sm:h-48" />
+          )}
+
+          {institucional.logoUrl && (
+            <div className="absolute -bottom-7 left-6 h-14 w-14 overflow-hidden rounded-2xl border-4 border-base-900 bg-base-800 shadow-lg sm:left-8">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={institucional.logoUrl} alt="" className="h-full w-full object-cover" />
+            </div>
+          )}
+
+          <div className={cn("absolute inset-x-0 bottom-0 p-6 sm:p-8", !temHero && "relative")}>
+            <p className={cn("text-xs font-semibold uppercase tracking-widest", temHero ? "text-white/70" : "text-ink-muted")}>{dict.orcamentos.propostaComercialTitulo}</p>
+            <h1 className={cn("mt-1 text-2xl font-semibold tracking-tight sm:text-3xl", temHero ? "text-white" : "text-ink-primary")}>{orcamento.titulo}</h1>
+            <p className={cn("mt-1 text-sm", temHero ? "text-white/80" : "text-ink-secondary")}>{orcamento.nome_destinatario}</p>
+            {orcamento.data_expiracao && <p className={cn("mt-1 text-xs", temHero ? "text-white/60" : "text-ink-muted")}>{dict.orcamentos.validoAte.replace("{data}", fmtDataCurta(orcamento.data_expiracao))}</p>}
           </div>
+        </div>
+
+        <div className={cn("space-y-6 p-6 sm:p-8", institucional.logoUrl && "pt-10")}>
+          {(orcamento.texto_proposta || orcamento.objetivos) && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {orcamento.texto_proposta && (
+                <div className="rounded-2xl border border-base-800 bg-base-950/40 p-4">
+                  <div className="mb-2 flex items-center gap-1.5 text-ink-muted">
+                    <IconBriefcase className="h-3.5 w-3.5" />
+                    <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.propostaSecaoTitulo}</p>
+                  </div>
+                  <p className="whitespace-pre-line text-sm text-ink-secondary">{orcamento.texto_proposta}</p>
+                </div>
+              )}
+              {orcamento.objetivos && (
+                <div className="rounded-2xl border border-base-800 bg-base-950/40 p-4">
+                  <div className="mb-2 flex items-center gap-1.5 text-ink-muted">
+                    <IconTarget className="h-3.5 w-3.5" />
+                    <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.objetivosSecaoTitulo}</p>
+                  </div>
+                  <p className="whitespace-pre-line text-sm text-ink-secondary">{orcamento.objetivos}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {itensObrigatorios.length > 0 && (
-            <div className="mb-4">
+            <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.orcamentos.itensInclusosTitulo}</p>
-              <div className="divide-y divide-base-800 rounded-lg border border-base-800">
+              <div className="divide-y divide-base-800 rounded-2xl border border-base-800">
                 {itensObrigatorios.map((item) => (
                   <div key={item.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
                     <div>
@@ -173,10 +229,10 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
           )}
 
           {itensOpcionais.length > 0 && (
-            <div className="mb-4">
+            <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.orcamentos.itensOpcionaisTitulo}</p>
               {podeInteragir && <p className="mb-2 text-xs text-ink-muted">{dict.orcamentos.hintItensOpcionaisPublico}</p>}
-              <div className="divide-y divide-base-800 rounded-lg border border-base-800">
+              <div className="divide-y divide-base-800 rounded-2xl border border-base-800">
                 {itensOpcionais.map((item) => (
                   <label key={item.id} className={`flex items-center justify-between gap-3 px-4 py-2.5 ${podeInteragir ? "cursor-pointer" : ""}`}>
                     <div className="flex items-center gap-3">
@@ -203,11 +259,11 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
           )}
 
           {orcamento.portfolio.length > 0 && (
-            <div className="mb-4">
+            <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.orcamentos.nossosTrabalhosTitulo}</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {orcamento.portfolio.map((item) => (
-                  <div key={item.id} className="relative aspect-video overflow-hidden rounded-lg border border-base-800" title={item.titulo}>
+                  <div key={item.id} className="relative aspect-video overflow-hidden rounded-xl border border-base-800" title={item.titulo}>
                     {item.tipo_midia === "video" ? (
                       <video src={item.url} className="h-full w-full object-cover" muted controls />
                     ) : (
@@ -236,37 +292,70 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
             )}
             <div className="flex justify-between border-t border-base-800 pt-1.5 text-base font-semibold text-ink-primary">
               <span>{dict.orcamentos.totalLabel}</span>
-              <span>{fmtBRL(total)}</span>
+              <span className="bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">{fmtBRL(total)}</span>
             </div>
           </div>
 
           {orcamento.condicoes_pagamento && (
-            <div className="mt-5 border-t border-base-800 pt-4">
+            <div className="border-t border-base-800 pt-5">
               <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.orcamentos.condicoesDePagamentoTitulo}</p>
               <p className="mt-1 text-sm text-ink-secondary">{orcamento.condicoes_pagamento}</p>
             </div>
           )}
 
           {orcamento.observacoes && (
-            <div className="mt-4">
+            <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.orcamentos.observacoesTitulo}</p>
               <p className="mt-1 whitespace-pre-line text-sm text-ink-secondary">{orcamento.observacoes}</p>
             </div>
           )}
 
-          {orcamento.empresaNome && <p className="mt-6 border-t border-base-800 pt-4 text-xs text-ink-muted">{dict.orcamentos.rodapePublico.replace("{empresa}", orcamento.empresaNome)}</p>}
-        </Card>
+          {temQuemSomos && (
+            <div className="border-t border-base-800 pt-5">
+              <div className="mb-2 flex items-center gap-1.5 text-ink-muted">
+                <IconBuilding className="h-3.5 w-3.5" />
+                <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.quemSomosTitulo}</p>
+              </div>
+              {institucional.textoInstitucional && <p className="whitespace-pre-line text-sm text-ink-secondary">{institucional.textoInstitucional}</p>}
+              {institucional.clientesAtendidos.length > 0 && (
+                <div className="mt-3">
+                  <p className="mb-2 text-xs text-ink-muted">{dict.orcamentos.empresasAtendidasTitulo}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {institucional.clientesAtendidos.map((nome, idx) => (
+                      <span key={idx} className="rounded-full border border-base-700 bg-base-800/60 px-2.5 py-1 text-xs text-ink-secondary">
+                        {nome}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {institucional.rodapeUrl && (
+            <div className="-mx-6 -mb-6 overflow-hidden sm:-mx-8 sm:-mb-8">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={institucional.rodapeUrl} alt="" className="h-20 w-full object-cover sm:h-24" />
+            </div>
+          )}
+
+          {orcamento.empresaNome && <p className="border-t border-base-800 pt-4 text-xs text-ink-muted">{dict.orcamentos.rodapePublico.replace("{empresa}", orcamento.empresaNome)}</p>}
+        </div>
       </div>
 
       {podeInteragir && (
-        <div className="flex justify-end gap-2 print:hidden">
-          <Button variant="ghost" onClick={() => setDialogRecusar(true)}>
-            {dict.orcamentos.recusarOrcamentoBtn}
-          </Button>
-          <Button className="gap-1.5" onClick={() => setDialogAprovar(true)}>
-            <IconCheckCircle className="h-4 w-4" />
-            {dict.orcamentos.aprovarOrcamentoBtn}
-          </Button>
+        <div className="rounded-2xl border border-base-800 bg-base-900/60 p-5 print:hidden">
+          <p className="text-sm font-semibold text-ink-primary">{dict.orcamentos.ctaDecisaoTitulo}</p>
+          <p className="mt-1 text-xs text-ink-muted">{dict.orcamentos.ctaDecisaoDescricao}</p>
+          <div className="mt-4 flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setDialogRecusar(true)}>
+              {dict.orcamentos.recusarOrcamentoBtn}
+            </Button>
+            <Button className="gap-1.5" onClick={() => setDialogAprovar(true)}>
+              <IconCheckCircle className="h-4 w-4" />
+              {dict.orcamentos.aprovarOrcamentoBtn}
+            </Button>
+          </div>
         </div>
       )}
 

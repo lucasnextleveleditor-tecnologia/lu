@@ -182,6 +182,8 @@ export interface DadosInstitucionaisOrcamento {
   endereco: string | null;
   logoUrl: string | null;
   bannerUrl: string | null;
+  /** `companies.orc_rodape_path` já resolvido — banner de FECHAMENTO, exibido depois do portfólio/institucional (capa do PDF e página pública), nunca confundir com `bannerUrl` (topo). */
+  rodapeUrl: string | null;
   textoInstitucional: string | null;
   /** `companies.orc_clientes_atendidos` já dividido por linha, com `trim()` e linhas vazias removidas. */
   clientesAtendidos: string[];

@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
   // Capa
   capaPage: { padding: 0, fontSize: 10, fontFamily: "Helvetica", color: "#1a1a1a", lineHeight: 1.5 },
   banner: { width: "100%", height: 140, objectFit: "cover" },
+  rodape: { width: "100%", height: 90, objectFit: "cover", borderRadius: 3, marginTop: 20 },
   capaConteudo: { padding: 48, paddingTop: 24 },
   logo: { width: 72, height: 72, objectFit: "contain", marginBottom: 12 },
   nomeMarca: { fontSize: 22, fontFamily: "Helvetica-Bold" },
@@ -142,6 +143,8 @@ export function OrcamentoPdfDocument({
               </View>
             </View>
           )}
+
+          {institucional.rodapeUrl && <Image src={institucional.rodapeUrl} style={styles.rodape} />}
         </View>
 
         {temRodapeJuridico && (

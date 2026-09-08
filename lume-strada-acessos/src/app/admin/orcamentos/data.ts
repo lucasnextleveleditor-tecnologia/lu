@@ -241,13 +241,14 @@ export async function buscarDadosInstitucionaisEmpresa(): Promise<DadosInstituci
   const [{ data: empresa }, nomeMarca] = await Promise.all([
     supabase
       .from("companies")
-      .select("nome, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_texto_institucional, orc_clientes_atendidos")
+      .select("nome, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_rodape_path, orc_texto_institucional, orc_clientes_atendidos")
       .maybeSingle<{
         nome: string | null;
         cpf_cnpj: string | null;
         endereco: string | null;
         orc_logo_path: string | null;
         orc_banner_path: string | null;
+        orc_rodape_path: string | null;
         orc_texto_institucional: string | null;
         orc_clientes_atendidos: string | null;
       }>(),
@@ -266,6 +267,7 @@ export async function buscarDadosInstitucionaisEmpresa(): Promise<DadosInstituci
     endereco: empresa?.endereco || null,
     logoUrl: empresa?.orc_logo_path ? supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(empresa.orc_logo_path).data.publicUrl : null,
     bannerUrl: empresa?.orc_banner_path ? supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(empresa.orc_banner_path).data.publicUrl : null,
+    rodapeUrl: empresa?.orc_rodape_path ? supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(empresa.orc_rodape_path).data.publicUrl : null,
     textoInstitucional: empresa?.orc_texto_institucional || null,
     clientesAtendidos,
   };
