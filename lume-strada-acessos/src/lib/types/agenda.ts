@@ -49,3 +49,22 @@ export interface CompromissoInput {
   clienteNome: string | null;
   notas: string | null;
 }
+
+/**
+ * Forma ENXUTA de `Compromisso`, pra outros módulos exibirem (só leitura)
+ * compromissos da Agenda dentro do PRÓPRIO calendário deles — hoje usada só
+ * pelo Calendário de Produção (`CalendarioTarefas.tsx`), que mostra os
+ * compromissos manuais de tipo `captacao`/`entrega` (os dois tipos que
+ * também existem nativamente em Produção) ao lado das próprias tarefas,
+ * mesmo espírito "os dois se conversam" do resto da agregação cross-módulo
+ * deste app (ver `CalendarioGeral.tsx` do Dashboard). Compromissos de tipo
+ * `reuniao`/`pagamento` não têm por que aparecer no calendário de Produção —
+ * não fazem parte do domínio dele.
+ */
+export interface CompromissoResumo {
+  id: string;
+  titulo: string;
+  tipo: TipoCompromisso;
+  data: string; // ISO yyyy-mm-dd
+  cliente_nome: string | null;
+}

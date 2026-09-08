@@ -74,6 +74,8 @@ export interface ProducaoDict {
   legendaAltaUrgente: string;
   legendaNormalBaixa: string;
   legendaClientesLabel: string;
+  /** Legenda + tooltip dos itens tracejados no Calendário — compromissos manuais da Agenda (tipo captação/entrega), só leitura. */
+  origemAgendaDica: string;
 
   // Card do Kanban / prefixos de data (`TarefaCard.tsx`).
   subtarefas: string;
@@ -210,6 +212,7 @@ export const producao: ProducaoDict = {
   legendaAltaUrgente: "Alta/Urgente",
   legendaNormalBaixa: "Normal/Baixa",
   legendaClientesLabel: "Clientes:",
+  origemAgendaDica: "Compromisso da Agenda",
 
   subtarefas: "Subtarefas",
   captacaoPrefixo: "Captação: ",

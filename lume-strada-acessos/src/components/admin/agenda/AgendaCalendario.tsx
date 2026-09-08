@@ -174,16 +174,19 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
-      {/* Coluna estreita: filtro por tipo + stat compacto + placeholder do Google Agenda — mesmo agrupamento do concorrente, ao lado do calendário. */}
-      <div className="space-y-5">
+    <div className="space-y-5">
+      {/* Linha de cima: filtro por tipo + stat compacto + placeholder do Google
+          Agenda lado a lado — pedido explícito pra NÃO ocupar espaço vertical
+          do calendário (antes ficavam numa coluna estreita ao lado dele). O
+          calendário abaixo agora usa a largura inteira da tela. */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr_1fr]">
         <Card className="p-4 sm:p-5">
           <p className="mb-3 text-sm font-semibold text-ink-primary">{dict.agenda.filtrarPorTipo}</p>
-          <div className="space-y-2.5">
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
             {TIPO_COMPROMISSO_ORDEM.map((tipo) => {
               const Icon = TIPO_COMPROMISSO_META[tipo].icon;
               return (
-                <label key={tipo} className="flex cursor-pointer items-center gap-2.5 text-sm">
+                <label key={tipo} className="flex cursor-pointer items-center gap-2 text-sm">
                   <input
                     type="checkbox"
                     checked={tiposVisiveis.has(tipo)}
@@ -192,14 +195,14 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
                   />
                   <Icon className="h-4 w-4 shrink-0 text-ink-muted" />
                   <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: corDoTipo(tipo) }} />
-                  <span className="flex-1 text-ink-primary">{labelDoTipo(dict.agenda, tipo)}</span>
+                  <span className="text-ink-primary">{labelDoTipo(dict.agenda, tipo)}</span>
                 </label>
               );
             })}
           </div>
         </Card>
 
-        <Card className="p-4 sm:p-5">
+        <Card className="flex items-center p-4 sm:p-5">
           <div className="flex items-center gap-3">
             <div
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-sm"
@@ -215,26 +218,28 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
         </Card>
 
         {/* Placeholder inerte de propósito — sem OAuth real (ver limite de escopo no plano). Nunca finge um estado "conectado". */}
-        <Card className="p-4 sm:p-5">
-          <Button
-            type="button"
-            variant="ghost"
-            disabled
-            title={dict.agenda.googleCalendarTooltip}
-            className="w-full cursor-not-allowed justify-center gap-1.5"
-          >
-            <IconExternalLink className="h-4 w-4" />
-            {dict.agenda.googleCalendarBtn}
-          </Button>
-          <p className="mt-2 flex justify-center">
-            <span className="rounded-full border border-base-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
-              {dict.agenda.emBreve}
-            </span>
-          </p>
+        <Card className="flex items-center justify-center p-4 sm:p-5">
+          <div className="w-full">
+            <Button
+              type="button"
+              variant="ghost"
+              disabled
+              title={dict.agenda.googleCalendarTooltip}
+              className="w-full cursor-not-allowed justify-center gap-1.5"
+            >
+              <IconExternalLink className="h-4 w-4" />
+              {dict.agenda.googleCalendarBtn}
+            </Button>
+            <p className="mt-2 flex justify-center">
+              <span className="rounded-full border border-base-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
+                {dict.agenda.emBreve}
+              </span>
+            </p>
+          </div>
         </Card>
       </div>
 
-      {/* Coluna larga: grid mensal. */}
+      {/* Calendário — largura total, sem dividir espaço com a coluna lateral. */}
       <Card className="p-4 sm:p-5">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-semibold capitalize">{fmtMesAno(referencia)}</p>

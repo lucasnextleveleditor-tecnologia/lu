@@ -55,6 +55,7 @@ export const producao: ProducaoDict = {
   legendaAltaUrgente: "High/Urgent",
   legendaNormalBaixa: "Normal/Low",
   legendaClientesLabel: "Clients:",
+  origemAgendaDica: "Agenda appointment",
 
   subtarefas: "Subtasks",
   captacaoPrefixo: "Shoot: ",

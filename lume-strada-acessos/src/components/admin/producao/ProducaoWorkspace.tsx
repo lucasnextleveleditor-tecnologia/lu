@@ -3,6 +3,7 @@
 import { useState, type ComponentType } from "react";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { EntregaComVersoes, FuncionarioRow, SubtarefaRow, TarefaComRelacoes, TipoServicoRow } from "@/lib/types/producao";
+import type { CompromissoResumo } from "@/lib/types/agenda";
 import { IconCalendar, IconColumns, IconList, IconPlus, IconSettings } from "@/components/ui/icons";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
@@ -23,6 +24,8 @@ interface ProducaoWorkspaceProps {
   clientes: ClienteRow[];
   funcionarios: FuncionarioRow[];
   tiposServico: TipoServicoRow[];
+  /** Compromissos manuais da Agenda (tipo captação/entrega) — só leitura, exibidos junto no Calendário (ver `CalendarioTarefas.tsx`). */
+  compromissosAgenda: CompromissoResumo[];
 }
 
 export function ProducaoWorkspace({
@@ -32,6 +35,7 @@ export function ProducaoWorkspace({
   clientes: clientesIniciais,
   funcionarios,
   tiposServico,
+  compromissosAgenda,
 }: ProducaoWorkspaceProps) {
   const { dict } = useLocale();
   // Estado local (não só a prop) pra um cliente criado "na hora" (ver
@@ -99,7 +103,14 @@ export function ProducaoWorkspace({
 
       {visao === "kanban" && <KanbanBoard tarefas={tarefas} onAbrirTarefa={setTarefaDetalheId} />}
       {visao === "lista" && <ListaTarefas tarefas={tarefas} onAbrirTarefa={setTarefaDetalheId} />}
-      {visao === "calendario" && <CalendarioTarefas tarefas={tarefas} onAbrirTarefa={setTarefaDetalheId} onNovaTarefa={abrirNovaTarefa} />}
+      {visao === "calendario" && (
+        <CalendarioTarefas
+          tarefas={tarefas}
+          compromissosAgenda={compromissosAgenda}
+          onAbrirTarefa={setTarefaDetalheId}
+          onNovaTarefa={abrirNovaTarefa}
+        />
+      )}
 
       {modalNovaAberto && (
         <TarefaModal

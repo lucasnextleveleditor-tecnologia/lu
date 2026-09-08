@@ -10,6 +10,7 @@ import type {
   TarefaRow,
   TipoServicoRow,
 } from "@/lib/types/producao";
+import type { CompromissoResumo } from "@/lib/types/agenda";
 import { ProducaoWorkspace } from "@/components/admin/producao/ProducaoWorkspace";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
 import { getDictionary } from "@/lib/i18n/getDictionary";
@@ -20,7 +21,7 @@ export default async function ProducaoPage() {
   const { supabase } = await requireModuloOuRedirect("producao");
   const { dict } = await getDictionary();
 
-  const [tarefasRes, subtarefasRes, entregasRes, versoesRes, clientesRes, funcionariosRes, tiposServicoRes] = await Promise.all([
+  const [tarefasRes, subtarefasRes, entregasRes, versoesRes, clientesRes, funcionariosRes, tiposServicoRes, compromissosAgendaRes] = await Promise.all([
     supabase.from("prod_tarefas").select("*").order("data_entrega", { ascending: true }).overrideTypes<TarefaRow[], { merge: false }>(),
     supabase.from("prod_subtarefas").select("*").order("created_at").overrideTypes<SubtarefaRow[], { merge: false }>(),
     supabase.from("prod_entregas").select("*").order("created_at").overrideTypes<EntregaRow[], { merge: false }>(),
@@ -37,6 +38,16 @@ export default async function ProducaoPage() {
     supabase.from("clientes").select("*").order("nome").overrideTypes<ClienteRow[], { merge: false }>(),
     supabase.from("prod_funcionarios").select("*").eq("ativo", true).order("nome").overrideTypes<FuncionarioRow[], { merge: false }>(),
     supabase.from("prod_tipos_servico").select("*").order("nome").overrideTypes<TipoServicoRow[], { merge: false }>(),
+    // Compromissos MANUAIS da Agenda (`/admin/agenda`) de tipo captação/
+    // entrega — só esses dois tipos têm a ver com o domínio de Produção
+    // (reunião/pagamento ficam de fora, ver comentário em `CompromissoResumo`).
+    // Só leitura aqui: quem cria/edita/exclui continua sendo a própria
+    // Agenda, este calendário só EXIBE junto, pro "os dois se conversarem".
+    supabase
+      .from("compromissos")
+      .select("id, titulo, tipo, data, cliente_nome")
+      .in("tipo", ["captacao", "entrega"])
+      .overrideTypes<CompromissoResumo[], { merge: false }>(),
   ]);
 
   const tarefas = tarefasRes.data ?? [];
@@ -46,6 +57,7 @@ export default async function ProducaoPage() {
   const clientes = clientesRes.data ?? [];
   const funcionarios = funcionariosRes.data ?? [];
   const tiposServico = tiposServicoRes.data ?? [];
+  const compromissosAgenda = compromissosAgendaRes.data ?? [];
 
   const clientePorId = new Map(clientes.map((c) => [c.id, c]));
   // Fallback pra tarefa antiga que só tem `cliente_id` (profiles.id) —
@@ -119,6 +131,7 @@ export default async function ProducaoPage() {
           clientes={clientes}
           funcionarios={funcionarios}
           tiposServico={tiposServico}
+          compromissosAgenda={compromissosAgenda}
         />
       </div>
     </div>

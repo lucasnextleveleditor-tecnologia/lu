@@ -1,16 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { TarefaComRelacoes } from "@/lib/types/producao";
+import type { CompromissoResumo } from "@/lib/types/agenda";
 import { addMeses, fmtMesAno, gradeDoMes } from "@/lib/utils/producao";
+import { TIPO_COMPROMISSO_META } from "@/lib/utils/agenda";
+import { useTheme } from "@/lib/theme/ThemeProvider";
 import { Card } from "@/components/ui/Card";
-import { IconChevronLeft, IconChevronRight } from "@/components/ui/icons";
+import { IconChevronLeft, IconChevronRight, IconExternalLink } from "@/components/ui/icons";
 import { DiaTarefasModal } from "@/components/admin/producao/DiaTarefasModal";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface CalendarioTarefasProps {
   tarefas: TarefaComRelacoes[];
+  /** Compromissos manuais da Agenda (tipo captação/entrega) — só leitura, "os dois se conversam" com `/admin/agenda`. */
+  compromissosAgenda: CompromissoResumo[];
   onAbrirTarefa: (id: string) => void;
   onNovaTarefa: (data: string) => void;
 }
@@ -24,8 +30,9 @@ const MAX_VISIVEIS_POR_DIA = 3;
  * já com aquele dia como Prazo de Entrega; "+n mais" abre a visão "grande"
  * do dia (`DiaTarefasModal`), que também permite criar por lá.
  */
-export function CalendarioTarefas({ tarefas, onAbrirTarefa, onNovaTarefa }: CalendarioTarefasProps) {
+export function CalendarioTarefas({ tarefas, compromissosAgenda, onAbrirTarefa, onNovaTarefa }: CalendarioTarefasProps) {
   const { dict } = useLocale();
+  const { theme } = useTheme();
   const DIAS_SEMANA = dict.producao.diasSemana;
   const [referencia, setReferencia] = useState(() => {
     const hoje = new Date();
@@ -40,6 +47,19 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa, onNovaTarefa }: Cale
   for (const t of tarefas) {
     if (!t.data_entrega) continue;
     tarefasPorDia.set(t.data_entrega, [...(tarefasPorDia.get(t.data_entrega) ?? []), t]);
+  }
+
+  // Compromissos manuais da Agenda (captação/entrega) — mapeados à parte dos
+  // `tarefas` de Produção, mas desenhados no MESMO dia no grid. Não têm
+  // `onClick` de abrir tarefa (não são uma `TarefaComRelacoes`): navegam pra
+  // `/admin/agenda`, mesmo padrão dos itens auto-surfados da própria Agenda.
+  const compromissosPorDia = new Map<string, CompromissoResumo[]>();
+  for (const c of compromissosAgenda) {
+    compromissosPorDia.set(c.data, [...(compromissosPorDia.get(c.data) ?? []), c]);
+  }
+  function corDoTipo(tipo: CompromissoResumo["tipo"]): string {
+    const meta = TIPO_COMPROMISSO_META[tipo];
+    return theme === "dark" ? meta.corDark : meta.corLight;
   }
 
   // Legenda de clientes — só os que têm cor escolhida E têm tarefa visível
@@ -105,6 +125,7 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa, onNovaTarefa }: Cale
               const tarefasDoDia = tarefasPorDia.get(dia) ?? [];
               const visiveis = tarefasDoDia.slice(0, MAX_VISIVEIS_POR_DIA);
               const restantes = tarefasDoDia.length - visiveis.length;
+              const compromissosDoDia = compromissosPorDia.get(dia) ?? [];
               const isHoje = dia === hojeIso;
               return (
                 <div
@@ -146,6 +167,25 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa, onNovaTarefa }: Cale
                         <span className="truncate">{t.titulo}</span>
                       </button>
                     ))}
+                    {/* Compromissos manuais da Agenda (captação/entrega) no mesmo dia —
+                        borda tracejada + ícone de link externo, mesmo tratamento visual
+                        dos itens auto-surfados dentro da própria Agenda: só leitura,
+                        clique navega pro módulo de origem, nunca conta pra paginação
+                        "+n mais" (essa continua sendo só de tarefas de Produção). */}
+                    {compromissosDoDia.map((c) => (
+                      <Link
+                        key={c.id}
+                        href="/admin/agenda"
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex w-full items-center gap-1 rounded border border-dashed bg-base-900/60 px-1.5 py-1 text-left text-[11px] font-medium text-ink-primary transition hover:bg-base-800/60"
+                        style={{ borderColor: corDoTipo(c.tipo) }}
+                        title={c.cliente_nome ? `${c.titulo} — ${c.cliente_nome} (${dict.producao.origemAgendaDica})` : `${c.titulo} (${dict.producao.origemAgendaDica})`}
+                      >
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: corDoTipo(c.tipo) }} />
+                        <span className="min-w-0 flex-1 truncate">{c.titulo}</span>
+                        <IconExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+                      </Link>
+                    ))}
                     {restantes > 0 && (
                       <button
                         type="button"
@@ -173,6 +213,11 @@ export function CalendarioTarefas({ tarefas, onAbrirTarefa, onNovaTarefa }: Cale
         <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-base-700" /> {dict.producao.legendaNormalBaixa}
         </span>
+        {compromissosAgenda.length > 0 && (
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-3 shrink-0 rounded-sm border border-dashed border-base-500" /> {dict.producao.origemAgendaDica}
+          </span>
+        )}
       </div>
 
       {clientesComCorNoMes.size > 0 && (
