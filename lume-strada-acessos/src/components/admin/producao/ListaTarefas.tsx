@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { TarefaComRelacoes, StatusTarefa, PrioridadeTarefa } from "@/lib/types/producao";
 import { PRIORIDADE_TAREFA_META, STATUS_TAREFA_META, STATUS_TAREFA_ORDEM, isTarefaAtrasada } from "@/lib/utils/producao";
-import { fmtData } from "@/lib/utils/status";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -176,7 +176,7 @@ export function ListaTarefas({ tarefas, onAbrirTarefa }: ListaTarefasProps) {
                     </td>
                     <td className="py-3 pr-4">
                       <span className={atrasada ? "text-xs font-semibold text-danger" : "text-xs text-ink-muted"}>
-                        {t.data_entrega ? fmtData(t.data_entrega) : "—"}
+                        {t.data_entrega ? fmtDataCurta(t.data_entrega) : "—"}
                       </span>
                     </td>
                     <td className="py-3 pr-4">

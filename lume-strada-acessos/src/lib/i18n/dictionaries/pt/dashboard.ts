@@ -62,6 +62,8 @@ export interface DashboardDict {
   saldoConsolidadoHint: string;
   contasVencidasLabel: string;
   contasVencidasHint: string;
+  contasVencendoHojeLabel: string;
+  contasVencendoHojeHint: string;
   itensEmManutencaoLabel: string;
   emprestadosNoMomento: string;
   nenhumItemEmprestado: string;
@@ -130,6 +132,8 @@ export const dashboard: DashboardDict = {
   saldoConsolidadoHint: "Soma das contas profissionais",
   contasVencidasLabel: "Contas Vencidas",
   contasVencidasHint: "Não pagas, com vencimento já passado",
+  contasVencendoHojeLabel: "Vencendo Hoje",
+  contasVencendoHojeHint: "Não pagas, com vencimento hoje",
   itensEmManutencaoLabel: "Itens em Manutenção",
   emprestadosNoMomento: "{n} emprestado(s) no momento",
   nenhumItemEmprestado: "Nenhum item emprestado",

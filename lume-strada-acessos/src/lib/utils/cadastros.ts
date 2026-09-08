@@ -35,6 +35,7 @@ export const CARDS_DASHBOARD: { chave: DashboardCardChave; label: string }[] = [
   { chave: "valorPropostasAbertas", label: "Propostas Abertas" },
   { chave: "saldoConsolidado", label: "Saldo Consolidado" },
   { chave: "contasVencidas", label: "Contas Vencidas" },
+  { chave: "contasVencendoHoje", label: "Contas Vencendo Hoje" },
   { chave: "financeiroDoMes", label: "Financeiro do Mês" },
   { chave: "resumoInventario", label: "Itens em Manutenção" },
   { chave: "resumoTrafegoHoje", label: "Investido em Ads Hoje" },

@@ -12,8 +12,7 @@ import type {
 import { marcarPago, removerTransacao, removerTransacaoComEscopo, type EscopoExclusaoRecorrencia } from "@/app/admin/financeiro/actions";
 import { calcularStatusTransacao } from "@/lib/types/financeiro";
 import { STATUS_TRANSACAO_META } from "@/lib/utils/financeiro";
-import { fmtBRL, fmtMoedaEstrangeira } from "@/lib/utils/format";
-import { fmtData } from "@/lib/utils/status";
+import { fmtBRL, fmtMoedaEstrangeira, fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -234,7 +233,7 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, for
                       </span>
                     </td>
                     <td className="py-3 pr-4">
-                      <span className="text-xs text-ink-muted">{fmtData(t.data_vencimento)}</span>
+                      <span className="text-xs text-ink-muted">{fmtDataCurta(t.data_vencimento)}</span>
                     </td>
                     <td className="py-3 pr-4">
                       <Badge tone={statusMeta.tone} label={statusMeta.label} />

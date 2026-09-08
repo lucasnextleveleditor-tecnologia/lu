@@ -2,8 +2,7 @@
 
 import type { LeadComRelacoes } from "@/lib/types/comercial";
 import { isFollowUpAtrasado } from "@/lib/utils/comercial";
-import { fmtBRL } from "@/lib/utils/format";
-import { fmtData } from "@/lib/utils/status";
+import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -40,7 +39,7 @@ export function LeadCard({ lead, onClick, className }: LeadCardProps) {
         {lead.proximo_contato_em && (
           <span className={atrasado ? "font-medium text-danger" : ""}>
             {atrasado ? dict.comercial.atrasadoPrefixo : dict.comercial.proximoContatoPrefixo}
-            {fmtData(lead.proximo_contato_em)}
+            {fmtDataCurta(lead.proximo_contato_em)}
           </span>
         )}
       </div>

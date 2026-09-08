@@ -60,8 +60,17 @@ export default async function DashboardPage() {
   const { inicio: inicioMes, fim: fimMes } = limitesDoMes(new Date());
   const amanha = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
-  const [tarefasRes, clientesRes, leadsRes, versoesRes, contasRes, transacoesMesRes, contasVencidasRes, itensInventarioRes] =
-    await Promise.all([
+  const [
+    tarefasRes,
+    clientesRes,
+    leadsRes,
+    versoesRes,
+    contasRes,
+    transacoesMesRes,
+    contasVencidasRes,
+    contasVencendoHojeRes,
+    itensInventarioRes,
+  ] = await Promise.all([
       supabase
         .from("prod_tarefas")
         .select("id, titulo, cliente_id, status, prioridade, data_captacao, data_entrega")
@@ -99,6 +108,20 @@ export default async function DashboardPage() {
             .eq("contexto", "profissional")
             .eq("pago", false)
             .lt("data_vencimento", hoje)
+        : Promise.resolve({ count: null as number | null }),
+      // Diferente de "Contas Vencidas" acima (`data_vencimento < hoje`) —
+      // esta é uma contagem À PARTE pras contas que vencem HOJE (ainda não
+      // atrasadas, mas precisam de atenção hoje). Card próprio, não
+      // misturado no de vencidas — mesmo motivo de "captações hoje" ser
+      // separado de "tarefas atrasadas" logo abaixo: são urgências
+      // diferentes, cada uma com sua contagem.
+      podeVerFinanceiro
+        ? supabase
+            .from("fin_transacoes")
+            .select("id", { count: "exact", head: true })
+            .eq("contexto", "profissional")
+            .eq("pago", false)
+            .eq("data_vencimento", hoje)
         : Promise.resolve({ count: null as number | null }),
       podeVerInventario
         ? supabase.from("itens_inventario").select("status").overrideTypes<{ status: string }[], { merge: false }>()
@@ -193,6 +216,7 @@ export default async function DashboardPage() {
       }
     : null;
   const contasVencidas = podeVerFinanceiro ? (contasVencidasRes.count ?? 0) : null;
+  const contasVencendoHoje = podeVerFinanceiro ? (contasVencendoHojeRes.count ?? 0) : null;
 
   const itensInventario = itensInventarioRes.data;
   const resumoInventario = itensInventario
@@ -223,6 +247,7 @@ export default async function DashboardPage() {
       valorPropostasAbertas={cardVisivel("valorPropostasAbertas") ? valorPropostasAbertas : null}
       saldoConsolidado={cardVisivel("saldoConsolidado") ? saldoConsolidado : null}
       contasVencidas={cardVisivel("contasVencidas") ? contasVencidas : null}
+      contasVencendoHoje={cardVisivel("contasVencendoHoje") ? contasVencendoHoje : null}
       financeiroDoMes={cardVisivel("financeiroDoMes") ? financeiroDoMes : null}
       resumoInventario={cardVisivel("resumoInventario") ? resumoInventario : null}
       resumoTrafegoHoje={cardVisivel("resumoTrafegoHoje") ? resumoTrafegoHoje : null}

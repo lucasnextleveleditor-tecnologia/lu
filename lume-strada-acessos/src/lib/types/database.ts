@@ -51,6 +51,7 @@ export type DashboardCardChave =
   | "valorPropostasAbertas"
   | "saldoConsolidado"
   | "contasVencidas"
+  | "contasVencendoHoje"
   | "financeiroDoMes"
   | "resumoInventario"
   | "resumoTrafegoHoje"

@@ -46,6 +46,8 @@ interface VisaoGeralProps {
   saldoConsolidado: number | null;
   /** Contas não pagas com vencimento já passado. */
   contasVencidas: number | null;
+  /** Contas não pagas que vencem HOJE — separado de `contasVencidas` de propósito (urgência diferente: ainda não atrasou, mas precisa de atenção hoje). */
+  contasVencendoHoje: number | null;
   financeiroDoMes: { receitas: number; despesas: number } | null;
   resumoInventario: { manutencao: number; emprestados: number } | null;
   /** Soma de todos os clientes, hoje. */
@@ -103,6 +105,7 @@ export async function VisaoGeral({
   valorPropostasAbertas,
   saldoConsolidado,
   contasVencidas,
+  contasVencendoHoje,
   financeiroDoMes,
   resumoInventario,
   resumoTrafegoHoje,
@@ -112,7 +115,7 @@ export async function VisaoGeral({
   const { dict } = await getDictionary();
   const mostrarProducao = captacoesHoje !== null || entregasHoje !== null || tarefasAtrasadas !== null || entregasAguardandoAprovacao !== null;
   const mostrarComercial = leadsEmAberto !== null || followUpsAtrasados !== null || valorPropostasAbertas !== null;
-  const mostrarFinanceiro = saldoConsolidado !== null || contasVencidas !== null || financeiroDoMes !== null;
+  const mostrarFinanceiro = saldoConsolidado !== null || contasVencidas !== null || contasVencendoHoje !== null || financeiroDoMes !== null;
   const mostrarInventario = resumoInventario !== null;
   const mostrarTrafego = resumoTrafegoHoje !== null;
   const mostrarWhatsapp = whatsapp !== null;
@@ -207,7 +210,7 @@ export async function VisaoGeral({
       {mostrarFinanceiro && (
         <SecaoDashboard icon={IconWallet} titulo={dict.dashboard.secaoFinanceiro} acao={<OlhoValoresToggle />}>
           <div className="space-y-4">
-            {(saldoConsolidado !== null || contasVencidas !== null) && (
+            {(saldoConsolidado !== null || contasVencidas !== null || contasVencendoHoje !== null) && (
               <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {saldoConsolidado !== null && (
                   <StatTile
@@ -224,6 +227,15 @@ export async function VisaoGeral({
                     value={contasVencidas}
                     tone={contasVencidas > 0 ? "critical" : "neutral"}
                     hint={dict.dashboard.contasVencidasHint}
+                  />
+                )}
+                {contasVencendoHoje !== null && (
+                  <StatTile
+                    icon={IconAlertTriangle}
+                    label={dict.dashboard.contasVencendoHojeLabel}
+                    value={contasVencendoHoje}
+                    tone={contasVencendoHoje > 0 ? "warning" : "neutral"}
+                    hint={dict.dashboard.contasVencendoHojeHint}
                   />
                 )}
               </div>

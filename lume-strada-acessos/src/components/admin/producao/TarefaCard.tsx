@@ -2,7 +2,7 @@
 
 import type { TarefaComRelacoes, PrioridadeTarefa } from "@/lib/types/producao";
 import { PRIORIDADE_TAREFA_META, calcularProgressoSubtarefas, isTarefaAtrasada } from "@/lib/utils/producao";
-import { fmtData } from "@/lib/utils/status";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { Meter } from "@/components/ui/Meter";
 import { PillTag } from "@/components/admin/producao/PillTag";
 import { cn } from "@/lib/utils/cn";
@@ -92,13 +92,13 @@ export function TarefaCard({ tarefa, onClick, className }: TarefaCardProps) {
           {tarefa.data_captacao && (
             <span>
               {dict.producao.captacaoPrefixo}
-              {fmtData(tarefa.data_captacao)}
+              {fmtDataCurta(tarefa.data_captacao)}
             </span>
           )}
           {tarefa.data_entrega && (
             <span className={atrasada ? "font-semibold text-danger" : ""}>
               {atrasada ? dict.producao.atrasadaPrefixo : dict.producao.prazoPrefixo}
-              {fmtData(tarefa.data_entrega)}
+              {fmtDataCurta(tarefa.data_entrega)}
             </span>
           )}
         </div>

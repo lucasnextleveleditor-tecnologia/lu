@@ -4,8 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import type { CategoriaInventarioRow, ItemInventarioComCategoria } from "@/lib/types/database";
 import { removerItem } from "@/app/admin/inventario/actions";
 import { STATUS_ITEM_META, STATUS_ITEM_OPCOES, calcularDepreciacao } from "@/lib/utils/inventario";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
-import { fmtData } from "@/lib/utils/status";
+import { fmtBRL, fmtPercent, fmtDataCurta } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -174,7 +173,7 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
                       <span className="text-xs text-ink-secondary">{item.responsavel_atual || "—"}</span>
                     </td>
                     <td className="py-3 pr-4">
-                      <span className="text-xs text-ink-muted">{item.data_aquisicao ? fmtData(item.data_aquisicao) : "—"}</span>
+                      <span className="text-xs text-ink-muted">{item.data_aquisicao ? fmtDataCurta(item.data_aquisicao) : "—"}</span>
                     </td>
                     <td className="py-3 pr-4">
                       {item.valor_pago != null || item.valor_atual != null ? (

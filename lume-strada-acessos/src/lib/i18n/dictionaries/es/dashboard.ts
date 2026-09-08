@@ -56,6 +56,8 @@ export const dashboard: DashboardDict = {
   saldoConsolidadoHint: "Suma de las cuentas profesionales",
   contasVencidasLabel: "Cuentas Vencidas",
   contasVencidasHint: "No pagadas, con vencimiento pasado",
+  contasVencendoHojeLabel: "Vencen Hoy",
+  contasVencendoHojeHint: "No pagadas, con vencimiento hoy",
   itensEmManutencaoLabel: "Artículos en Mantenimiento",
   emprestadosNoMomento: "{n} prestado(s) en este momento",
   nenhumItemEmprestado: "Ningún artículo prestado",

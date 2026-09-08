@@ -3,7 +3,8 @@
 import { useEffect, useState, useTransition } from "react";
 import type { ClienteAtividadeRow, TipoAtividadeCliente } from "@/lib/types/cadastros";
 import { listarAtividades, criarAtividade, alternarConcluida, removerAtividade } from "@/app/admin/actions";
-import { fmtData, fmtDataHora } from "@/lib/utils/status";
+import { fmtDataHora } from "@/lib/utils/status";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
@@ -141,7 +142,7 @@ export function AtividadesManager({ clienteId }: { clienteId: string }) {
                   </p>
                   <p className="mt-0.5 text-[11px] text-ink-muted">
                     {atividade.tipo === "tarefa" ? dict.cadastros.tarefa : dict.cadastros.nota}
-                    {atividade.data_prevista && ` · ${dict.cadastros.previstaParaLabel} ${fmtData(atividade.data_prevista)}`}
+                    {atividade.data_prevista && ` · ${dict.cadastros.previstaParaLabel} ${fmtDataCurta(atividade.data_prevista)}`}
                     {` · ${fmtDataHora(atividade.created_at)}`}
                   </p>
                 </div>

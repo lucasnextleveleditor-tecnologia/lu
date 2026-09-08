@@ -3,8 +3,7 @@
 import { useMemo, useState } from "react";
 import type { LeadComRelacoes } from "@/lib/types/comercial";
 import { STATUS_LEAD_META, STATUS_LEAD_ORDEM, isFollowUpAtrasado } from "@/lib/utils/comercial";
-import { fmtBRL } from "@/lib/utils/format";
-import { fmtData } from "@/lib/utils/status";
+import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
@@ -129,7 +128,7 @@ export function ListaLeads({ leads, onAbrirLead }: ListaLeadsProps) {
                     </td>
                     <td className="py-3 pr-4">
                       <span className={atrasado ? "text-xs font-medium text-danger" : "text-xs text-ink-muted"}>
-                        {l.proximo_contato_em ? fmtData(l.proximo_contato_em) : "—"}
+                        {l.proximo_contato_em ? fmtDataCurta(l.proximo_contato_em) : "—"}
                       </span>
                     </td>
                     <td className="py-3 pr-4 text-right">
