@@ -286,6 +286,31 @@ export interface OrcamentosDict {
   calcItemNomePlaceholder: string;
   calcCriarOrcamentoBtn: string;
   calcAvisoNaoSalva: string;
+
+  // Calculadora de Margem v2 — blocos de custo (Serviços/Equipamentos/
+  // Impostos/Custo Fixo) + margem desejada calculando o preço pra trás, em
+  // vez do modelo antigo de digitar venda E custo por item.
+  calcBlocoServicosTitulo: string;
+  calcBlocoEquipamentosTitulo: string;
+  calcBlocoImpostosTitulo: string;
+  calcBlocoCustoFixoTitulo: string;
+  calcEquipamentoPlaceholder: string;
+  calcEquipamentoVazio: string;
+  calcEquipamentoPersonalizadoBtn: string;
+  calcAliquotaLabel: string;
+  calcCustoFixoBaseLabel: string;
+  calcCustoFixoBaseHint: string;
+  calcCustoFixoBaseVazioHint: string;
+  calcCustoFixoPercentualLabel: string;
+  calcMargemDesejadaLabel: string;
+  calcMargemHint: string;
+  calcValorFinalLabel: string;
+  calcCustoOperacionalLabel: string;
+  calcImpostoEstimadoLabel: string;
+  calcDemonstrativoTitulo: string;
+  calcAvisoImpostoMargemLimite: string;
+  calcDicaFreelancer: string;
+  calcSemServicosParaCriar: string;
 }
 
 export const orcamentos: OrcamentosDict = {
@@ -540,18 +565,40 @@ export const orcamentos: OrcamentosDict = {
   abaContratoBloqueadaHint: "Aprove o orçamento pra liberar o contrato.",
 
   calculadoraTitulo: "Calculadora de Margem",
-  calculadoraSubtitulo: "Simule preço, custo e margem antes de transformar isso num orçamento de verdade — nada aqui é salvo automaticamente.",
+  calculadoraSubtitulo: "Lance seus custos, escolha a margem desejada e deixe a calculadora sugerir o preço final — nada aqui é salvo automaticamente.",
   calcStatSubtotalVenda: "Total (venda)",
   calcStatCustoTotal: "Custo total",
   calcStatLucro: "Lucro estimado",
   calcStatMargem: "Margem",
-  calcAdicionarItensTitulo: "Adicionar itens à simulação",
-  calcItensTitulo: "Itens da Simulação",
-  calcItensVazio: "Nenhum item ainda — adicione serviços do catálogo ou um item personalizado pra começar a simular.",
+  calcAdicionarItensTitulo: "Adicionar serviços à simulação",
+  calcItensTitulo: "Serviços da Simulação",
+  calcItensVazio: "Nenhum serviço ainda — adicione do catálogo ou um item personalizado pra começar a simular.",
   calcColVendaUnit: "Venda unit.",
   calcColCustoUnit: "Custo unit.",
   calcItemNomeLabel: "Nome do item",
   calcItemNomePlaceholder: "Ex: Sessão de 2h",
   calcCriarOrcamentoBtn: "Criar orçamento com esses itens",
   calcAvisoNaoSalva: "Essa simulação não é salva em lugar nenhum — se você sair da página, os números somem. Quando fechar o preço, use \"Criar orçamento com esses itens\" pra levar tudo pro construtor de verdade.",
+
+  calcBlocoServicosTitulo: "Serviços (mão de obra)",
+  calcBlocoEquipamentosTitulo: "Equipamentos",
+  calcBlocoImpostosTitulo: "Impostos",
+  calcBlocoCustoFixoTitulo: "Custo Fixo / Fee",
+  calcEquipamentoPlaceholder: "+ Adicionar equipamento do inventário...",
+  calcEquipamentoVazio: "Nenhum equipamento vinculado ainda.",
+  calcEquipamentoPersonalizadoBtn: "Equipamento fora do inventário",
+  calcAliquotaLabel: "Alíquota de impostos (%)",
+  calcCustoFixoBaseLabel: "Base de custo fixo mensal",
+  calcCustoFixoBaseHint: "Somado automaticamente das suas despesas recorrentes no Financeiro — edite se quiser simular outro valor.",
+  calcCustoFixoBaseVazioHint: "Nenhuma despesa recorrente encontrada no Financeiro — digite uma estimativa manual.",
+  calcCustoFixoPercentualLabel: "% rateado para este projeto",
+  calcMargemDesejadaLabel: "Margem desejada",
+  calcMargemHint: "Recalcula o valor final do projeto abaixo, em tempo real.",
+  calcValorFinalLabel: "Valor final do projeto",
+  calcCustoOperacionalLabel: "Custo operacional total",
+  calcImpostoEstimadoLabel: "Imposto estimado",
+  calcDemonstrativoTitulo: "Demonstrativo de cálculo",
+  calcAvisoImpostoMargemLimite: "Imposto + margem não pode passar de 99% — ajuste os valores pra calcular um preço válido.",
+  calcDicaFreelancer: "Trabalha sozinho(a)? Lembre-se de incluir seu próprio tempo como um custo de serviço aqui — o Lucro Estimado é o que sobra pra reinvestir no negócio, não o seu salário.",
+  calcSemServicosParaCriar: "Adicione pelo menos um serviço pra poder criar um orçamento a partir dessa simulação.",
 };

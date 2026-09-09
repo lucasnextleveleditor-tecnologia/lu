@@ -14,6 +14,7 @@ import { OrcamentosManager } from "@/components/admin/orcamentos/OrcamentosManag
 import { CalculadoraMargem } from "@/components/admin/orcamentos/CalculadoraMargem";
 import { ConfiguracoesOrcamentoMenu } from "@/components/admin/orcamentos/ConfiguracoesOrcamentoMenu";
 import { buscarDadosOrcamentos, buscarDadosCatalogo } from "@/app/admin/orcamentos/data";
+import { buscarEquipamentosParaCalculadora, buscarCustoFixoMensalEstimado } from "@/app/admin/orcamentos/calculadora-data";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
@@ -134,6 +135,8 @@ export default async function ComercialHubPage({ searchParams }: { searchParams:
 
   const dadosOrcamentos = (abaAtiva === "funil" || abaAtiva === "propostas") && podeOrcamentos ? await buscarDadosOrcamentos({}) : null;
   const dadosCatalogo = abaAtiva === "calculadora" && podeOrcamentos ? await buscarDadosCatalogo() : null;
+  const [equipamentos, custoFixoMensalEstimado] =
+    abaAtiva === "calculadora" && podeOrcamentos ? await Promise.all([buscarEquipamentosParaCalculadora(), buscarCustoFixoMensalEstimado()]) : [[], 0];
 
   return (
     <div className="space-y-6">
@@ -210,7 +213,14 @@ export default async function ComercialHubPage({ searchParams }: { searchParams:
         </div>
       )}
 
-      {abaAtiva === "calculadora" && dadosCatalogo && <CalculadoraMargem categorias={dadosCatalogo.categorias} servicosComCategoria={dadosCatalogo.servicosComCategoria} />}
+      {abaAtiva === "calculadora" && dadosCatalogo && (
+        <CalculadoraMargem
+          categorias={dadosCatalogo.categorias}
+          servicosComCategoria={dadosCatalogo.servicosComCategoria}
+          equipamentos={equipamentos}
+          custoFixoMensalEstimado={custoFixoMensalEstimado}
+        />
+      )}
     </div>
   );
 }
