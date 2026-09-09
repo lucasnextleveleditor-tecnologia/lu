@@ -20,6 +20,7 @@ import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { IconPlus } from "@/components/ui/icons";
 import { NovoFornecedorModal } from "@/components/admin/financeiro/NovoFornecedorModal";
+import { AnexosTransacaoSection } from "@/components/admin/financeiro/AnexosTransacaoSection";
 import { fmtBRL, fmtMoedaEstrangeira } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -582,6 +583,15 @@ export function TransacaoModal({
                 </>
               )}
             </div>
+          )}
+
+          {/* Anexos (nota fiscal/recibo, comprovante de pagamento) — só em modo
+              edição, porque o upload precisa de um `transacaoId` já existente
+              pra montar o path no Storage (ver comentário no componente). */}
+          {editando ? (
+            <AnexosTransacaoSection transacaoId={editando.id} />
+          ) : (
+            <p className="text-xs text-ink-muted">{dict.financeiro.anexosApenasEdicaoHint}</p>
           )}
 
           {error && <p className="text-sm text-danger">{error}</p>}

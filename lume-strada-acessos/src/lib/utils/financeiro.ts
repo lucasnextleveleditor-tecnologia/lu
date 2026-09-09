@@ -1,6 +1,14 @@
 import type { StatusTransacao } from "@/lib/types/financeiro";
 import type { Tone } from "@/lib/utils/tone";
 
+/**
+ * Limite de tamanho pro anexo de transação (nota fiscal/recibo, comprovante
+ * de pagamento) — só um AVISO pro usuário antes do upload; o limite que de
+ * fato vale é o `file_size_limit` do bucket "financeiro" (ver
+ * `supabase/financeiro-anexos.sql`). Mantenha os dois em sincronia.
+ */
+export const ANEXO_TRANSACAO_TAMANHO_MAX_BYTES = 20 * 1024 * 1024; // 20MB
+
 // "Paga" e "Pendente" dividem o mesmo tone (bom/neutro) que outros módulos
 // já usam — "Vencida" é sempre `critical`, é o único estado que precisa de
 // ação imediata do admin.

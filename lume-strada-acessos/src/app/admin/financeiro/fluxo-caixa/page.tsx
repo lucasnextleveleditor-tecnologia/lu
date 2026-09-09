@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtMesAno } from "@/lib/utils/financeiro";
 import { StatTile } from "@/components/ui/StatTile";
 import { Card } from "@/components/ui/Card";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
-import { IconWallet, IconTrendingDown, IconChevronLeft, IconAlertTriangle, IconActivity } from "@/components/ui/icons";
+import { IconWallet, IconTrendingDown, IconChevronLeft, IconAlertTriangle, IconActivity, IconBarChart2, IconCalendar } from "@/components/ui/icons";
 import { ContextoToggle } from "@/components/admin/financeiro/ContextoToggle";
+import { MesNav } from "@/components/admin/financeiro/MesNav";
 import { PeriodoFluxoCaixaToggle } from "@/components/admin/financeiro/PeriodoFluxoCaixaToggle";
 import { FluxoCaixaChart } from "@/components/admin/financeiro/FluxoCaixaChart";
+import { DreMensal } from "@/components/admin/financeiro/DreMensal";
+import { FluxoDiarioTable } from "@/components/admin/financeiro/FluxoDiarioTable";
 import { getDictionary } from "@/lib/i18n/getDictionary";
-import { buscarFluxoCaixa, type FluxoCaixaSearchParams } from "@/app/admin/financeiro/fluxo-caixa/data";
+import { buscarFluxoCaixa, buscarFluxoMensal, type FluxoCaixaSearchParams } from "@/app/admin/financeiro/fluxo-caixa/data";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +33,13 @@ export default async function FluxoCaixaPage({ searchParams }: FluxoCaixaPagePro
   const { dict } = await getDictionary();
   const t = dict.financeiro.fluxoCaixa;
   const params = await searchParams;
-  const { contexto, dias, saldoInicial, pontos } = await buscarFluxoCaixa(params);
+  // Independentes entre si — a projeção (`dias`, daqui pra frente) e a
+  // DRE/Fluxo Diário (`mes`, navegação por calendário) são duas seções
+  // separadas da mesma tela, cada uma com sua própria busca.
+  const [{ contexto, dias, saldoInicial, pontos }, { referencia: referenciaMes, mesParamStr, dre, diario }] = await Promise.all([
+    buscarFluxoCaixa(params),
+    buscarFluxoMensal(params),
+  ]);
 
   const saldoFinal = pontos.at(-1)?.saldoProjetado ?? saldoInicial;
   const pontoMaisBaixo = pontos.reduce((menor, p) => (p.saldoProjetado < menor.saldoProjetado ? p : menor), {
@@ -57,14 +67,15 @@ export default async function FluxoCaixaPage({ searchParams }: FluxoCaixaPagePro
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <OlhoValoresToggle />
-            <ContextoToggle referencia={new Date()} contexto={contexto} basePath="/admin/financeiro/fluxo-caixa" />
+            <ContextoToggle referencia={referenciaMes} contexto={contexto} basePath="/admin/financeiro/fluxo-caixa" dias={dias} />
+            <MesNav referencia={referenciaMes} contexto={contexto} basePath="/admin/financeiro/fluxo-caixa" dias={dias} />
           </div>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{t.periodoLabel}</span>
-        <PeriodoFluxoCaixaToggle dias={dias} contexto={contexto} />
+        <PeriodoFluxoCaixaToggle dias={dias} contexto={contexto} mes={mesParamStr} />
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
@@ -102,6 +113,36 @@ export default async function FluxoCaixaPage({ searchParams }: FluxoCaixaPagePro
         </div>
         <FluxoCaixaChart pontos={pontos} />
       </Card>
+
+      {/* DRE Mensal + Fluxo de Caixa Diário — pedido explícito do dono da
+          conta, navegados pelo `MesNav` do cabeçalho (não pelo "Período" da
+          projeção acima, que é uma janela daqui pra frente, não um mês do
+          calendário). Mesmo layout 2/3 colunas já usado pra "Receita x
+          Despesa"/"Despesas por Categoria" na página principal do
+          Financeiro — a DRE é o bloco mais compacto, a tabela diária é a
+          que mais precisa de largura. */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <Card className="lg:col-span-2">
+          <div className="mb-4 flex items-center gap-2">
+            <IconBarChart2 className="h-4 w-4 text-ink-muted" />
+            <div>
+              <h2 className="text-sm font-semibold text-ink-primary">{t.dreMensalTitulo}</h2>
+              <p className="text-xs capitalize text-ink-muted">{fmtMesAno(referenciaMes)}</p>
+            </div>
+          </div>
+          <DreMensal dre={dre} />
+        </Card>
+        <Card className="lg:col-span-3">
+          <div className="mb-4 flex items-center gap-2">
+            <IconCalendar className="h-4 w-4 text-ink-muted" />
+            <div>
+              <h2 className="text-sm font-semibold text-ink-primary">{t.diarioTitulo}</h2>
+              <p className="text-xs text-ink-muted">{t.diarioSubtitulo}</p>
+            </div>
+          </div>
+          <FluxoDiarioTable diario={diario} />
+        </Card>
+      </div>
     </div>
   );
 }

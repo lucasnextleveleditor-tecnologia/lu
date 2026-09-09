@@ -98,6 +98,22 @@ export const financeiro: FinanceiroDict = {
     graficoSaldoNegativoLegenda: "Saldo negativo",
     graficoTooltip: "{data}: {valor}",
     semDados: "No hay cuentas registradas para proyectar el saldo.",
+
+    dreMensalTitulo: "DRE Mensual",
+    receitaBrutaLabel: "Ingreso Bruto",
+    despesasLabel: "Gastos",
+    resultadoLiquidoLabel: "Resultado Neto",
+    dreVazio: "Ningún ingreso o gasto registrado este mes.",
+
+    diarioTitulo: "Flujo de Caja Diario",
+    diarioSubtitulo: "Entradas y salidas de cada día con movimiento, más el acumulado del mes.",
+    colDataLabel: "Fecha",
+    colEntradasLabel: "Entradas",
+    colSaidasLabel: "Salidas",
+    colSaldoDiaLabel: "Saldo del Día",
+    colAcumuladoLabel: "Acumulado del Mes",
+    totalDoMesLabel: "Total del Mes",
+    diarioVazio: "Ningún movimiento registrado este mes.",
   },
 
   tituloPagina: "Finanzas",
@@ -326,4 +342,13 @@ export const financeiro: FinanceiroDict = {
   excluirSomenteEstaBtn: "Solo esta",
   excluirEstaEFuturasBtn: "Esta y las futuras",
   excluirTodasDaSerieBtn: "Esta, las futuras y las anteriores",
+
+  anexosTitulo: "Adjuntos",
+  notaFiscalLabel: "Factura / Recibo",
+  comprovantePagamentoLabel: "Comprobante de Pago",
+  anexarBtn: "Adjuntar",
+  anexoEnviandoLabel: "Enviando...",
+  nenhumAnexoEnviado: "Ningún archivo adjuntado todavía.",
+  anexoMuitoGrande: "Archivo demasiado grande — el límite es 20MB.",
+  anexosApenasEdicaoHint: "Guarda la transacción primero para poder adjuntar archivos.",
 };

@@ -6,17 +6,19 @@ import { getDictionary } from "@/lib/i18n/getDictionary";
 interface PeriodoFluxoCaixaToggleProps {
   dias: DiasFluxoCaixa;
   contexto: string;
+  /** yyyy-MM do `MesNav` (DRE Mensal/Fluxo Diário) — repassado só pra não resetar o mês navegado ao trocar a janela de projeção. */
+  mes?: string;
 }
 
 /** Alterna a janela de projeção (15/30/60/90 dias) — mesmo padrão de navegação por link (sem JS no cliente) de `ContextoToggle`. */
-export async function PeriodoFluxoCaixaToggle({ dias, contexto }: PeriodoFluxoCaixaToggleProps) {
+export async function PeriodoFluxoCaixaToggle({ dias, contexto, mes }: PeriodoFluxoCaixaToggleProps) {
   const { dict } = await getDictionary();
 
   return (
     <div className="inline-flex rounded-lg border border-base-700 bg-base-900/60 p-1">
       {OPCOES_DIAS.map((opcao) => {
         const active = dias === opcao;
-        const href = `/admin/financeiro/fluxo-caixa?dias=${opcao}${contexto !== "todos" ? `&contexto=${contexto}` : ""}`;
+        const href = `/admin/financeiro/fluxo-caixa?dias=${opcao}${contexto !== "todos" ? `&contexto=${contexto}` : ""}${mes ? `&mes=${mes}` : ""}`;
         return (
           <Link
             key={opcao}

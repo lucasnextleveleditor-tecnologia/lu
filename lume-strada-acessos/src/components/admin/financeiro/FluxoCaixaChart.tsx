@@ -13,7 +13,17 @@ interface FluxoCaixaChartProps {
 
 const ALTURA_GRAFICO = 160;
 const ALTURA_TOTAL = 220;
-const LARGURA_MIN_POR_DIA = 12;
+// 28px/dia (não 12) + piso de 480 (não 320) — o valor antigo deixava a
+// largura "de desenho" (viewBox) bem menor que a largura real do card
+// (quase sempre >1000px numa tela normal); combinado com `w-full` +
+// `preserveAspectRatio="none"`, isso ESTICAVA a linha horizontalmente 3-5x
+// sem esticar a altura junto, achatando o gráfico (segmentos quase retos
+// cortados por saltos verticais bruscos — o "muito esticado" reportado).
+// A correção de verdade é abaixo: o SVG passa a ter largura FIXA em px
+// (igual ao viewBox, escala 1:1 sem distorção), centralizada no card — com
+// `overflow-x-auto` só entrando em ação em telas menores que essa largura.
+const LARGURA_MIN_POR_DIA = 28;
+const LARGURA_MIN_TOTAL = 480;
 const PAD_LATERAL = 12;
 
 // Mesmas cores fixas do sistema de status já usadas em `GraficoReceitaDespesa`
@@ -53,7 +63,7 @@ export function FluxoCaixaChart({ pontos }: FluxoCaixaChartProps) {
     );
   }
 
-  const largura = Math.max(pontos.length * LARGURA_MIN_POR_DIA, 320);
+  const largura = Math.max(pontos.length * LARGURA_MIN_POR_DIA, LARGURA_MIN_TOTAL);
   const passoX = (largura - PAD_LATERAL * 2) / Math.max(pontos.length - 1, 1);
   const amplitude = max - min || 1;
 
@@ -77,9 +87,8 @@ export function FluxoCaixaChart({ pontos }: FluxoCaixaChartProps) {
       <div className="overflow-x-auto">
         <svg
           viewBox={`0 0 ${largura} ${ALTURA_TOTAL}`}
-          className="h-[220px] w-full"
-          style={{ minWidth: pontos.length * LARGURA_MIN_POR_DIA }}
-          preserveAspectRatio="none"
+          className="mx-auto block h-[220px]"
+          style={{ width: largura }}
         >
           {min < 0 && (
             <line

@@ -111,6 +111,24 @@ export interface FluxoCaixaDict {
   graficoSaldoNegativoLegenda: string;
   graficoTooltip: string;
   semDados: string;
+
+  // DRE Mensal (DreMensal) — navegada pelo MesNav, independente do período de projeção acima
+  dreMensalTitulo: string;
+  receitaBrutaLabel: string;
+  despesasLabel: string;
+  resultadoLiquidoLabel: string;
+  dreVazio: string;
+
+  // Fluxo de Caixa Diário (FluxoDiarioTable)
+  diarioTitulo: string;
+  diarioSubtitulo: string;
+  colDataLabel: string;
+  colEntradasLabel: string;
+  colSaidasLabel: string;
+  colSaldoDiaLabel: string;
+  colAcumuladoLabel: string;
+  totalDoMesLabel: string;
+  diarioVazio: string;
 }
 
 export interface FinanceiroDict {
@@ -370,6 +388,17 @@ export interface FinanceiroDict {
   excluirSomenteEstaBtn: string;
   excluirEstaEFuturasBtn: string;
   excluirTodasDaSerieBtn: string;
+
+  // AnexosTransacaoSection — nota fiscal/recibo e comprovante de pagamento,
+  // opcionais, só disponíveis em modo edição (ver comentário no componente).
+  anexosTitulo: string;
+  notaFiscalLabel: string;
+  comprovantePagamentoLabel: string;
+  anexarBtn: string;
+  anexoEnviandoLabel: string;
+  nenhumAnexoEnviado: string;
+  anexoMuitoGrande: string;
+  anexosApenasEdicaoHint: string;
 }
 
 export const financeiro: FinanceiroDict = {
@@ -470,6 +499,22 @@ export const financeiro: FinanceiroDict = {
     graficoSaldoNegativoLegenda: "Saldo negativo",
     graficoTooltip: "{data}: {valor}",
     semDados: "Nenhuma conta cadastrada para projetar o saldo.",
+
+    dreMensalTitulo: "DRE Mensal",
+    receitaBrutaLabel: "Receita Bruta",
+    despesasLabel: "Despesas",
+    resultadoLiquidoLabel: "Resultado Líquido",
+    dreVazio: "Nenhuma receita ou despesa lançada nesse mês.",
+
+    diarioTitulo: "Fluxo de Caixa Diário",
+    diarioSubtitulo: "Entradas e saídas de cada dia com movimentação, mais o acumulado do mês.",
+    colDataLabel: "Data",
+    colEntradasLabel: "Entradas",
+    colSaidasLabel: "Saídas",
+    colSaldoDiaLabel: "Saldo do Dia",
+    colAcumuladoLabel: "Acumulado no Mês",
+    totalDoMesLabel: "Total do Mês",
+    diarioVazio: "Nenhuma movimentação lançada nesse mês.",
   },
 
   tituloPagina: "Financeiro",
@@ -698,4 +743,13 @@ export const financeiro: FinanceiroDict = {
   excluirSomenteEstaBtn: "Só esta",
   excluirEstaEFuturasBtn: "Esta e as futuras",
   excluirTodasDaSerieBtn: "Esta, as futuras e as anteriores",
+
+  anexosTitulo: "Anexos",
+  notaFiscalLabel: "Nota Fiscal / Recibo",
+  comprovantePagamentoLabel: "Comprovante de Pagamento",
+  anexarBtn: "Anexar",
+  anexoEnviandoLabel: "Enviando...",
+  nenhumAnexoEnviado: "Nenhum arquivo anexado ainda.",
+  anexoMuitoGrande: "Arquivo muito grande — o limite é 20MB.",
+  anexosApenasEdicaoHint: "Salve a transação primeiro para poder anexar arquivos.",
 };

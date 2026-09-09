@@ -3,14 +3,19 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
-import type { FinContexto, FinRecorrencia, FinTipoTransacao, MoedaEstrangeira } from "@/lib/types/financeiro";
+import type { FinContexto, FinRecorrencia, FinTipoTransacao, MoedaEstrangeira, TipoAnexoTransacao, TransacaoAnexoRow } from "@/lib/types/financeiro";
 import { addDaysISO, addMonthsISO } from "@/lib/utils/format";
+import { ehExtensaoPerigosaParaEntrega } from "@/lib/utils/upload";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
 export type EscopoExclusaoRecorrencia = "somente_esta" | "esta_e_futuras" | "todas";
+export type ListaAnexosResult = { ok: true; anexos: TransacaoAnexoRow[] } | { ok: false; error: string };
+export type SignedUrlResult = { ok: true; url: string } | { ok: false; error: string };
+export type UploadAssinadoResult = { ok: true; path: string; token: string } | { ok: false; error: string };
 
 const PATH = "/admin/financeiro";
+const BUCKET_ANEXOS = "financeiro";
 
 // ----------------------------------------------------------------------------
 // Recorrência — quantas ocorrências FUTURAS já nascem lançadas de uma vez,
@@ -746,6 +751,114 @@ export async function criarTransacaoParcelada(input: CriarTransacaoParceladaInpu
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
     return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Anexos de transação — nota fiscal/recibo e comprovante de pagamento.
+// Opcionais, tabela própria (`fin_transacao_anexos`), bucket privado
+// "financeiro" (ver `supabase/financeiro-anexos.sql`). Mesmo fluxo de signed
+// upload URL já usado em Produção (`criarUploadAssinadoVersao`/
+// `confirmarVersaoArquivo` em `app/admin/producao/actions.ts`): o navegador
+// sobe o arquivo DIRETO pro Storage, contornando o limite de corpo de
+// Server Action/Vercel — aqui os arquivos são pequenos (PDF/foto de
+// documento), mas o padrão é o mesmo por consistência e porque também evita
+// passar o binário pela Server Action à toa.
+// ----------------------------------------------------------------------------
+export async function listarAnexosTransacao(transacaoId: string): Promise<ListaAnexosResult> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+    const { data, error } = await supabase
+      .from("fin_transacao_anexos")
+      .select("*")
+      .eq("transacao_id", transacaoId)
+      .order("created_at", { ascending: false })
+      .overrideTypes<TransacaoAnexoRow[], { merge: false }>();
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, anexos: data ?? [] };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/** Passo 1/2 — gera a signed upload URL. Ver comentário de `criarUploadAssinadoVersao` (Produção) pro porquê desse fluxo em duas etapas. */
+export async function criarUploadAssinadoAnexo(transacaoId: string, nomeArquivo: string): Promise<UploadAssinadoResult> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+
+    // Mesma denylist de HTML/SVG usada nas entregas de Produção — o único
+    // tipo que precisa ser bloqueado é o que o navegador RENDERIZA como
+    // página ao abrir a signed URL (risco de XSS armazenado), mesmo o
+    // bucket sendo privado.
+    if (ehExtensaoPerigosaParaEntrega(nomeArquivo)) {
+      return { ok: false, error: "Arquivos HTML/SVG não podem ser enviados como anexo — exporte como PDF ou imagem." };
+    }
+
+    const extensao = nomeArquivo.includes(".") ? nomeArquivo.split(".").pop() : null;
+    const caminho = `${transacaoId}/${randomUUID()}${extensao ? `.${extensao}` : ""}`;
+
+    const { data, error } = await supabase.storage.from(BUCKET_ANEXOS).createSignedUploadUrl(caminho);
+    if (error || !data) return { ok: false, error: error?.message ?? "Não foi possível preparar o upload." };
+
+    return { ok: true, path: caminho, token: data.token };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/** Passo 2/2 — depois que o navegador já subiu o arquivo pro Storage, grava a linha do anexo. */
+export async function confirmarAnexoTransacao(
+  transacaoId: string,
+  tipo: TipoAnexoTransacao,
+  input: { path: string; nomeArquivo: string; tamanhoBytes: number; tipoMime: string | null }
+): Promise<ActionResultId> {
+  try {
+    const { supabase, user } = await requireModulo("financeiro");
+    const { data, error } = await supabase
+      .from("fin_transacao_anexos")
+      .insert({
+        transacao_id: transacaoId,
+        tipo,
+        storage_path: input.path,
+        nome_arquivo: input.nomeArquivo,
+        tamanho_bytes: input.tamanhoBytes,
+        tipo_mime: input.tipoMime,
+        enviado_por: user.id,
+      })
+      .select("id")
+      .single();
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true, id: data!.id as string };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+export async function removerAnexoTransacao(anexoId: string): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+    // Apaga só o metadado — o arquivo em si fica no bucket (mesma decisão já
+    // tomada em `removerEntrega`/Produção: limpeza do Storage é manual, pelo
+    // painel do Supabase, se precisar).
+    const { error } = await supabase.from("fin_transacao_anexos").delete().eq("id", anexoId);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/** Link de download/visualização temporário (1h) — bucket privado, nunca URL pública fixa. */
+export async function getUrlDownloadAnexo(storagePath: string): Promise<SignedUrlResult> {
+  try {
+    const { supabase } = await requireModulo("financeiro");
+    const { data, error } = await supabase.storage.from(BUCKET_ANEXOS).createSignedUrl(storagePath, 60 * 60);
+    if (error || !data) return { ok: false, error: error?.message ?? "Não foi possível gerar o link." };
+    return { ok: true, url: data.signedUrl };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }

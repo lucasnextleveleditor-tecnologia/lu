@@ -11,6 +11,8 @@ interface MesAnoPopoverProps {
   referencia: Date;
   contexto: string;
   basePath: string;
+  /** Ver comentário em `MesNav` — repassado só pra não resetar o período da projeção ao pular de mês pelo calendário. */
+  dias?: number;
 }
 
 /** Nomes curtos dos 12 meses — SEMPRE em pt-BR, mesma decisão já tomada em `fmtMesAno`/`DatePicker`: só o texto estático da interface (rótulos, botões) muda de idioma, os VALORES de data em si (nomes de mês/dia) não. */
@@ -29,7 +31,7 @@ const MESES_ABREV = Array.from({ length: 12 }, (_, i) =>
  * sendo por `<Link>` (troca a URL — `mes=yyyy-MM`), preservando o padrão
  * de "sem estado próprio pros dados" do resto do `MesNav`.
  */
-export function MesAnoPopover({ referencia, contexto, basePath }: MesAnoPopoverProps) {
+export function MesAnoPopover({ referencia, contexto, basePath, dias }: MesAnoPopoverProps) {
   const { dict } = useLocale();
   const [aberto, setAberto] = useState(false);
   const [anoExibido, setAnoExibido] = useState(referencia.getUTCFullYear());
@@ -56,7 +58,7 @@ export function MesAnoPopover({ referencia, contexto, basePath }: MesAnoPopoverP
     };
   }, [aberto]);
 
-  const sufixoContexto = contexto !== "todos" ? `&contexto=${contexto}` : "";
+  const sufixoContexto = (contexto !== "todos" ? `&contexto=${contexto}` : "") + (dias ? `&dias=${dias}` : "");
   const mesSelecionado = referencia.getUTCMonth();
   const anoSelecionado = referencia.getUTCFullYear();
   const hoje = new Date();

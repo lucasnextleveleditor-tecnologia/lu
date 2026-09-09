@@ -132,6 +132,27 @@ export interface FluxoCaixaPonto {
   despesas: number;
 }
 
+export type TipoAnexoTransacao = "nota_fiscal" | "comprovante";
+
+/**
+ * Anexo opcional de uma transação (nota fiscal/recibo, comprovante de
+ * pagamento) — tabela própria (`fin_transacao_anexos`), não colunas em
+ * `TransacaoRow`: uma transação pode ter mais de um anexo do mesmo tipo, e
+ * funciona igual pra lançamento antigo ou novo (a linha só existe quando
+ * alguém de fato anexa algo — ver `supabase/financeiro-anexos.sql`).
+ */
+export interface TransacaoAnexoRow {
+  id: string;
+  transacao_id: string;
+  tipo: TipoAnexoTransacao;
+  storage_path: string;
+  nome_arquivo: string;
+  tamanho_bytes: number | null;
+  tipo_mime: string | null;
+  enviado_por: string | null;
+  created_at: string;
+}
+
 export type StatusTransacao = "pendente" | "paga" | "vencida";
 
 export function calcularStatusTransacao(t: Pick<TransacaoRow, "pago" | "data_vencimento">): StatusTransacao {

@@ -1,10 +1,13 @@
 import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
-import type { ContaRow, ContaSaldoRow, FinContexto, FluxoCaixaPonto, TransacaoRow } from "@/lib/types/financeiro";
+import type { CategoriaRow, ContaRow, ContaSaldoRow, FinContexto, FluxoCaixaPonto, TransacaoRow } from "@/lib/types/financeiro";
 import { addDaysISO, todayISO } from "@/lib/utils/format";
+import { limitesDoMes, mesParam, parseMesParam } from "@/lib/utils/financeiro";
 
 export interface FluxoCaixaSearchParams {
   contexto?: string;
   dias?: string;
+  /** yyyy-MM — mês navegado pelo `MesNav` da DRE Mensal/Fluxo Diário (independente do `dias` da projeção acima). */
+  mes?: string;
 }
 
 /** Janelas de projeção oferecidas no seletor de período da tela — ver `PeriodoFluxoCaixaToggle`. */
@@ -72,4 +75,110 @@ export async function buscarFluxoCaixa(
   }
 
   return { contexto, dias, saldoInicial, pontos };
+}
+
+/** Uma linha de categoria dentro da DRE (`nome: null` = "sem categoria" — o rótulo em si fica pro componente, que já tem `dict.common.semCategoria`). */
+export interface DreCategoriaLinha {
+  nome: string | null;
+  valor: number;
+}
+
+export interface DreMensal {
+  receitaBruta: number;
+  despesaTotal: number;
+  resultadoLiquido: number;
+  /** Maior valor primeiro — mesma ordem de exibição de `GraficoDespesasPorCategoria`. */
+  receitasPorCategoria: DreCategoriaLinha[];
+  despesasPorCategoria: DreCategoriaLinha[];
+}
+
+/** Um dia com movimentação real dentro do mês navegado — só dias com pelo menos um lançamento entram aqui (evita uma tabela de 30 linhas quase todas vazias). */
+export interface FluxoDiarioLinha {
+  data: string; // ISO date
+  entradas: number;
+  saidas: number;
+  /** entradas - saidas SÓ deste dia — "quanto fechou esse dia" (pedido do dono da conta). */
+  saldoDia: number;
+  /** Soma de `saldoDia` do dia 1 do mês até este dia (inclusive) — "quanto fechou o mês [até aqui]"; a última linha da tabela é sempre o fechamento do mês inteiro. NÃO é o saldo real das contas (isso já é a "Projeção de Saldo" acima) — é só o acumulado de entradas/saídas dentro do mês. */
+  acumulado: number;
+}
+
+/**
+ * DRE mensal (Receita Bruta, Despesas por categoria, Resultado Líquido) e
+ * fluxo de caixa diário (entradas/saídas por dia, com acumulado do mês) —
+ * pedido explícito do dono da conta: "visão de DRE mensal" + "fluxo de
+ * caixa diário de entradas e saídas... saiba o quanto fechou cada dia e
+ * cada mês", navegável por mês (`MesNav`, independente do período de
+ * projeção acima). Usa `data_vencimento` como a "data" de cada lançamento —
+ * mesmo campo que o resto do módulo usa pra filtrar por mês
+ * (`buscarDadosFinanceiro`), pra bater com a lista de "Transações do Mês"
+ * do dashboard principal. Transferência fica de fora dos dois: é só
+ * dinheiro migrando entre contas PRÓPRIAS, não é receita/despesa real nem
+ * uma entrada/saída de fato (mesmo raciocínio de `GraficoDespesasPorCategoria`).
+ */
+export async function buscarFluxoMensal(
+  searchParams: FluxoCaixaSearchParams
+): Promise<{ referencia: Date; mesParamStr: string; contexto: "todos" | FinContexto; dre: DreMensal; diario: FluxoDiarioLinha[] }> {
+  const { supabase } = await requireModuloOuRedirect("financeiro");
+  const referencia = parseMesParam(searchParams.mes);
+  const contexto: "todos" | FinContexto =
+    searchParams.contexto === "pessoal" || searchParams.contexto === "profissional" ? searchParams.contexto : "todos";
+  const { inicio, fim } = limitesDoMes(referencia);
+
+  const [transacoesRes, categoriasRes] = await Promise.all([
+    supabase
+      .from("fin_transacoes")
+      .select("tipo, valor, data_vencimento, contexto, categoria_id")
+      .gte("data_vencimento", inicio)
+      .lte("data_vencimento", fim)
+      .neq("tipo", "transferencia")
+      .overrideTypes<Pick<TransacaoRow, "tipo" | "valor" | "data_vencimento" | "contexto" | "categoria_id">[], { merge: false }>(),
+    supabase.from("fin_categorias").select("*").overrideTypes<CategoriaRow[], { merge: false }>(),
+  ]);
+
+  const nomeCategoria = new Map((categoriasRes.data ?? []).map((c) => [c.id, c.emoji ? `${c.emoji} ${c.nome}` : c.nome]));
+  const linhas = (transacoesRes.data ?? []).filter((t) => contexto === "todos" || t.contexto === contexto);
+
+  function agruparPorCategoria(tipo: "receita" | "despesa"): DreCategoriaLinha[] {
+    const mapa = new Map<string, number>(); // chave: categoria_id, ou "" pra sem categoria
+    linhas
+      .filter((t) => t.tipo === tipo)
+      .forEach((t) => {
+        const chave = t.categoria_id ?? "";
+        mapa.set(chave, (mapa.get(chave) ?? 0) + t.valor);
+      });
+    return Array.from(mapa.entries())
+      .map(([chave, valor]) => ({ nome: chave ? (nomeCategoria.get(chave) ?? null) : null, valor }))
+      .sort((a, b) => b.valor - a.valor);
+  }
+
+  const receitasPorCategoria = agruparPorCategoria("receita");
+  const despesasPorCategoria = agruparPorCategoria("despesa");
+  const receitaBruta = receitasPorCategoria.reduce((acc, l) => acc + l.valor, 0);
+  const despesaTotal = despesasPorCategoria.reduce((acc, l) => acc + l.valor, 0);
+
+  const porDia = new Map<string, { entradas: number; saidas: number }>();
+  linhas.forEach((t) => {
+    const atual = porDia.get(t.data_vencimento) ?? { entradas: 0, saidas: 0 };
+    if (t.tipo === "receita") atual.entradas += t.valor;
+    else atual.saidas += t.valor;
+    porDia.set(t.data_vencimento, atual);
+  });
+
+  let acumulado = 0;
+  const diario: FluxoDiarioLinha[] = Array.from(porDia.entries())
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([data, { entradas, saidas }]) => {
+      const saldoDia = entradas - saidas;
+      acumulado += saldoDia;
+      return { data, entradas, saidas, saldoDia, acumulado };
+    });
+
+  return {
+    referencia,
+    mesParamStr: mesParam(referencia),
+    contexto,
+    dre: { receitaBruta, despesaTotal, resultadoLiquido: receitaBruta - despesaTotal, receitasPorCategoria, despesasPorCategoria },
+    diario,
+  };
 }

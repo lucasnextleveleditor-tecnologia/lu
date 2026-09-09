@@ -8,10 +8,12 @@ interface ContextoToggleProps {
   contexto: string;
   /** Rota base — ver mesmo comentário em `MesNav`. */
   basePath?: string;
+  /** Ver comentário em `MesNav` — repassado só na tela de Fluxo de Caixa, pra não resetar o período da projeção ao trocar de contexto. */
+  dias?: number;
 }
 
 /** Alterna o filtro Pessoal/Profissional/Todos — mesmo padrão de navegação por link (sem JS no cliente). */
-export async function ContextoToggle({ referencia, contexto, basePath = "/admin/financeiro" }: ContextoToggleProps) {
+export async function ContextoToggle({ referencia, contexto, basePath = "/admin/financeiro", dias }: ContextoToggleProps) {
   const { dict } = await getDictionary();
   const OPCOES = [
     { value: "todos", label: dict.common.todos },
@@ -23,7 +25,7 @@ export async function ContextoToggle({ referencia, contexto, basePath = "/admin/
     <div className="inline-flex rounded-lg border border-base-700 bg-base-900/60 p-1">
       {OPCOES.map((opcao) => {
         const active = contexto === opcao.value;
-        const href = `${basePath}?mes=${mesParam(referencia)}${opcao.value !== "todos" ? `&contexto=${opcao.value}` : ""}`;
+        const href = `${basePath}?mes=${mesParam(referencia)}${opcao.value !== "todos" ? `&contexto=${opcao.value}` : ""}${dias ? `&dias=${dias}` : ""}`;
         return (
           <Link
             key={opcao.value}
