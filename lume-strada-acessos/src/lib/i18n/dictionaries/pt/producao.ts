@@ -125,6 +125,7 @@ export interface ProducaoDict {
   entregaPreviewFallbackAjuda: string;
 
   // Modal de detalhe (`TarefaDetalheModal.tsx`).
+  imprimirTarefaBtn: string;
   confirmarExclusaoTarefa: string;
   simExcluir: string;
   excluirTarefaBotao: string;
@@ -279,6 +280,7 @@ export const producao: ProducaoDict = {
   formatoChipAltaResolucao: "Alta resolução",
   entregaPreviewFallbackAjuda: "Se a prévia não carregar, use o link acima.",
 
+  imprimirTarefaBtn: "Imprimir Tarefa",
   confirmarExclusaoTarefa: "Excluir esta tarefa?",
   simExcluir: "Sim, excluir",
   excluirTarefaBotao: "Excluir Tarefa",

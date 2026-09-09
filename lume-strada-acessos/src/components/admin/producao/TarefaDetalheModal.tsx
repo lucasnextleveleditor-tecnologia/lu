@@ -17,7 +17,7 @@ import { EntregasSection } from "@/components/admin/producao/EntregasSection";
 import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
 import { GerenciarClientesAcessoModal } from "@/components/admin/producao/GerenciarClientesAcessoModal";
 import { ClienteModal } from "@/components/admin/cadastros/ClienteModal";
-import { IconPlus } from "@/components/ui/icons";
+import { IconPlus, IconPrinter } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -135,9 +135,21 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
             />
             {atrasada && <p className="mt-1 text-xs font-medium text-danger">{dict.producao.tarefaAtrasada}</p>}
           </div>
-          <button onClick={onClose} className="shrink-0 text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
-            ×
-          </button>
+          <div className="flex shrink-0 items-center gap-3">
+            <a
+              href={`/api/producao/tarefas/${tarefa.id}/pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 rounded-lg border border-base-700 px-2.5 py-1.5 text-xs font-medium text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+              title={dict.producao.imprimirTarefaBtn}
+            >
+              <IconPrinter className="h-3.5 w-3.5" />
+              {dict.producao.imprimirTarefaBtn}
+            </a>
+            <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
+              ×
+            </button>
+          </div>
         </div>
 
         {/* Status — colunas do Kanban, clicáveis direto daqui */}

@@ -99,6 +99,7 @@ export const producao: ProducaoDict = {
   formatoChipAltaResolucao: "Alta resolución",
   entregaPreviewFallbackAjuda: "Si la vista previa no carga, usa el enlace de arriba.",
 
+  imprimirTarefaBtn: "Imprimir Tarea",
   confirmarExclusaoTarefa: "¿Eliminar esta tarea?",
   simExcluir: "Sí, eliminar",
   excluirTarefaBotao: "Eliminar Tarea",

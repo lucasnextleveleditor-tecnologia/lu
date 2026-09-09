@@ -99,6 +99,7 @@ export const producao: ProducaoDict = {
   formatoChipAltaResolucao: "High resolution",
   entregaPreviewFallbackAjuda: "If the preview doesn't load, use the link above.",
 
+  imprimirTarefaBtn: "Print Task",
   confirmarExclusaoTarefa: "Delete this task?",
   simExcluir: "Yes, delete",
   excluirTarefaBotao: "Delete Task",
