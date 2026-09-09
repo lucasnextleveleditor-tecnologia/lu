@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { IconPlus, IconTrash, IconSearch, IconImage, IconFilm, IconEye } from "@/components/ui/icons";
+import { IconPlus, IconTrash, IconSearch, IconImage, IconFilm, IconEye, IconAlertTriangle } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { fmtBRL } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
@@ -834,7 +834,10 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
           <IconEye className="h-3.5 w-3.5" />
           <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.previewAoVivoTitulo}</p>
         </div>
-        <p className="-mt-2 text-[11px] text-ink-muted">{dict.orcamentos.previewExemploAviso}</p>
+        <div className="-mt-1 flex items-start gap-2 rounded-xl border border-status-warning/30 bg-status-warning/10 p-2.5">
+          <IconAlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-status-warning" />
+          <p className="text-[11px] leading-relaxed text-ink-secondary">{dict.orcamentos.previewExemploAviso}</p>
+        </div>
 
         <div className="max-h-[calc(100vh-8rem)] overflow-y-auto rounded-3xl">
           <OrcamentoPropostaPreview
