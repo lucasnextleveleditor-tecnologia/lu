@@ -30,6 +30,8 @@ import {
   buscarModelo,
   listarPlaceholdersPendentes,
   substituirPlaceholders,
+  montarTextoDoContrato,
+  obterClausulas,
   type ModeloContratoServico,
 } from "@/lib/contratos/modelos";
 import { Select } from "@/components/ui/Select";
@@ -58,7 +60,13 @@ export function SeletorModeloContrato() {
   const modelosDoPerfil = perfil ? BANCO_DE_MODELOS[perfil] : [];
   const modelo: ModeloContratoServico | undefined = perfil && tipoServico ? buscarModelo(perfil, tipoServico) : undefined;
 
-  const textoPreenchido = useMemo(() => (modelo ? substituirPlaceholders(modelo.texto, valores) : ""), [modelo, valores]);
+  // Monta a prévia com TODAS as cláusulas do modelo, numeradas — esta tela é
+  // a vitrine do banco de modelos, e quem a abre quer ver o contrato
+  // completo, não escolher o que entra (isso é no construtor).
+  const textoPreenchido = useMemo(
+    () => (modelo ? substituirPlaceholders(montarTextoDoContrato(modelo, obterClausulas(modelo).map((c) => c.id)), valores) : ""),
+    [modelo, valores]
+  );
   const pendentes = useMemo(() => (modelo ? listarPlaceholdersPendentes(textoPreenchido) : []), [modelo, textoPreenchido]);
 
   function handlePerfilChange(novo: string) {

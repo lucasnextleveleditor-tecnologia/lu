@@ -1,4 +1,26 @@
 import { CAMPOS_COMUNS_CONTRATO, type ModeloContratoServico } from "./tipos";
+import {
+  CAMPOS_DRONE,
+  CAMPOS_OPERACIONAIS_COMUNS,
+  CAMPOS_VIAGEM,
+  CLAUSULAS_DE_FECHAMENTO,
+  CLAUSULA_ALIMENTACAO,
+  CLAUSULA_ALTERACOES_DE_ESCOPO,
+  CLAUSULA_APROVACAO_E_REFACOES,
+  CLAUSULA_BACKUP,
+  CLAUSULA_CONDICOES_CLIMATICAS,
+  CLAUSULA_DESLOCAMENTO,
+  CLAUSULA_DIREITOS_AUTORAIS,
+  CLAUSULA_DIREITO_DE_IMAGEM,
+  CLAUSULA_DRONE,
+  CLAUSULA_ENTREGA,
+  CLAUSULA_EQUIPAMENTO_E_SEGURO,
+  CLAUSULA_JORNADA,
+  CLAUSULA_PORTFOLIO,
+  CLAUSULA_PRAZOS_E_INSUMOS,
+  CLAUSULA_VIAGEM,
+  comoOpcional,
+} from "./clausulas-comuns";
 
 /**
  * Banco de modelos de contrato do perfil FILMMAKER — v2, 8 tipos de serviço
@@ -309,436 +331,635 @@ CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliad
 
 Local e data: [DATA_ASSINATURA]. Assinaturas: [NOME_DO_CLIENTE] (CONTRATANTE) / [NOME_CONTRATADO] (CONTRATADO(A)).`,
   },
+  /* ================================================================== */
+  /* GRUPO 1 — CINEASTA · 1. PRODUÇÃO COMERCIAL / FASHION FILM          */
+  /* ================================================================== */
   {
     perfil: "filmmaker",
     tipoServico: "producao_comercial_fashion_film",
     nome: "Produção Comercial / Fashion Film",
-    descricao: "Comerciais publicitários e fashion films para marcas, com licença de uso por prazo/mídia definidos, armazenamento pós-entrega e indenização por uso fora do escopo licenciado.",
+    descricao:
+      "Comercial publicitário ou fashion film para marca, com licença de uso delimitada por praça, mídia e prazo, exclusividade de categoria opcional, controle de aprovação em três etapas e indenização por uso fora do licenciado.",
     camposDinamicos: [
       ...CAMPOS_COMUNS_CONTRATO,
-      { tag: "TIPO_DE_PECA", label: "Tipo de peça", tipo: "texto", exemplo: "fashion film" },
-      { tag: "NOME_DA_MARCA_OU_PRODUTO", label: "Marca/produto", tipo: "texto" },
-      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea" },
-      { tag: "DATA_DE_CAPTACAO", label: "Data de captação", tipo: "data" },
-      { tag: "LOCAL_DE_CAPTACAO", label: "Local de captação", tipo: "texto" },
-      { tag: "COMPOSICAO_DA_EQUIPE", label: "Composição da equipe", tipo: "textarea" },
-      { tag: "NUMERO_REVISOES_INCLUSAS", label: "Nº de revisões inclusas", tipo: "numero", exemplo: "2" },
-      { tag: "PERCENTUAL_CUSTO_REFACAO", label: "% custo de refação adicional", tipo: "percentual", exemplo: "30" },
-      { tag: "INDICE_DE_CORRECAO", label: "Índice de correção monetária", tipo: "texto", exemplo: "IPCA-E" },
-      { tag: "EXCLUSIVA/NAO_EXCLUSIVA", label: "Licença exclusiva ou não exclusiva", tipo: "texto", exemplo: "não exclusiva" },
-      { tag: "PRAZO_DA_LICENCA_DE_USO", label: "Prazo da licença de uso", tipo: "texto", exemplo: "24 meses" },
-      { tag: "MEIOS_E_TERRITORIO", label: "Meios e território de veiculação", tipo: "textarea", exemplo: "mídias digitais próprias e pagas, território nacional" },
-      { tag: "CRITERIO_LICENCA_AMPLIADA", label: "Critério de licença ampliada", tipo: "textarea", exemplo: "percentual do cachê original por período adicional" },
-      { tag: "PRAZO_AVISO_RESCISAO", label: "Prazo de aviso para rescisão", tipo: "texto", exemplo: "10 dias" },
-      { tag: "PRAZO_MINIMO_GUARDA_BACKUP", label: "Prazo mínimo de guarda de backup", tipo: "texto", exemplo: "60 dias" },
-      { tag: "VALOR_TAXA_REENVIO", label: "Valor da taxa de recuperação/reenvio", tipo: "moeda" },
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_DRONE,
+      ...CAMPOS_VIAGEM,
+      { tag: "NOME_DA_MARCA_OU_PRODUTO", label: "Marca ou produto anunciado", tipo: "texto" },
+      { tag: "TIPO_DE_PECA", label: "Tipo de peça", tipo: "texto", exemplo: "fashion film de 60s + 3 cortes verticais" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis (formatos, durações, proporções)", tipo: "textarea", exemplo: "1 filme master 16:9 de 60s; 3 cortes 9:16 de 15s; 1 corte 1:1 de 30s; todos em H.264 e ProRes" },
+      { tag: "QUANTIDADE_DIARIAS", label: "Quantidade de diárias de captação", tipo: "numero", exemplo: "2" },
+      { tag: "LOCACOES_PREVISTAS", label: "Locações previstas", tipo: "textarea" },
+      { tag: "COMPOSICAO_DA_EQUIPE", label: "Composição da equipe", tipo: "textarea", exemplo: "direção, DOP, 1º AC, gaffer, produção de set" },
+      { tag: "MIDIAS_LICENCIADAS", label: "Mídias licenciadas", tipo: "textarea", exemplo: "redes sociais próprias da marca e site institucional" },
+      { tag: "TERRITORIO_LICENCA", label: "Território da licença", tipo: "texto", exemplo: "território nacional" },
+      { tag: "PRAZO_LICENCA", label: "Prazo da licença de uso", tipo: "texto", exemplo: "12 meses" },
+      { tag: "CATEGORIA_EXCLUSIVIDADE", label: "Categoria de exclusividade (se houver)", tipo: "texto", exemplo: "moda feminina premium" },
+      { tag: "PRAZO_EXCLUSIVIDADE", label: "Prazo de exclusividade de categoria", tipo: "texto", exemplo: "6 meses" },
+      { tag: "VALOR_EXCLUSIVIDADE", label: "Valor da exclusividade de categoria", tipo: "moeda" },
+      { tag: "VALOR_RENOVACAO_LICENCA", label: "Valor de renovação da licença", tipo: "moeda" },
+      { tag: "VALOR_DIARIA_EXTRA", label: "Valor da diária extra de captação", tipo: "moeda" },
     ],
-    texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE PRODUÇÃO AUDIOVISUAL COMERCIAL/FASHION FILM
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE PRODUÇÃO AUDIOVISUAL PUBLICITÁRIA
 
-CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], CPF/CNPJ nº [CPF_CNPJ_CLIENTE], domiciliado(a)/sede em [ENDERECO_CLIENTE].
-CONTRATADO(A): [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliado(a)/sede em [ENDERECO_CONTRATADO].
+Pelo presente instrumento particular, as partes abaixo qualificadas:
 
-1. DO OBJETO
-1.1. Prestação de serviços de produção audiovisual do tipo [TIPO_DE_PECA], para a marca/produto [NOME_DA_MARCA_OU_PRODUTO], compreendendo pré-produção, captação e pós-produção (edição, color grading, finalização).
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], neste ato representada na forma de seus atos constitutivos, doravante simplesmente CONTRATANTE;
 
-2. DO ESCOPO, DOS ENTREGÁVEIS E DA PRÉ-PRODUÇÃO
-2.1. Entregáveis: [DESCRICAO_DOS_ENTREGAVEIS].
-2.2. Captação prevista para [DATA_DE_CAPTACAO], em [LOCAL_DE_CAPTACAO], com equipe de [COMPOSICAO_DA_EQUIPE].
-2.3. Etapa de pré-produção obrigatória: aprovação por escrito de roteiro/moodboard/lista de referências antes da captação; captação sem aprovação prévia expressa é realizada por conta e risco da CONTRATANTE.
-2.4. Itens fora do escopo (talentos adicionais, casting, still photography avulsa, direção de arte cenográfica, trilha licenciada) são orçados e formalizados em aditivo à parte.
-2.5. Cabe à CONTRATANTE liberar ambientes, produtos e talentos necessários no horário agendado; atraso na liberação reduz proporcionalmente o tempo útil de captação, sem prorrogação gratuita.
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
 
-3. DO PRAZO DE ENTREGA
-3.1. Entrega do material finalizado em até [PRAZO_DE_ENTREGA] dias corridos, contados da captação ou da aprovação do roteiro/moodboard, o que ocorrer por último.
-3.2. Atrasos motivados pela CONTRATANTE (aprovação, materiais, locais/talentos) suspendem a contagem do prazo.
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas e condições a seguir, e, no que for omisso, pela Lei nº 10.406/2002 (Código Civil) e pela Lei nº 9.610/1998 (Lei de Direitos Autorais).`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a prestação, pelo CONTRATADO, dos serviços de direção, produção, captação e finalização de peça audiovisual publicitária do tipo [TIPO_DE_PECA], para a marca ou produto [NOME_DA_MARCA_OU_PRODUTO].
 
-4. DAS REVISÕES E REFAÇÕES
-4.1. Inclusas [NUMERO_REVISOES_INCLUSAS] rodada(s) de ajuste pontual (ritmo, trilha, cor, legendas) sobre o corte entregue, sem nova captação nem reestruturação da narrativa já aprovada.
-4.2. Rodadas adicionais ou nova captação por motivo não imputável a erro técnico (mudança de direção criativa, troca de talento já aprovado, alteração de briefing pós-aprovação) são cobradas à parte, no mínimo [PERCENTUAL_CUSTO_REFACAO]% do valor total por rodada/diária adicional.
-4.3. Erro técnico comprovadamente atribuível ao(à) CONTRATADO(A) é corrigido sem custo, respeitada a disponibilidade de agenda para reagendamento.
+Parágrafo primeiro. Os entregáveis compreendem: [DESCRICAO_DOS_ENTREGAVEIS].
 
-5. DO VALOR E DAS CONDIÇÕES DE PAGAMENTO
-5.1. Valor total: [VALOR_DO_SERVIÇO]. Pagamento: [CONDICOES_DE_PAGAMENTO].
-5.2. O não pagamento do sinal autoriza o(a) CONTRATADO(A) a não iniciar/suspender a pré-produção, sem caracterizar inadimplemento de sua parte.
-5.3. Atraso de parcela gera multa de 2%, juros de mora de 1% ao mês, correção pelo índice [INDICE_DE_CORRECAO].
-5.4. Os arquivos finais (masters) só são liberados após quitação integral.
+Parágrafo segundo. A produção compreende [QUANTIDADE_DIARIAS] diária(s) de captação, nas locações [LOCACOES_PREVISTAS], com a seguinte equipe: [COMPOSICAO_DA_EQUIPE].
 
-6. DO ARMAZENAMENTO E DA GUARDA DE MATERIAL BRUTO
-6.1. Após a entrega dos masters finalizados, cessa a obrigação do(a) CONTRATADO(A) de guardar o material bruto (raw footage) da captação, podendo eliminá-lo a partir de [PRAZO_MINIMO_GUARDA_BACKUP] após a entrega, sem aviso prévio.
-6.2. Recuperação de material bruto dentro do prazo de guarda, quando ainda disponível, é cobrada à parte no valor de [VALOR_TAXA_REENVIO].
+Parágrafo terceiro. Diárias de captação excedentes serão remuneradas ao valor de [VALOR_DIARIA_EXTRA] cada, acrescidas das despesas de deslocamento, alimentação e equipe, na forma das cláusulas correspondentes.
 
-7. DA CESSÃO DE DIREITOS AUTORAIS E DE USO DE IMAGEM
-7.1. Mediante pagamento integral, o(a) CONTRATADO(A) cede à CONTRATANTE os direitos patrimoniais de uso da obra, de forma [EXCLUSIVA/NAO_EXCLUSIVA], pelo prazo de [PRAZO_DA_LICENCA_DE_USO], para veiculação em [MEIOS_E_TERRITORIO].
-7.2. Extensão de licença: usos além do prazo/território/meios pactuados (ex.: renovação por mais 12 meses, expansão para TV aberta, uso institucional perene) dependem de negociação e pagamento adicional de licença ampliada, calculado com base em [CRITERIO_LICENCA_AMPLIADA].
-7.3. O(a) CONTRATADO(A) pode usar o material (ou trechos/stills) em portfólio, site e divulgação profissional, com crédito autoral, salvo pedido expresso e por escrito de embargo de divulgação por prazo determinado.
-7.4. Cabe à CONTRATANTE providenciar, antes da captação, os termos de autorização de uso de imagem ("releases") de modelos/atores/figurantes, isentando o(a) CONTRATADO(A) de responsabilidade por reclamação de imagem de terceiros da produção.
-7.5. Fica reconhecida ao(à) CONTRATADO(A), nos termos da Lei nº 9.610/98, a autoria da obra, vedada alteração da montagem final que a associe, sem consentimento, ao seu nome profissional de forma depreciativa.
+Parágrafo quarto. NÃO integram o objeto, salvo contratação apartada e expressa: elenco, casting, cachês e direitos de imagem de modelos e talentos; direção de arte, cenografia, figurino, beleza e styling; locação e taxas de filmagem; licenciamento de trilha sonora e direitos musicais; locução, tradução, legendagem e closed caption; motion design e computação gráfica além do necessário à finalização básica; mídia, veiculação e impulsionamento; e versionamento para especificações técnicas de veículos ou plataformas de terceiros.
 
-8. DA RESCISÃO E DAS MULTAS
-8.1. Rescisão por qualquer parte mediante aviso por escrito com [PRAZO_AVISO_RESCISAO] de antecedência, respeitadas obrigações já vencidas.
-8.2. Cancelamento pela CONTRATANTE após confirmação de agenda: mais de 7 dias — retenção de 30% do sinal; entre 7 e 2 dias — retenção de 50% do valor total; menos de 48h ou no-show — retenção de 100% do valor total.
-8.3. Rescisão por inadimplemento do(a) CONTRATADO(A) sem justa causa: devolução dos valores de etapas não realizadas, sem prejuízo de indenização por danos comprovados.
+Parágrafo quinto. A concepção criativa, o roteiro, o storyboard, a decupagem e a direção são atividades intelectuais do CONTRATADO, executadas com autonomia técnica e artística dentro do briefing aprovado.`,
+      },
+      {
+        id: "etapas_producao",
+        titulo: "Das Etapas de Produção e dos Marcos de Aprovação",
+        protege: "Cria pontos de aprovação formais — depois de aprovado, mudar é escopo novo e pago.",
+        texto: `A produção observará as seguintes etapas, cada qual dependente da aprovação escrita da anterior: (i) briefing e alinhamento criativo; (ii) pré-produção, com apresentação de tratamento, roteiro e referências; (iii) captação; (iv) edição e apresentação de corte para aprovação; (v) finalização, com correção de cor, tratamento de som e masterização; e (vi) entrega.
 
-9. DA CONFIDENCIALIDADE
-9.1. Sigilo sobre briefing, roteiro, estratégia de campanha e material não lançado pelo prazo de [PRAZO_CONFIDENCIALIDADE], relevante para campanhas ainda não veiculadas publicamente.
+Parágrafo primeiro. Cada etapa será submetida à aprovação da CONTRATANTE na forma da cláusula Da Aprovação, e a aprovação de uma etapa CONSOLIDA as decisões nela tomadas, tornando definitivo o que foi aprovado.
 
-10. DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
-10.1. Tratamento de dados pessoais conforme a Lei nº 13.709/2018.
+Parágrafo segundo. A alteração de premissa consolidada em etapa anterior — notadamente conceito, roteiro, decupagem, locação, seleção de takes, trilha ou identidade — constitui alteração de escopo, e não refação, sujeitando-se a novo orçamento, ainda que restem rodadas de refação inclusas.
 
-11. DO CASO FORTUITO E FORÇA MAIOR
-11.1. Nenhuma parte responde por atraso decorrente de caso fortuito ou força maior. A parte afetada comunica a outra em até 48h e propõe nova data, sem multa.
+Parágrafo terceiro. A captação não será iniciada sem a aprovação escrita da pré-produção e sem a comprovação, pela CONTRATANTE, das autorizações previstas na cláusula Do Direito de Imagem.
 
-12. DA LIMITAÇÃO DE RESPONSABILIDADE E DA INDENIZAÇÃO
-12.1. A responsabilidade do(a) CONTRATADO(A) por qualquer dano direto comprovadamente causado por sua atuação fica limitada ao valor total pago pela CONTRATANTE, excluída a responsabilidade por lucros cessantes, danos indiretos ou danos à imagem/reputação decorrentes de fatores alheios à sua atuação técnica direta.
-12.2. A CONTRATANTE se compromete a indenizar e manter o(a) CONTRATADO(A) isento(a) de qualquer reclamação, multa, processo ou prejuízo decorrente de: (i) informações falsas, incompletas ou materiais fornecidos pela CONTRATANTE (incluindo releases de imagem de talentos/modelos); (ii) atos de terceiros contratados/convidados pela CONTRATANTE; (iii) uso do material entregue fora dos limites da licença concedida neste contrato (ex.: veiculação além do prazo/meios/território pactuados sem pagamento da licença ampliada).
-12.3. Manifestações públicas negativas feitas pela CONTRATANTE de forma comprovadamente inverídica ou de má-fé poderão ser objeto de notificação extrajudicial e das medidas cabíveis, sem prejuízo do direito de resposta do(a) CONTRATADO(A).
+Parágrafo quarto. A correção de cor e o tratamento de som integram a etapa de finalização e não comportam refação isolada após a aprovação do corte, salvo como rodada adicional onerosa.`,
+      },
+      {
+        id: "licenca_publicitaria",
+        titulo: "Da Licença Publicitária, das Mídias e do Território",
+        essencial: true,
+        protege: "O uso é vendido por praça, mídia e prazo — passou disso, renova ou indeniza.",
+        texto: `A licença de uso concedida à CONTRATANTE, condicionada à quitação integral do preço, compreende exclusivamente: as mídias [MIDIAS_LICENCIADAS]; o território [TERRITORIO_LICENCA]; e o prazo de [PRAZO_LICENCA] contados da data da entrega final.
 
-13. DISPOSIÇÕES GERAIS
-13.1. Sem vínculo empregatício, societário ou de representação. Alterações somente por aditivo escrito.
+Parágrafo primeiro. Ao término do prazo, a CONTRATANTE deverá cessar toda veiculação e promover a retirada da peça dos meios sob seu controle em até 15 (quinze) dias, salvo renovação formalizada por escrito mediante o pagamento de [VALOR_RENOVACAO_LICENCA] por período equivalente.
 
-14. DO FORO
-14.1. Fica eleito o foro da Comarca de [FORO_COMARCA].
+Parágrafo segundo. Permanecem excluídos da licença, salvo ajuste apartado: veiculação em televisão aberta ou fechada, cinema, mídia exterior e mídia paga; uso por franqueados, distribuidores, revendedores, marketplaces e empresas do mesmo grupo; participação em festivais e premiações em nome da CONTRATANTE; e reutilização da peça, ou de trechos dela, em campanha diversa.
 
-Local e data: [DATA_ASSINATURA]. Assinaturas: [NOME_DO_CLIENTE] (CONTRATANTE) / [NOME_CONTRATADO] (CONTRATADO(A)).`,
+Parágrafo terceiro. Material captado e não utilizado na peça final, bem como takes alternativos e brutos, NÃO integram a licença e não poderão ser aproveitados pela CONTRATANTE em nenhuma hipótese.
+
+Parágrafo quarto. A veiculação em desacordo com esta cláusula sujeita a CONTRATANTE ao disposto na cláusula Dos Direitos Autorais, sem prejuízo da imediata suspensão da licença remanescente.`,
+      },
+      {
+        id: "exclusividade_categoria",
+        titulo: "Da Exclusividade de Categoria",
+        opcional: true,
+        protege: "Se o cliente quer você fora dos concorrentes dele, isso se paga à parte.",
+        texto: `Mediante o pagamento adicional de [VALOR_EXCLUSIVIDADE], o CONTRATADO obriga-se a não prestar serviços de mesma natureza a empresas concorrentes da CONTRATANTE atuantes na categoria [CATEGORIA_EXCLUSIVIDADE], pelo prazo de [PRAZO_EXCLUSIVIDADE] contados da data da entrega final.
+
+Parágrafo primeiro. A exclusividade restringe-se à categoria expressamente indicada, não alcançando outros segmentos, marcas ou linhas de produto, tampouco trabalhos de natureza diversa.
+
+Parágrafo segundo. Não havendo o pagamento previsto no caput, NÃO HÁ EXCLUSIVIDADE, permanecendo o CONTRATADO livre para atender qualquer cliente, inclusive concorrentes, sem que isso configure violação contratual, conflito de interesses ou quebra de confiança.
+
+Parágrafo terceiro. A exclusividade não implica reserva de agenda: a disponibilidade do CONTRATADO para novos trabalhos da CONTRATANTE dependerá de contratação específica.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_VIAGEM,
+      CLAUSULA_DRONE,
+      CLAUSULA_CONDICOES_CLIMATICAS,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
   },
+  /* ================================================================== */
+  /* GRUPO 1 — CINEASTA · 2. VIDEOCLIPES                                */
+  /* ================================================================== */
   {
     perfil: "filmmaker",
     tipoServico: "videoclipes",
     nome: "Videoclipes",
-    descricao: "Direção e produção de videoclipe musical, com declaração de titularidade musical obrigatória, crédito de direção garantido e armazenamento pós-entrega.",
+    descricao:
+      "Direção e produção de videoclipe musical, com declaração obrigatória de titularidade do fonograma, crédito de direção assegurado, regras de set noturno e divisão clara entre o que é da gravadora e o que é do diretor.",
     camposDinamicos: [
       ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_DRONE,
+      ...CAMPOS_VIAGEM,
+      { tag: "NOME_DO_ARTISTA", label: "Nome do artista/banda", tipo: "texto" },
       { tag: "NOME_DA_MUSICA", label: "Nome da música", tipo: "texto" },
-      { tag: "NOME_DO_ARTISTA", label: "Nome do artista", tipo: "texto" },
-      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea" },
-      { tag: "DATA_DE_CAPTACAO", label: "Data de captação", tipo: "data" },
-      { tag: "LOCAL_DE_CAPTACAO", label: "Local de captação", tipo: "texto" },
-      { tag: "NUMERO_REVISOES_INCLUSAS", label: "Nº de revisões inclusas", tipo: "numero", exemplo: "2" },
-      { tag: "VALOR_DIARIA_ADICIONAL", label: "Valor da diária adicional de recaptação", tipo: "moeda" },
-      { tag: "PRAZO_DA_LICENCA_DE_USO", label: "Prazo da licença de uso", tipo: "texto", exemplo: "indeterminado, mediante pagamento integral" },
-      { tag: "PRAZO_MINIMO_GUARDA_BACKUP", label: "Prazo mínimo de guarda de backup", tipo: "texto", exemplo: "60 dias" },
-      { tag: "VALOR_TAXA_REENVIO", label: "Valor da taxa de recuperação/reenvio", tipo: "moeda" },
+      { tag: "GRAVADORA_OU_SELO", label: "Gravadora/selo (se houver)", tipo: "texto" },
+      { tag: "DURACAO_APROXIMADA", label: "Duração aproximada do clipe", tipo: "texto", exemplo: "3 min 40s" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea", exemplo: "clipe master 16:9 4K; 3 teasers verticais de 15s; 10 stills de set" },
+      { tag: "QUANTIDADE_DIARIAS", label: "Diárias de captação", tipo: "numero", exemplo: "1" },
+      { tag: "LOCACOES_PREVISTAS", label: "Locações previstas", tipo: "textarea" },
+      { tag: "COMPOSICAO_DA_EQUIPE", label: "Composição da equipe", tipo: "textarea" },
+      { tag: "DATA_DE_LANCAMENTO", label: "Data prevista de lançamento", tipo: "data" },
+      { tag: "PRAZO_EMBARGO_PORTFOLIO", label: "Embargo de divulgação até o lançamento", tipo: "texto", exemplo: "até a estreia oficial" },
+      { tag: "VALOR_DIARIA_EXTRA", label: "Valor da diária extra", tipo: "moeda" },
     ],
-    texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DIREÇÃO E PRODUÇÃO DE VIDEOCLIPE
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DIREÇÃO E PRODUÇÃO DE VIDEOCLIPE
 
-CONTRATANTE: [NOME_DO_CLIENTE] (artista/selo/representante), CPF/CNPJ nº [CPF_CNPJ_CLIENTE], domiciliado(a) em [ENDERECO_CLIENTE].
-CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliado(a) em [ENDERECO_CONTRATADO].
+Pelo presente instrumento particular, as partes abaixo qualificadas:
 
-1. DO OBJETO
-1.1. Direção, produção, captação e pós-produção de videoclipe para a obra musical "[NOME_DA_MUSICA]", do(a) artista [NOME_DO_ARTISTA].
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
 
-2. DO ESCOPO E DA TITULARIDADE MUSICAL
-2.1. Entregáveis: [DESCRICAO_DOS_ENTREGAVEIS]. Captação prevista para [DATA_DE_CAPTACAO], em [LOCAL_DE_CAPTACAO].
-2.2. Declaração de titularidade musical (cláusula essencial): a CONTRATANTE declara, sob as penas da lei, ser titular ou possuir licença de sincronização válida sobre "[NOME_DA_MUSICA]" para associação com a peça audiovisual, assumindo integral responsabilidade por qualquer violação de direitos autorais musicais de terceiros, isentando o(a) CONTRATADO(A) de qualquer reclamação, multa ou indenização decorrente.
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
 
-3. DO PRAZO
-3.1. Entrega do corte final em até [PRAZO_DE_ENTREGA] dias corridos após a captação e aprovação da trilha/letra timada, quando aplicável.
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a prestação, pelo CONTRATADO, dos serviços de direção, produção, captação e finalização do videoclipe da obra musical "[NOME_DA_MUSICA]", de interpretação de [NOME_DO_ARTISTA], com duração aproximada de [DURACAO_APROXIMADA].
 
-4. DAS REVISÕES E REFAÇÕES
-4.1. Inclusas [NUMERO_REVISOES_INCLUSAS] rodada(s) de ajuste de edição/color/efeitos. Nova captação por mudança de conceito criativo pós-aprovação de roteiro/storyboard é cobrada como diária adicional de [VALOR_DIARIA_ADICIONAL].
+Parágrafo primeiro. Os entregáveis compreendem: [DESCRICAO_DOS_ENTREGAVEIS].
 
-5. DO VALOR E PAGAMENTO
-5.1. Valor total: [VALOR_DO_SERVIÇO]. Pagamento: [CONDICOES_DE_PAGAMENTO]. Master em alta resolução liberado somente após quitação integral.
+Parágrafo segundo. A produção compreende [QUANTIDADE_DIARIAS] diária(s) de captação, nas locações [LOCACOES_PREVISTAS], com a equipe [COMPOSICAO_DA_EQUIPE]. Diárias excedentes serão remuneradas a [VALOR_DIARIA_EXTRA] cada.
 
-6. DO ARMAZENAMENTO PÓS-ENTREGA
-6.1. Após a entrega, o armazenamento do master e do material bruto passa a ser de responsabilidade da CONTRATANTE. O(a) CONTRATADO(A) pode manter backup por liberalidade por até [PRAZO_MINIMO_GUARDA_BACKUP], cobrando [VALOR_TAXA_REENVIO] por eventual recuperação dentro desse prazo.
+Parágrafo terceiro. NÃO integram o objeto, salvo contratação apartada: elenco, figurantes, dançarinos e respectivos cachês; direção de arte, cenografia, figurino, maquiagem e caracterização; locação e taxas; efeitos visuais complexos, rotoscopia e computação gráfica; playback, equipamento de som e técnico de áudio em set; registro fotográfico profissional de bastidores; e distribuição, cadastro em plataformas, submissão a canais e mídia.
 
-7. DOS DIREITOS AUTORAIS, CRÉDITO E IMAGEM
-7.1. O(a) CONTRATADO(A) cede à CONTRATANTE os direitos de uso e exploração comercial do videoclipe (YouTube, redes sociais, streaming, TV) pelo prazo de [PRAZO_DA_LICENCA_DE_USO].
-7.2. É assegurado ao(à) CONTRATADO(A) crédito de direção ("Dirigido por [NOME_CONTRATADO]") em toda veiculação oficial, inclusive submissões a festivais e premiações.
-7.3. Fica facultado ao(à) CONTRATADO(A) submeter a obra a festivais e usá-la em portfólio, ressalvado pedido de embargo por prazo determinado, solicitado por escrito antes do lançamento oficial.
-7.4. Direitos de imagem de artista(s), dançarinos e figurantes devem ser previamente equacionados pela CONTRATANTE (ou pelo(a) CONTRATADO(A), mediante acordo e custo adicional), com coleta das respectivas autorizações.
+Parágrafo quarto. A concepção audiovisual, o roteiro, o storyboard e a direção são criação intelectual do CONTRATADO, executados com autonomia artística dentro do conceito aprovado.`,
+      },
+      {
+        id: "titularidade_musical",
+        titulo: "Da Titularidade da Obra Musical e do Fonograma",
+        essencial: true,
+        protege: "Se a música não estiver liberada, o problema é de quem contratou — não seu.",
+        texto: `A CONTRATANTE DECLARA, sob as penas da lei, ser titular ou legítima licenciada de todos os direitos necessários à sincronização audiovisual da obra musical e do respectivo fonograma objeto deste contrato, incluindo os direitos de autor da composição e da letra, os direitos conexos de intérprete, de músicos acompanhantes e de produtor fonográfico, bem como as autorizações de eventuais samples, interpolações, arranjos e participações especiais.
 
-8. DA RESCISÃO E MULTAS
-8.1. Cancelamento pela CONTRATANTE: mais de 7 dias — retenção de 30% do sinal; entre 7 e 2 dias — 50% do valor total; menos de 48h ou no-show — 100% do valor total.
-8.2. Descumprimento pelo(a) CONTRATADO(A) sem justa causa: devolução dos valores de etapas não realizadas, sem prejuízo de indenização por danos comprovados.
+Parágrafo primeiro. Compete exclusivamente à CONTRATANTE o cadastro da obra junto às associações de gestão coletiva e ao ECAD, o recolhimento de direitos autorais e conexos devidos, e a obtenção da anuência de gravadora, editora ou selo [GRAVADORA_OU_SELO], quando aplicável.
 
-9. DA CONFIDENCIALIDADE
-9.1. Sigilo sobre lançamento não divulgado, conceito criativo e datas pelo prazo de [PRAZO_CONFIDENCIALIDADE].
+Parágrafo segundo. O CONTRATADO NÃO responde, sob nenhum fundamento, por reclamação, notificação, bloqueio de monetização, remoção de conteúdo, claim automatizado, suspensão de canal ou ação judicial decorrente de vício na titularidade musical, obrigando-se a CONTRATANTE a assumir o polo passivo, a requerer a exclusão do CONTRATADO da lide e a ressarci-lo integralmente.
 
-10. DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
-10.1. Tratamento de dados pessoais conforme a Lei nº 13.709/2018.
+Parágrafo terceiro. Constatando o CONTRATADO indício de irregularidade na cadeia de direitos, poderá suspender a execução ou a entrega até a comprovação documental, sem que a suspensão configure atraso de sua parte.
 
-11. DO CASO FORTUITO E FORÇA MAIOR
-11.1. Nenhuma parte responde por atraso decorrente de caso fortuito ou força maior. A parte afetada comunica a outra em até 48h e propõe nova data, sem multa.
+Parágrafo quarto. A obra audiovisual produzida é obra AUTÔNOMA em relação à obra musical: a titularidade da música não confere à CONTRATANTE a autoria do videoclipe, cuja disciplina é a da cláusula Dos Direitos Autorais.`,
+      },
+      {
+        id: "credito_de_direcao",
+        titulo: "Do Crédito de Direção e da Divulgação",
+        protege: "Garante seu nome na peça — é isso que gera o próximo trabalho.",
+        texto: `A CONTRATANTE obriga-se a consignar, de forma legível e em posição de destaque compatível com a prática do mercado, o crédito de direção e de produção audiovisual em favor do CONTRATADO, na cartela final do videoclipe e na descrição de todas as publicações oficiais em plataformas de vídeo e redes sociais.
 
-12. DA LIMITAÇÃO DE RESPONSABILIDADE E DA INDENIZAÇÃO
-12.1. A responsabilidade do(a) CONTRATADO(A) fica limitada ao valor total pago pela CONTRATANTE, excluída responsabilidade por lucros cessantes ou danos indiretos.
-12.2. A CONTRATANTE indeniza e mantém o(a) CONTRATADO(A) isento(a) de reclamações decorrentes de: (i) falsa declaração de titularidade musical (cláusula 2.2); (ii) ausência de releases de imagem de artistas/figurantes; (iii) uso do material fora dos limites da licença concedida.
-12.3. Manifestações públicas negativas de má-fé poderão ser objeto de notificação extrajudicial e das medidas cabíveis.
+Parágrafo primeiro. O crédito adotará a grafia indicada pelo CONTRATADO e não poderá ser suprimido, abreviado a ponto de descaracterizar, nem substituído pelo nome da CONTRATANTE, de gravadora, de agência ou de terceiro que não tenha exercido a função.
 
-13. DISPOSIÇÕES GERAIS
-13.1. Sem vínculo empregatício, societário ou de representação. Alterações somente por aditivo escrito.
+Parágrafo segundo. A supressão do crédito viola direito moral de autor, na forma do art. 24, inciso II, da Lei nº 9.610/1998, e sujeita a CONTRATANTE à obrigação de correção imediata e ao pagamento de multa equivalente a 30% (trinta por cento) do valor do contrato, sem prejuízo das perdas e danos.
 
-14. DO FORO
-14.1. Fica eleito o foro da Comarca de [FORO_COMARCA].
+Parágrafo terceiro. Em versões de duração reduzida, teasers e cortes verticais, o crédito poderá constar apenas da descrição da publicação.
 
-Local e data: [DATA_ASSINATURA]. Assinaturas: [NOME_DO_CLIENTE] (CONTRATANTE) / [NOME_CONTRATADO] (CONTRATADO(A)).`,
+Parágrafo quarto. O CONTRATADO observará embargo de divulgação [PRAZO_EMBARGO_PORTFOLIO], liberando-se o uso em portfólio a partir do lançamento oficial previsto para [DATA_DE_LANCAMENTO], ou antes disso mediante autorização escrita.`,
+      },
+      {
+        id: "set_e_talento",
+        titulo: "Do Set, do Artista e da Disponibilidade de Talento",
+        protege: "Atraso, ausência ou artista sem condições de gravar não vira prejuízo seu.",
+        texto: `A CONTRATANTE responsabiliza-se pela presença pontual do artista, do elenco e dos demais talentos no local e horário previstos na ordem do dia, bem como por sua adequada condição para a execução das cenas planejadas.
+
+Parágrafo primeiro. Atraso superior a 2 (duas) horas, ausência injustificada ou impossibilidade de gravação por condição do talento — inclusive por indisposição decorrente do consumo de álcool ou de substâncias — caracteriza DIÁRIA PERDIDA por culpa da CONTRATANTE, devida integralmente, com todos os custos de equipe, equipamento e locação, sem direito a reexecução gratuita.
+
+Parágrafo segundo. É vedado à CONTRATANTE, ao artista e a terceiros determinar a captação em desacordo com as recomendações de segurança do CONTRATADO, notadamente em altura, água, via pública sem interdição, proximidade de fogo, pirotecnia, animais ou veículos em movimento; a insistência autoriza a interrupção imediata, permanecendo devida a diária.
+
+Parágrafo terceiro. A gravação em período noturno, quando prevista, observará o adicional da cláusula Da Jornada, e a alteração do plano de filmagem no próprio dia, por conveniência da CONTRATANTE, corre por conta e risco desta.
+
+Parágrafo quarto. O CONTRATADO poderá registrar imagens de bastidores para fins da cláusula Do Uso em Portfólio, respeitado o embargo de divulgação pactuado.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_VIAGEM,
+      CLAUSULA_DRONE,
+      CLAUSULA_CONDICOES_CLIMATICAS,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
   },
+  /* ================================================================== */
+  /* GRUPO 1 — CINEASTA · 3. DOCUMENTÁRIOS                              */
+  /* ================================================================== */
   {
     perfil: "filmmaker",
     tipoServico: "documentarios",
     nome: "Documentários",
-    descricao: "Produção documental por marcos/etapas, com releases de entrevistados, crédito de direção assegurado e armazenamento de material de arquivo transferido ao cliente após a entrega.",
+    descricao:
+      "Produção documental por etapas, com releases de entrevistados, liberdade editorial pactuada, tratamento de material de arquivo de terceiros, festivais e crédito de direção assegurado.",
     camposDinamicos: [
       ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_DRONE,
+      ...CAMPOS_VIAGEM,
       { tag: "TEMA_DO_DOCUMENTARIO", label: "Tema do documentário", tipo: "texto" },
-      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea" },
-      { tag: "MARCOS_DO_CRONOGRAMA", label: "Marcos do cronograma", tipo: "textarea" },
-      { tag: "NUMERO_REVISOES_INCLUSAS", label: "Nº de revisões inclusas", tipo: "numero", exemplo: "2" },
-      { tag: "PRAZO_MEIOS_TERRITORIO_LICENCA", label: "Prazo/meios/território da licença", tipo: "textarea" },
-      { tag: "PERCENTUAL_MULTA_RESCISORIA", label: "% multa rescisória", tipo: "percentual", exemplo: "30" },
-      { tag: "PRAZO_MINIMO_GUARDA_BACKUP", label: "Prazo mínimo de guarda de backup", tipo: "texto", exemplo: "90 dias" },
-      { tag: "VALOR_TAXA_REENVIO", label: "Valor da taxa de recuperação/reenvio", tipo: "moeda" },
+      { tag: "DURACAO_APROXIMADA", label: "Duração aproximada", tipo: "texto", exemplo: "26 min" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea", exemplo: "1 documentário de 26 min; 1 trailer de 90s; 5 cortes de 60s para redes" },
+      { tag: "NUMERO_ENTREVISTAS", label: "Nº de entrevistas previstas", tipo: "numero", exemplo: "8" },
+      { tag: "QUANTIDADE_DIARIAS", label: "Diárias de captação", tipo: "numero", exemplo: "5" },
+      { tag: "LOCACOES_PREVISTAS", label: "Locações/cidades previstas", tipo: "textarea" },
+      { tag: "COMPOSICAO_DA_EQUIPE", label: "Composição da equipe", tipo: "textarea" },
+      { tag: "PRAZO_ETAPA_PESQUISA", label: "Prazo da etapa de pesquisa", tipo: "texto", exemplo: "20 dias" },
+      { tag: "PRAZO_ETAPA_CAPTACAO", label: "Prazo da etapa de captação", tipo: "texto", exemplo: "30 dias" },
+      { tag: "PRAZO_ETAPA_MONTAGEM", label: "Prazo da etapa de montagem", tipo: "texto", exemplo: "45 dias" },
+      { tag: "VALOR_DIARIA_EXTRA", label: "Valor da diária extra", tipo: "moeda" },
+      { tag: "PERCENTUAL_PREMIACAO", label: "% do prêmio devido ao contratado em festivais", tipo: "percentual", exemplo: "50" },
     ],
-    texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE PRODUÇÃO DE OBRA DOCUMENTAL
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE PRODUÇÃO DOCUMENTAL
 
-CONTRATANTE: [NOME_DO_CLIENTE], CPF/CNPJ nº [CPF_CNPJ_CLIENTE], domiciliado(a) em [ENDERECO_CLIENTE].
-CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliado(a) em [ENDERECO_CONTRATADO].
+Pelo presente instrumento particular, as partes abaixo qualificadas:
 
-1. DO OBJETO
-1.1. Produção de obra documental sobre o tema "[TEMA_DO_DOCUMENTARIO]", compreendendo pesquisa, roteirização, captação de entrevistas/depoimentos e imagens de apoio, e pós-produção.
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
 
-2. DO ESCOPO E DO CRONOGRAMA POR MARCOS
-2.1. Entregáveis: [DESCRICAO_DOS_ENTREGAVEIS]. Cronograma por marcos: [MARCOS_DO_CRONOGRAMA], dada a natureza de produção continuada.
-2.2. Compete à CONTRATANTE viabilizar acesso a locações, fontes e entrevistados necessários.
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
 
-3. DO PRAZO
-3.1. Prazo total: [PRAZO_DE_ENTREGA], contado da aprovação do roteiro/tratamento inicial, dividido em entregas parciais por marco.
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a pesquisa, a direção, a produção, a captação e a montagem de obra documental sobre o tema [TEMA_DO_DOCUMENTARIO], com duração aproximada de [DURACAO_APROXIMADA].
 
-4. DAS REVISÕES E REFAÇÕES
-4.1. Inclusas [NUMERO_REVISOES_INCLUSAS] rodada(s) de ajuste na montagem final. Reestruturação de narrativa após aprovação do corte de exibição, novas entrevistas não previstas, ou nova captação por decisão editorial da CONTRATANTE são orçadas à parte.
-4.2. Erros técnicos atribuíveis ao(à) CONTRATADO(A) são corrigidos sem custo, na medida do tecnicamente possível (ressalvados depoimentos/eventos históricos irrepetíveis).
+Parágrafo primeiro. Os entregáveis compreendem: [DESCRICAO_DOS_ENTREGAVEIS].
 
-5. DO VALOR E PAGAMENTO
-5.1. Valor total: [VALOR_DO_SERVIÇO], pago em parcelas vinculadas aos marcos de entrega: [CONDICOES_DE_PAGAMENTO].
+Parágrafo segundo. A produção compreende até [NUMERO_ENTREVISTAS] entrevistas e [QUANTIDADE_DIARIAS] diária(s) de captação, nas locações [LOCACOES_PREVISTAS], com a equipe [COMPOSICAO_DA_EQUIPE]. Entrevistas e diárias excedentes serão orçadas à parte, à razão de [VALOR_DIARIA_EXTRA] por diária.
 
-6. DO ARMAZENAMENTO DE MATERIAL BRUTO E ARQUIVO HISTÓRICO
-6.1. Após a entrega final, o armazenamento do material bruto (incluindo depoimentos e imagens de arquivo) passa a ser de responsabilidade da CONTRATANTE, especialmente relevante tratando-se de registro histórico irrepetível.
-6.2. O(a) CONTRATADO(A) pode manter backup por liberalidade por até [PRAZO_MINIMO_GUARDA_BACKUP], cobrando [VALOR_TAXA_REENVIO] por recuperação dentro desse prazo.
+Parágrafo terceiro. NÃO integram o objeto, salvo contratação apartada: licenciamento de material de arquivo de terceiros; trilha original e licenciamento musical; narração e locução profissional; tradução, legendagem e closed caption; produção executiva de captação de recursos, leis de incentivo e prestação de contas; inscrição em festivais e taxas correspondentes; distribuição e exibição.
 
-7. DOS DIREITOS AUTORAIS, DEPOIMENTOS E IMAGEM
-7.1. O(a) CONTRATADO(A) cede à CONTRATANTE os direitos de exploração da obra conforme [PRAZO_MEIOS_TERRITORIO_LICENCA].
-7.2. Cabe à CONTRATANTE (ou, mediante acordo, ao(à) CONTRATADO(A) durante a captação) coletar releases de imagem e depoimento de todas as pessoas entrevistadas/identificáveis, sem os quais os respectivos trechos não podem ser usados/exibidos.
-7.3. É assegurado ao(à) CONTRATADO(A) crédito de direção/produção e o direito de submeter a obra a festivais, mostras e premiações, e usá-la em portfólio, ressalvado embargo por prazo determinado antes do lançamento oficial.
-7.4. Direitos de distribuição comercial pertencem à CONTRATANTE, salvo coprodução formalizada em aditivo específico.
-7.5. Material de arquivo, fotos históricas ou imagens de terceiros necessários à obra têm seus direitos de uso equacionados e custeados pela CONTRATANTE.
+Parágrafo quarto. A obra documental é criação intelectual do CONTRATADO, executada com autonomia editorial e artística dentro do tema e do recorte pactuados.`,
+      },
+      {
+        id: "etapas_documental",
+        titulo: "Das Etapas, dos Marcos e do Pagamento por Etapa",
+        protege: "Cada fase é paga ao ser entregue — o cliente não segura tudo até o fim.",
+        texto: `A execução observará as etapas de (i) pesquisa e roteiro, no prazo de [PRAZO_ETAPA_PESQUISA]; (ii) captação, no prazo de [PRAZO_ETAPA_CAPTACAO]; e (iii) montagem e finalização, no prazo de [PRAZO_ETAPA_MONTAGEM], contados na forma da cláusula Dos Prazos.
 
-8. DA RESCISÃO E MULTAS
-8.1. Rescisão unilateral pela CONTRATANTE após início da pesquisa/captação: pagamento proporcional aos marcos cumpridos, acrescido de multa de [PERCENTUAL_MULTA_RESCISORIA]% sobre o saldo remanescente.
-8.2. Cancelamento de diária já agendada: mais de 7 dias — 30% de retenção; entre 7 e 2 dias — 50%; menos de 48h ou no-show — 100%.
+Parágrafo primeiro. Cada etapa constitui marco autônomo de aprovação e de pagamento: concluída e aprovada a etapa, ou operada a aprovação tácita, torna-se exigível a parcela a ela vinculada, ainda que as etapas seguintes não tenham sido iniciadas.
 
-9. DA CONFIDENCIALIDADE
-9.1. Sigilo sobre conteúdo sensível de entrevistas e material não editado pelo prazo de [PRAZO_CONFIDENCIALIDADE], especialmente relevante quando o tema envolver dados sensíveis dos entrevistados.
+Parágrafo segundo. A aprovação do roteiro e do recorte editorial consolida a linha narrativa. Mudança posterior de tema, de personagens, de recorte ou de tese constitui alteração de escopo, ainda que motivada por fato superveniente.
 
-10. DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
-10.1. Tratamento de dados pessoais e depoimentos conforme a Lei nº 13.709/2018, com consentimento específico para uso de imagem e voz.
+Parágrafo terceiro. Material captado e não aproveitado na montagem final permanece na esfera do CONTRATADO, não integra a entrega e não poderá ser exigido pela CONTRATANTE, salvo contratação apartada de cessão de brutos.
 
-11. DO CASO FORTUITO E FORÇA MAIOR
-11.1. Nenhuma parte responde por atraso decorrente de caso fortuito ou força maior. A parte afetada comunica a outra em até 48h e propõe nova data, sem multa.
+Parágrafo quarto. A interrupção do projeto por decisão da CONTRATANTE após o início da captação obriga ao pagamento integral das etapas iniciadas e das diárias já reservadas, na forma da cláusula Da Rescisão.`,
+      },
+      {
+        id: "releases_entrevistados",
+        titulo: "Das Autorizações de Entrevistados e do Material de Arquivo",
+        essencial: true,
+        protege: "Documentário sem release liberado é processo esperando acontecer — e não é seu.",
+        texto: `Toda pessoa entrevistada ou retratada firmará termo de autorização de uso de imagem, voz e depoimento (release), previamente à captação, cabendo à CONTRATANTE providenciar, coletar e arquivar os termos, salvo se expressamente atribuída essa tarefa ao CONTRATADO mediante remuneração específica.
 
-12. DA LIMITAÇÃO DE RESPONSABILIDADE E DA INDENIZAÇÃO
-12.1. A responsabilidade do(a) CONTRATADO(A) fica limitada ao valor total pago pela CONTRATANTE, excluída responsabilidade por lucros cessantes ou danos indiretos.
-12.2. A CONTRATANTE indeniza e mantém o(a) CONTRATADO(A) isento(a) de reclamações decorrentes de: (i) ausência de releases de imagem/depoimento dos entrevistados, cuja obtenção é responsabilidade da CONTRATANTE nos termos da cláusula 7.2; (ii) uso indevido de material de arquivo/imagens de terceiros cujos direitos não tenham sido equacionados pela CONTRATANTE; (iii) uso do material fora dos limites da licença concedida.
-12.3. Manifestações públicas negativas de má-fé poderão ser objeto de notificação extrajudicial e das medidas cabíveis.
+Parágrafo primeiro. Tratando-se de menor de idade, pessoa com deficiência ou pessoa em situação de vulnerabilidade, o termo será firmado por representante legal, com observância das cautelas éticas aplicáveis.
 
-13. DISPOSIÇÕES GERAIS
-13.1. Sem vínculo empregatício, societário ou de representação.
+Parágrafo segundo. A CONTRATANTE responde pela licitude e pela suficiência do licenciamento de todo material de arquivo, fotografia, documento, obra de arte, trecho audiovisual ou fonograma de terceiro que fornecer ou solicitar que seja incorporado à obra, respondendo regressivamente perante o CONTRATADO por qualquer pretensão de titular.
 
-14. DO FORO
-14.1. Fica eleito o foro da Comarca de [FORO_COMARCA].
+Parágrafo terceiro. Havendo revogação de autorização por entrevistado após a montagem, a substituição, a supressão ou a reedição do trecho constitui alteração de escopo onerosa, salvo se a revogação decorrer de conduta imputável ao CONTRATADO.
 
-Local e data: [DATA_ASSINATURA]. Assinaturas: [NOME_DO_CLIENTE] (CONTRATANTE) / [NOME_CONTRATADO] (CONTRATADO(A)).`,
+Parágrafo quarto. O CONTRATADO poderá recusar a inclusão de material cuja origem não seja documentalmente comprovada, sem que a recusa configure inadimplemento.`,
+      },
+      {
+        id: "liberdade_editorial",
+        titulo: "Da Liberdade Editorial e da Integridade da Obra",
+        protege: "Impede que o cliente transforme documentário em publicidade depois de pronto.",
+        texto: `As partes reconhecem que a obra documental possui natureza editorial e autoral, e que a sua credibilidade depende da integridade do tratamento dado ao tema.
+
+Parágrafo primeiro. A CONTRATANTE poderá apontar imprecisões factuais, riscos jurídicos concretos e inadequações de ordem técnica, que serão examinados pelo CONTRATADO de boa-fé. Não constitui apontamento válido, contudo, a exigência de supressão de conteúdo verídico, de inclusão de mensagem publicitária não pactuada, de alteração de depoimento fora de contexto ou de qualquer intervenção que desfigure o sentido da obra.
+
+Parágrafo segundo. A imposição de alteração que viole o disposto no parágrafo anterior autoriza o CONTRATADO a: (i) recusar a alteração; (ii) exigir a supressão do seu crédito de direção, mantida a remuneração integral; ou (iii) rescindir o contrato por justa causa imputável à CONTRATANTE.
+
+Parágrafo terceiro. É assegurado ao CONTRATADO o crédito de direção e de roteiro na obra, em cartela e em toda divulgação oficial, sendo a supressão do crédito violação de direito moral de autor.
+
+Parágrafo quarto. A inscrição da obra em festivais, mostras e premiações dependerá de acordo escrito entre as partes; havendo premiação em dinheiro atribuída à obra, caberá ao CONTRATADO o percentual de [PERCENTUAL_PREMIACAO]%, salvo se o regulamento do festival dispuser de forma diversa.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_VIAGEM,
+      CLAUSULA_DRONE,
+      CLAUSULA_CONDICOES_CLIMATICAS,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
   },
+  /* ================================================================== */
+  /* GRUPO 1 — CINEASTA · 4. TURNÊS E SHOWS                             */
+  /* ================================================================== */
   {
     perfil: "filmmaker",
     tipoServico: "turnes_e_shows",
     nome: "Turnês e Shows",
-    descricao: "Cobertura audiovisual de turnês multi-data, com logística de deslocamento a cargo do contratante, cláusula de segurança em ambiente de show/multidão e tabela progressiva de retenção por cancelamento.",
+    descricao:
+      "Cobertura audiovisual de turnê multi-data, com logística e credenciamento por conta do contratante, segurança em ambiente de multidão, entregas em fluxo durante a estrada e tabela de retenção por data cancelada.",
     camposDinamicos: [
       ...CAMPOS_COMUNS_CONTRATO,
-      { tag: "NOME_DO_ARTISTA_OU_BANDA", label: "Nome do artista/banda", tipo: "texto" },
-      { tag: "LISTA_DE_DATAS_E_CIDADES", label: "Lista de datas e cidades (anexo)", tipo: "textarea" },
-      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis por data/consolidados", tipo: "textarea" },
-      { tag: "PRAZO_ANTECEDENCIA_LOGISTICA", label: "Prazo de antecedência para logística", tipo: "texto", exemplo: "10 dias" },
-      { tag: "NUMERO_DE_DATAS", label: "Número de datas da turnê", tipo: "numero" },
-      { tag: "VALOR_DIARIA_ADICIONAL", label: "Valor de diária adicional", tipo: "moeda" },
-      { tag: "VALOR_ADIANTAMENTO_DESPESAS", label: "Valor de adiantamento de despesas por data", tipo: "moeda" },
-      { tag: "PRAZO_ENTREGA_CONTEUDO_RAPIDO", label: "Prazo de entrega de conteúdo rápido", tipo: "texto", exemplo: "48 horas" },
-      { tag: "NUMERO_REVISOES_INCLUSAS", label: "Nº de revisões inclusas (aftermovie)", tipo: "numero", exemplo: "1" },
-      { tag: "PRAZO_MINIMO_GUARDA_BACKUP", label: "Prazo mínimo de guarda de backup", tipo: "texto", exemplo: "60 dias" },
-      { tag: "VALOR_TAXA_REENVIO", label: "Valor da taxa de recuperação/reenvio", tipo: "moeda" },
-      { tag: "PRAZO_RETENCAO_FAIXA_1", label: "Antecedência — faixa 1 (maior)", tipo: "texto", exemplo: "6 meses" },
-      { tag: "PRAZO_RETENCAO_FAIXA_2", label: "Antecedência — faixa 2", tipo: "texto", exemplo: "3 meses" },
-      { tag: "PRAZO_RETENCAO_FAIXA_3", label: "Antecedência — faixa 3 (menor)", tipo: "texto", exemplo: "30 dias" },
-      { tag: "PERCENTUAL_RETENCAO_12_MESES", label: "% retido — faixa 1", tipo: "percentual", exemplo: "15" },
-      { tag: "PERCENTUAL_RETENCAO_6_MESES", label: "% retido — faixa 2", tipo: "percentual", exemplo: "35" },
-      { tag: "PERCENTUAL_RETENCAO_3_MESES", label: "% retido — faixa 3", tipo: "percentual", exemplo: "60" },
-      { tag: "PERCENTUAL_RETENCAO_30_DIAS", label: "% retido — abaixo da faixa 3", tipo: "percentual", exemplo: "85" },
-      { tag: "MEIOS_E_TERRITORIO", label: "Meios e território de veiculação", tipo: "textarea" },
-      { tag: "PRAZO_DA_LICENCA_DE_USO", label: "Prazo da licença de uso", tipo: "texto" },
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_DRONE,
+      ...CAMPOS_VIAGEM,
+      { tag: "NOME_DO_ARTISTA", label: "Artista/banda", tipo: "texto" },
+      { tag: "NOME_DA_TURNE", label: "Nome da turnê", tipo: "texto" },
+      { tag: "NUMERO_DE_DATAS", label: "Nº de datas contratadas", tipo: "numero", exemplo: "8" },
+      { tag: "CIDADES_DA_TURNE", label: "Cidades e datas", tipo: "textarea" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis por data", tipo: "textarea", exemplo: "1 aftermovie de 90s em até 24h; 5 cortes verticais; 20 stills selecionados" },
+      { tag: "PRAZO_ENTREGA_EM_ESTRADA", label: "Prazo de entrega do material do dia", tipo: "texto", exemplo: "24 horas" },
+      { tag: "COMPOSICAO_DA_EQUIPE", label: "Composição da equipe", tipo: "textarea" },
+      { tag: "VALOR_POR_DATA", label: "Valor por data", tipo: "moeda" },
+      { tag: "PERCENTUAL_RETENCAO_30_DIAS", label: "% retido — cancelamento com mais de 30 dias", tipo: "percentual", exemplo: "30" },
+      { tag: "PERCENTUAL_RETENCAO_15_DIAS", label: "% retido — entre 30 e 15 dias", tipo: "percentual", exemplo: "50" },
+      { tag: "PERCENTUAL_RETENCAO_7_DIAS", label: "% retido — entre 15 e 7 dias", tipo: "percentual", exemplo: "80" },
+      { tag: "PERCENTUAL_RETENCAO_VESPERA", label: "% retido — menos de 7 dias", tipo: "percentual", exemplo: "100" },
     ],
-    texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE COBERTURA AUDIOVISUAL DE TURNÊ/SHOWS
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE COBERTURA AUDIOVISUAL DE TURNÊ
 
-CONTRATANTE: [NOME_DO_CLIENTE] (artista/banda/produtora/empresário), CPF/CNPJ nº [CPF_CNPJ_CLIENTE], domiciliado(a)/sede em [ENDERECO_CLIENTE].
-CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliado(a) em [ENDERECO_CONTRATADO].
+Pelo presente instrumento particular, as partes abaixo qualificadas:
 
-1. DO OBJETO
-1.1. Prestação de serviços de captação e produção audiovisual das apresentações de [NOME_DO_ARTISTA_OU_BANDA], compreendendo as datas/cidades listadas no Anexo de Roteiro de Turnê ([LISTA_DE_DATAS_E_CIDADES]), com entregáveis de [DESCRICAO_DOS_ENTREGAVEIS].
-1.2. O presente contrato rege a totalidade das datas listadas no Anexo; alterações de roteiro (inclusão/exclusão de datas) são formalizadas por aditivo, com impacto proporcional no valor total.
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
 
-2. DO ESCOPO, DA LOGÍSTICA E DAS CONDIÇÕES DE TRABALHO
-2.1. Entregáveis por data e entregáveis consolidados de turnê (aftermovie): [DESCRICAO_DOS_ENTREGAVEIS].
-2.2. Da logística de deslocamento e hospedagem (cláusula essencial): transporte, hospedagem, alimentação e credenciamento/acesso (passes de palco, camarim, backstage, fosso) do(a) CONTRATADO(A) e de sua equipe em cada cidade são de responsabilidade e custo da CONTRATANTE, providenciados com antecedência mínima de [PRAZO_ANTECEDENCIA_LOGISTICA]. A ausência de credenciamento válido que impeça a captação em determinada data não gera reembolso nem desconto, sendo a diária correspondente devida integralmente.
-2.3. Da segurança em ambiente de show e multidão (cláusula essencial): a captação em fosso, meio de plateia, pit ou proximidades do palco fica condicionada à existência de estrutura de segurança adequada fornecida pela produção do evento/CONTRATANTE (isolamento, seguranças, sinalização). O(a) CONTRATADO(A) tem o direito de recusar-se a captar, ou de interromper a captação, em posições que ofereçam risco à sua integridade física ou de sua equipe/equipamento (aglomeração excessiva, ausência de rota de fuga, atos de violência, estrutura de palco/som insegura, pirotecnia sem distância de segurança), sem que isso configure inadimplemento ou gere desconto/multa.
-2.4. Equipamentos sensíveis (câmeras, drones, gimbals) permanecem sob responsabilidade e seguro do(a) CONTRATADO(A); danos causados por terceiros (público, seguranças, staff do evento) não imputáveis ao(à) CONTRATADO(A) não geram responsabilidade deste(a), cabendo à CONTRATANTE, quando aplicável, acionar seguro do evento ou responsabilizar o causador direto.
-2.5. Cabe à CONTRATANTE viabilizar autorização/registro do artista com a casa de show, gravadora, empresário ou produtora local para a captação, isentando o(a) CONTRATADO(A) de qualquer restrição de acesso ou direito autoral de terceiros da produção do evento.
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
 
-3. DO PRAZO DE ENTREGA
-3.1. Conteúdo para redes sociais/stories: entrega em até [PRAZO_ENTREGA_CONTEUDO_RAPIDO] após cada data, quando esse entregável fizer parte do escopo.
-3.2. Aftermovie/material consolidado da turnê: entrega em até [PRAZO_DE_ENTREGA] dias corridos após o encerramento da turnê ou da última data contratada.
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a cobertura audiovisual da turnê "[NOME_DA_TURNE]", de [NOME_DO_ARTISTA], compreendendo [NUMERO_DE_DATAS] datas, nas seguintes cidades: [CIDADES_DA_TURNE].
 
-4. DAS REVISÕES E REFAÇÕES
-4.1. Inclusas [NUMERO_REVISOES_INCLUSAS] rodada(s) de ajuste no aftermovie/material consolidado. Datas de show não realizadas por motivo não imputável ao(à) CONTRATADO(A) (cancelamento do show, adiamento pela produção, condições de segurança da cláusula 2.3) não geram obrigação de reposição gratuita em outra data, sem prejuízo do disposto na cláusula 7.
-4.2. Falhas técnicas comprovadamente atribuíveis ao(à) CONTRATADO(A) em uma data específica não geram direito a desconto sobre as demais datas da turnê, sendo tratadas isoladamente.
+Parágrafo primeiro. Os entregáveis, por data, compreendem: [DESCRICAO_DOS_ENTREGAVEIS], com a equipe [COMPOSICAO_DA_EQUIPE].
 
-5. DO VALOR E DAS CONDIÇÕES DE PAGAMENTO
-5.1. Valor total da turnê: [VALOR_DO_SERVIÇO], correspondente a [NUMERO_DE_DATAS] data(s), à razão de [VALOR_DIARIA_ADICIONAL] por data adicional eventualmente incluída.
-5.2. Condições de pagamento: [CONDICOES_DE_PAGAMENTO]. Cada bloco de datas (ex.: por mês/etapa da turnê) deve estar quitado antes do início do respectivo bloco; o não pagamento de bloco vencido autoriza a suspensão da cobertura das datas subsequentes, sem caracterizar inadimplemento do(a) CONTRATADO(A) e sem prejuízo da retenção prevista na cláusula 7 sobre as datas já realizadas ou disponibilizadas.
-5.3. Despesas de deslocamento, hospedagem e alimentação, quando não fornecidas in natura pela CONTRATANTE nos termos da cláusula 2.2, são reembolsadas mediante apresentação de comprovantes ou pagas via adiantamento de valor fixo de [VALOR_ADIANTAMENTO_DESPESAS] por data/cidade.
+Parágrafo segundo. O valor por data é de [VALOR_POR_DATA], e datas acrescidas à turnê após a assinatura serão contratadas ao mesmo valor, sujeitas à disponibilidade de agenda do CONTRATADO, que não se obriga a aceitá-las.
 
-6. DO ARMAZENAMENTO PÓS-ENTREGA
-6.1. Após a entrega do aftermovie e dos conteúdos de cada data, cessa a obrigação do(a) CONTRATADO(A) de guardar o material bruto, podendo eliminá-lo a partir de [PRAZO_MINIMO_GUARDA_BACKUP] após a entrega final da turnê, sem aviso prévio.
-6.2. Recuperação de material bruto ainda disponível dentro do prazo de guarda é cobrada à parte no valor de [VALOR_TAXA_REENVIO].
+Parágrafo terceiro. NÃO integram o objeto, salvo contratação apartada: transmissão ao vivo, streaming e switching multicâmera; captação e mixagem de áudio da mesa de som, que dependerá de disponibilização de sinal pela produção da turnê; registro fotográfico dedicado; documentário de turnê; e material de divulgação anterior às datas.
 
-7. DA RESCISÃO, DO CANCELAMENTO DE DATAS E DAS MULTAS
-7.1. Cancelamento da turnê como um todo pela CONTRATANTE: aplica-se a tabela progressiva de retenção sobre o valor total, conforme antecedência em relação à primeira data da turnê: mais de [PRAZO_RETENCAO_FAIXA_1] de antecedência — retenção de [PERCENTUAL_RETENCAO_12_MESES]%; entre [PRAZO_RETENCAO_FAIXA_2] e [PRAZO_RETENCAO_FAIXA_1] — retenção de [PERCENTUAL_RETENCAO_6_MESES]%; entre [PRAZO_RETENCAO_FAIXA_3] e [PRAZO_RETENCAO_FAIXA_2] — retenção de [PERCENTUAL_RETENCAO_3_MESES]%; menos de [PRAZO_RETENCAO_FAIXA_3] — retenção de [PERCENTUAL_RETENCAO_30_DIAS]%; cancelamento de data isolada com menos de 72h, ou no-show em data confirmada — retenção de 100% do valor correspondente àquela data.
-7.2. A retenção acima se justifica pela reserva exclusiva da agenda do(a) CONTRATADO(A) para as datas da turnê, com recusa de outras oportunidades de trabalho no período, constituindo perda financeira direta e não uma penalidade arbitrária.
-7.3. Cancelamento de show individual dentro da turnê por caso fortuito/força maior (cláusula 11) não sofre a retenção acima, sendo apenas descontado do valor total o custo proporcional da data não realizada, ressalvadas despesas de deslocamento/hospedagem já incorridas e não reembolsáveis por terceiros.
-7.4. Rescisão por inadimplemento do(a) CONTRATADO(A) sem justa causa: devolução dos valores de datas não realizadas, sem prejuízo de indenização por danos comprovados.
+Parágrafo quarto. O CONTRATADO tem liberdade de posicionamento e de escolha de planos, respeitadas as restrições de palco e de segurança comunicadas previamente pela produção.`,
+      },
+      {
+        id: "logistica_turne",
+        titulo: "Da Logística, do Credenciamento e do Acesso",
+        essencial: true,
+        protege: "Sem credencial e acesso liberado não há filmagem — e a diária continua devida.",
+        texto: `Correrão por conta exclusiva da CONTRATANTE, para toda a equipe do CONTRATADO e em todas as datas: transporte entre cidades, hospedagem, alimentação, translado local entre hotel, aeroporto e local do show, e as respectivas taxas.
 
-8. DOS DIREITOS AUTORAIS, CRÉDITO E IMAGEM
-8.1. O(a) CONTRATADO(A) cede à CONTRATANTE os direitos de uso do material captado, pelo prazo de [PRAZO_DA_LICENCA_DE_USO], para os fins de [MEIOS_E_TERRITORIO].
-8.2. É assegurado ao(à) CONTRATADO(A) crédito nas publicações oficiais ("Registro audiovisual: [NOME_CONTRATADO]"), bem como o direito de uso do material em portfólio e divulgação profissional, ressalvado embargo por prazo determinado solicitado por escrito.
-8.3. Imagens de músicos convidados, banda de apoio, staff e público presente: o(a) CONTRATADO(A) não se responsabiliza por eventuais objeções posteriores de terceiros presentes no evento, cabendo à CONTRATANTE (produção/artista) a gestão de tais autorizações junto ao público e à equipe do show.
-8.4. Uso de trilha sonora executada ao vivo (composições de terceiros) segue as regras de execução pública já equacionadas pela casa de show/produtora junto ao ECAD; o(a) CONTRATADO(A) não responde por eventual bloqueio de plataforma (ex.: YouTube/Instagram) decorrente de identificação de conteúdo de terceiros ("Content ID") sobre a trilha executada, cabendo à CONTRATANTE gerenciar eventuais disputas de direitos autorais musicais perante as plataformas.
+Parágrafo primeiro. A CONTRATANTE providenciará, com antecedência mínima de 48 (quarenta e oito) horas de cada data, credenciamento nominal com acesso a palco, fosso, backstage, camarim e área técnica, conforme necessário à execução, bem como a inclusão da equipe nas listas de acesso da casa de espetáculo, do promotor local e da equipe de segurança.
 
-9. DA CONFIDENCIALIDADE
-9.1. Sigilo sobre roteiro de turnê não divulgado, setlist, bastidores e questões contratuais entre CONTRATANTE e casas de show/produtoras, pelo prazo de [PRAZO_CONFIDENCIALIDADE].
+Parágrafo segundo. A ausência, o atraso ou a insuficiência de credenciamento que impeça, restrinja ou reduza a cobertura NÃO exonera a CONTRATANTE do pagamento da data, tampouco autoriza reclamação quanto à extensão do material entregue.
 
-10. DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
-10.1. Tratamento de dados pessoais conforme a Lei nº 13.709/2018.
+Parágrafo terceiro. Restrições impostas pela produção, pela casa de espetáculo, pelo artista, por patrocinador ou por emissora — vedação de filmagem em determinado bloco, limitação de posições, proibição de luz auxiliar, embargo de trechos — serão comunicadas ao CONTRATADO com a maior antecedência possível e reduzem proporcionalmente a expectativa de material, sem redução do preço.
 
-11. DO CASO FORTUITO E FORÇA MAIOR
-11.1. Nenhuma parte responde por cancelamento/adiamento de data decorrente de caso fortuito ou força maior (incluindo cancelamento do show pela casa/produtora, condições climáticas que impeçam a realização do evento, ou motivo de saúde do artista). A parte afetada comunica a outra em até 48h.
-11.2. Impedimento pessoal do(a) CONTRATADO(A) para comparecer a uma ou mais datas autoriza a indicação de profissional substituto de nível técnico equivalente, mediante aprovação prévia da CONTRATANTE, sem prejuízo do valor contratado; a recusa injustificada de substituto tecnicamente qualificado pela CONTRATANTE transfere a esta o ônus de eventual dano decorrente da não cobertura da data.
+Parágrafo quarto. Alterações de roteiro da turnê, cancelamento ou remarcação de datas serão comunicadas imediatamente, aplicando-se a cláusula Do Cancelamento de Datas.
 
-12. DA LIMITAÇÃO DE RESPONSABILIDADE E DA INDENIZAÇÃO
-12.1. A responsabilidade do(a) CONTRATADO(A) por qualquer dano direto comprovadamente causado por sua atuação fica limitada ao valor total pago pela CONTRATANTE, excluída responsabilidade por lucros cessantes, danos indiretos ou danos à imagem/reputação decorrentes de fatores alheios à sua atuação técnica direta.
-12.2. A CONTRATANTE se compromete a indenizar e manter o(a) CONTRATADO(A) isento(a) de qualquer reclamação, multa, processo ou prejuízo decorrente de: (i) ausência ou inadequação da estrutura de segurança do evento referida na cláusula 2.3; (ii) ausência de credenciamento/autorização da casa de show ou produtora referida na cláusula 2.5; (iii) danos ao equipamento do(a) CONTRATADO(A) causados por público, staff ou terceiros do evento; (iv) uso do material fora dos limites da licença concedida neste contrato; (v) disputas de direitos autorais musicais decorrentes da trilha executada ao vivo.
-12.3. Manifestações públicas negativas feitas pela CONTRATANTE de forma comprovadamente inverídica ou de má-fé poderão ser objeto de notificação extrajudicial e das medidas cabíveis, sem prejuízo do direito de resposta do(a) CONTRATADO(A).
+Parágrafo quinto. A CONTRATANTE assegurará à equipe local seguro para guarda e carregamento de equipamento, ponto de energia, e acesso a áreas de trabalho compatíveis com a operação de câmera.`,
+      },
+      {
+        id: "seguranca_multidao",
+        titulo: "Da Segurança em Ambiente de Show e Multidão",
+        essencial: true,
+        protege: "Ambiente de show tem risco real — e a decisão de recuar é técnica, não negociável.",
+        texto: `As partes reconhecem que a execução se dá em ambiente de aglomeração, com riscos inerentes de tumulto, empurrões, pirotecnia, efeitos de palco, estruturas em altura, pisos molhados, fumaça cênica e iluminação estroboscópica.
 
-13. DAS DISPOSIÇÕES GERAIS
-13.1. Sem vínculo empregatício, societário ou de representação com a CONTRATANTE, o artista, a banda, a produtora ou a casa de show. Alterações somente por aditivo escrito.
+Parágrafo primeiro. A CONTRATANTE, por si ou pela produção local, obriga-se a manter plano de segurança, brigada, rotas de fuga sinalizadas, controle de lotação e equipe de apoio, na forma da legislação e das normas do corpo de bombeiros aplicáveis, respondendo pelo cumprimento dessas obrigações.
 
-14. DO FORO
-14.1. Fica eleito o foro da Comarca de [FORO_COMARCA].
+Parágrafo segundo. O CONTRATADO e sua equipe poderão recuar, reposicionar-se ou interromper a captação, a qualquer momento e a critério técnico exclusivo, diante de risco concreto à integridade física ou ao equipamento, sem que isso configure descumprimento contratual nem gere direito a abatimento.
 
-Local e data: [DATA_ASSINATURA]. Assinaturas: [NOME_DO_CLIENTE] (CONTRATANTE) / [NOME_CONTRATADO] (CONTRATADO(A)).`,
+Parágrafo terceiro. Danos ao equipamento causados por público, por efeitos de palco, por estrutura da produção ou por falha de segurança serão ressarcidos pela CONTRATANTE, na forma da cláusula Do Equipamento.
+
+Parágrafo quarto. É vedada à CONTRATANTE a determinação de posicionamento em local interditado, em estrutura sem laudo, em altura sem ancoragem ou em área de circulação de público sem isolamento; a insistência autoriza a interrupção imediata, permanecendo devida a data.
+
+Parágrafo quinto. Havendo interrupção do show por caso fortuito, força maior, determinação de autoridade ou decisão da produção, a data será considerada realizada para fins de pagamento, entregando-se o material efetivamente captado.`,
+      },
+      {
+        id: "entregas_em_estrada",
+        titulo: "Das Entregas em Fluxo Durante a Turnê",
+        protege: "Define prazo real de estrada e impede cobrança de edição feita em ônibus.",
+        texto: `O material de cada data será entregue no prazo de [PRAZO_ENTREGA_EM_ESTRADA] contados do encerramento do show, observadas as condições reais de conectividade e deslocamento durante a turnê.
+
+Parágrafo primeiro. O prazo do caput fica automaticamente suspenso enquanto a equipe estiver em deslocamento aéreo ou rodoviário, ou em local sem conexão de internet com velocidade de upload compatível com o volume do material, retomando-se a fluência quando cessada a causa.
+
+Parágrafo segundo. As entregas em fluxo têm caráter de material de divulgação imediata e comportam, no máximo, 1 (uma) rodada de ajuste pontual por data, a ser solicitada em até 12 (doze) horas do recebimento. Findo esse prazo, o material reputa-se aprovado.
+
+Parágrafo terceiro. O material consolidado da turnê, quando contratado, observará o prazo geral da cláusula Dos Prazos, contado do encerramento da última data.
+
+Parágrafo quarto. A CONTRATANTE se obriga a realizar o download integral de cada entrega em até 30 (trinta) dias, sob pena de aplicar-se o disposto na cláusula Do Backup.`,
+      },
+      {
+        id: "cancelamento_datas",
+        titulo: "Do Cancelamento e da Remarcação de Datas",
+        essencial: true,
+        protege: "Data cancelada em cima da hora é agenda perdida — e agenda perdida se paga.",
+        texto: `O cancelamento de data por iniciativa da CONTRATANTE, do artista, da produção ou do promotor local sujeita-a à retenção dos seguintes percentuais do valor da data cancelada, a título de compensação pela reserva de agenda e pela recusa de outras contratações no período:
+
+(i) cancelamento com mais de 30 (trinta) dias de antecedência: [PERCENTUAL_RETENCAO_30_DIAS]%;
+(ii) entre 30 e 15 dias de antecedência: [PERCENTUAL_RETENCAO_15_DIAS]%;
+(iii) entre 15 e 7 dias de antecedência: [PERCENTUAL_RETENCAO_7_DIAS]%;
+(iv) com menos de 7 (sete) dias de antecedência: [PERCENTUAL_RETENCAO_VESPERA]%.
+
+Parágrafo primeiro. Aos percentuais acima somam-se, integralmente, as despesas já incorridas e não reembolsáveis — passagens, hospedagem, locações e contratações de equipe —, ainda que a retenção seja parcial.
+
+Parágrafo segundo. A remarcação de data para novo dia em que o CONTRATADO tenha disponibilidade, comunicada com antecedência mínima de 15 (quinze) dias, não sofrerá retenção, correndo por conta da CONTRATANTE apenas as diferenças de custo logístico. Não havendo disponibilidade de agenda, a remarcação equivale a cancelamento.
+
+Parágrafo terceiro. O cancelamento de mais de 30% (trinta por cento) das datas contratadas autoriza o CONTRATADO a considerar rescindido o contrato quanto ao saldo, aplicando-se a cláusula Da Rescisão.
+
+Parágrafo quarto. Cancelamento por caso fortuito ou força maior devidamente comprovados observará a cláusula correspondente, ressalvado o ressarcimento das despesas não reembolsáveis.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      comoOpcional(CLAUSULA_VIAGEM, false),
+      CLAUSULA_DRONE,
+      CLAUSULA_CONDICOES_CLIMATICAS,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
   },
+  /* ================================================================== */
+  /* GRUPO 1 — CINEASTA · 5. CAPTAÇÃO PREMIUM (DIÁRIA)                  */
+  /* ================================================================== */
   {
     perfil: "filmmaker",
     tipoServico: "captacao_premium_diaria",
     nome: "Captação Premium (Diária)",
-    descricao: "Reserva de agenda por diária para eventos com data certa, com quitação prévia obrigatória, tabela progressiva de retenção por cancelamento e armazenamento pós-entrega transferido ao cliente.",
+    descricao:
+      "Reserva de agenda por diária para data certa, com quitação prévia obrigatória, tabela progressiva de retenção por cancelamento, hora extra definida e material bruto fora da entrega.",
     camposDinamicos: [
       ...CAMPOS_COMUNS_CONTRATO,
-      { tag: "DESCRICAO_DO_EVENTO_OU_OCASIAO", label: "Descrição do evento/ocasião", tipo: "textarea" },
-      { tag: "DATA_DO_EVENTO", label: "Data do evento", tipo: "data" },
-      { tag: "HORARIO_DE_INICIO", label: "Horário de início", tipo: "texto" },
-      { tag: "HORARIO_DE_TERMINO", label: "Horário de término", tipo: "texto" },
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_DRONE,
+      ...CAMPOS_VIAGEM,
+      { tag: "DATA_DO_EVENTO", label: "Data da diária", tipo: "data" },
+      { tag: "HORARIO_DE_INICIO", label: "Horário de início", tipo: "texto", exemplo: "8h" },
+      { tag: "HORARIO_DE_TERMINO", label: "Horário previsto de término", tipo: "texto", exemplo: "18h" },
+      { tag: "LOCAL_DA_CAPTACAO", label: "Local da captação", tipo: "texto" },
+      { tag: "FINALIDADE_DA_CAPTACAO", label: "Finalidade da captação", tipo: "textarea", exemplo: "captação de imagens institucionais da fábrica para uso interno e site" },
       { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea" },
-      { tag: "VALOR_HORA_EXCEDENTE", label: "Valor da hora excedente", tipo: "moeda" },
-      { tag: "RAIO_DESLOCAMENTO_INCLUSO", label: "Raio de deslocamento incluso", tipo: "texto", exemplo: "30 km" },
-      { tag: "CRITERIO_CUSTO_DESLOCAMENTO", label: "Critério de custo de deslocamento adicional", tipo: "textarea" },
-      { tag: "NUMERO_REVISOES_INCLUSAS", label: "Nº de revisões inclusas", tipo: "numero", exemplo: "1" },
-      { tag: "PRAZO_QUITACAO_ANTES_EVENTO", label: "Prazo de quitação antes do evento", tipo: "texto", exemplo: "7 dias" },
-      { tag: "INDICE_DE_CORRECAO", label: "Índice de correção monetária", tipo: "texto", exemplo: "IPCA-E" },
-      { tag: "PRAZO_MINIMO_GUARDA_BACKUP", label: "Prazo mínimo de guarda de backup", tipo: "texto", exemplo: "60 dias" },
-      { tag: "VALOR_TAXA_REENVIO", label: "Valor da taxa de recuperação/reenvio", tipo: "moeda" },
-      { tag: "PRAZO_RETENCAO_FAIXA_1", label: "Antecedência — faixa 1 (maior)", tipo: "texto", exemplo: "90 dias" },
-      { tag: "PRAZO_RETENCAO_FAIXA_2", label: "Antecedência — faixa 2", tipo: "texto", exemplo: "45 dias" },
-      { tag: "PRAZO_RETENCAO_FAIXA_3", label: "Antecedência — faixa 3 (menor)", tipo: "texto", exemplo: "15 dias" },
-      { tag: "PERCENTUAL_RETENCAO_12_MESES", label: "% retido — faixa 1", tipo: "percentual", exemplo: "15" },
-      { tag: "PERCENTUAL_RETENCAO_6_MESES", label: "% retido — faixa 2", tipo: "percentual", exemplo: "35" },
-      { tag: "PERCENTUAL_RETENCAO_3_MESES", label: "% retido — faixa 3", tipo: "percentual", exemplo: "60" },
-      { tag: "PERCENTUAL_RETENCAO_30_DIAS", label: "% retido — abaixo da faixa 3", tipo: "percentual", exemplo: "85" },
-      { tag: "PRAZO_AVISO_REMARCACAO", label: "Prazo de aviso para remarcação gratuita", tipo: "texto", exemplo: "20 dias" },
-      { tag: "EXCLUSIVA/NAO_EXCLUSIVA", label: "Licença exclusiva ou não exclusiva", tipo: "texto", exemplo: "não exclusiva" },
-      { tag: "PRAZO_DA_LICENCA_DE_USO", label: "Prazo da licença de uso", tipo: "texto" },
-      { tag: "MEIOS_E_TERRITORIO", label: "Meios e território de veiculação", tipo: "textarea" },
+      { tag: "COMPOSICAO_DA_EQUIPE", label: "Composição da equipe", tipo: "textarea" },
+      { tag: "EQUIPAMENTO_PREVISTO", label: "Equipamento previsto", tipo: "textarea", exemplo: "1 corpo cinema, 3 lentes primes, tripé, slider, kit de LED, 2 lapelas" },
+      { tag: "PRAZO_QUITACAO_ANTES_EVENTO", label: "Prazo de quitação antes da data", tipo: "texto", exemplo: "5 dias" },
+      { tag: "PERCENTUAL_RETENCAO_30_DIAS", label: "% retido — mais de 30 dias antes", tipo: "percentual", exemplo: "30" },
+      { tag: "PERCENTUAL_RETENCAO_15_DIAS", label: "% retido — entre 30 e 15 dias", tipo: "percentual", exemplo: "50" },
+      { tag: "PERCENTUAL_RETENCAO_7_DIAS", label: "% retido — entre 15 e 7 dias", tipo: "percentual", exemplo: "80" },
+      { tag: "PERCENTUAL_RETENCAO_VESPERA", label: "% retido — menos de 7 dias", tipo: "percentual", exemplo: "100" },
+      { tag: "PRAZO_AVISO_REMARCACAO", label: "Antecedência p/ remarcar sem multa", tipo: "texto", exemplo: "15 dias" },
+      { tag: "VALOR_CESSAO_BRUTOS", label: "Valor da cessão de arquivos brutos", tipo: "moeda" },
     ],
-    texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE CAPTAÇÃO AUDIOVISUAL POR DIÁRIA (CAPTAÇÃO PREMIUM)
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE CAPTAÇÃO AUDIOVISUAL POR DIÁRIA
 
-CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], CPF/CNPJ nº [CPF_CNPJ_CLIENTE], domiciliado(a)/sede em [ENDERECO_CLIENTE].
-CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliado(a) em [ENDERECO_CONTRATADO].
+Pelo presente instrumento particular, as partes abaixo qualificadas:
 
-1. DO OBJETO
-1.1. Prestação de serviços de captação audiovisual em regime de diária (reserva de agenda exclusiva por período fechado), para o evento/ocasião [DESCRICAO_DO_EVENTO_OU_OCASIAO], na data de [DATA_DO_EVENTO], no horário de [HORARIO_DE_INICIO] às [HORARIO_DE_TERMINO].
-1.2. A presente modalidade caracteriza-se pela reserva integral da agenda do(a) CONTRATADO(A) para a data contratada, independentemente da duração efetiva de uso durante o período, nos termos da cláusula 7.
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
 
-2. DO ESCOPO E DOS ENTREGÁVEIS
-2.1. Entregáveis: [DESCRICAO_DOS_ENTREGAVEIS].
-2.2. Horas excedentes ao período contratado na cláusula 1.1 são cobradas à parte, à razão de [VALOR_HORA_EXCEDENTE] por hora ou fração, mediante acordo prévio de disponibilidade — o(a) CONTRATADO(A) não é obrigado(a) a permanecer além do horário contratado na ausência desse acordo.
-2.3. Equipamentos, deslocamento dentro do perímetro de [RAIO_DESLOCAMENTO_INCLUSO] e ajudante(s) de câmera, quando aplicável, estão inclusos no valor da diária; deslocamentos além desse perímetro são cobrados à parte conforme [CRITERIO_CUSTO_DESLOCAMENTO].
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
 
-3. DO PRAZO DE ENTREGA
-3.1. Entrega do material finalizado em até [PRAZO_DE_ENTREGA] dias corridos após a captação.
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a prestação de serviços de captação audiovisual em regime de diária, no dia [DATA_DO_EVENTO], das [HORARIO_DE_INICIO] às [HORARIO_DE_TERMINO], no local [LOCAL_DA_CAPTACAO], com a seguinte finalidade: [FINALIDADE_DA_CAPTACAO].
 
-4. DAS REVISÕES E REFAÇÕES
-4.1. Inclusas [NUMERO_REVISOES_INCLUSAS] rodada(s) de ajuste pontual sobre o material entregue. Nova captação por motivo não imputável a erro técnico do(a) CONTRATADO(A) é orçada como nova diária.
-4.2. Erro técnico comprovadamente atribuível ao(à) CONTRATADO(A) é corrigido sem custo adicional, quando tecnicamente possível dada a natureza do evento (eventos únicos e irrepetíveis limitam a correção ao material efetivamente captado).
+Parágrafo primeiro. A execução compreende a equipe [COMPOSICAO_DA_EQUIPE] e o equipamento [EQUIPAMENTO_PREVISTO], podendo o CONTRATADO substituir itens por outros de especificação equivalente ou superior.
 
-5. DO VALOR E DAS CONDIÇÕES DE PAGAMENTO
-5.1. Valor total da diária: [VALOR_DO_SERVIÇO]. Condições de pagamento: [CONDICOES_DE_PAGAMENTO].
-5.2. Da quitação prévia ao evento (cláusula essencial): quando a diária destinar-se a evento com data certa e insubstituível (formatura, lançamento, evento corporativo com data fixa, etc.), o pagamento integral deve estar quitado em até [PRAZO_QUITACAO_ANTES_EVENTO] antes da data do evento. O não pagamento até esse prazo autoriza o(a) CONTRATADO(A) a não comparecer e a não prestar o serviço, sem que isso configure inadimplemento de sua parte, e sujeita a CONTRATANTE à retenção prevista na cláusula 7 como se cancelamento fosse.
-5.3. Atraso de parcela gera multa de 2%, juros de mora de 1% ao mês, correção pelo índice [INDICE_DE_CORRECAO]. O material bruto/editado só é liberado após quitação integral.
+Parágrafo segundo. Os entregáveis compreendem: [DESCRICAO_DOS_ENTREGAVEIS].
 
-6. DO ARMAZENAMENTO PÓS-ENTREGA
-6.1. Após a entrega do material finalizado, cessa a obrigação do(a) CONTRATADO(A) de manter cópia do material bruto e do material entregue, podendo eliminá-los a partir de [PRAZO_MINIMO_GUARDA_BACKUP] após a entrega, sem aviso prévio, tornando-se o armazenamento de exclusiva responsabilidade da CONTRATANTE a partir desse momento.
-6.2. Caso o(a) CONTRATADO(A) ainda disponha do material dentro do prazo acima, a recuperação/reenvio é cobrada à parte no valor de [VALOR_TAXA_REENVIO], sem que a ausência de backup, decorrido o prazo, gere qualquer responsabilidade ao(à) CONTRATADO(A).
+Parágrafo terceiro. A diária destina-se à CAPTAÇÃO. Edição, montagem, correção de cor, tratamento de som, motion design e versionamento somente integram o objeto se expressamente descritos no parágrafo anterior; do contrário, serão orçados à parte.
 
-7. DA RESCISÃO, DO CANCELAMENTO E DAS MULTAS
-7.1. Por se tratar de reserva exclusiva de agenda em data certa — período durante o qual o(a) CONTRATADO(A) recusa outras propostas de trabalho —, o cancelamento pela CONTRATANTE sujeita-se à seguinte tabela progressiva de retenção, calculada sobre o valor total da diária, conforme a antecedência em relação à data do evento: mais de [PRAZO_RETENCAO_FAIXA_1] de antecedência — retenção de [PERCENTUAL_RETENCAO_12_MESES]%; entre [PRAZO_RETENCAO_FAIXA_2] e [PRAZO_RETENCAO_FAIXA_1] — retenção de [PERCENTUAL_RETENCAO_6_MESES]%; entre [PRAZO_RETENCAO_FAIXA_3] e [PRAZO_RETENCAO_FAIXA_2] — retenção de [PERCENTUAL_RETENCAO_3_MESES]%; menos de [PRAZO_RETENCAO_FAIXA_3] — retenção de [PERCENTUAL_RETENCAO_30_DIAS]%; no dia do evento ou não comparecimento da CONTRATANTE ("no-show") — retenção de 100%.
-7.2. Remarcação da data, quando solicitada com antecedência mínima de [PRAZO_AVISO_REMARCACAO] e aceita pelo(a) CONTRATADO(A) mediante disponibilidade de agenda, não se sujeita à tabela de retenção acima, mas apenas uma remarcação gratuita é admitida; remarcações subsequentes seguem a tabela de retenção como novo cancelamento.
-7.3. Rescisão por inadimplemento do(a) CONTRATADO(A) sem justa causa: devolução integral dos valores pagos, sem prejuízo de indenização por danos comprovados.
+Parágrafo quarto. NÃO integram o objeto, salvo contratação apartada: elenco, locução, cenografia, locação, alimentação de convidados, transmissão ao vivo e registro fotográfico dedicado.`,
+      },
+      {
+        id: "reserva_de_agenda",
+        titulo: "Da Reserva de Agenda e da Quitação Prévia",
+        essencial: true,
+        protege: "A data só fica bloqueada com o valor pago — reserva sem pagamento não existe.",
+        texto: `A assinatura deste contrato e o pagamento do sinal implicam o BLOQUEIO da agenda do CONTRATADO para a data contratada, com a consequente recusa de outras propostas para o mesmo dia, razão pela qual a data reservada tem valor econômico autônomo.
 
-8. DOS DIREITOS AUTORAIS E DE USO DE IMAGEM
-8.1. Mediante pagamento integral, o(a) CONTRATADO(A) cede à CONTRATANTE os direitos de uso do material entregue, de forma [EXCLUSIVA/NAO_EXCLUSIVA], pelo prazo de [PRAZO_DA_LICENCA_DE_USO], para os fins de [MEIOS_E_TERRITORIO].
-8.2. O(a) CONTRATADO(A) pode utilizar o material (ou trechos/stills) em portfólio, site e divulgação profissional, com crédito autoral, salvo pedido expresso e por escrito de embargo de divulgação por prazo determinado.
-8.3. Imagens de convidados e terceiros presentes no evento: cabe à CONTRATANTE gerenciar eventuais objeções de terceiros presentes, não respondendo o(a) CONTRATADO(A) por tais reclamações.
+Parágrafo primeiro. O saldo do preço deverá estar integralmente quitado até [PRAZO_QUITACAO_ANTES_EVENTO] antes da data contratada.
 
-9. DA CONFIDENCIALIDADE
-9.1. Sigilo sobre informações do evento não divulgadas publicamente pelo prazo de [PRAZO_CONFIDENCIALIDADE], especialmente relevante em eventos corporativos, lançamentos de produto ou eventos com cláusula de embargo de imprensa.
+Parágrafo segundo. Não verificada a quitação no prazo do parágrafo anterior, o CONTRATADO poderá, a seu exclusivo critério e mediante simples comunicação escrita, LIBERAR A AGENDA e não comparecer, hipótese em que os valores já pagos serão retidos a título de compensação, na forma da cláusula Do Cancelamento, sem que disso decorra inadimplemento de sua parte.
 
-10. DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
-10.1. Tratamento de dados pessoais conforme a Lei nº 13.709/2018.
+Parágrafo terceiro. A reserva é personalíssima quanto à data e ao objeto, e não pode ser transferida a terceiro, cedida ou convertida em crédito para outra finalidade sem anuência escrita do CONTRATADO.
 
-11. DO CASO FORTUITO E FORÇA MAIOR
-11.1. Nenhuma parte responde por atraso/cancelamento decorrente de caso fortuito ou força maior. A parte afetada comunica a outra em até 48h e propõe nova data, sem multa.
-11.2. Impedimento pessoal do(a) CONTRATADO(A) para comparecer autoriza a indicação de profissional substituto de nível técnico equivalente, mediante aprovação prévia da CONTRATANTE; caso não haja substituto disponível e/ou aprovado, os valores pagos são integralmente restituídos, sem incidência de multa.
+Parágrafo quarto. Havendo contratação de diárias adicionais, cada uma observará, isoladamente, o regime desta cláusula.`,
+      },
+      {
+        id: "cancelamento_diaria",
+        titulo: "Do Cancelamento, da Remarcação e da Retenção",
+        essencial: true,
+        protege: "Quanto mais perto da data, mais caro desistir — porque a agenda já foi perdida.",
+        texto: `O cancelamento por iniciativa da CONTRATANTE sujeita-a à retenção dos seguintes percentuais do valor total do contrato:
 
-12. DA LIMITAÇÃO DE RESPONSABILIDADE E DA INDENIZAÇÃO
-12.1. A responsabilidade do(a) CONTRATADO(A) por qualquer dano direto comprovadamente causado por sua atuação fica limitada ao valor total pago pela CONTRATANTE, excluída responsabilidade por lucros cessantes, danos indiretos ou danos à imagem/reputação decorrentes de fatores alheios à sua atuação técnica direta.
-12.2. A CONTRATANTE se compromete a indenizar e manter o(a) CONTRATADO(A) isento(a) de qualquer reclamação, multa, processo ou prejuízo decorrente de: (i) informações falsas ou incompletas sobre o evento fornecidas pela CONTRATANTE; (ii) atos de terceiros convidados/contratados pela CONTRATANTE presentes no evento; (iii) uso do material entregue fora dos limites da licença concedida neste contrato; (iv) ausência de autorização de terceiros (local do evento, outros fornecedores) para a realização da captação.
-12.3. Manifestações públicas negativas feitas pela CONTRATANTE de forma comprovadamente inverídica ou de má-fé poderão ser objeto de notificação extrajudicial e das medidas cabíveis, sem prejuízo do direito de resposta do(a) CONTRATADO(A).
+(i) com mais de 30 (trinta) dias de antecedência da data: [PERCENTUAL_RETENCAO_30_DIAS]%;
+(ii) entre 30 e 15 dias: [PERCENTUAL_RETENCAO_15_DIAS]%;
+(iii) entre 15 e 7 dias: [PERCENTUAL_RETENCAO_7_DIAS]%;
+(iv) com menos de 7 (sete) dias: [PERCENTUAL_RETENCAO_VESPERA]%.
 
-13. DAS DISPOSIÇÕES GERAIS
-13.1. Sem vínculo empregatício, societário ou de representação. Alterações somente por aditivo escrito.
+Parágrafo primeiro. Somam-se à retenção, integralmente, as despesas já incorridas e não reembolsáveis, notadamente passagens, hospedagem, locação de equipamento e contratação de equipe de apoio.
 
-14. DO FORO
-14.1. Fica eleito o foro da Comarca de [FORO_COMARCA].
+Parágrafo segundo. A remarcação para nova data, solicitada com antecedência mínima de [PRAZO_AVISO_REMARCACAO] e havendo disponibilidade na agenda do CONTRATADO, não sofrerá retenção, admitida UMA única remarcação por contrato; a segunda remarcação equivale a cancelamento. Não havendo disponibilidade, a solicitação de remarcação equivale a cancelamento.
 
-Local e data: [DATA_ASSINATURA]. Assinaturas: [NOME_DO_CLIENTE] (CONTRATANTE) / [NOME_CONTRATADO] (CONTRATADO(A)).`,
+Parágrafo terceiro. O não comparecimento da CONTRATANTE, a ausência de acesso ao local, a indisponibilidade das pessoas ou dos bens a serem filmados, ou a impossibilidade de execução por causa a ela imputável, no dia contratado, equivalem a cancelamento com menos de 7 (sete) dias, sendo devido o valor integral.
+
+Parágrafo quarto. Cancelamento por caso fortuito ou força maior comprovados observará a cláusula correspondente, ressalvado o ressarcimento das despesas não reembolsáveis e das diárias de equipe já contratadas.`,
+      },
+      {
+        id: "brutos_e_cessao",
+        titulo: "Do Material Bruto e da Cessão Opcional",
+        protege: "Bruto é instrumento de trabalho: só sai se for vendido, e vendido com regra.",
+        texto: `Os arquivos brutos de captação, os projetos de edição, as timelines, os presets e os LUTs constituem instrumento de trabalho do CONTRATADO e NÃO integram a entrega.
+
+Parágrafo primeiro. Havendo interesse da CONTRATANTE, a cessão dos arquivos brutos poderá ser contratada à parte, pelo valor de [VALOR_CESSAO_BRUTOS], mediante disponibilização em mídia física ou transferência digital, correndo por conta da CONTRATANTE o custo da mídia.
+
+Parágrafo segundo. A cessão de brutos NÃO transfere direitos autorais sobre a obra, não autoriza a sua reedição por terceiros com atribuição de autoria diversa, e obriga a CONTRATANTE a não divulgar material bruto de forma que possa comprometer a reputação técnica do CONTRATADO.
+
+Parágrafo terceiro. Cedidos os brutos, cessa toda e qualquer responsabilidade do CONTRATADO pela guarda, integridade, legibilidade e backup desse material, aplicando-se, no que couber, a cláusula Do Backup.
+
+Parágrafo quarto. Não contratada a cessão, os arquivos brutos poderão ser eliminados pelo CONTRATADO após o prazo previsto na cláusula Do Backup.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_VIAGEM,
+      CLAUSULA_DRONE,
+      CLAUSULA_CONDICOES_CLIMATICAS,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
   },
 ];

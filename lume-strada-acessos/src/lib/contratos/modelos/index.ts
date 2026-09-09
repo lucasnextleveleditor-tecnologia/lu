@@ -8,8 +8,17 @@ import { MODELOS_FOTOGRAFO } from "./fotografo";
 import { MODELOS_AGENCIA_MARKETING } from "./agencia_marketing";
 import type { ModeloContratoServico } from "./tipos";
 
-export type { ModeloContratoServico, CampoDinamicoModelo } from "./tipos";
-export { substituirPlaceholders, listarPlaceholdersPendentes, CAMPOS_COMUNS_CONTRATO } from "./tipos";
+export type { ModeloContratoServico, CampoDinamicoModelo, ClausulaModelo } from "./tipos";
+export {
+  substituirPlaceholders,
+  listarPlaceholdersPendentes,
+  CAMPOS_COMUNS_CONTRATO,
+  obterClausulas,
+  montarTextoDoContrato,
+  clausulasPadraoSelecionadas,
+  ordinalDeClausula,
+  dividirTextoEmClausulas,
+} from "./tipos";
 
 /**
  * Banco completo de modelos, por perfil. Cada arquivo de perfil (filmmaker.ts,

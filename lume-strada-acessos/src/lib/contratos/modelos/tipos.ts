@@ -37,8 +37,17 @@ export interface ModeloContratoServico {
   nome: string;
   /** Descrição curta usada como subtítulo/tooltip do card de seleção. */
   descricao: string;
-  /** Texto completo das cláusulas, com marcadores `[TAG]`. */
-  texto: string;
+  /**
+   * Texto completo das cláusulas num bloco só, com marcadores `[TAG]`.
+   *
+   * Forma ANTIGA, mantida para os modelos que ainda não foram reescritos
+   * cláusula a cláusula — `obterClausulas` quebra este texto sozinho, então
+   * eles funcionam no checklist sem nenhuma mudança. Modelo novo não usa
+   * este campo: usa `clausulas`.
+   */
+  texto?: string;
+  /** As cláusulas separadas, na ordem em que devem aparecer. Quando presente, manda — `texto` é ignorado. */
+  clausulas?: ClausulaModelo[];
   /** Campos que o formulário lateral deve renderizar para preencher os `[TAG]` deste modelo, na ordem de exibição. */
   camposDinamicos: CampoDinamicoModelo[];
 }
@@ -77,4 +86,157 @@ export function substituirPlaceholders(texto: string, valores: Record<string, st
 export function listarPlaceholdersPendentes(texto: string): string[] {
   const matches = texto.match(/\[[A-ZÀ-Ú0-9_]+\]/g) ?? [];
   return Array.from(new Set(matches.map((m) => m.slice(1, -1))));
+}
+
+/* ==================================================================== */
+/* CLÁUSULA A CLÁUSULA                                                   */
+/* ==================================================================== */
+
+/**
+ * Uma cláusula isolada de um modelo.
+ *
+ * O contrato deixou de ser um bloco único de texto e passou a ser uma LISTA
+ * de cláusulas, porque é assim que ele é negociado na vida real: o cliente
+ * não recusa "o contrato", recusa a cláusula de exclusividade, ou pede para
+ * tirar a multa de remarcação. Com o texto num bloco só, mexer numa cláusula
+ * significava reescrever o documento inteiro à mão e torcer para a numeração
+ * continuar batendo.
+ *
+ * O número NÃO fica guardado aqui. Ele é calculado na montagem, sobre as
+ * cláusulas que sobraram — se a quinta sai, a sexta vira quinta sozinha. É
+ * por isso também que nenhuma cláusula deve se referir a outra pelo número
+ * ("nos termos da Cláusula Sexta"): cita-se pelo nome ("na cláusula Do
+ * Objeto"), que não muda quando alguém desmarca uma caixa acima.
+ */
+export interface ClausulaModelo {
+  /** Slug estável dentro do modelo — é o que fica marcado/desmarcado no checklist. */
+  id: string;
+  /** Título da cláusula, sem o número: "Do Objeto", "Da Rescisão". */
+  titulo: string;
+  /** Corpo da cláusula, com `[TAG]`s. Sem o cabeçalho "CLÁUSULA X — ..." (ele é gerado). */
+  texto: string;
+  /**
+   * Cláusula que sustenta o contrato de pé — quem são as partes, o que foi
+   * contratado, quanto custa, onde se discute. Vem marcada e não pode ser
+   * desmarcada: sem ela não sobra contrato, sobra carta de intenções.
+   */
+  essencial?: boolean;
+  /** Nasce DESMARCADA: só entra quando o caso pede (drone, viagem, exclusividade). */
+  opcional?: boolean;
+  /** Uma linha dizendo o que essa cláusula protege — aparece ao lado da caixa, para a escolha ser informada. */
+  protege?: string;
+}
+
+/** Ordinais por extenso, em maiúsculas, como se escreve em contrato. */
+const ORDINAIS = [
+  "PRIMEIRA", "SEGUNDA", "TERCEIRA", "QUARTA", "QUINTA", "SEXTA", "SÉTIMA", "OITAVA", "NONA", "DÉCIMA",
+  "DÉCIMA PRIMEIRA", "DÉCIMA SEGUNDA", "DÉCIMA TERCEIRA", "DÉCIMA QUARTA", "DÉCIMA QUINTA",
+  "DÉCIMA SEXTA", "DÉCIMA SÉTIMA", "DÉCIMA OITAVA", "DÉCIMA NONA", "VIGÉSIMA",
+  "VIGÉSIMA PRIMEIRA", "VIGÉSIMA SEGUNDA", "VIGÉSIMA TERCEIRA", "VIGÉSIMA QUARTA", "VIGÉSIMA QUINTA",
+  "VIGÉSIMA SEXTA", "VIGÉSIMA SÉTIMA", "VIGÉSIMA OITAVA", "VIGÉSIMA NONA", "TRIGÉSIMA",
+  "TRIGÉSIMA PRIMEIRA", "TRIGÉSIMA SEGUNDA", "TRIGÉSIMA TERCEIRA", "TRIGÉSIMA QUARTA", "TRIGÉSIMA QUINTA",
+];
+
+/** "PRIMEIRA" para 1, "DÉCIMA SEGUNDA" para 12. Acima da tabela, cai no número mesmo — é feio, mas é melhor do que quebrar. */
+export function ordinalDeClausula(posicao: number): string {
+  return ORDINAIS[posicao - 1] ?? `${posicao}ª`;
+}
+
+/**
+ * Quebra um texto corrido em cláusulas, achando os cabeçalhos
+ * "CLÁUSULA PRIMEIRA — Do Objeto".
+ *
+ * Existe para os modelos ainda escritos como bloco único: eles entram no
+ * checklist sem precisar ser reescritos de uma vez. O que vier antes do
+ * primeiro cabeçalho (título do contrato e qualificação das partes) vira uma
+ * cláusula de abertura, marcada como essencial — não é cláusula numerada, e
+ * por isso ganha `id: "preambulo"`, que a montagem trata à parte.
+ */
+export function dividirTextoEmClausulas(texto: string): ClausulaModelo[] {
+  // Dois feitios de cabeçalho convivem no banco: os modelos escritos por
+  // extenso ("CLÁUSULA PRIMEIRA — Do Objeto") e os mais antigos, numerados
+  // ("1. DO OBJETO"). Tenta o primeiro; não achando nada, tenta o segundo,
+  // para que nenhum modelo caia no bloco único só por causa da grafia.
+  const porExtenso = /^CL[ÁA]USULA\s+([A-ZÀ-Ú\s]+?)\s*[—–-]\s*(.+)$/gm;
+  const numerado = /^(\d{1,2})\.\s+([A-ZÀ-Ú][^\n]*)$/gm;
+
+  const cabecalhos: { indice: number; tamanho: number; titulo: string }[] = [];
+  const coletar = (marcador: RegExp) => {
+    let achado: RegExpExecArray | null;
+    while ((achado = marcador.exec(texto)) !== null) {
+      cabecalhos.push({ indice: achado.index, tamanho: achado[0].length, titulo: (achado[2] ?? "Cláusula").trim() });
+    }
+  };
+
+  coletar(porExtenso);
+  if (cabecalhos.length === 0) coletar(numerado);
+
+  if (cabecalhos.length === 0) {
+    return [{ id: "documento", titulo: "Texto do contrato", texto: texto.trim(), essencial: true }];
+  }
+
+  const clausulas: ClausulaModelo[] = [];
+  const abertura = texto.slice(0, cabecalhos[0]!.indice).trim();
+  if (abertura) clausulas.push({ id: "preambulo", titulo: "Qualificação das partes", texto: abertura, essencial: true });
+
+  cabecalhos.forEach((c, i) => {
+    const inicio = c.indice + c.tamanho;
+    const fim = i + 1 < cabecalhos.length ? cabecalhos[i + 1]!.indice : texto.length;
+    clausulas.push({
+      id: `c${i + 1}`,
+      titulo: c.titulo,
+      texto: texto.slice(inicio, fim).trim(),
+      essencial: i === 0,
+    });
+  });
+
+  return clausulas;
+}
+
+/** As cláusulas de um modelo, venha ele já em lista ou ainda como bloco único. */
+export function obterClausulas(modelo: ModeloContratoServico): ClausulaModelo[] {
+  if (modelo.clausulas && modelo.clausulas.length > 0) return modelo.clausulas;
+  return dividirTextoEmClausulas(modelo.texto ?? "");
+}
+
+/** As que já nascem marcadas: tudo menos as `opcional`. */
+export function clausulasPadraoSelecionadas(modelo: ModeloContratoServico): string[] {
+  return obterClausulas(modelo)
+    .filter((c) => !c.opcional)
+    .map((c) => c.id);
+}
+
+/**
+ * Monta o contrato final a partir das cláusulas escolhidas.
+ *
+ * A numeração sai daqui, e só daqui: conta as que sobraram, na ordem do
+ * modelo. `sobrescritas` são os textos que a pessoa editou na tela — o
+ * modelo não é alterado, o que muda é o que vai para ESTE contrato.
+ */
+export function montarTextoDoContrato(
+  modelo: ModeloContratoServico,
+  idsSelecionados: readonly string[],
+  sobrescritas: Record<string, string> = {}
+): string {
+  const escolhidas = new Set(idsSelecionados);
+  const partes: string[] = [];
+  let numero = 0;
+
+  for (const clausula of obterClausulas(modelo)) {
+    if (!escolhidas.has(clausula.id)) continue;
+    const corpo = (sobrescritas[clausula.id] ?? clausula.texto).trim();
+    if (!corpo) continue;
+
+    // O preâmbulo abre o documento e não recebe número: ele é a
+    // qualificação das partes, não uma obrigação pactuada.
+    if (clausula.id === "preambulo" || clausula.id === "documento") {
+      partes.push(corpo);
+      continue;
+    }
+
+    numero += 1;
+    partes.push(`CLÁUSULA ${ordinalDeClausula(numero)} — ${clausula.titulo}\n\n${corpo}`);
+  }
+
+  return partes.join("\n\n");
 }

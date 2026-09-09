@@ -47,9 +47,6 @@ export interface ContratosDict {
   origemHint: string;
   dadosDoContratoTitulo: string;
   tipoDeContratoLabel: string;
-  aplicarModeloBtn: string;
-  modeloOrigemNovoBtn: string;
-  modeloOrigemLegadoBtn: string;
   tipoServicoLabel: string;
   tipoServicoVazio: string;
   tipoServicoVazioSemModelos: string;
@@ -131,9 +128,6 @@ export const contratos: ContratosDict = {
   origemHint: "Escolha um orçamento já aprovado pra herdar cliente, itens e valor automaticamente — ou deixe em branco pra um contrato avulso.",
   dadosDoContratoTitulo: "Dados do Contrato",
   tipoDeContratoLabel: "Tipo de contrato",
-  aplicarModeloBtn: "Aplicar modelo deste tipo",
-  modeloOrigemNovoBtn: "Modelo padrão do sistema",
-  modeloOrigemLegadoBtn: "Modelo simples da empresa",
   tipoServicoLabel: "Tipo de Serviço",
   tipoServicoVazio: "Selecione o tipo de serviço...",
   tipoServicoVazioSemModelos: "Modelos deste perfil ainda não foram redigidos — em breve.",
