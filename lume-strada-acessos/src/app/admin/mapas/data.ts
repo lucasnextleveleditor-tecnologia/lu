@@ -2,11 +2,17 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { MapaComentarioRow, MapaCompleto, MapaMentalRow, MapaNoRow } from "@/lib/types/mapa-mental";
 
-/** Todos os mapas da empresa, com a contagem de balões. O RLS já limita à empresa. */
-export async function listarMapas(): Promise<(MapaMentalRow & { total_nos: number })[]> {
+/**
+ * Os mapas da empresa, com a contagem de balões. O RLS já limita à empresa.
+ *
+ * Arquivados ficam de fora por padrão — é para isso que arquivar serve. A
+ * contagem vem de uma consulta só a `mapa_nos` e é somada aqui: pedir a
+ * contagem mapa a mapa seriam N consultas para uma informação que cabe numa.
+ */
+export async function listarMapas(arquivados = false): Promise<(MapaMentalRow & { total_nos: number })[]> {
   const supabase = await createClient();
   const [mapasRes, nosRes] = await Promise.all([
-    supabase.from("mapas_mentais").select("*").order("atualizado_em", { ascending: false }),
+    supabase.from("mapas_mentais").select("*").eq("arquivado", arquivados).order("atualizado_em", { ascending: false }),
     supabase.from("mapa_nos").select("mapa_id"),
   ]);
 

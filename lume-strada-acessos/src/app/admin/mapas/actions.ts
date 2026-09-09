@@ -74,6 +74,19 @@ export async function renomearMapa(id: string, titulo: string): Promise<Resultad
   }
 }
 
+/** Tira da lista principal sem destruir nada — o mapa continua inteiro, link público e tudo. */
+export async function arquivarMapa(id: string, arquivado: boolean): Promise<Resultado> {
+  try {
+    const { supabase } = await requireEquipe();
+    const { error } = await supabase.from("mapas_mentais").update({ arquivado }).eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(ROTA);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
 export async function excluirMapa(id: string): Promise<Resultado> {
   try {
     const { supabase } = await requireEquipe();

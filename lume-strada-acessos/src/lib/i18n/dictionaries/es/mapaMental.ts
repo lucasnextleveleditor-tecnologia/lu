@@ -13,6 +13,15 @@ export const mapaMental: MapaMentalDict = {
   confirmarExclusao: "¿Eliminar este mapa y todo lo que contiene?",
   voltar: "Mapas Mentales",
 
+  ativos: "Activos",
+  arquivados: "Archivados",
+  arquivar: "Archivar",
+  desarquivar: "Desarchivar",
+  baixarPdf: "Descargar PDF",
+  semArquivadosTitulo: "Ningún mapa archivado",
+  semArquivadosDescricao: "Los mapas archivados salen de la lista principal, pero siguen enteros — con enlace y todo.",
+  acoes: "Acciones",
+
   baloVazio: "Sin texto",
   dicaTeclado: "Tab crea una rama · Enter crea un vecino · Delete borra · doble clic edita",
   aproximar: "Acercar",

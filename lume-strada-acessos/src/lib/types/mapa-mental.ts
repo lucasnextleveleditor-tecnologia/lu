@@ -7,6 +7,7 @@ export interface MapaMentalRow {
   titulo: string;
   token: string;
   acesso_publico: AcessoPublicoMapa;
+  arquivado: boolean;
   criado_por: string | null;
   created_at: string;
   atualizado_em: string;

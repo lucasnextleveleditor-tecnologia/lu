@@ -13,6 +13,15 @@ export const mapaMental: MapaMentalDict = {
   confirmarExclusao: "Delete this map and everything in it?",
   voltar: "Mind Maps",
 
+  ativos: "Active",
+  arquivados: "Archived",
+  arquivar: "Archive",
+  desarquivar: "Unarchive",
+  baixarPdf: "Download PDF",
+  semArquivadosTitulo: "No archived maps",
+  semArquivadosDescricao: "Archived maps leave the main list but stay whole — link and all.",
+  acoes: "Actions",
+
   baloVazio: "No text",
   dicaTeclado: "Tab adds a branch · Enter adds a sibling · Delete removes · double-click to edit",
   aproximar: "Zoom in",

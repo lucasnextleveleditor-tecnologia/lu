@@ -20,6 +20,15 @@ export interface MapaMentalDict {
   confirmarExclusao: string;
   voltar: string;
 
+  ativos: string;
+  arquivados: string;
+  arquivar: string;
+  desarquivar: string;
+  baixarPdf: string;
+  semArquivadosTitulo: string;
+  semArquivadosDescricao: string;
+  acoes: string;
+
   // Canvas
   baloVazio: string;
   dicaTeclado: string;
@@ -118,6 +127,15 @@ export const mapaMental: MapaMentalDict = {
   excluir: "Excluir",
   confirmarExclusao: "Excluir este mapa e tudo que está nele?",
   voltar: "Mapas Mentais",
+
+  ativos: "Ativos",
+  arquivados: "Arquivados",
+  arquivar: "Arquivar",
+  desarquivar: "Desarquivar",
+  baixarPdf: "Baixar PDF",
+  semArquivadosTitulo: "Nenhum mapa arquivado",
+  semArquivadosDescricao: "Mapas arquivados saem da lista principal, mas continuam inteiros — com link e tudo.",
+  acoes: "Ações",
 
   baloVazio: "Sem texto",
   dicaTeclado: "Tab cria um ramo · Enter cria um vizinho · Delete apaga · duplo clique edita",
