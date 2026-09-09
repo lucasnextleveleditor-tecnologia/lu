@@ -64,7 +64,7 @@ export function StatTile({ icon: Icon, label, value, tone = "neutral", hint, cla
           <Icon className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{label}</span>
         </p>
-        <p className="mt-2 truncate text-xl font-semibold tracking-tight text-ink-primary">{value}</p>
+        <p className="mt-2 truncate pb-0.5 text-xl font-semibold leading-[1.4] tracking-tight text-ink-primary">{value}</p>
         {hint && (
           <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-ink-muted">
             {tone !== "neutral" && <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", toneMeta.dot)} />}
@@ -109,7 +109,7 @@ export function StatTile({ icon: Icon, label, value, tone = "neutral", hint, cla
           Com `truncate` vira uma elipse legível ("R$ 2.500,0…") no pior
           caso, mas o objetivo é o tile ter largura de sobra e nunca chegar
           nisso (ver comentário no grid de `financeiro/page.tsx`). */}
-      <p className="mt-1.5 truncate text-3xl font-bold tracking-tight text-ink-primary">{value}</p>
+      <p className="mt-1.5 truncate pb-1 text-3xl font-bold leading-[1.4] tracking-tight text-ink-primary">{value}</p>
 
       {hint && (
         <p className="mt-3 flex items-center gap-1.5 text-xs text-ink-secondary">

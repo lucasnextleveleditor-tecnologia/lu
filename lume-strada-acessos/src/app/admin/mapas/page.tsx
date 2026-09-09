@@ -66,8 +66,8 @@ export default async function MapasPage({ searchParams }: { searchParams: Promis
       ) : (
         <ul className="divide-y divide-base-800 overflow-hidden rounded-2xl border border-base-700 bg-base-900/60">
           {mapas.map((m) => (
-            <li key={m.id} className="relative">
-              <Link href={`/admin/mapas/${m.id}`} className="group flex items-center gap-4 px-5 py-4 pr-3 transition hover:bg-base-800/50">
+            <li key={m.id} className="flex items-center transition hover:bg-base-800/50">
+              <Link href={`/admin/mapas/${m.id}`} className="group flex min-w-0 flex-1 items-center gap-4 px-5 py-4 pr-3">
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-2 truncate text-sm font-medium text-ink-primary">
                     {m.titulo || t.semTitulo}
@@ -84,8 +84,12 @@ export default async function MapasPage({ searchParams }: { searchParams: Promis
                     year: "numeric",
                   })}
                 </p>
-                <AcoesDoMapa mapaId={m.id} arquivado={m.arquivado} />
               </Link>
+              {/* Fora do <Link> de proposito: botao dentro de ancora e HTML
+                  invalido, e o clique em "excluir" acabaria abrindo o mapa. */}
+              <div className="pr-4">
+                <AcoesDoMapa mapaId={m.id} arquivado={m.arquivado} />
+              </div>
             </li>
           ))}
         </ul>

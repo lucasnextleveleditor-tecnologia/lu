@@ -40,6 +40,45 @@ async function capturarElemento(elementId: string): Promise<HTMLCanvasElement> {
     scale: 2, // retina — texto/gráfico nítido no PNG e no PDF
     useCORS: true,
     logging: false,
+    onclone: darArAosNumeros,
+  });
+}
+
+/**
+ * Conserta o número grande saindo com a barriga cortada no PNG e no PDF.
+ *
+ * O navegador desenha o texto usando as métricas reais da fonte; o
+ * html2canvas redesenha tudo num canvas calculando a linha por conta
+ * própria, a partir do `line-height`. Com uma fonte de exibição, cujos
+ * traços transbordam a caixa da linha, o baseline calculado cai um pouco
+ * mais baixo — e aí basta o elemento ter `overflow: hidden` (que é
+ * exatamente o que o `truncate` liga, e todo cartão de KPI usa) para a parte
+ * de baixo dos algarismos ser aparada. Na tela nada acontece; no arquivo
+ * exportado, "R$ 65.216,40" sai sem a metade de baixo.
+ *
+ * A correção acontece só na CÓPIA que o html2canvas fotografa — a tela do
+ * usuário não é tocada. E é cirúrgica: mexe apenas em quem é texto de uma
+ * linha só com corte ligado, dando altura de linha e uma folga embaixo. Como
+ * `overflow` apara na borda do padding, essa folga vira exatamente o espaço
+ * que faltava, sem alterar o alinhamento nem desligar as reticências.
+ */
+function darArAosNumeros(documentoClonado: Document): void {
+  const janela = documentoClonado.defaultView;
+  if (!janela) return;
+
+  documentoClonado.querySelectorAll<HTMLElement>("*").forEach((elemento) => {
+    const estilo = janela.getComputedStyle(elemento);
+    if (estilo.whiteSpace !== "nowrap" || estilo.overflow !== "hidden") return;
+
+    const tamanho = parseFloat(estilo.fontSize);
+    if (!Number.isFinite(tamanho) || tamanho <= 0) return;
+
+    // 1,4 é folgado o bastante para caber a descida da fonte, e ainda assim
+    // discreto: num texto de uma linha só, a diferença não desloca nada em
+    // volta. A folga embaixo é proporcional ao tamanho da fonte, para valer
+    // igual no número de 30px e no rótulo de 11px.
+    elemento.style.lineHeight = String(Math.max(tamanho * 1.4, parseFloat(estilo.lineHeight) || 0)) + "px";
+    elemento.style.paddingBottom = `${Math.ceil(tamanho * 0.18)}px`;
   });
 }
 

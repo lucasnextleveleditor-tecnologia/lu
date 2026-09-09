@@ -67,10 +67,10 @@ export default async function OrdemDoDiaListaPage({ searchParams }: { searchPara
       ) : (
         <ul className="divide-y divide-base-800 overflow-hidden rounded-2xl border border-base-700 bg-base-900/60">
           {ordens.map((o) => (
-            <li key={o.id} className="relative">
+            <li key={o.id} className="flex items-center transition hover:bg-base-800/50">
               <Link
                 href={`/admin/producao/ordem-do-dia/${o.id}`}
-                className="group flex items-center gap-4 px-5 py-4 pr-3 transition hover:bg-base-800/50"
+                className="group flex min-w-0 flex-1 items-center gap-4 px-5 py-4 pr-3"
               >
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-2 truncate text-sm font-medium text-ink-primary">
@@ -101,8 +101,12 @@ export default async function OrdemDoDiaListaPage({ searchParams }: { searchPara
                       })
                     : t.semData}
                 </p>
-                <AcoesDaOrdem ordemId={o.id} arquivado={o.arquivado} />
               </Link>
+              {/* Fora do <Link> de proposito: botao dentro de ancora e HTML
+                  invalido, e o clique em "excluir" acabaria abrindo a folha. */}
+              <div className="pr-4">
+                <AcoesDaOrdem ordemId={o.id} arquivado={o.arquivado} />
+              </div>
             </li>
           ))}
         </ul>
