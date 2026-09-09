@@ -22,7 +22,6 @@ import {
   IconWallet,
   IconColumns,
   IconTarget,
-  IconFileText,
   IconLayoutGrid,
   IconBarChart2,
   IconCalendar,
@@ -58,13 +57,31 @@ const NAV_GRUPOS = [
   {
     tituloKey: "grupoComercial",
     itens: [
-      { href: "/admin/comercial", labelKey: "crmVendas", icon: IconTarget, chave: "comercial" },
-      { href: "/admin/orcamentos", labelKey: "orcamentos", icon: IconFileText, chave: "orcamentos" },
-      // "Contratos" deixou de ser item próprio do menu — fundido dentro do
-      // hub de detalhe do orçamento (`OrcamentoHub.tsx`, aba "Contrato") e
-      // acessível também via botão no cabeçalho da lista de Orçamentos
-      // (contratos avulsos). As rotas `/admin/contratos/*` continuam
-      // funcionando normalmente, só sem entrada própria aqui.
+      // Item único que junta o que antes eram duas entradas separadas
+      // (CRM & Vendas em `/admin/comercial` e Orçamentos em
+      // `/admin/orcamentos`) — agora é um hub só com abas (Leads, Funil,
+      // Calculadora, Propostas — ver `ComercialHubTabs.tsx` e
+      // `app/admin/comercial/page.tsx`). `chave: "comercial"` só decide a
+      // COR do destaque quando ativo (`MODULO_COR`); a VISIBILIDADE de
+      // verdade usa `chavesQualquer` — aparece pra quem tem "comercial" OU
+      // "orcamentos" (são permissões independentes por funcionário), e a
+      // própria página decide quais abas mostrar pra cada um.
+      // `matchPrefixes` mantém o item destacado mesmo nas rotas que
+      // continuam fora do hub (`/admin/orcamentos/novo`, `/[id]`, `/catalogo`,
+      // `/admin/contratos`...), pra não se perder a sensação de "ainda tô
+      // dentro do Comercial" ao navegar pra essas telas.
+      {
+        href: "/admin/comercial",
+        labelKey: "comercialHub",
+        icon: IconTarget,
+        chave: "comercial",
+        chavesQualquer: ["comercial", "orcamentos"],
+        matchPrefixes: ["/admin/comercial", "/admin/orcamentos", "/admin/contratos"],
+      },
+      // "Contratos" não tem entrada própria — acessível pelo botão no
+      // cabeçalho do hub (aba Propostas/Funil) e embutido no hub de detalhe
+      // do orçamento (`OrcamentoHub.tsx`, aba "Contrato"). As rotas
+      // `/admin/contratos/*` continuam funcionando normalmente.
       // WhatsApp foi escondido do menu e bloqueado por completo (ver
       // `src/app/admin/whatsapp/layout.tsx`) — código e dados continuam
       // intactos, só não aparece nem é acessível dentro do app. Pra
@@ -96,6 +113,10 @@ const NAV_GRUPOS = [
     icon: typeof IconUsers;
     chave: string | null;
     adminOnly?: boolean;
+    /** Quando presente, SUBSTITUI `chave` na checagem de visibilidade — aparece pra quem tem QUALQUER UMA dessas permissões (ver hub Comercial acima, que junta "comercial" e "orcamentos"). `chave` continua valendo só pra escolher a cor do destaque ativo (`MODULO_COR`). */
+    chavesQualquer?: ReadonlyArray<string>;
+    /** Prefixos de rota (além de `href`) que também contam como "esse item está ativo" — pra itens guarda-chuva cujas sub-rotas moraram fora do próprio hub (ex: `/admin/orcamentos/novo`, `/admin/contratos`). Default: só `href`. */
+    matchPrefixes?: ReadonlyArray<string>;
   }>;
 }>;
 
@@ -163,9 +184,10 @@ export function AdminShell({
   // verdade continua sendo sempre reforçada no servidor (Server Action +
   // RLS), o filtro aqui é só pra não deixar o funcionário nem ver um link
   // que vai barrar.
-  function itemVisivel(item: { chave: string | null; adminOnly?: boolean }): boolean {
+  function itemVisivel(item: { chave: string | null; chavesQualquer?: readonly string[]; adminOnly?: boolean }): boolean {
     if (papel === "admin") return true;
     if (item.adminOnly) return false;
+    if (item.chavesQualquer) return item.chavesQualquer.some((chave) => permissoes?.[chave as keyof PermissoesFuncionario] === true);
     if (!item.chave) return true;
     return permissoes?.[item.chave as keyof PermissoesFuncionario] === true;
   }
@@ -206,7 +228,8 @@ export function AdminShell({
               )}
               <div className="space-y-1">
                 {grupo.itens.map((item) => {
-                  const active = item.href === "/admin" ? pathname === "/admin" : pathname?.startsWith(item.href);
+                  const prefixos: readonly string[] = "matchPrefixes" in item && item.matchPrefixes ? item.matchPrefixes : [item.href];
+                  const active = item.href === "/admin" ? pathname === "/admin" : prefixos.some((prefixo) => pathname?.startsWith(prefixo));
                   const Icon = item.icon;
                   const label = dict.nav[item.labelKey];
                   // Cor de módulo só entra em jogo pro item ATIVO — os

@@ -16,6 +16,18 @@ export interface OrcamentosDict {
   contratosBtn: string;
   voltarParaOrcamentos: string;
 
+  // Hub Comercial unificado (`/admin/comercial`, ver `ComercialHubTabs.tsx`)
+  // — junta Leads (módulo "comercial") com Funil/Calculadora/Propostas
+  // (módulo "orcamentos") numa tela só, com abas no lugar de dois destinos
+  // separados no menu lateral.
+  hubTitulo: string;
+  hubSubtitulo: string;
+  abaLeadsLabel: string;
+  abaFunilLabel: string;
+  abaCalculadoraLabel: string;
+  abaPropostasLabel: string;
+  configuracoesBtn: string;
+
   // StatTiles
   statEmAberto: string;
   hintOrcamentosAbertos: string;
@@ -284,6 +296,14 @@ export const orcamentos: OrcamentosDict = {
   calculadoraBtn: "Calculadora de Margem",
   contratosBtn: "Contratos",
   voltarParaOrcamentos: "Voltar pros Orçamentos",
+
+  hubTitulo: "Comercial",
+  hubSubtitulo: "Leads, funil de propostas, calculadora de margem e todos os seus orçamentos num só lugar.",
+  abaLeadsLabel: "Leads",
+  abaFunilLabel: "Funil",
+  abaCalculadoraLabel: "Calculadora",
+  abaPropostasLabel: "Propostas",
+  configuracoesBtn: "Configurações",
 
   statEmAberto: "Em Aberto",
   hintOrcamentosAbertos: "{n} orçamento(s) enviado(s) aguardando resposta",

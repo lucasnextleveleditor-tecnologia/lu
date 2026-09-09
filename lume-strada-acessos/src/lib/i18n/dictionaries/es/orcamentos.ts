@@ -9,6 +9,14 @@ export const orcamentos: OrcamentosDict = {
   contratosBtn: "Contratos",
   voltarParaOrcamentos: "Volver a Presupuestos",
 
+  hubTitulo: "Comercial",
+  hubSubtitulo: "Leads, embudo de propuestas, calculadora de margen y todos tus presupuestos en un solo lugar.",
+  abaLeadsLabel: "Leads",
+  abaFunilLabel: "Embudo",
+  abaCalculadoraLabel: "Calculadora",
+  abaPropostasLabel: "Presupuestos",
+  configuracoesBtn: "Configuración",
+
   statEmAberto: "Abiertos",
   hintOrcamentosAbertos: "{n} presupuesto(s) enviado(s) esperando respuesta",
   statAprovadoMes: "Aprobado en el Mes",

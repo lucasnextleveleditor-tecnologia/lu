@@ -9,6 +9,14 @@ export const orcamentos: OrcamentosDict = {
   contratosBtn: "Contracts",
   voltarParaOrcamentos: "Back to Quotes",
 
+  hubTitulo: "Commercial",
+  hubSubtitulo: "Leads, proposal pipeline, margin calculator and all your quotes in one place.",
+  abaLeadsLabel: "Leads",
+  abaFunilLabel: "Pipeline",
+  abaCalculadoraLabel: "Calculator",
+  abaPropostasLabel: "Quotes",
+  configuracoesBtn: "Settings",
+
   statEmAberto: "Open",
   hintOrcamentosAbertos: "{n} quote(s) sent, awaiting a reply",
   statAprovadoMes: "Approved This Month",

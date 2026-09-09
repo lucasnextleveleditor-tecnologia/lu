@@ -11,6 +11,7 @@ export const nav: NavDict = {
   agenda: "Agenda",
   crmVendas: "CRM y Ventas",
   orcamentos: "Presupuestos",
+  comercialHub: "Comercial",
   whatsapp: "WhatsApp",
   cadastros: "Registros",
   financeiro: "Finanzas",

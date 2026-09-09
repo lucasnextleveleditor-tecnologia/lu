@@ -224,3 +224,35 @@ export async function requireModuloOuRedirect(chave: ModuloChave) {
   if (!resultado.autorizado) redirect("/admin/dashboard");
   return { supabase: resultado.supabase, user: resultado.user };
 }
+
+/**
+ * Mesma ideia de `requireQualquerModulo`, mas pra Server Components de
+ * página — redireciona em vez de lançar. Usada pelo hub Comercial
+ * (`/admin/comercial`, ver `page.tsx`), que junta Leads (chave "comercial")
+ * e Funil/Calculadora/Propostas (chave "orcamentos") numa tela só: em vez de
+ * só {supabase, user}, devolve também `chavesAutorizadas` — o `Set` das
+ * chaves pedidas que o usuário REALMENTE tem — pra página decidir quais
+ * abas mostrar (ex: funcionário só com "orcamentos" ligado não vê a aba
+ * Leads, mesmo caindo na mesma URL do hub). Admin sempre recebe todas as
+ * chaves pedidas.
+ */
+export async function requireQualquerModuloOuRedirect(chaves: ModuloChave[]): Promise<{ supabase: SupabaseClient; user: User; chavesAutorizadas: Set<ModuloChave> }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const profile = await buscarPerfilComPermissoes(supabase, user.id);
+  if (!profile) redirect("/admin/dashboard");
+
+  if (profile.role === "admin") {
+    return { supabase, user, chavesAutorizadas: new Set(chaves) };
+  }
+  if (profile.role === "funcionario") {
+    const chavesAutorizadas = new Set(chaves.filter((chave) => profile.permissoes?.[chave] === true));
+    if (chavesAutorizadas.size === 0) redirect("/admin/dashboard");
+    return { supabase, user, chavesAutorizadas };
+  }
+  redirect("/admin/dashboard");
+}
