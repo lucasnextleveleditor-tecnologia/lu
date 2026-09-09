@@ -7,6 +7,7 @@ import {
   corDoSignatario,
   type CampoAssinaturaRow,
   type DocumentoCompleto,
+  type EventoAssinaturaRow,
   type SignatarioRow,
   type TipoCampo,
 } from "@/lib/types/assinatura";
@@ -15,6 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { IconPlus, IconTrash, IconUsers } from "@/components/ui/icons";
 import { PaginaPdf } from "./PaginaPdf";
+import { PainelDeEnvio } from "./PainelDeEnvio";
 import {
   adicionarCampo,
   adicionarSignatario,
@@ -33,8 +35,20 @@ import {
  * no mesmo lugar aqui, no celular de quem vai assinar e no PDF final, que
  * são três tamanhos diferentes.
  */
-export function EditorDeCampos({ dados, urlArquivo }: { dados: DocumentoCompleto; urlArquivo: string | null }) {
+export function EditorDeCampos({
+  dados,
+  urlArquivo,
+  eventos,
+}: {
+  dados: DocumentoCompleto;
+  urlArquivo: string | null;
+  eventos: EventoAssinaturaRow[];
+}) {
   const doc = dados.documento;
+  // Enviado trava a edição: quem já recebeu o link está lendo ESTE arquivo
+  // com ESTES campos. Mover um campo agora faria a pessoa assinar num lugar
+  // diferente do que viu.
+  const travado = doc.status !== "rascunho";
 
   const [titulo, setTitulo] = useState(doc.titulo);
   const [signatarios, setSignatarios] = useState<SignatarioRow[]>(dados.signatarios);
@@ -163,7 +177,7 @@ export function EditorDeCampos({ dados, urlArquivo }: { dados: DocumentoCompleto
           />
         </div>
 
-        <div>
+        <div className={travado ? "pointer-events-none opacity-60" : undefined}>
           <div className="mb-2 flex items-center justify-between">
             <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-ink-muted">
               <IconUsers className="h-3 w-3" /> Quem assina
@@ -239,7 +253,7 @@ export function EditorDeCampos({ dados, urlArquivo }: { dados: DocumentoCompleto
           )}
         </div>
 
-        {signatarios.length > 0 && (
+        {signatarios.length > 0 && !travado && (
           <div>
             <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-ink-muted">Campo a marcar</p>
             <div className="flex flex-wrap gap-1.5">
@@ -267,6 +281,14 @@ export function EditorDeCampos({ dados, urlArquivo }: { dados: DocumentoCompleto
         )}
 
         {erro && <p className="text-xs text-danger">{erro}</p>}
+
+        <PainelDeEnvio
+          documentoId={doc.id}
+          titulo={titulo}
+          status={doc.status}
+          signatarios={signatarios}
+          eventos={eventos}
+        />
       </aside>
 
       {/* =============================================================== */}
@@ -301,9 +323,9 @@ export function EditorDeCampos({ dados, urlArquivo }: { dados: DocumentoCompleto
                   Página {p + 1} de {paginas.length}
                 </p>
                 <div
-                  className="relative cursor-crosshair"
+                  className={travado ? "relative" : "relative cursor-crosshair"}
                   style={{ width: larguraPagina, height: alturaPagina }}
-                  onClick={(e) => void soltarCampo(p, e)}
+                  onClick={(e) => (travado ? undefined : void soltarCampo(p, e))}
                   onMouseMove={aoMover}
                   onMouseUp={aoSoltar}
                   onMouseLeave={aoSoltar}
@@ -321,6 +343,7 @@ export function EditorDeCampos({ dados, urlArquivo }: { dados: DocumentoCompleto
                           key={campo.id}
                           onClick={(e) => e.stopPropagation()}
                           onMouseDown={(e) => {
+                            if (travado) return;
                             e.stopPropagation();
                             const caixa = (e.currentTarget.parentElement as HTMLElement).getBoundingClientRect();
                             arrastando.current = {

@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type {
   AssinaturaDocumentoRow,
+  EventoAssinaturaRow,
   CampoAssinaturaRow,
   DocumentoCompleto,
   SignatarioRow,
@@ -45,7 +46,9 @@ export async function listarDocumentos(
  * curta — nunca um endereço fixo que continuaria abrindo o contrato depois
  * de vazar num histórico de navegador.
  */
-export async function buscarDocumento(id: string): Promise<(DocumentoCompleto & { urlArquivo: string | null }) | null> {
+export async function buscarDocumento(
+  id: string
+): Promise<(DocumentoCompleto & { eventos: EventoAssinaturaRow[]; urlArquivo: string | null }) | null> {
   const supabase = await createClient();
 
   const { data: documento } = await supabase
@@ -55,9 +58,10 @@ export async function buscarDocumento(id: string): Promise<(DocumentoCompleto & 
     .maybeSingle<AssinaturaDocumentoRow>();
   if (!documento) return null;
 
-  const [signRes, camposRes, urlRes] = await Promise.all([
+  const [signRes, camposRes, eventosRes, urlRes] = await Promise.all([
     supabase.from("assinatura_signatarios").select("*").eq("documento_id", id).order("ordem"),
     supabase.from("assinatura_campos").select("*").eq("documento_id", id).order("pagina"),
+    supabase.from("assinatura_eventos").select("*").eq("documento_id", id).order("created_at"),
     supabase.storage.from("assinaturas").createSignedUrl(documento.arquivo_path, 60 * 60),
   ]);
 
@@ -65,6 +69,7 @@ export async function buscarDocumento(id: string): Promise<(DocumentoCompleto & 
     documento,
     signatarios: (signRes.data ?? []) as SignatarioRow[],
     campos: (camposRes.data ?? []) as CampoAssinaturaRow[],
+    eventos: (eventosRes.data ?? []) as EventoAssinaturaRow[],
     urlArquivo: urlRes.data?.signedUrl ?? null,
   };
 }

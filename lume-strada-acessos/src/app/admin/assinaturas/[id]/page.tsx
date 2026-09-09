@@ -26,7 +26,7 @@ export default async function DocumentoPage({ params }: { params: Promise<{ id: 
       </Link>
 
       <div className="min-h-0 flex-1 px-3 sm:px-5">
-        <EditorDeCampos dados={dados} urlArquivo={dados.urlArquivo} />
+        <EditorDeCampos dados={dados} urlArquivo={dados.urlArquivo} eventos={dados.eventos} />
       </div>
     </div>
   );

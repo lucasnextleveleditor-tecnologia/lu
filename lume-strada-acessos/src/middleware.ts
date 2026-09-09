@@ -8,7 +8,13 @@ import { getSupabasePublicEnv } from "@/lib/supabase/env";
 // não confundir com "/admin/orcamentos" do painel) é pública de propósito: o
 // cliente abre o link sem nenhum login, a autorização é o token em si (ver
 // `src/app/orcamento/[token]/page.tsx` — busca via Service Role, nunca RLS).
-const ROTAS_PUBLICAS = ["/login", "/acesso-expirado", "/definir-senha", "/auth/callback", "/orcamento/"];
+// `/assinar/` é a ÚNICA tela pública de ESCRITA do sistema, e isso é
+// deliberado: um contrato vai para quem ainda não tem cadastro na agência —
+// o cliente novo, a produtora parceira, o modelo que trabalhou um dia.
+// Exigir login antes de assinar mataria o uso. O que segura a porta é o
+// token ser único por pessoa, o documento precisar estar enviado, e tudo o
+// que se registra no ato (IP, hora, navegador, CPF, hash do arquivo).
+const ROTAS_PUBLICAS = ["/login", "/acesso-expirado", "/definir-senha", "/auth/callback", "/orcamento/", "/assinar/"];
 
 /**
  * Página de erro autocontida (sem CSS/imagens externas, sem depender de

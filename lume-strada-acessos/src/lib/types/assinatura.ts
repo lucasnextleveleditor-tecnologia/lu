@@ -85,6 +85,18 @@ export function corDoSignatario(indice: number): string {
   return CORES_SIGNATARIO[indice % CORES_SIGNATARIO.length] as string;
 }
 
+/** Um acontecimento da trilha. Escrito uma vez e nunca editado — é o que se apresenta se alguém contestar. */
+export interface EventoAssinaturaRow {
+  id: string;
+  documento_id: string;
+  signatario_id: string | null;
+  tipo: string;
+  descricao: string;
+  ip: string | null;
+  user_agent: string | null;
+  created_at: string;
+}
+
 export interface DocumentoCompleto {
   documento: AssinaturaDocumentoRow;
   signatarios: SignatarioRow[];

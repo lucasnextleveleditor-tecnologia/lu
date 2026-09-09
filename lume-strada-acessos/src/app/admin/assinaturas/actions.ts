@@ -278,3 +278,80 @@ export async function removerCampo(documentoId: string, campoId: string): Promis
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
 }
+
+/**
+ * Manda o documento para assinatura.
+ *
+ * Confere ANTES de mudar o status: sem signatário não há para quem mandar;
+ * sem e-mail não há como identificar quem assinou; e um signatário sem
+ * nenhum campo marcado assinaria um documento onde a assinatura dele não
+ * apareceria em lugar nenhum — o erro mais fácil de cometer e o mais chato
+ * de descobrir depois, com o contrato já na mão do cliente.
+ */
+export async function enviarParaAssinatura(id: string): Promise<Resultado> {
+  try {
+    const { supabase, companyId } = await requireModulo("orcamentos");
+
+    const [{ data: signatarios }, { data: campos }] = await Promise.all([
+      supabase.from("assinatura_signatarios").select("id, nome, email").eq("documento_id", id),
+      supabase.from("assinatura_campos").select("signatario_id").eq("documento_id", id),
+    ]);
+
+    const lista = (signatarios ?? []) as { id: string; nome: string; email: string }[];
+    if (lista.length === 0) return { ok: false, error: "Adicione pelo menos um signatário." };
+
+    const semEmail = lista.find((s) => !s.email?.trim());
+    if (semEmail) return { ok: false, error: `Falta o e-mail de ${semEmail.nome || "um dos signatários"}.` };
+
+    const comCampo = new Set(((campos ?? []) as { signatario_id: string }[]).map((c) => c.signatario_id));
+    const semCampo = lista.find((s) => !comCampo.has(s.id));
+    if (semCampo) {
+      return { ok: false, error: `Marque onde ${semCampo.nome || semCampo.email} assina antes de enviar.` };
+    }
+
+    const agora = new Date().toISOString();
+    const { error } = await supabase
+      .from("assinatura_documentos")
+      .update({ status: "enviado", enviado_em: agora, atualizado_em: agora })
+      .eq("id", id);
+    if (error) return { ok: false, error: error.message };
+
+    await supabase.from("assinatura_eventos").insert({
+      company_id: companyId,
+      documento_id: id,
+      tipo: "enviado",
+      descricao: `Enviado para ${lista.length} ${lista.length === 1 ? "signatário" : "signatários"}`,
+    });
+
+    revalidatePath(`${ROTA}/${id}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/** Volta o documento para rascunho — para corrigir um campo mal posicionado antes que alguém assine. */
+export async function voltarParaRascunho(id: string): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("orcamentos");
+
+    const { data: assinados } = await supabase
+      .from("assinatura_signatarios")
+      .select("id")
+      .eq("documento_id", id)
+      .eq("status", "assinado");
+
+    // Alguém já assinou: mexer no documento agora invalidaria a assinatura
+    // dessa pessoa, que assinou OUTRO arquivo. Não se desfaz.
+    if ((assinados ?? []).length > 0) {
+      return { ok: false, error: "Alguém já assinou. Cancele e crie um novo documento em vez de alterar este." };
+    }
+
+    const { error } = await supabase.from("assinatura_documentos").update({ status: "rascunho" }).eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`${ROTA}/${id}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
