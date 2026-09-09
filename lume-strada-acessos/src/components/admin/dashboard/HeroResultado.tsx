@@ -30,9 +30,12 @@ export async function HeroResultado({ receitas, despesas }: { receitas: number; 
         <OlhoValoresToggle className="-mr-1 -mt-1" />
       </div>
 
-      {/* >= 48px: é a figura-herói do painel. Fonte da casa, nunca uma
-          display — número grande já chama atenção sozinho. */}
-      <p className="mt-2 text-[44px] font-semibold leading-none tracking-tight text-ink-primary sm:text-5xl">
+      {/* Continua sendo o maior número da tela, mas não um outdoor: a 48px
+          um valor como "-R$ 1.678,96" atravessava o cartão inteiro e virava
+          a única coisa visível na página. O que dá a hierarquia aqui não é
+          só o corpo da fonte — é o cartão maior, o espaço em volta e o fato
+          de os outros números viverem atrás de um divisor. */}
+      <p className="mt-2 text-[30px] font-semibold leading-none tracking-tight text-ink-primary sm:text-4xl">
         <ValorPrivado valor={fmtBRL(resultado)} />
       </p>
       <p className="mt-2 text-xs text-ink-muted">{t.heroResultadoHint}</p>

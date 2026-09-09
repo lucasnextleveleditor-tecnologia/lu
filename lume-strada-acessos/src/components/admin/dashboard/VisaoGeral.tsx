@@ -204,7 +204,7 @@ export async function VisaoGeral({
           // buraco no layout, e nunca um dado que a pessoa não pode ver.
           <div className="rounded-2xl border border-base-700 bg-base-900/80 p-6 backdrop-blur-sm sm:p-7">
             <p className="text-xs font-medium text-ink-muted">{dict.dashboard.heroHojeLabel}</p>
-            <p className="mt-2 text-[44px] font-semibold leading-none tracking-tight text-ink-primary sm:text-5xl">
+            <p className="mt-2 text-[30px] font-semibold leading-none tracking-tight text-ink-primary sm:text-4xl">
               {(captacoesHoje ?? 0) + (entregasHoje ?? 0)}
             </p>
             <p className="mt-2 text-xs text-ink-muted">{dict.dashboard.heroHojeHint}</p>
