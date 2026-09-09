@@ -63,7 +63,7 @@ export const ordemDoDia: OrdemDoDiaDict = {
   locacaoNotasExemplo: "Estacionamiento en el subsuelo. Avisar en recepción. Montacargas hasta las 18h.",
   adicionarLocacao: "Añadir lugar",
   locacoesVazio: "Ningún lugar — añade al menos uno para que todos sepan dónde llegar.",
-  contagemLocais: (n) => (n === 1 ? "1 lugar" : `${n} lugares`),
+  contagemLocais: { um: "1 lugar", muitos: "{n} lugares" },
 
   cronogramaTitulo: "Cronograma",
   cronogramaHora: "Hora",
@@ -73,7 +73,7 @@ export const ordemDoDia: OrdemDoDiaDict = {
   cronogramaLocalExemplo: "Sala 2",
   adicionarLinha: "Añadir etapa",
   cronogramaVazio: "Sin etapas — arma la línea de tiempo del día, de la llegada al cierre.",
-  contagemEtapas: (n) => (n === 1 ? "1 etapa" : `${n} etapas`),
+  contagemEtapas: { um: "1 etapa", muitos: "{n} etapas" },
 
   equipeTitulo: "Quiénes estarán",
   equipeFuncao: "Función",
@@ -86,7 +86,7 @@ export const ordemDoDia: OrdemDoDiaDict = {
   adicionarPessoa: "Añadir persona",
   adicionarDoCadastro: "Añadir del registro",
   equipeVazio: "Nadie confirmado todavía.",
-  contagemPessoas: (n) => (n === 1 ? "1 persona" : `${n} personas`),
+  contagemPessoas: { um: "1 persona", muitos: "{n} personas" },
 
   observacoesTitulo: "Qué más hay que saber",
   observacoesPlaceholder:

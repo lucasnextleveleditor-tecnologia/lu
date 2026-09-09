@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { OrdemDoDiaCompleta } from "@/lib/types/ordem-do-dia";
+import type { FormaPlural } from "@/lib/i18n/dictionaries/pt/ordemDoDia";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/Button";
@@ -39,6 +40,18 @@ function porExtenso(iso: string | null, locale: string): string | null {
     year: "numeric",
   });
   return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/**
+ * "3 locais" a partir de { um, muitos }.
+ *
+ * A contagem mora no dicionário como objeto, não como função: o dicionário
+ * inteiro é entregue a um provider CLIENTE lá no layout raiz, e função não
+ * atravessa essa fronteira — o app todo quebra, não só esta tela. Então a
+ * conta do plural é feita aqui, do lado que já é cliente.
+ */
+function contar(n: number, forma: FormaPlural): string {
+  return n === 1 ? forma.um : forma.muitos.replace("{n}", String(n));
 }
 
 /** "07:00:00" -> "07:00" — o banco devolve `time` com segundos que ninguém quer ver. */
@@ -340,7 +353,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
             <BlocoFolha
               numero="01"
               titulo={t.locacoesTitulo}
-              auxiliar={locacoes.length ? t.contagemLocais(locacoes.length) : undefined}
+              auxiliar={locacoes.length ? contar(locacoes.length, t.contagemLocais) : undefined}
               acao={
                 <Button
                   variant="ghost"
@@ -400,7 +413,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
             <BlocoFolha
               numero="02"
               titulo={t.cronogramaTitulo}
-              auxiliar={cronograma.length ? t.contagemEtapas(cronograma.length) : undefined}
+              auxiliar={cronograma.length ? contar(cronograma.length, t.contagemEtapas) : undefined}
               acao={
                 <Button
                   variant="ghost"
@@ -466,7 +479,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
             <BlocoFolha
               numero="03"
               titulo={t.equipeTitulo}
-              auxiliar={equipe.length ? t.contagemPessoas(equipe.length) : undefined}
+              auxiliar={equipe.length ? contar(equipe.length, t.contagemPessoas) : undefined}
               acao={
                 <div className="flex items-center gap-2">
                   {/* Puxar do cadastro já preenche função, nome e telefone —

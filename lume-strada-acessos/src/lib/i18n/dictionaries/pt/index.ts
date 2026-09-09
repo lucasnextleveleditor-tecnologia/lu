@@ -74,3 +74,31 @@ export const pt: Dictionary = {
   objetivos,
   ordemDoDia,
 };
+
+// ----------------------------------------------------------------------------
+// Trava de segurança: o dicionário precisa ser SERIALIZÁVEL
+// ----------------------------------------------------------------------------
+// O dicionário inteiro é montado no servidor e entregue a um provider CLIENTE
+// no layout raiz (`app/layout.tsx` → `LocaleProvider`). Tudo que atravessa
+// essa fronteira precisa ser dado puro: uma única função em qualquer canto de
+// qualquer arquivo de tradução derruba o APP INTEIRO em produção com
+// "Application error: a server-side exception has occurred" — e não só a tela
+// que usa aquele texto, o que torna o erro difícil de localizar.
+//
+// Para plural, use um objeto `{ um, muitos }` com `{n}` no lugar do número e
+// resolva no componente (ver `contar()` em `FolhaOrdemDoDia.tsx`).
+
+/** Troca por `never` qualquer função escondida na árvore de `T`. */
+type ApenasDados<T> = T extends (...args: never[]) => unknown
+  ? never
+  : T extends readonly (infer U)[]
+    ? readonly ApenasDados<U>[]
+    : T extends object
+      ? { [K in keyof T]: ApenasDados<T[K]> }
+      : T;
+
+/**
+ * Esta atribuição É o teste. Se alguém adicionar uma função a um dicionário,
+ * o `tsc` para aqui — em vez de o erro aparecer só em produção.
+ */
+export const DICIONARIO_SERIALIZAVEL: ApenasDados<Dictionary> = pt;

@@ -1,4 +1,16 @@
 /**
+ * Uma contagem em duas formas. É um OBJETO e não uma função de propósito: o
+ * dicionário inteiro atravessa a fronteira servidor→cliente (o layout raiz
+ * monta o `<LocaleProvider>`), e função não é serializável — uma só derruba
+ * o app inteiro, não apenas a tela que a usa.
+ */
+export interface FormaPlural {
+  um: string;
+  /** `{n}` é trocado pelo número. */
+  muitos: string;
+}
+
+/**
  * Ordem do Dia — a folha que todo mundo envolvido recebe na véspera.
  *
  * O vocabulário aqui é DE PROPÓSITO neutro. A mesma folha organiza uma
@@ -63,7 +75,7 @@ export interface OrdemDoDiaDict {
   locacaoNotasExemplo: string;
   adicionarLocacao: string;
   locacoesVazio: string;
-  contagemLocais: (n: number) => string;
+  contagemLocais: FormaPlural;
 
   // Cronograma
   cronogramaTitulo: string;
@@ -74,7 +86,7 @@ export interface OrdemDoDiaDict {
   cronogramaLocalExemplo: string;
   adicionarLinha: string;
   cronogramaVazio: string;
-  contagemEtapas: (n: number) => string;
+  contagemEtapas: FormaPlural;
 
   // Pessoas
   equipeTitulo: string;
@@ -88,7 +100,7 @@ export interface OrdemDoDiaDict {
   adicionarPessoa: string;
   adicionarDoCadastro: string;
   equipeVazio: string;
-  contagemPessoas: (n: number) => string;
+  contagemPessoas: FormaPlural;
 
   observacoesTitulo: string;
   observacoesPlaceholder: string;
@@ -162,7 +174,7 @@ export const ordemDoDia: OrdemDoDiaDict = {
   locacaoNotasExemplo: "Estacionamento no subsolo. Falar com a portaria. Elevador de carga até 18h.",
   adicionarLocacao: "Adicionar local",
   locacoesVazio: "Nenhum local — adicione ao menos um para todo mundo saber onde chegar.",
-  contagemLocais: (n) => (n === 1 ? "1 local" : `${n} locais`),
+  contagemLocais: { um: "1 local", muitos: "{n} locais" },
 
   cronogramaTitulo: "Cronograma",
   cronogramaHora: "Hora",
@@ -172,7 +184,7 @@ export const ordemDoDia: OrdemDoDiaDict = {
   cronogramaLocalExemplo: "Sala 2",
   adicionarLinha: "Adicionar etapa",
   cronogramaVazio: "Sem etapas — monte a linha do tempo do dia, da chegada ao encerramento.",
-  contagemEtapas: (n) => (n === 1 ? "1 etapa" : `${n} etapas`),
+  contagemEtapas: { um: "1 etapa", muitos: "{n} etapas" },
 
   equipeTitulo: "Quem vai estar",
   equipeFuncao: "Função",
@@ -185,7 +197,7 @@ export const ordemDoDia: OrdemDoDiaDict = {
   adicionarPessoa: "Adicionar pessoa",
   adicionarDoCadastro: "Adicionar do cadastro",
   equipeVazio: "Ninguém confirmado ainda.",
-  contagemPessoas: (n) => (n === 1 ? "1 pessoa" : `${n} pessoas`),
+  contagemPessoas: { um: "1 pessoa", muitos: "{n} pessoas" },
 
   observacoesTitulo: "O que mais precisa saber",
   observacoesPlaceholder:
