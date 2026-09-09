@@ -19,6 +19,7 @@ import { dashboard } from "./dashboard";
 import { cliente } from "./cliente";
 import { agenda } from "./agenda";
 import { objetivos } from "./objetivos";
+import { ordemDoDia } from "./ordemDoDia";
 
 export const es: Dictionary = {
   common,
@@ -41,4 +42,5 @@ export const es: Dictionary = {
   cliente,
   agenda,
   objetivos,
+  ordemDoDia,
 };

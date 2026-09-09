@@ -1,0 +1,30 @@
+-- ============================================================================
+-- Ordem do Dia (call sheet)
+-- ============================================================================
+-- APLICADO EM PRODUÇÃO em 09/09/2026.
+--
+-- Quatro tabelas: a folha e suas três listas (locações, cronograma, equipe).
+--
+-- DECISÕES QUE VALEM EXPLICAR
+--
+-- 1. Cada tabela filha tem `company_id` PRÓPRIO, com
+--    `default current_company_id()`, em vez de descobrir a empresa navegando
+--    até `ordens_do_dia`. É o padrão que a `multitenant-migration.sql` já
+--    adotou para subtarefas, entregas e mensagens: menos JOIN em toda
+--    checagem de RLS, e a política de cada tabela fica legível sozinha.
+--
+-- 2. `ordem_dia_equipe` guarda `nome` e `funcao` COPIADOS, mesmo quando há
+--    `membro_id` apontando para `equipe_membros`. Parece redundância e não é:
+--    a ordem do dia é um DOCUMENTO. Se a pessoa mudar de cargo em junho, a
+--    folha de março tem que continuar dizendo o que dizia em março. O
+--    `membro_id` serve para preencher rápido e para saber quem era; a fonte
+--    da verdade do papel é a cópia.
+--
+-- 3. Clima e sol também ficam gravados na folha, não são buscados a cada
+--    abertura. Mesma razão: reabrir a ordem de três meses atrás tem que
+--    mostrar a previsão que a equipe leu naquele dia — e imprimir não pode
+--    depender de a API estar no ar. Os dados vêm do Open-Meteo, que é aberto
+--    e não exige chave (ver `src/lib/utils/clima.ts`).
+-- ============================================================================
+-- (o conteúdo aplicado está registrado nas migrations do Supabase; este
+--  arquivo documenta a decisão e serve de referência para reaplicar)

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type {
@@ -12,6 +13,7 @@ import type {
 } from "@/lib/types/producao";
 import type { CompromissoResumo } from "@/lib/types/agenda";
 import { ProducaoWorkspace } from "@/components/admin/producao/ProducaoWorkspace";
+import { IconClipboardList } from "@/components/ui/icons";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 
@@ -101,6 +103,16 @@ export default async function ProducaoPage() {
           <h1 className="text-lg font-semibold tracking-tight">{dict.producao.titulo}</h1>
           <p className="mt-0.5 text-sm text-ink-muted">{dict.producao.subtitulo}</p>
         </div>
+        {/* A Ordem do Dia mora dentro de Produção porque é sobre a diária:
+            quem monta a folha está olhando as captações do quadro ao lado. */}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/producao/ordem-do-dia"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-base-600 px-3 py-2 text-sm font-medium text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+          >
+            <IconClipboardList className="h-4 w-4" />
+            {dict.ordemDoDia.tituloPagina}
+          </Link>
         <ExportMenuButton
           targetId="producao-export-area"
           nomeArquivo="producao-tarefas"
@@ -121,6 +133,7 @@ export default async function ProducaoPage() {
             { chave: "dataEntrega", rotulo: dict.producao.csvDataEntrega },
           ]}
         />
+        </div>
       </div>
 
       <div id="producao-export-area">

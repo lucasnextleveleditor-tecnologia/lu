@@ -123,3 +123,83 @@ body {
 .login-bg-none {
   background-color: theme("colors.base.950");
 }
+
+/* ==========================================================================
+   Impressão — hoje só a Ordem do Dia é feita para sair no papel
+   ==========================================================================
+   Tela e papel são mídias diferentes: no app o documento é escuro, porque o
+   resto do sistema é; impresso, precisa ser preto no branco, senão gasta uma
+   carga inteira de toner e fica ilegível numa impressora comum de escritório
+   — que é o que existe numa produtora.
+
+   A regra geral aqui é subtrativa: some com o layout do app (menu, banner,
+   botões) e deixe passar só a folha. */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Some com a moldura do app: menu lateral, banner de aviso, seletor de
+     idioma/tema. O `main` perde o recuo que existia por causa da sidebar. */
+  aside,
+  nav,
+  .admin-bg-grid > .mx-auto > [class*="AnnouncementBanner"] {
+    display: none !important;
+  }
+
+  main {
+    padding-left: 0 !important;
+    background: none !important;
+  }
+
+  main > div {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  /* A folha ocupa a página inteira, sem cartão nem sombra. */
+  .folha-ordem-dia {
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Um bloco (locação, cronograma, equipe) não deve ser partido ao meio pela
+     quebra de página — ler "LOC 02" numa folha e o endereço na outra é pior
+     do que uma página com mais espaço em branco. */
+  .break-inside-avoid {
+    break-inside: avoid;
+  }
+
+  /* Campos editáveis viram texto: sem caixa, sem cursor, sem aparência de
+     formulário. `appearance: none` é o que tira a setinha do input de data e
+     o relógio do input de hora nos navegadores baseados em Chromium. */
+  input,
+  textarea,
+  select {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: #000 !important;
+    padding: 0 !important;
+    resize: none !important;
+  }
+
+  input::-webkit-calendar-picker-indicator {
+    display: none !important;
+  }
+
+  /* Textarea impressa precisa crescer até o conteúdo — na tela ela rola, no
+     papel não existe rolagem. */
+  textarea {
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
