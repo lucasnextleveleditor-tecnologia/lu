@@ -199,6 +199,42 @@ async function carregarAutorizacaoQualquer(chaves: ModuloChave[]): Promise<Resul
   return { autorizado: false };
 }
 
+/**
+ * Guarda para o que TODA a equipe usa, sem permissão de módulo.
+ *
+ * Alguns recursos não são de um módulo — o mapa mental é de quem trabalha na
+ * empresa, do mesmo jeito que o Dashboard. Criar uma `ModuloChave` só para
+ * ele obrigaria o admin a ligar mais uma chavinha para cada funcionário
+ * antes de qualquer um poder abrir um mapa, sem proteger nada em troca: o
+ * RLS já limita tudo à própria empresa.
+ */
+export async function requireEquipe() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autenticado.");
+
+  const profile = await buscarPerfilComPermissoes(supabase, user.id);
+  if (!profile || (profile.role !== "admin" && profile.role !== "funcionario")) {
+    throw new Error("Você não tem acesso a esta área.");
+  }
+  return { supabase, user, companyId: profile.company_id, nome: profile.full_name ?? profile.email };
+}
+
+/** Mesma checagem de `requireEquipe`, mas para Server Components de página — redireciona em vez de lançar. */
+export async function requireEquipeOuRedirect() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const profile = await buscarPerfilComPermissoes(supabase, user.id);
+  if (!profile || (profile.role !== "admin" && profile.role !== "funcionario")) redirect("/");
+  return { supabase, user, companyId: profile.company_id, nome: profile.full_name ?? profile.email };
+}
+
 /** Guarda por permissão pra Server Actions dos módulos operacionais. Lança erro — quem chama já espera capturar em try/catch e devolver `ActionResult`, igual `requireAdmin`. */
 export async function requireModulo(chave: ModuloChave) {
   const resultado = await carregarAutorizacaoQualquer([chave]);

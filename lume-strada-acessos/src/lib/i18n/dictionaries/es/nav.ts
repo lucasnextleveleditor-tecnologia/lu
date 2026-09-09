@@ -18,6 +18,7 @@ export const nav: NavDict = {
   objetivos: "Objetivos",
   producaoTarefas: "Producción y Tareas",
   ordemDeExterna: "Orden de Externa",
+  mapasMentais: "Mapas Mentales",
   trafegoMetas: "Tráfico y Metas",
   inventarioPatrimonio: "Inventario y Patrimonio",
   aparencia: "Apariencia",

@@ -22,6 +22,7 @@ import {
   IconWallet,
   IconColumns,
   IconClipboardList,
+  IconSitemap,
   IconTarget,
   IconLayoutGrid,
   IconBarChart2,
@@ -112,6 +113,11 @@ const NAV_GRUPOS = [
       // precisa dela não deveria ter de entrar no quadro de tarefas primeiro
       // para achá-la.
       { href: "/admin/producao/ordem-do-dia", labelKey: "ordemDeExterna", icon: IconClipboardList, chave: "producao" },
+      // Mapa mental fica sem `chave`: quem trabalha na empresa usa, do
+      // mesmo jeito que o Dashboard. Criar uma permissão só para ele
+      // obrigaria o admin a ligar mais uma chavinha por funcionário sem
+      // proteger nada — o RLS já limita tudo à própria empresa.
+      { href: "/admin/mapas", labelKey: "mapasMentais", icon: IconSitemap, chave: null },
       { href: "/admin/trafego", labelKey: "trafegoMetas", icon: IconActivity, chave: "trafego" },
       { href: "/admin/inventario", labelKey: "inventarioPatrimonio", icon: IconBox, chave: "inventario" },
     ],

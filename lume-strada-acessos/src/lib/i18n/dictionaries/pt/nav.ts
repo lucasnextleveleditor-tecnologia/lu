@@ -18,6 +18,7 @@ export interface NavDict {
   objetivos: string;
   producaoTarefas: string;
   ordemDeExterna: string;
+  mapasMentais: string;
   trafegoMetas: string;
   inventarioPatrimonio: string;
   aparencia: string;
@@ -45,6 +46,7 @@ export const nav: NavDict = {
   objetivos: "Objetivos",
   producaoTarefas: "Produção & Tarefas",
   ordemDeExterna: "Ordem de Externa",
+  mapasMentais: "Mapas Mentais",
   trafegoMetas: "Tráfego & Metas",
   inventarioPatrimonio: "Inventário & Patrimônio",
   aparencia: "Aparência",
