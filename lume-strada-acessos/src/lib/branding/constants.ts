@@ -15,8 +15,14 @@ export const DEFAULT_BRANDING: BrandingConfigRow = {
   logo_dark_url: null,
   logo_light_url: null,
   favicon_url: null,
-  primary_color: "#d4a24e",
-  accent_color: "#e8bd72",
+  // Azul da plataforma — o mesmo `--color-accent`/`--color-accent-2` que
+  // `globals.css` já usa quando nenhuma cor de marca está aplicada, e o
+  // preset "Azul" de `PRESETS_MARCA`. Os três precisam concordar: senão uma
+  // empresa que nunca escolheu cor veria um tom no app (vindo daqui) e outro
+  // marcado como selecionado no card de Aparência. O âmbar que estava aqui
+  // era herança da paleta antiga, de quando branding era global.
+  primary_color: "#4F7CFF",
+  accent_color: "#22D3EE",
   login_bg_url: null,
   login_bg_preset: "grain",
   login_title: "App Gestão",
