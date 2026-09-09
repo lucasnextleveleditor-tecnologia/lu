@@ -11,9 +11,13 @@ import { useEffect, useRef, useState } from "react";
  * saída de erro. Servido como asset estático, ele é só um endereço — que é
  * exatamente o que o pdf.js espera.
  *
- * O arquivo vive no repositório (`public/pdf.worker.min.mjs`) e precisa ser
- * trocado junto quando a versão do `pdfjs-dist` mudar, senão o worker fica
- * numa versão e a biblioteca em outra — que é um erro difícil de ler.
+ * O arquivo é copiado para `public/` pelo `postinstall`
+ * (`scripts/copiar-worker-pdf.mjs`), sempre na versão exata que o npm
+ * instalou. Antes ele era copiado à mão, e a versão no repositório
+ * descasou da instalada assim que o `^` do package.json deixou a Vercel
+ * subir uma versão menor — o pdf.js recusou tudo com "The API version X does
+ * not match the Worker version Y", e só em produção. A versão agora é fixa e
+ * a cópia é automática.
  */
 async function carregarPdfjs() {
   const pdfjs = await import("pdfjs-dist");
