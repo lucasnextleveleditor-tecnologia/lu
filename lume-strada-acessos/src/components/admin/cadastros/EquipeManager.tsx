@@ -183,7 +183,7 @@ export function EquipeManager({ equipeMembros, profilesPorId, departamentos, car
                       ) : (
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" onClick={() => setMembroAcesso(membro)} className="px-3 py-1.5 text-xs">
-                            {membro.profile_id ? dict.cadastros.permissoes : dict.cadastros.gerarAcesso}
+                            {dict.cadastros.acessoEMenus}
                           </Button>
                           <Button variant="ghost" onClick={() => setMembroEditando(membro)} className="px-3 py-1.5 text-xs">
                             {dict.common.editar}

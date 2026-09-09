@@ -123,6 +123,49 @@ export interface EquipeInput {
   cargo: string | null;
   email: string | null;
   telefone: string | null;
+  documento: string | null;
+  nascimento: string | null;
+  vinculo: string | null;
+  entrada: string | null;
+  saida: string | null;
+  valorDiaria: number | null;
+  chavePix: string | null;
+  cidade: string | null;
+  uf: string | null;
+  emergenciaNome: string | null;
+  emergenciaTelefone: string | null;
+  observacoes: string | null;
+}
+
+/**
+ * O que vai para o banco, a partir do formulário.
+ *
+ * Uma função só para os dois caminhos (criar e atualizar): eram duas listas
+ * de campos quase iguais, e uma delas ia esquecer um campo novo mais cedo ou
+ * mais tarde — foi o que quase aconteceu ao acrescentar os doze de agora.
+ *
+ * Campo de data vazio vira NULL, nunca "": `date` não aceita string vazia.
+ */
+function camposDoMembro(input: EquipeInput) {
+  const texto = (v: string | null | undefined) => v?.trim() || null;
+  return {
+    nome: input.nome.trim(),
+    cargo: texto(input.cargo),
+    email: texto(input.email),
+    telefone: texto(input.telefone),
+    documento: texto(input.documento),
+    nascimento: input.nascimento || null,
+    vinculo: texto(input.vinculo),
+    entrada: input.entrada || null,
+    saida: input.saida || null,
+    valor_diaria: input.valorDiaria ?? null,
+    chave_pix: texto(input.chavePix),
+    cidade: texto(input.cidade),
+    uf: texto(input.uf)?.toUpperCase().slice(0, 2) ?? null,
+    emergencia_nome: texto(input.emergenciaNome),
+    emergencia_telefone: texto(input.emergenciaTelefone),
+    observacoes: texto(input.observacoes),
+  };
 }
 
 export async function criarMembroEquipe(input: EquipeInput): Promise<ActionResultId> {
@@ -132,12 +175,7 @@ export async function criarMembroEquipe(input: EquipeInput): Promise<ActionResul
 
     const { data, error } = await supabase
       .from("equipe_membros")
-      .insert({
-        nome: input.nome.trim(),
-        cargo: input.cargo?.trim() || null,
-        email: input.email?.trim() || null,
-        telefone: input.telefone?.trim() || null,
-      })
+      .insert(camposDoMembro(input))
       .select("id")
       .single();
 
@@ -156,12 +194,7 @@ export async function atualizarMembroEquipe(id: string, input: EquipeInput): Pro
 
     const { error } = await supabase
       .from("equipe_membros")
-      .update({
-        nome: input.nome.trim(),
-        cargo: input.cargo?.trim() || null,
-        email: input.email?.trim() || null,
-        telefone: input.telefone?.trim() || null,
-      })
+      .update(camposDoMembro(input))
       .eq("id", id);
 
     if (error) return { ok: false, error: error.message };

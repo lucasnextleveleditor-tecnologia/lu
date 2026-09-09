@@ -32,6 +32,7 @@ export interface CadastrosDict {
   respLabel: string;
   abrir: string;
   gerarAcesso: string;
+  acessoEMenus: string;
   semAcessoBadge: string;
 
   // ClienteModal (criar/editar cadastro)
@@ -105,6 +106,26 @@ export interface CadastrosDict {
 
   // MembroEquipeModal (criar/editar cadastro)
   editarMembro: string;
+  grupoIdentificacao: string;
+  grupoContato: string;
+  grupoVinculo: string;
+  grupoEmergencia: string;
+  nascimentoLabel: string;
+  cidadeLabel: string;
+  cidadePlaceholder: string;
+  ufLabel: string;
+  vinculoLabel: string;
+  vinculoPlaceholder: string;
+  valorDiariaLabel: string;
+  entradaLabel: string;
+  saidaLabel: string;
+  chavePixLabel: string;
+  chavePixPlaceholder: string;
+  emergenciaNomeLabel: string;
+  emergenciaNomePlaceholder: string;
+  emergenciaTelefoneLabel: string;
+  observacoesLabel: string;
+  observacoesPlaceholder: string;
   nomeCompletoLabel: string;
   nomeFuncionarioPlaceholder: string;
   cargoFuncaoLabel: string;
@@ -180,6 +201,7 @@ export const cadastros: CadastrosDict = {
   respLabel: "Resp.:",
   abrir: "Abrir",
   gerarAcesso: "Gerar Acesso",
+  acessoEMenus: "Acesso e menus",
   semAcessoBadge: "Sem acesso",
 
   editarCliente: "Editar Cliente",
@@ -248,6 +270,27 @@ export const cadastros: CadastrosDict = {
   permissoes: "Permissões",
 
   editarMembro: "Editar Membro",
+  grupoIdentificacao: "Identificação",
+  grupoContato: "Contato",
+  grupoVinculo: "Vínculo e pagamento",
+  grupoEmergencia: "Emergência e observações",
+  nascimentoLabel: "Nascimento",
+  cidadeLabel: "Cidade",
+  cidadePlaceholder: "São Paulo",
+  ufLabel: "UF",
+  vinculoLabel: "Tipo de vínculo",
+  vinculoPlaceholder: "Freelancer",
+  valorDiariaLabel: "Valor da diária",
+  entradaLabel: "Entrada",
+  saidaLabel: "Saída",
+  chavePixLabel: "Chave PIX",
+  chavePixPlaceholder: "CPF, e-mail, telefone ou chave aleatória",
+  emergenciaNomeLabel: "Quem avisar",
+  emergenciaNomePlaceholder: "Nome e parentesco",
+  emergenciaTelefoneLabel: "Telefone de emergência",
+  observacoesLabel: "Observações",
+  observacoesPlaceholder: "Restrições alimentares, equipamento próprio, disponibilidade...",
+
   nomeCompletoLabel: "Nome Completo *",
   nomeFuncionarioPlaceholder: "Nome do funcionário",
   cargoFuncaoLabel: "Cargo / Função",

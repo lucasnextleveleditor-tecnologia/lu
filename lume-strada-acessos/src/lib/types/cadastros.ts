@@ -29,9 +29,31 @@ export interface EquipeMembroRow {
   email: string | null;
   telefone: string | null;
   profile_id: string | null; // uuid -> profiles.id — null até "Gerar Acesso" ser usado
+
+  // ---- Cadastro completo -------------------------------------------------
+  // Campos escolhidos pelo que uma agência de audiovisual de fato usa, não
+  // por completude burocrática: PIX e valor de diária porque freelancer se
+  // paga por fora da folha; contato de emergência porque quem vai para uma
+  // externa precisa ter isso à mão.
+  documento: string | null; // CPF ou CNPJ
+  nascimento: string | null;
+  vinculo: string | null; // CLT, PJ, Freelancer, Estágio, Sócio
+  entrada: string | null;
+  saida: string | null;
+  valor_diaria: number | null;
+  chave_pix: string | null;
+  cidade: string | null;
+  uf: string | null;
+  emergencia_nome: string | null;
+  emergencia_telefone: string | null;
+  observacoes: string | null;
+
   created_at: string;
   updated_at: string;
 }
+
+/** Sugestões de vínculo — o campo é texto livre, para caber o que não estiver aqui. */
+export const VINCULOS_EQUIPE = ["CLT", "PJ", "Freelancer", "Estágio", "Sócio"] as const;
 
 /**
  * Departamento do Organograma (sub-aba dentro de Cadastros → Equipe, ver
