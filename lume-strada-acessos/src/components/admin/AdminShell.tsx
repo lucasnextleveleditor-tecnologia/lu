@@ -23,6 +23,7 @@ import {
   IconColumns,
   IconClipboardList,
   IconSitemap,
+  IconFileText,
   IconTarget,
   IconLayoutGrid,
   IconBarChart2,
@@ -81,7 +82,7 @@ const NAV_GRUPOS = [
         icon: IconTarget,
         chave: "comercial",
         chavesQualquer: ["comercial", "orcamentos"],
-        matchPrefixes: ["/admin/comercial", "/admin/orcamentos", "/admin/contratos"],
+        matchPrefixes: ["/admin/comercial", "/admin/orcamentos"],
       },
       // "Contratos" não tem entrada própria — acessível pelo botão no
       // cabeçalho do hub (aba Propostas/Funil) e embutido no hub de detalhe
@@ -91,6 +92,11 @@ const NAV_GRUPOS = [
       // `src/app/admin/whatsapp/layout.tsx`) — código e dados continuam
       // intactos, só não aparece nem é acessível dentro do app. Pra
       // reativar: devolver esta linha e reverter o layout.
+      // Contratos volta a ter entrada propria: e um documento que se procura
+      // pelo nome, nao um passo escondido dentro do funil comercial. Segue
+      // dentro do hub para quem chega por la, mas quem quer ir direto agora
+      // tem por onde.
+      { href: "/admin/contratos", labelKey: "contratos", icon: IconFileText, chave: "orcamentos" },
       { href: "/admin", labelKey: "cadastros", icon: IconUsers, chave: "clientes" },
     ],
   },
