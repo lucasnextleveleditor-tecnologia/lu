@@ -40,8 +40,17 @@ export default async function OrdemDoDiaListaPage() {
               <Link href={`/admin/producao/ordem-do-dia/${o.id}`} className="group flex items-center gap-4 px-5 py-4 transition hover:bg-base-800/50">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink-primary">{o.projeto || t.semProjeto}</p>
-                  <p className="mt-0.5 truncate text-xs text-ink-muted">
-                    {o.cliente_nome ?? t.semCliente} · {t.diaria} {o.diaria_numero} {t.de} {o.diaria_total}
+                  <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 truncate text-xs text-ink-muted">
+                    {/* O tipo de dia vem primeiro e colorido: numa lista de
+                        vinte folhas, "Ensaio fotográfico" identifica o
+                        trabalho mais rápido que o nome do cliente. */}
+                    {o.tipo && <span className="font-medium text-accent">{o.tipo}</span>}
+                    {o.tipo && <span aria-hidden>·</span>}
+                    <span>{o.cliente_nome ?? t.semCliente}</span>
+                    <span aria-hidden>·</span>
+                    <span>
+                      {t.diaria} {o.diaria_numero} {t.de} {o.diaria_total}
+                    </span>
                   </p>
                 </div>
                 <p className="shrink-0 text-xs tabular-nums text-ink-secondary">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -12,28 +12,40 @@ import { cn } from "@/lib/utils/cn";
  * foco, e some de novo. É por isso que existe este componente em vez de usar
  * o `<Input>` comum do sistema.
  *
+ * O campo vazio mostra um EXEMPLO de verdade ("Rua Augusta, 1200 — São Paulo"),
+ * não o nome do campo. Exemplo ensina o formato esperado; rótulo repetido
+ * dentro do campo não ensina nada. E o exemplo some no clique, antes mesmo de
+ * a pessoa digitar a primeira letra — assim ninguém precisa apagar nada nem
+ * fica na dúvida se aquilo já estava preenchido.
+ *
  * Salva no `blur` (e no Enter), nunca a cada tecla: uma ida ao servidor por
  * caractere digitado seria desperdício e deixaria o campo travando.
  */
 export function CampoInline({
   valor,
   onSalvar,
-  placeholder,
+  exemplo,
   className,
   tipo = "text",
   ariaLabel,
   multiline = false,
+  sugestoes,
 }: {
   valor: string;
   onSalvar: (novo: string) => void;
-  placeholder?: string;
+  /** Exemplo preenchido em cinza claro. Some no clique. */
+  exemplo?: string;
   className?: string;
   tipo?: "text" | "time" | "date" | "number";
   ariaLabel: string;
   multiline?: boolean;
+  /** Opções sugeridas — o campo continua sendo texto livre. */
+  sugestoes?: string[];
 }) {
   const [rascunho, setRascunho] = useState(valor);
+  const [focado, setFocado] = useState(false);
   const ultimoSalvo = useRef(valor);
+  const idLista = useId();
 
   // Quando o servidor devolve um valor diferente (outra pessoa editou, ou o
   // revalidate trouxe dado novo), o campo acompanha — mas só se a pessoa não
@@ -46,18 +58,26 @@ export function CampoInline({
   }, [valor]);
 
   function confirmar() {
+    setFocado(false);
     if (rascunho === ultimoSalvo.current) return;
     ultimoSalvo.current = rascunho;
     onSalvar(rascunho);
   }
 
+  // A regra do exemplo: aparece só enquanto o campo está vazio E longe do
+  // cursor. No instante do foco vira string vazia, e o campo fica limpo para
+  // digitar.
+  const textoExemplo = focado ? "" : exemplo;
+
   const classesComuns = cn(
     "w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-inherit outline-none transition",
-    "hover:border-base-700 focus:border-accent/60 focus:bg-base-950/40",
-    "placeholder:text-ink-muted/60",
-    // Na impressão nada disso existe: sem borda, sem fundo, e o texto some se
-    // estiver vazio (um placeholder impresso seria ruído no papel).
-    "print:border-transparent print:bg-transparent print:px-0 print:py-0",
+    "hover:border-base-700/70 focus:border-accent/60 focus:bg-base-950/50",
+    // O exemplo é visivelmente mais apagado que o valor real: ninguém pode
+    // confundir sugestão com conteúdo já preenchido.
+    "placeholder:text-ink-muted/45 placeholder:font-normal placeholder:italic",
+    // Na impressão nada disso existe: sem borda, sem fundo, e o exemplo não
+    // vai para o papel (um placeholder impresso seria ruído).
+    "print:border-transparent print:bg-transparent print:px-0 print:py-0 print:placeholder:text-transparent",
     className
   );
 
@@ -66,8 +86,9 @@ export function CampoInline({
       <textarea
         aria-label={ariaLabel}
         value={rascunho}
-        placeholder={placeholder}
+        placeholder={textoExemplo}
         onChange={(e) => setRascunho(e.target.value)}
+        onFocus={() => setFocado(true)}
         onBlur={confirmar}
         rows={3}
         className={cn(classesComuns, "resize-y")}
@@ -76,17 +97,28 @@ export function CampoInline({
   }
 
   return (
-    <input
-      type={tipo}
-      aria-label={ariaLabel}
-      value={rascunho}
-      placeholder={placeholder}
-      onChange={(e) => setRascunho(e.target.value)}
-      onBlur={confirmar}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-      }}
-      className={classesComuns}
-    />
+    <>
+      <input
+        type={tipo}
+        aria-label={ariaLabel}
+        value={rascunho}
+        placeholder={textoExemplo}
+        list={sugestoes?.length ? idLista : undefined}
+        onChange={(e) => setRascunho(e.target.value)}
+        onFocus={() => setFocado(true)}
+        onBlur={confirmar}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        }}
+        className={classesComuns}
+      />
+      {sugestoes?.length ? (
+        <datalist id={idLista}>
+          {sugestoes.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
+      ) : null}
+    </>
   );
 }

@@ -170,6 +170,21 @@ body {
     backdrop-filter: none !important;
   }
 
+  /* Por padrão o navegador joga fora TODO fundo colorido ao imprimir — o que
+     apagaria a tarja da marca no topo e a zebra da tabela de pessoas, que são
+     justamente o que faz a folha impressa parecer um documento e não uma
+     listagem. Aqui a folha (e só ela) pede que os fundos sejam respeitados. */
+  .folha-ordem-dia,
+  .folha-ordem-dia * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* O documento não pode terminar com uma seção órfã na última folha. */
+  .folha-ordem-dia h2 {
+    break-after: avoid;
+  }
+
   /* Um bloco (locação, cronograma, equipe) não deve ser partido ao meio pela
      quebra de página — ler "LOC 02" numa folha e o endereço na outra é pior
      do que uma página com mais espaço em branco. */

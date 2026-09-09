@@ -2,34 +2,53 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 
 /**
- * Uma seção da folha: um filete na cor da marca, o rótulo em versalete, e o
- * conteúdo.
+ * Uma seção da folha: o número da seção na cor da marca, o título em
+ * versalete e um filete que atravessa a página até a margem direita.
  *
- * O filete é o que dá ritmo ao documento — em vez de encaixotar cada seção
- * num cartão (o que picotaria a leitura em seis retângulos), as seções ficam
- * separadas por espaço e ancoradas por essa marca à esquerda. É a diferença
- * entre uma página e um painel.
+ * O número é o que dá autoridade editorial ao documento — quem lê no papel
+ * acha "03 QUEM VAI ESTAR" de relance, sem precisar varrer a página. E o
+ * filete correndo até a borda amarra as seções numa página só, em vez de
+ * picotar a leitura em seis cartõezinhos empilhados.
  */
 export function BlocoFolha({
+  numero,
   titulo,
+  auxiliar,
   acao,
   children,
   className,
 }: {
+  /** "01", "02"... — a numeração é do documento, não do banco. */
+  numero: string;
   titulo: string;
+  /** Contagem ou resumo curto à direita do título (ex.: "3 locais"). */
+  auxiliar?: string;
   acao?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <section className={cn("break-inside-avoid", className)}>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-secondary print:text-black">
-          <span className="h-3.5 w-[3px] rounded-full bg-accent print:bg-black" aria-hidden />
+      <div className="mb-4 flex items-center gap-3">
+        <span
+          className="text-[11px] font-bold tabular-nums leading-none tracking-[0.1em] text-accent print:text-black"
+          aria-hidden
+        >
+          {numero}
+        </span>
+        <h2 className="whitespace-nowrap text-[11px] font-semibold uppercase leading-none tracking-[0.2em] text-ink-primary print:text-black">
           {titulo}
         </h2>
+        {auxiliar && (
+          <span className="whitespace-nowrap text-[10px] uppercase tracking-[0.12em] text-ink-muted print:text-black/50">
+            {auxiliar}
+          </span>
+        )}
+        {/* O filete come todo o espaço que sobra: é ele que leva o olho da
+            esquerda até a margem direita da folha. */}
+        <span className="h-px min-w-4 flex-1 bg-base-700 print:bg-black/25" aria-hidden />
         {/* Botões de edição nunca vão pro papel. */}
-        {acao && <div className="print:hidden">{acao}</div>}
+        {acao && <div className="shrink-0 print:hidden">{acao}</div>}
       </div>
       {children}
     </section>

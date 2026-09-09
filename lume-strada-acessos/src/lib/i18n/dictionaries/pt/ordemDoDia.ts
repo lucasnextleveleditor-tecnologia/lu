@@ -1,6 +1,11 @@
 /**
- * Ordem do Dia (call sheet) — o documento que a equipe recebe na véspera da
- * diária e leva impresso para o set.
+ * Ordem do Dia — a folha que todo mundo envolvido recebe na véspera.
+ *
+ * O vocabulário aqui é DE PROPÓSITO neutro. A mesma folha organiza uma
+ * gravação, um ensaio fotográfico, um dia de conteúdo, uma cobertura de
+ * evento e um dia de edição — por isso "local" e não "set", "quem vai estar"
+ * e não "equipe escalada", "dia" e não "diária". Um fotógrafo não tem crew
+ * call; tem hora de começar.
  */
 export interface OrdemDoDiaDict {
   tituloPagina: string;
@@ -20,17 +25,23 @@ export interface OrdemDoDiaDict {
   // Cabeçalho da folha
   documento: string;
   projetoLabel: string;
+  projetoExemplo: string;
   clienteLabel: string;
   dataLabel: string;
   diariaNumeroLabel: string;
   diariaTotalLabel: string;
   semCliente: string;
+  tipoLabel: string;
+  tipoExemplo: string;
+  tiposSugeridos: string[];
 
   // Horários
   chamadaLabel: string;
   chamadaHint: string;
   encerramentoLabel: string;
   encerramentoHint: string;
+  duracao: string;
+  duracaoVazia: string;
 
   // Clima
   climaTitulo: string;
@@ -42,31 +53,42 @@ export interface OrdemDoDiaDict {
   porDoSol: string;
   climaAtualizadoEm: string;
 
-  // Locações
+  // Locais
   locacoesTitulo: string;
   locacaoNome: string;
+  locacaoNomeExemplo: string;
   locacaoEndereco: string;
+  locacaoEnderecoExemplo: string;
   locacaoNotas: string;
+  locacaoNotasExemplo: string;
   adicionarLocacao: string;
   locacoesVazio: string;
+  contagemLocais: (n: number) => string;
 
   // Cronograma
   cronogramaTitulo: string;
   cronogramaHora: string;
   cronogramaAtividade: string;
+  cronogramaAtividadeExemplo: string;
   cronogramaLocal: string;
+  cronogramaLocalExemplo: string;
   adicionarLinha: string;
   cronogramaVazio: string;
+  contagemEtapas: (n: number) => string;
 
-  // Equipe
+  // Pessoas
   equipeTitulo: string;
   equipeFuncao: string;
+  equipeFuncaoExemplo: string;
   equipeNome: string;
+  equipeNomeExemplo: string;
   equipeContato: string;
+  equipeContatoExemplo: string;
   equipeChamada: string;
   adicionarPessoa: string;
   adicionarDoCadastro: string;
   equipeVazio: string;
+  contagemPessoas: (n: number) => string;
 
   observacoesTitulo: string;
   observacoesPlaceholder: string;
@@ -79,14 +101,14 @@ export interface OrdemDoDiaDict {
 
 export const ordemDoDia: OrdemDoDiaDict = {
   tituloPagina: "Ordem do Dia",
-  subtituloPagina: "A folha que a equipe recebe na véspera e leva impressa para o set.",
+  subtituloPagina: "A folha que todo mundo recebe na véspera: onde é, a que horas, quem vai estar.",
   novaOrdem: "Nova ordem do dia",
-  novaAPartirDeCaptacao: "A partir de uma captação",
+  novaAPartirDeCaptacao: "A partir de um agendamento",
   semOrdensTitulo: "Nenhuma ordem do dia ainda",
-  semOrdensDescricao: "Crie a primeira para organizar horários, locações e equipe de uma diária.",
+  semOrdensDescricao: "Crie a primeira para organizar horários, locais e pessoas de um dia de trabalho.",
   semProjeto: "Sem projeto",
   semData: "Sem data",
-  diaria: "Diária",
+  diaria: "Dia",
   de: "de",
   abrir: "Abrir",
   excluir: "Excluir",
@@ -94,54 +116,83 @@ export const ordemDoDia: OrdemDoDiaDict = {
 
   documento: "Ordem do Dia",
   projetoLabel: "Projeto",
+  projetoExemplo: "Campanha de verão — Marca X",
   clienteLabel: "Cliente",
-  dataLabel: "Data da diária",
-  diariaNumeroLabel: "Diária nº",
+  dataLabel: "Data",
+  diariaNumeroLabel: "Dia nº",
   diariaTotalLabel: "de",
   semCliente: "Sem cliente",
+  tipoLabel: "Tipo de dia",
+  tipoExemplo: "Ensaio fotográfico",
+  tiposSugeridos: [
+    "Gravação",
+    "Ensaio fotográfico",
+    "Dia de conteúdo",
+    "Cobertura de evento",
+    "Entrevista",
+    "Live / transmissão",
+    "Edição",
+    "Direção de arte",
+    "Reunião com cliente",
+    "Roteiro",
+  ],
 
-  chamadaLabel: "Chamada",
-  chamadaHint: "Horário em que a equipe se apresenta",
+  chamadaLabel: "Início",
+  chamadaHint: "Todo mundo no local",
   encerramentoLabel: "Encerramento",
-  encerramentoHint: "Previsão de término da diária",
+  encerramentoHint: "Previsão de término",
+  duracao: "de trabalho",
+  duracaoVazia: "Defina os dois horários",
 
   climaTitulo: "Clima e luz do dia",
   climaBuscar: "Buscar previsão",
   climaBuscando: "Buscando...",
-  climaVazio: "Preencha a data e o endereço da primeira locação para buscar a previsão.",
+  climaVazio: "Preencha a data e o endereço do primeiro local para buscar a previsão.",
   climaChuva: "chuva",
   nascerDoSol: "Nascer do sol",
   porDoSol: "Pôr do sol",
   climaAtualizadoEm: "Consultado em",
 
-  locacoesTitulo: "Locações",
-  locacaoNome: "Nome do set",
+  locacoesTitulo: "Onde",
+  locacaoNome: "Nome do local",
+  locacaoNomeExemplo: "Estúdio · Sala 2",
   locacaoEndereco: "Endereço",
-  locacaoNotas: "Observações (estacionamento, acesso, contato no local)",
-  adicionarLocacao: "Adicionar locação",
-  locacoesVazio: "Nenhuma locação — adicione ao menos uma para a equipe saber onde chegar.",
+  locacaoEnderecoExemplo: "Rua Augusta, 1200 — São Paulo, SP",
+  locacaoNotas: "Observações do local",
+  locacaoNotasExemplo: "Estacionamento no subsolo. Falar com a portaria. Elevador de carga até 18h.",
+  adicionarLocacao: "Adicionar local",
+  locacoesVazio: "Nenhum local — adicione ao menos um para todo mundo saber onde chegar.",
+  contagemLocais: (n) => (n === 1 ? "1 local" : `${n} locais`),
 
   cronogramaTitulo: "Cronograma",
   cronogramaHora: "Hora",
-  cronogramaAtividade: "Atividade",
+  cronogramaAtividade: "O que acontece",
+  cronogramaAtividadeExemplo: "Montagem de luz e teste de câmera",
   cronogramaLocal: "Onde",
+  cronogramaLocalExemplo: "Sala 2",
   adicionarLinha: "Adicionar etapa",
   cronogramaVazio: "Sem etapas — monte a linha do tempo do dia, da chegada ao encerramento.",
+  contagemEtapas: (n) => (n === 1 ? "1 etapa" : `${n} etapas`),
 
-  equipeTitulo: "Equipe escalada",
+  equipeTitulo: "Quem vai estar",
   equipeFuncao: "Função",
+  equipeFuncaoExemplo: "Fotógrafo",
   equipeNome: "Nome",
+  equipeNomeExemplo: "Ana Ribeiro",
   equipeContato: "Contato",
-  equipeChamada: "Chamada",
+  equipeContatoExemplo: "(11) 91234-5678",
+  equipeChamada: "Início",
   adicionarPessoa: "Adicionar pessoa",
   adicionarDoCadastro: "Adicionar do cadastro",
-  equipeVazio: "Ninguém escalado ainda.",
+  equipeVazio: "Ninguém confirmado ainda.",
+  contagemPessoas: (n) => (n === 1 ? "1 pessoa" : `${n} pessoas`),
 
-  observacoesTitulo: "Observações gerais",
-  observacoesPlaceholder: "Alimentação, transporte, EPI, recomendações de figurino, o que mais a equipe precisa saber...",
+  observacoesTitulo: "O que mais precisa saber",
+  observacoesPlaceholder:
+    "Alimentação, transporte, estacionamento, roupa e figurino, equipamento que cada um leva, senha do Wi-Fi, para onde vão os arquivos no fim do dia...",
 
   imprimir: "Imprimir / PDF",
   salvo: "Salvo",
   salvando: "Salvando...",
-  rodapeImpressao: "Dúvidas no dia? Fale com a produção.",
+  rodapeImpressao: "Dúvidas no dia? Fale com quem está produzindo.",
 };

@@ -53,6 +53,7 @@ export async function criarOrdemDoDia(tarefaId?: string): Promise<ActionResultId
 export interface CabecalhoInput {
   projeto: string;
   clienteId: string | null;
+  tipo: string;
   data: string | null;
   diariaNumero: number;
   diariaTotal: number;
@@ -70,6 +71,7 @@ export async function salvarCabecalho(id: string, input: CabecalhoInput): Promis
       .update({
         projeto: input.projeto.trim(),
         cliente_id: input.clienteId,
+        tipo: input.tipo.trim(),
         data: input.data || null,
         // `Math.max(1, ...)` porque "diária 0 de 0" não existe — e um campo
         // numérico vazio no navegador chega como NaN.

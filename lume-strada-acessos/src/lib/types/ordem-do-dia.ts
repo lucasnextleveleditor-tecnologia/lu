@@ -4,6 +4,8 @@ export interface OrdemDoDiaRow {
   projeto: string;
   cliente_id: string | null;
   tarefa_id: string | null;
+  /** Gravacao, Ensaio fotografico, Dia de conteudo, Edicao... texto livre. */
+  tipo: string;
   data: string | null;
   diaria_numero: number;
   diaria_total: number;
