@@ -325,7 +325,7 @@ async function proximaVersaoDe(supabase: Awaited<ReturnType<typeof requireModulo
  */
 export async function criarUploadAssinadoVersao(entregaId: string, nomeArquivo: string): Promise<UploadAssinadoResult> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase, companyId } = await requireModulo("producao");
 
     // Sem allowlist de tipo aqui de propósito (ver comentário em
     // `ehExtensaoPerigosaParaEntrega`, em `src/lib/utils/upload.ts`) — só
@@ -336,7 +336,7 @@ export async function criarUploadAssinadoVersao(entregaId: string, nomeArquivo: 
 
     const proximaVersao = await proximaVersaoDe(supabase, entregaId);
     const extensao = nomeArquivo.includes(".") ? nomeArquivo.split(".").pop() : null;
-    const caminho = `${entregaId}/v${proximaVersao}-${Date.now()}${extensao ? `.${extensao}` : ""}`;
+    const caminho = `${companyId}/${entregaId}/v${proximaVersao}-${Date.now()}${extensao ? `.${extensao}` : ""}`;
 
     const { data, error } = await supabase.storage.from(BUCKET).createSignedUploadUrl(caminho);
     if (error || !data) return { ok: false, error: error?.message ?? "Não foi possível preparar o upload." };

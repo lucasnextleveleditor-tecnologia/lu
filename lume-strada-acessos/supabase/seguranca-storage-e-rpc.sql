@@ -1,0 +1,65 @@
+-- ============================================================================
+-- Endurecimento de segurança: Storage por empresa + superfície de RPC
+-- ============================================================================
+--
+-- APLICADO EM PRODUÇÃO em 09/09/2026.
+--
+-- Fecha a última pendência de multi-tenant (Seção 10 da
+-- `multitenant-migration.sql`) e reduz o que a API expõe.
+--
+-- Momento certo: os buckets estavam VAZIOS (zero objetos em todos os cinco),
+-- então deu pra impor a convenção de caminho sem migrar arquivo nenhum e sem
+-- risco de quebrar link existente. Se houvesse arquivos, seria preciso movê-los
+-- para dentro das pastas por empresa ANTES de ligar as políticas — caso
+-- contrário todo arquivo antigo ficaria inacessível de uma vez.
+--
+-- ----------------------------------------------------------------------------
+-- 1. Storage isolado por empresa
+-- ----------------------------------------------------------------------------
+-- ANTES: `financeiro` e `producao` eram protegidos só por `is_staff()`, que
+-- responde "é admin ou funcionário?" sem saber de QUAL empresa. Um funcionário
+-- de qualquer agência que descobrisse (ou adivinhasse) o caminho baixava
+-- comprovante financeiro e entrega de vídeo de todas as outras. As linhas do
+-- banco já estavam isoladas desde a migração multi-tenant; os ARQUIVOS não.
+--
+-- DEPOIS: todo caminho começa pelo id da empresa —
+-- `<company_id>/<resto...>` — e a política exige que esse primeiro segmento
+-- (`storage.foldername(name))[1]`) bata com `current_company_id()`. O prefixo
+-- é montado no SERVIDOR, a partir de `requireModulo()`/`requireAdmin()`, nunca
+-- vem do navegador: se viesse, bastaria trocá-lo para escrever na pasta alheia.
+--
+-- Leitura pública continua em `branding` (a tela de login precisa, antes de
+-- qualquer autenticação), `orcamentos-midia` e `infoprodutos` (links públicos
+-- de proposta e criativos). Nesses três, só a ESCRITA passou a ser por empresa
+-- — quem tiver a URL segue conseguindo ver o arquivo, que é o objetivo deles.
+--
+-- ----------------------------------------------------------------------------
+-- 2. Superfície de RPC
+-- ----------------------------------------------------------------------------
+-- O PostgREST publica TODA função do schema `public` em `/rest/v1/rpc/<nome>`.
+-- Como várias são `SECURITY DEFINER` (rodam com privilégio elevado), estavam
+-- ao alcance de qualquer um com a chave pública do projeto — que, sendo
+-- pública, está no JavaScript do navegador.
+--
+-- - Funções de GATILHO perderam EXECUTE de `anon` e `authenticated`: nada no
+--   app as chama, quem as executa é o Postgres no contexto do trigger, e esse
+--   caminho não passa por checagem de permissão. Ficavam expostas à toa.
+-- - RPCs financeiras (`pagar_fatura`, caixinhas) perderam EXECUTE de `anon`:
+--   elas MOVEM DINHEIRO entre contas. O corpo delas já valida a empresa de
+--   quem chama, mas negar antes é melhor que depender só disso.
+-- - Helpers de identidade (`is_admin`, `is_staff`, `is_super_admin`,
+--   `current_company_id`) perderam EXECUTE de `anon`.
+--
+-- `saas_owner_company_id()` é a ÚNICA que continua liberada para `anon`, de
+-- propósito: a policy `branding_config_select_publico` a chama para montar a
+-- tela de login, que por definição acontece antes de haver usuário.
+--
+-- `set_updated_at()` também ganhou `search_path` fixo — sem isso, uma função
+-- `SECURITY DEFINER` pode ser induzida a chamar objetos de outro schema
+-- plantado no caminho de busca.
+--
+-- Verificado depois de aplicar: com `set role anon`, o visitante enxerga 0
+-- linhas de clientes, financeiro, perfis e empresas — e exatamente 1 de
+-- branding, que é a marca da tela de login.
+-- ============================================================================
+-- (as instruções aplicadas estão registradas nas migrations do Supabase; este arquivo documenta a decisão)

@@ -37,13 +37,13 @@ const QTD_SLOTS_LOGOS_CLIENTES = 6;
  */
 export async function criarUploadAssinadoPortfolio(nomeArquivo: string, contentType: string): Promise<UploadAssinadoPortfolioResult> {
   try {
-    const { supabase } = await requireModulo("orcamentos");
+    const { supabase, companyId } = await requireModulo("orcamentos");
 
     const tipo: TipoMidiaPortfolio | null = ehImagemPermitida(contentType) ? "imagem" : ehVideoPermitido(contentType) ? "video" : null;
     if (!tipo) return { ok: false, error: "Envie uma imagem (PNG, JPG, WEBP ou GIF) ou um vídeo (MP4, WEBM ou MOV). SVG não é permitido." };
 
     const extensao = nomeArquivo.includes(".") ? nomeArquivo.split(".").pop() : null;
-    const caminho = `portfolio/${crypto.randomUUID()}${extensao ? `.${extensao}` : ""}`;
+    const caminho = `${companyId}/portfolio/${crypto.randomUUID()}${extensao ? `.${extensao}` : ""}`;
 
     const { data, error } = await supabase.storage.from(BUCKET).createSignedUploadUrl(caminho);
     if (error || !data) return { ok: false, error: error?.message ?? "Não foi possível preparar o upload." };
@@ -62,7 +62,7 @@ export async function confirmarPortfolioItem(input: {
   categoriaProfissao: string | null;
 }): Promise<ActionResultId> {
   try {
-    const { supabase } = await requireModulo("orcamentos");
+    const { supabase, companyId } = await requireModulo("orcamentos");
     if (!input.titulo.trim()) return { ok: false, error: "Dê um título pro item antes de salvar." };
 
     const { data, error } = await supabase
@@ -86,7 +86,7 @@ export async function confirmarPortfolioItem(input: {
 
 export async function atualizarPortfolioItem(id: string, input: { titulo: string; categoriaProfissao: string | null }): Promise<ActionResult> {
   try {
-    const { supabase } = await requireModulo("orcamentos");
+    const { supabase, companyId } = await requireModulo("orcamentos");
     if (!input.titulo.trim()) return { ok: false, error: "Informe um título." };
 
     const { error } = await supabase
@@ -105,7 +105,7 @@ export async function atualizarPortfolioItem(id: string, input: { titulo: string
 /** Apaga o arquivo do Storage antes da linha, pra não deixar arquivo órfão no bucket — mesmo padrão de `removerAnuncio`/`removerCriativo`. */
 export async function removerPortfolioItem(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireModulo("orcamentos");
+    const { supabase, companyId } = await requireModulo("orcamentos");
 
     const { data: item } = await supabase.from("orc_portfolio_itens").select("path").eq("id", id).single();
     if (item?.path) {
@@ -130,7 +130,7 @@ export async function removerPortfolioItem(id: string): Promise<ActionResult> {
  */
 export async function salvarPortfolioDoOrcamento(orcamentoId: string, portfolioItemIds: string[]): Promise<ActionResult> {
   try {
-    const { supabase } = await requireModulo("orcamentos");
+    const { supabase, companyId } = await requireModulo("orcamentos");
 
     const { error: erroLimpar } = await supabase.from("orc_orcamento_portfolio").delete().eq("orcamento_id", orcamentoId);
     if (erroLimpar) return { ok: false, error: erroLimpar.message };
@@ -172,7 +172,7 @@ export async function uploadMarcaOrcamento(campo: CampoMarcaOrcamento, formData:
     if (!ehImagemPermitida(file.type)) return { ok: false, error: "Envie um arquivo de imagem (PNG, JPG, WEBP ou GIF). SVG não é permitido." };
 
     const extensao = file.name.split(".").pop()?.toLowerCase() || "png";
-    const caminho = `marca/${companyId}/${campo}-${Date.now()}.${extensao}`;
+    const caminho = `${companyId}/marca/${campo}-${Date.now()}.${extensao}`;
 
     const admin = createAdminClient();
     const { error: erroUpload } = await admin.storage.from(BUCKET).upload(caminho, file, { upsert: true, contentType: file.type });
@@ -268,7 +268,7 @@ export async function salvarInstitucionalOrcamento(input: {
 // ----------------------------------------------------------------------------
 export async function uploadCapaOrcamento(formData: FormData): Promise<UploadCapaResult> {
   try {
-    const { supabase } = await requireModulo("orcamentos");
+    const { supabase, companyId } = await requireModulo("orcamentos");
     const file = formData.get("file");
 
     if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Selecione um arquivo." };
@@ -276,7 +276,7 @@ export async function uploadCapaOrcamento(formData: FormData): Promise<UploadCap
     if (!ehImagemPermitida(file.type)) return { ok: false, error: "Envie um arquivo de imagem (PNG, JPG, WEBP ou GIF). SVG não é permitido." };
 
     const extensao = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const caminho = `capa/${crypto.randomUUID()}.${extensao}`;
+    const caminho = `${companyId}/capa/${crypto.randomUUID()}.${extensao}`;
 
     const { error: erroUpload } = await supabase.storage.from(BUCKET).upload(caminho, file, { contentType: file.type });
     if (erroUpload) return { ok: false, error: erroUpload.message };
@@ -291,7 +291,7 @@ export async function uploadCapaOrcamento(formData: FormData): Promise<UploadCap
 /** Apaga o arquivo antigo do bucket ao trocar/remover a capa — evita acumular arquivo órfão a cada re-upload (mesmo cuidado de `removerPortfolioItem`). Path pode já não existir mais (orçamento novo que nunca salvou) — erro de "não encontrado" é ignorado de propósito. */
 export async function removerArquivoCapaOrcamento(path: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireModulo("orcamentos");
+    const { supabase, companyId } = await requireModulo("orcamentos");
     await supabase.storage.from(BUCKET).remove([path]);
     return { ok: true };
   } catch (err) {
@@ -317,7 +317,7 @@ export async function uploadLogoClienteOrcamento(slot: number, formData: FormDat
     if (!ehImagemPermitida(file.type)) return { ok: false, error: "Envie um arquivo de imagem (PNG, JPG, WEBP ou GIF). SVG não é permitido." };
 
     const extensao = file.name.split(".").pop()?.toLowerCase() || "png";
-    const caminho = `clientes-logos/${companyId}/slot-${slot}-${Date.now()}.${extensao}`;
+    const caminho = `${companyId}/clientes-logos/slot-${slot}-${Date.now()}.${extensao}`;
 
     const admin = createAdminClient();
     const { error: erroUpload } = await admin.storage.from(BUCKET).upload(caminho, file, { upsert: true, contentType: file.type });

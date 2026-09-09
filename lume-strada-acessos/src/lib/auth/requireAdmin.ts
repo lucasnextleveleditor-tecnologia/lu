@@ -6,6 +6,8 @@ import type { PapelUsuario, PermissoesFuncionario, PreferenciasDashboard, Profil
 
 export interface PerfilComPermissoes {
   role: PapelUsuario;
+  /** Empresa do usuário — `null` só para `super_admin`. Usada para prefixar TODO caminho de upload no Storage com a empresa dona do arquivo (ver `requireModulo`). */
+  company_id: string | null;
   full_name: string | null;
   email: string;
   permissoes: PermissoesFuncionario;
@@ -25,7 +27,7 @@ export interface PerfilComPermissoes {
 export async function buscarPerfilComPermissoes(supabase: SupabaseClient, userId: string): Promise<PerfilComPermissoes | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("role, full_name, email, permissoes, dashboard_config")
+    .select("role, full_name, email, company_id, permissoes, dashboard_config")
     .eq("id", userId)
     .single()
     .overrideTypes<PerfilComPermissoes, { merge: false }>();
@@ -40,10 +42,10 @@ export async function buscarPerfilComPermissoes(supabase: SupabaseClient, userId
   // de propósito).
   const { data: basico } = await supabase
     .from("profiles")
-    .select("role, full_name, email")
+    .select("role, full_name, email, company_id")
     .eq("id", userId)
     .single()
-    .overrideTypes<Pick<ProfileRow, "role" | "full_name" | "email">, { merge: false }>();
+    .overrideTypes<Pick<ProfileRow, "role" | "full_name" | "email" | "company_id">, { merge: false }>();
 
   if (!basico) return null;
   return { ...basico, permissoes: {}, dashboard_config: {} };
@@ -178,7 +180,7 @@ export async function requireSuperAdminOuRedirect() {
 // ----------------------------------------------------------------------------
 export type ModuloChave = "clientes" | "financeiro" | "producao" | "comercial" | "orcamentos" | "trafego" | "inventario" | "whatsapp" | "agenda";
 
-type ResultadoPermissao = { autorizado: true; supabase: SupabaseClient; user: User } | { autorizado: false };
+type ResultadoPermissao = { autorizado: true; supabase: SupabaseClient; user: User; companyId: string | null } | { autorizado: false };
 
 async function carregarAutorizacaoQualquer(chaves: ModuloChave[]): Promise<ResultadoPermissao> {
   const supabase = await createClient();
@@ -190,9 +192,9 @@ async function carregarAutorizacaoQualquer(chaves: ModuloChave[]): Promise<Resul
   const profile = await buscarPerfilComPermissoes(supabase, user.id);
 
   if (!profile) return { autorizado: false };
-  if (profile.role === "admin") return { autorizado: true, supabase, user };
+  if (profile.role === "admin") return { autorizado: true, supabase, user, companyId: profile.company_id };
   if (profile.role === "funcionario" && chaves.some((chave) => profile.permissoes?.[chave] === true)) {
-    return { autorizado: true, supabase, user };
+    return { autorizado: true, supabase, user, companyId: profile.company_id };
   }
   return { autorizado: false };
 }
@@ -201,7 +203,12 @@ async function carregarAutorizacaoQualquer(chaves: ModuloChave[]): Promise<Resul
 export async function requireModulo(chave: ModuloChave) {
   const resultado = await carregarAutorizacaoQualquer([chave]);
   if (!resultado.autorizado) throw new Error("Você não tem permissão para acessar este módulo.");
-  return { supabase: resultado.supabase, user: resultado.user };
+  // `companyId` vem daqui, do SERVIDOR, e nunca do cliente: é ele que prefixa
+  // todo caminho de upload no Storage (`${companyId}/...`), e as políticas dos
+  // buckets exigem que esse primeiro segmento bata com a empresa de quem está
+  // chamando. Se o caminho viesse do navegador, bastaria trocar o prefixo pra
+  // escrever na pasta de outra empresa.
+  return { supabase: resultado.supabase, user: resultado.user, companyId: resultado.companyId };
 }
 
 /**
@@ -215,14 +222,14 @@ export async function requireModulo(chave: ModuloChave) {
 export async function requireQualquerModulo(chaves: ModuloChave[]) {
   const resultado = await carregarAutorizacaoQualquer(chaves);
   if (!resultado.autorizado) throw new Error("Você não tem permissão para acessar este módulo.");
-  return { supabase: resultado.supabase, user: resultado.user };
+  return { supabase: resultado.supabase, user: resultado.user, companyId: resultado.companyId };
 }
 
 /** Mesma checagem de `requireModulo`, mas pra Server Components de página — redireciona em vez de lançar. */
 export async function requireModuloOuRedirect(chave: ModuloChave) {
   const resultado = await carregarAutorizacaoQualquer([chave]);
   if (!resultado.autorizado) redirect("/admin/dashboard");
-  return { supabase: resultado.supabase, user: resultado.user };
+  return { supabase: resultado.supabase, user: resultado.user, companyId: resultado.companyId };
 }
 
 /**

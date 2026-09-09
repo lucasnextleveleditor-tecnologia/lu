@@ -786,7 +786,7 @@ export async function listarAnexosTransacao(transacaoId: string): Promise<ListaA
 /** Passo 1/2 — gera a signed upload URL. Ver comentário de `criarUploadAssinadoVersao` (Produção) pro porquê desse fluxo em duas etapas. */
 export async function criarUploadAssinadoAnexo(transacaoId: string, nomeArquivo: string): Promise<UploadAssinadoResult> {
   try {
-    const { supabase } = await requireModulo("financeiro");
+    const { supabase, companyId } = await requireModulo("financeiro");
 
     // Mesma denylist de HTML/SVG usada nas entregas de Produção — o único
     // tipo que precisa ser bloqueado é o que o navegador RENDERIZA como
@@ -797,7 +797,7 @@ export async function criarUploadAssinadoAnexo(transacaoId: string, nomeArquivo:
     }
 
     const extensao = nomeArquivo.includes(".") ? nomeArquivo.split(".").pop() : null;
-    const caminho = `${transacaoId}/${randomUUID()}${extensao ? `.${extensao}` : ""}`;
+    const caminho = `${companyId}/${transacaoId}/${randomUUID()}${extensao ? `.${extensao}` : ""}`;
 
     const { data, error } = await supabase.storage.from(BUCKET_ANEXOS).createSignedUploadUrl(caminho);
     if (error || !data) return { ok: false, error: error?.message ?? "Não foi possível preparar o upload." };
