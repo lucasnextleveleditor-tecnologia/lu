@@ -20,6 +20,8 @@ export interface NavDict {
   trafegoMetas: string;
   inventarioPatrimonio: string;
   aparencia: string;
+  /** Engrenagem fixa no rodapé do menu — abre `/admin/configuracoes` (Empresa & Equipe, Minha Conta, Aparência, Assinatura). */
+  configuracoes: string;
   expandirMenu: string;
   recolherMenu: string;
 }
@@ -44,6 +46,7 @@ export const nav: NavDict = {
   trafegoMetas: "Tráfego & Metas",
   inventarioPatrimonio: "Inventário & Patrimônio",
   aparencia: "Aparência",
+  configuracoes: "Configurações",
   expandirMenu: "Expandir menu",
   recolherMenu: "Recolher menu",
 };

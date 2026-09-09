@@ -4,11 +4,18 @@ import type { BrandingConfigRow } from "@/lib/types/database";
 import { DEFAULT_BRANDING } from "@/lib/branding/constants";
 
 /**
- * Lê a linha singleton de `branding_config` — usada pelo layout raiz (CSS
- * vars + favicon), pela sidebar do admin, pelo header do cliente e pela
- * tela de login. `cache()` do React dedupe chamadas dentro do mesmo request
- * (ex: layout raiz + admin/layout.tsx pedindo os dois nesta mesma
- * renderização não disparam duas queries).
+ * Lê a linha de `branding_config` que se aplica a quem está pedindo — usada
+ * pelo layout raiz (favicon + <title>), pela sidebar do admin, pelo header
+ * do cliente e pela tela de login. `cache()` do React dedupe chamadas dentro
+ * do mesmo request (ex: layout raiz + admin/layout.tsx pedindo os dois nesta
+ * mesma renderização não disparam duas queries).
+ *
+ * O `.limit(1)` sem filtro NÃO é descuido: desde
+ * `supabase/branding-por-empresa.sql`, o RLS já entrega no máximo uma linha
+ * pra cada tipo de chamador — a da própria empresa pra quem está logado, e a
+ * da empresa dona do SaaS pra visitante anônimo (tela de login, que acontece
+ * antes de existir empresa conhecida). Filtrar aqui de novo seria repetir em
+ * TypeScript uma regra que o banco já garante.
  *
  * Nunca lança: se o schema ainda não foi rodado no Supabase do usuário (tabela
  * não existe) ou a query falhar por qualquer motivo, cai no visual padrão —

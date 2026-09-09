@@ -14,6 +14,7 @@ import { cadastros } from "./cadastros";
 import { whatsapp } from "./whatsapp";
 import { relatorios } from "./relatorios";
 import { aparencia } from "./aparencia";
+import { configuracoes } from "./configuracoes";
 import { dashboard } from "./dashboard";
 import { cliente } from "./cliente";
 import { agenda } from "./agenda";
@@ -35,6 +36,7 @@ export const es: Dictionary = {
   whatsapp,
   relatorios,
   aparencia,
+  configuracoes,
   dashboard,
   cliente,
   agenda,

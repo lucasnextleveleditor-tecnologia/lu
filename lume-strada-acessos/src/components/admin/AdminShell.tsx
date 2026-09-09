@@ -18,7 +18,7 @@ import {
   IconUsers,
   IconActivity,
   IconBox,
-  IconPalette,
+  IconSettings,
   IconWallet,
   IconColumns,
   IconTarget,
@@ -38,8 +38,10 @@ import {
 // `chave` é a mesma `ModuloChave` usada por `requireModulo`/`requireModuloOuRedirect`
 // no servidor — o item some do menu de um funcionário sem aquela permissão
 // ligada. Item sem `chave` (Dashboard) é visível pra qualquer membro da
-// equipe. `adminOnly` (Aparência) nunca aparece pra funcionário, mesmo com
-// todas as outras permissões ligadas — mesma regra do guard no servidor.
+// equipe. `adminOnly` nunca aparece pra funcionário, mesmo com todas as
+// outras permissões ligadas — mesma regra do guard no servidor. Aparência
+// saiu desta lista: virou aba da engrenagem de Configurações, fixa no
+// rodapé da sidebar (ver o bloco do rodapé, mais abaixo).
 const NAV_GRUPOS = [
   {
     tituloKey: "grupoVisaoGeral",
@@ -97,7 +99,6 @@ const NAV_GRUPOS = [
       { href: "/admin/producao", labelKey: "producaoTarefas", icon: IconColumns, chave: "producao" },
       { href: "/admin/trafego", labelKey: "trafegoMetas", icon: IconActivity, chave: "trafego" },
       { href: "/admin/inventario", labelKey: "inventarioPatrimonio", icon: IconBox, chave: "inventario" },
-      { href: "/admin/aparencia", labelKey: "aparencia", icon: IconPalette, chave: null, adminOnly: true },
     ],
   },
   // Grupo próprio, separado de "Gestão" e sempre por último — pedido
@@ -263,7 +264,7 @@ export function AdminShell({
                               // lugar do "pill" sólido genérico.
                               "text-ink-primary ring-1 ring-inset"
                             : // Fallback pro comportamento neutro (itens sem
-                              // `chave` de módulo, ex: Dashboard/Aparência).
+                              // `chave` de módulo, ex: Dashboard/Relatórios).
                               "bg-base-800 text-ink-primary"
                           : "font-medium text-ink-muted hover:bg-base-800 hover:text-ink-secondary"
                       )}
@@ -287,6 +288,30 @@ export function AdminShell({
         </nav>
 
         <div className={cn("border-t border-base-800 p-3", colapsado && "px-2")}>
+          {/* Configurações fica FORA dos grupos de módulo, ancorada no
+              rodapé: não é um lugar de trabalho como Financeiro ou
+              Produção — é onde se mexe na conta, na equipe e na cara do
+              sistema, coisas que se visita de vez em quando. Ancorar aqui
+              também deixa o menu de módulos com um comprimento estável
+              conforme o app cresce. Só admin vê, mesma regra que o item
+              "Aparência" tinha quando morava na lista acima; o guard de
+              verdade continua no servidor (ver `configuracoes/page.tsx`). */}
+          {papel === "admin" && (
+            <Link
+              href="/admin/configuracoes"
+              title={colapsado ? dict.nav.configuracoes : undefined}
+              className={cn(
+                "mb-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition",
+                colapsado && "justify-center px-0",
+                pathname?.startsWith("/admin/configuracoes")
+                  ? "bg-base-800 text-ink-primary"
+                  : "font-medium text-ink-muted hover:bg-base-800 hover:text-ink-secondary"
+              )}
+            >
+              <IconSettings className="h-[18px] w-[18px] shrink-0" />
+              {!colapsado && <span className="truncate">{dict.nav.configuracoes}</span>}
+            </Link>
+          )}
           {!colapsado && (
             <p className="mb-2 truncate px-1 text-xs text-ink-muted" title={email}>
               {nome || email}

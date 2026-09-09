@@ -1,35 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import type { CargoRow, ClienteRow, DepartamentoRow, EquipeMembroRow } from "@/lib/types/cadastros";
+import Link from "next/link";
+import type { ClienteRow } from "@/lib/types/cadastros";
 import type { ProfileRow } from "@/lib/types/database";
-import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { ClientesManager } from "@/components/admin/cadastros/ClientesManager";
-import { EquipeManager } from "@/components/admin/cadastros/EquipeManager";
-import { IconUsers, IconBriefcase } from "@/components/ui/icons";
+import { IconSettings } from "@/components/ui/icons";
 
 interface CadastrosWorkspaceProps {
   clientes: ClienteRow[];
-  equipeMembros: EquipeMembroRow[];
   profilesPorId: Record<string, ProfileRow>;
-  departamentos: DepartamentoRow[];
-  cargos: CargoRow[];
   souAdmin: boolean;
 }
 
-type Aba = "clientes" | "equipe";
-
 /**
- * Módulo Central de Cadastros — duas abas: Clientes (cadastro + Atividades &
- * Tarefas + Gerar Acesso ao dashboard do cliente) e Equipe (cadastro de RH +
- * Gerar Acesso/Permissões RBAC dos funcionários). A aba Equipe só aparece
- * pra admin — pra um funcionário (mesmo com a permissão "clientes" ligada),
- * gerenciar QUEM tem acesso ao quê nunca é delegável (ver
- * `lib/auth/requireAdmin.ts`).
+ * Central de Cadastros — hoje só Clientes (cadastro + Atividades & Tarefas +
+ * Gerar Acesso ao portal do cliente).
+ *
+ * A aba "Equipe" (cadastro de RH, permissões RBAC e organograma) saiu daqui:
+ * virou a aba "Empresa & Equipe" da engrenagem de Configurações
+ * (`/admin/configuracoes?aba=empresa`). O motivo é que decidir QUEM tem
+ * acesso a QUÊ nunca foi um cadastro operacional — era configuração da
+ * conta escondida atrás da permissão "clientes", que não tem relação nenhuma
+ * com o assunto. Como sobrou uma aba só, a barra de abas foi embora junto e
+ * ficou no lugar um ponteiro pra quem procurar Equipe por aqui (só admin vê,
+ * já que só admin tem a aba do outro lado).
  */
-export function CadastrosWorkspace({ clientes, equipeMembros, profilesPorId, departamentos, cargos, souAdmin }: CadastrosWorkspaceProps) {
-  const [aba, setAba] = useState<Aba>("clientes");
+export function CadastrosWorkspace({ clientes, profilesPorId, souAdmin }: CadastrosWorkspaceProps) {
   const { dict } = useLocale();
 
   return (
@@ -39,34 +36,17 @@ export function CadastrosWorkspace({ clientes, equipeMembros, profilesPorId, dep
         <p className="mt-0.5 text-sm text-ink-muted">{dict.cadastros.subtituloPagina}</p>
       </div>
 
-      <div className="mb-6 flex gap-1.5 border-b border-base-800">
-        <button
-          onClick={() => setAba("clientes")}
-          className={cn(
-            "flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition",
-            aba === "clientes" ? "border-accent text-ink-primary" : "border-transparent text-ink-muted hover:text-ink-secondary"
-          )}
+      {souAdmin && (
+        <Link
+          href="/admin/configuracoes?aba=empresa"
+          className="mb-5 flex items-center gap-2 rounded-lg border border-base-700 bg-base-900/60 px-3 py-2 text-xs text-ink-muted transition hover:border-base-600 hover:text-ink-secondary"
         >
-          <IconUsers className="h-4 w-4" /> {dict.cadastros.abaClientes}
-        </button>
-        {souAdmin && (
-          <button
-            onClick={() => setAba("equipe")}
-            className={cn(
-              "flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition",
-              aba === "equipe" ? "border-accent text-ink-primary" : "border-transparent text-ink-muted hover:text-ink-secondary"
-            )}
-          >
-            <IconBriefcase className="h-4 w-4" /> {dict.cadastros.abaEquipe}
-          </button>
-        )}
-      </div>
-
-      {aba === "clientes" || !souAdmin ? (
-        <ClientesManager clientes={clientes} profilesPorId={profilesPorId} souAdmin={souAdmin} />
-      ) : (
-        <EquipeManager equipeMembros={equipeMembros} profilesPorId={profilesPorId} departamentos={departamentos} cargos={cargos} />
+          <IconSettings className="h-3.5 w-3.5 shrink-0" />
+          {dict.configuracoes.cadastrosPonteiroEquipe}
+        </Link>
       )}
+
+      <ClientesManager clientes={clientes} profilesPorId={profilesPorId} souAdmin={souAdmin} />
     </div>
   );
 }

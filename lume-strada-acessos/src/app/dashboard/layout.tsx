@@ -5,6 +5,7 @@ import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
 import { BrandingLogo } from "@/components/branding/BrandingLogo";
 import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
+import { BrandingAccentStyle } from "@/components/branding/BrandingAccentStyle";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -29,6 +30,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen">
+      {/* Mesma cor de marca do painel da agência — o portal é a cara dela
+          pro cliente final, então herda a cor da empresa dona do portal
+          (resolvida pelo RLS de `branding_config`, ver
+          `supabase/branding-por-empresa.sql`). */}
+      <BrandingAccentStyle primaryColor={branding.primary_color} accentColor={branding.accent_color} />
+
       {/* Fixo no canto superior direito da viewport — mesma posição em toda
           tela do sistema (login, painel admin e portal do cliente). */}
       <div className="fixed right-4 top-4 z-30 flex items-center gap-2">

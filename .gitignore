@@ -1,0 +1,21 @@
+# Dependências instaladas — nunca versionadas (reinstaláveis a partir do
+# package-lock.json com `npm ci`).
+node_modules/
+
+# Build do Next e cache de tipos do TypeScript.
+.next/
+out/
+*.tsbuildinfo
+
+# Variáveis de ambiente — chaves do Supabase e afins vivem no Vercel, nunca
+# no repositório.
+.env
+.env.local
+.env*.local
+
+# Lixo de sistema de arquivos.
+.DS_Store
+.fuse_hidden*
+
+# Pacotes temporários deixados por uploads/exports manuais.
+*.zip

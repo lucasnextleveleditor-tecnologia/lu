@@ -13,6 +13,7 @@ import { cadastros, type CadastrosDict } from "./cadastros";
 import { whatsapp, type WhatsappDict } from "./whatsapp";
 import { relatorios, type RelatoriosDict } from "./relatorios";
 import { aparencia, type AparenciaDict } from "./aparencia";
+import { configuracoes, type ConfiguracoesDict } from "./configuracoes";
 import { dashboard, type DashboardDict } from "./dashboard";
 import { cliente, type ClienteDict } from "./cliente";
 import { agenda, type AgendaDict } from "./agenda";
@@ -41,6 +42,7 @@ export interface Dictionary {
   whatsapp: WhatsappDict;
   relatorios: RelatoriosDict;
   aparencia: AparenciaDict;
+  configuracoes: ConfiguracoesDict;
   dashboard: DashboardDict;
   cliente: ClienteDict;
   agenda: AgendaDict;
@@ -63,6 +65,7 @@ export const pt: Dictionary = {
   whatsapp,
   relatorios,
   aparencia,
+  configuracoes,
   dashboard,
   cliente,
   agenda,
