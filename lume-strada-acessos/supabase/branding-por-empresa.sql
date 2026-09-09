@@ -65,6 +65,14 @@ alter table public.branding_config
 -- num banco de produção), só deixa de significar qualquer coisa.
 alter table public.branding_config drop constraint if exists branding_config_singleton_key;
 
+-- A segunda trava de "uma linha só", e menos óbvia que o UNIQUE acima: a
+-- chave primária tinha um DEFAULT FIXO ('00000000-…-0001', ver o insert no
+-- supabase/schema.sql). Enquanto a tabela era singleton isso fazia sentido;
+-- agora, qualquer insert que não informe `id` tenta gravar esse mesmo uuid
+-- de novo e bate em `branding_config_pkey`. Sem esta linha, o backfill da
+-- Seção 3 falha na segunda empresa.
+alter table public.branding_config alter column id set default gen_random_uuid();
+
 -- ----------------------------------------------------------------------------
 -- 3. Backfill — a linha que já existe vira a linha da empresa dona do SaaS
 -- ----------------------------------------------------------------------------
@@ -75,8 +83,8 @@ update public.branding_config
  where company_id is null;
 
 -- Uma linha nova (só com os defaults) pra cada empresa que ainda não tem.
-insert into public.branding_config (company_id, singleton)
-select c.id, false
+insert into public.branding_config (id, company_id, singleton)
+select gen_random_uuid(), c.id, false
   from public.companies c
  where not exists (
    select 1 from public.branding_config b where b.company_id = c.id
@@ -140,8 +148,8 @@ security definer
 set search_path to 'public'
 as $$
 begin
-  insert into public.branding_config (company_id, singleton)
-  values (new.id, false)
+  insert into public.branding_config (id, company_id, singleton)
+  values (gen_random_uuid(), new.id, false)
   on conflict (company_id) do nothing;
   return new;
 end;
