@@ -3,7 +3,7 @@
 import type { DadosInstitucionaisOrcamento, PortfolioItemComUrl } from "@/lib/types/orcamentos";
 import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
 import { buildPropostaAccentVars } from "@/lib/utils/color";
-import { IconFilm, IconImage, IconBriefcase, IconTarget, IconBuilding, IconHeart, IconCalendar, IconUsers, IconClipboardList, IconLayers, IconMail, IconGlobe } from "@/components/ui/icons";
+import { IconFilm, IconImage, IconBriefcase, IconTarget, IconBuilding, IconHeart, IconCalendar, IconUsers, IconClipboardList, IconLayers, IconMail, IconGlobe, IconQrCode, IconFileText } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils/cn";
 
@@ -67,6 +67,21 @@ export interface OrcamentoPropostaPreviewProps {
   equipeEscalada?: string | null;
   itensEntrega?: ItemEntregaPreview[];
   colunasInvestimento?: ColunaInvestimentoPreview[];
+  /**
+   * Só `true` no preview ao vivo do construtor (`OrcamentoBuilder`) — nunca
+   * na página pública de verdade. Enquanto um campo real está vazio, mostra
+   * conteúdo de exemplo (marcado com uma etiqueta "exemplo") em vez de
+   * esconder a seção inteira, pra dar uma ideia completa do resultado final
+   * desde o primeiro instante, mesmo com o formulário ainda em branco.
+   */
+  modoExemplo?: boolean;
+  /** URL pública desta proposta (só existe depois de salva/enviada) — usada só pra gerar o QR Code de "abrir no celular" no encerramento. Sem isso (rascunho novo, ou preview do construtor), o QR não aparece. */
+  linkPublico?: string | null;
+}
+
+/** Pequena etiqueta "exemplo" — marca, discretamente, um trecho do preview que ainda é conteúdo de exemplo (não foi preenchido de verdade). Nunca aparece fora do `modoExemplo`. */
+function TagExemplo({ texto }: { texto: string }) {
+  return <span className="ml-2 rounded-full border border-dashed border-base-600 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-ink-muted">{texto}</span>;
 }
 
 /**
@@ -107,17 +122,59 @@ export function OrcamentoPropostaPreview({
   equipeEscalada,
   itensEntrega = [],
   colunasInvestimento = [],
+  modoExemplo = false,
+  linkPublico,
 }: OrcamentoPropostaPreviewProps) {
   const { dict } = useLocale();
+  const exemplo = dict.orcamentos.exemplo;
   const capaDeFundo = capaUrl || institucional.bannerUrl;
   const temHero = !!capaDeFundo;
-  const equipeChips = (equipeEscalada ?? "")
+
+  const objetivosExemplo = !objetivos && modoExemplo;
+  const objetivosExibido = objetivos || (modoExemplo ? exemplo.objetivos : null);
+  const textoPropostaExemplo = !textoProposta && modoExemplo;
+  const textoPropostaExibido = textoProposta || (modoExemplo ? exemplo.textoProposta : null);
+
+  const equipeChipsReais = (equipeEscalada ?? "")
     .split(",")
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
-  const temResumoExtra = !!(quantidadeDiarias || equipeChips.length > 0);
+  const resumoExtraExemplo = modoExemplo && !quantidadeDiarias && equipeChipsReais.length === 0;
+  const quantidadeExibida = quantidadeDiarias || (resumoExtraExemplo ? exemplo.quantidade : null);
+  const equipeChips = equipeChipsReais.length > 0 ? equipeChipsReais : resumoExtraExemplo ? exemplo.equipe.split(",").map((s) => s.trim()) : [];
+  const temResumoExtra = !!(quantidadeExibida || equipeChips.length > 0);
+
+  const itensEntregaExemplo = modoExemplo && itensEntrega.length === 0;
+  const itensEntregaExibidos = itensEntregaExemplo ? exemplo.itensEntrega.map((i, idx) => ({ id: `exemplo-${idx}`, item: i.item, prazo: i.prazo })) : itensEntrega;
+
+  const colunasInvestimentoExemplo = modoExemplo && colunasInvestimento.length === 0;
+  const colunasInvestimentoExibidas = colunasInvestimentoExemplo
+    ? exemplo.colunasInvestimento.map((c, idx) => ({ id: `exemplo-${idx}`, titulo: c.titulo, itens: c.itens }))
+    : colunasInvestimento;
+
+  const semNenhumItemDePreco = itensObrigatorios.length === 0 && itensOpcionais.length === 0;
+
+  const condicoesPagamentoExemplo = !condicoesPagamento && modoExemplo;
+  const condicoesPagamentoExibida = condicoesPagamento || (modoExemplo ? exemplo.condicoesPagamento : null);
+  const observacoesExemplo = !observacoes && modoExemplo;
+  const observacoesExibida = observacoes || (modoExemplo ? exemplo.observacoes : null);
+  const temTermosCondicoes = !!(condicoesPagamentoExibida || observacoesExibida);
+
+  const portfolioExemplo = modoExemplo && portfolio.length === 0;
+
   const clientesLogosPreenchidos = institucional.clientesLogosUrls.filter((url): url is string => !!url);
-  const temQuemSomos = !!(institucional.textoInstitucional || institucional.clientesAtendidos.length > 0 || clientesLogosPreenchidos.length > 0);
+  const textoInstitucionalExemplo = !institucional.textoInstitucional && modoExemplo;
+  const textoInstitucionalExibido = institucional.textoInstitucional || (textoInstitucionalExemplo ? exemplo.textoInstitucional : null);
+  const clientesAtendidosExemplo = institucional.clientesAtendidos.length === 0 && modoExemplo && clientesLogosPreenchidos.length === 0;
+  const clientesAtendidosExibidos = institucional.clientesAtendidos.length > 0 ? institucional.clientesAtendidos : clientesAtendidosExemplo ? exemplo.clientesAtendidos : [];
+  const temQuemSomos = !!(textoInstitucionalExibido || clientesAtendidosExibidos.length > 0 || clientesLogosPreenchidos.length > 0);
+
+  const textoEncerramentoExemplo = !institucional.textoEncerramento && modoExemplo;
+  const textoEncerramentoExibido = institucional.textoEncerramento || (textoEncerramentoExemplo ? exemplo.textoEncerramento : null);
+  const temEncerramento = !!textoEncerramentoExibido;
+
+  const qrCodeUrl = linkPublico ? `https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=8&data=${encodeURIComponent(linkPublico)}` : null;
+
   const accentVars = buildPropostaAccentVars(corDestaque);
 
   return (
@@ -148,7 +205,7 @@ export function OrcamentoPropostaPreview({
         <div className={cn("absolute inset-x-0 bottom-0 p-6 sm:p-8", !temHero && "relative")}>
           <div style={escalaTextoCapa !== 1 ? { transform: `scale(${escalaTextoCapa})`, transformOrigin: "left bottom" } : undefined}>
             <p className={cn("text-xs font-semibold uppercase tracking-widest", temHero ? "text-white/70" : "text-ink-muted")}>{capaSubtitulo || dict.orcamentos.propostaComercialTitulo}</p>
-            <h1 className={cn("mt-1 text-2xl font-semibold tracking-tight sm:text-3xl", temHero ? "text-white" : "text-ink-primary")}>{titulo || dict.orcamentos.placeholderTituloOrcamento}</h1>
+            <h1 className={cn("mt-1 text-2xl font-semibold tracking-tight sm:text-3xl", temHero ? "text-white" : "text-ink-primary")}>{titulo || exemplo.tituloProjeto}</h1>
             <p className={cn("mt-1 text-sm", temHero ? "text-white/80" : "text-ink-secondary")}>{nomeDestinatario}</p>
             {dataExpiracao && <p className={cn("mt-1 text-xs", temHero ? "text-white/60" : "text-ink-muted")}>{dict.orcamentos.validoAte.replace("{data}", fmtDataCurta(dataExpiracao))}</p>}
           </div>
@@ -156,35 +213,37 @@ export function OrcamentoPropostaPreview({
       </div>
 
       <div className={cn("space-y-6 p-6 sm:p-8", institucional.logoUrl && "pt-10")}>
-        {(textoProposta || objetivos) && (
+        {(textoPropostaExibido || objetivosExibido) && (
           <div className="grid gap-4 sm:grid-cols-2">
-            {objetivos && (
+            {objetivosExibido && (
               <div className="rounded-2xl border border-base-800 bg-base-950/40 p-4">
                 <div className="mb-2 flex items-center gap-1.5 text-ink-muted">
                   <IconTarget className="h-3.5 w-3.5" />
                   <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.objetivosSecaoTitulo}</p>
+                  {objetivosExemplo && <TagExemplo texto={dict.orcamentos.previewExemploTag} />}
                 </div>
-                <p className="whitespace-pre-line text-sm text-ink-secondary">{objetivos}</p>
+                <p className="whitespace-pre-line text-sm text-ink-secondary">{objetivosExibido}</p>
               </div>
             )}
-            {textoProposta && (
+            {textoPropostaExibido && (
               <div className="rounded-2xl border border-base-800 bg-base-950/40 p-4">
                 <div className="mb-2 flex items-center gap-1.5 text-ink-muted">
                   <IconBriefcase className="h-3.5 w-3.5" />
                   <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.propostaSecaoTitulo}</p>
+                  {textoPropostaExemplo && <TagExemplo texto={dict.orcamentos.previewExemploTag} />}
                 </div>
-                <p className="whitespace-pre-line text-sm text-ink-secondary">{textoProposta}</p>
+                <p className="whitespace-pre-line text-sm text-ink-secondary">{textoPropostaExibido}</p>
               </div>
             )}
           </div>
         )}
 
         {temResumoExtra && (
-          <div className="flex flex-wrap gap-2">
-            {quantidadeDiarias && (
+          <div className="flex flex-wrap items-center gap-2">
+            {quantidadeExibida && (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-base-700 bg-base-800/60 px-3 py-1.5 text-xs text-ink-secondary">
                 <IconCalendar className="h-3.5 w-3.5 text-accent" />
-                {quantidadeDiarias}
+                {quantidadeExibida}
               </span>
             )}
             {equipeChips.map((membro, idx) => (
@@ -193,14 +252,16 @@ export function OrcamentoPropostaPreview({
                 {membro}
               </span>
             ))}
+            {resumoExtraExemplo && <TagExemplo texto={dict.orcamentos.previewExemploTag} />}
           </div>
         )}
 
-        {itensEntrega.length > 0 && (
+        {itensEntregaExibidos.length > 0 && (
           <div>
             <div className="mb-2 flex items-center gap-1.5 text-ink-muted">
               <IconClipboardList className="h-3.5 w-3.5" />
               <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.itensEntregaTitulo}</p>
+              {itensEntregaExemplo && <TagExemplo texto={dict.orcamentos.previewExemploTag} />}
             </div>
             <div className="overflow-hidden rounded-2xl border border-base-800">
               <table className="w-full text-left text-sm">
@@ -211,7 +272,7 @@ export function OrcamentoPropostaPreview({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-base-800">
-                  {itensEntrega.map((item) => (
+                  {itensEntregaExibidos.map((item) => (
                     <tr key={item.id}>
                       <td className="px-4 py-2.5 text-ink-primary">{item.item}</td>
                       <td className="px-4 py-2.5 text-right text-ink-muted">{item.prazo || "—"}</td>
@@ -220,6 +281,12 @@ export function OrcamentoPropostaPreview({
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {semNenhumItemDePreco && modoExemplo && (
+          <div className="rounded-2xl border border-dashed border-base-700 p-4 text-center">
+            <p className="text-xs text-ink-muted">{dict.orcamentos.itensVazioDescricao}</p>
           </div>
         )}
 
@@ -294,23 +361,34 @@ export function OrcamentoPropostaPreview({
           </div>
         )}
 
-        {portfolio.length > 0 && (
+        {(portfolio.length > 0 || portfolioExemplo) && (
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.orcamentos.nossosTrabalhosTitulo}</p>
+            <div className="mb-2 flex items-center gap-1.5 text-ink-muted">
+              <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.nossosTrabalhosTitulo}</p>
+              {portfolioExemplo && <TagExemplo texto={dict.orcamentos.previewExemploTag} />}
+            </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {portfolio.map((item) => (
-                <div key={item.id} className="relative aspect-video overflow-hidden rounded-xl border border-base-800" title={item.titulo}>
-                  {item.tipo_midia === "video" ? (
-                    <video src={item.url} className="h-full w-full object-cover" muted controls={interactive} />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.url} alt={item.titulo} className="h-full w-full object-cover" />
-                  )}
-                  <div className="absolute left-1 top-1 flex h-4 w-4 items-center justify-center rounded bg-black/70 text-white print:hidden">
-                    {item.tipo_midia === "video" ? <IconFilm className="h-2.5 w-2.5" /> : <IconImage className="h-2.5 w-2.5" />}
-                  </div>
-                </div>
-              ))}
+              {portfolioExemplo
+                ? [0, 1, 2].map((idx) => (
+                    <div key={idx} className="flex aspect-video flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-base-700 bg-base-950/40 p-2 text-center">
+                      {idx === 1 ? <IconFilm className="h-4 w-4 text-ink-muted" /> : <IconImage className="h-4 w-4 text-ink-muted" />}
+                      <p className="text-[10px] leading-tight text-ink-muted">{exemplo.portfolioAviso}</p>
+                    </div>
+                  ))
+                : portfolio.map((item) => (
+                    <div key={item.id} className="relative aspect-video overflow-hidden rounded-xl border border-base-800" title={item.titulo}>
+                      {item.tipo_midia === "video" ? (
+                        // No link público (interativo) o vídeo pode tocar de verdade; no PDF/print e no preview do construtor fica só a capa parada.
+                        <video src={item.url} className="h-full w-full object-cover" muted loop playsInline autoPlay={interactive} controls={interactive} />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={item.url} alt={item.titulo} className="h-full w-full object-cover" />
+                      )}
+                      <div className="absolute left-1 top-1 flex h-4 w-4 items-center justify-center rounded bg-black/70 text-white print:hidden">
+                        {item.tipo_midia === "video" ? <IconFilm className="h-2.5 w-2.5" /> : <IconImage className="h-2.5 w-2.5" />}
+                      </div>
+                    </div>
+                  ))}
             </div>
           </div>
         )}
@@ -332,14 +410,15 @@ export function OrcamentoPropostaPreview({
           </div>
         </div>
 
-        {colunasInvestimento.length > 0 && (
+        {(colunasInvestimentoExibidas.length > 0) && (
           <div>
             <div className="mb-2 flex items-center gap-1.5 text-ink-muted">
               <IconLayers className="h-3.5 w-3.5" />
               <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.colunasInvestimentoTitulo}</p>
+              {colunasInvestimentoExemplo && <TagExemplo texto={dict.orcamentos.previewExemploTag} />}
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {colunasInvestimento.map((coluna) => {
+              {colunasInvestimentoExibidas.map((coluna) => {
                 const linhas = (coluna.itens ?? "").split("\n").map((l) => l.trim()).filter((l) => l.length > 0);
                 return (
                   <div key={coluna.id} className="rounded-2xl border border-base-800 bg-base-950/40 p-4">
@@ -362,17 +441,32 @@ export function OrcamentoPropostaPreview({
           </div>
         )}
 
-        {condicoesPagamento && (
-          <div className="border-t border-base-800 pt-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.orcamentos.condicoesDePagamentoTitulo}</p>
-            <p className="mt-1 text-sm text-ink-secondary">{condicoesPagamento}</p>
-          </div>
-        )}
-
-        {observacoes && (
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.orcamentos.observacoesTitulo}</p>
-            <p className="mt-1 whitespace-pre-line text-sm text-ink-secondary">{observacoes}</p>
+        {temTermosCondicoes && (
+          <div className="rounded-2xl border border-base-800 bg-base-950/40 p-4">
+            <div className="mb-3 flex items-center gap-1.5 text-ink-muted">
+              <IconFileText className="h-3.5 w-3.5" />
+              <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.termosCondicoesTitulo}</p>
+            </div>
+            <div className="space-y-3">
+              {condicoesPagamentoExibida && (
+                <div>
+                  <p className="flex items-center text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+                    {dict.orcamentos.condicoesDePagamentoTitulo}
+                    {condicoesPagamentoExemplo && <TagExemplo texto={dict.orcamentos.previewExemploTag} />}
+                  </p>
+                  <p className="mt-1 text-sm text-ink-secondary">{condicoesPagamentoExibida}</p>
+                </div>
+              )}
+              {observacoesExibida && (
+                <div>
+                  <p className="flex items-center text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+                    {dict.orcamentos.observacoesTitulo}
+                    {observacoesExemplo && <TagExemplo texto={dict.orcamentos.previewExemploTag} />}
+                  </p>
+                  <p className="mt-1 whitespace-pre-line text-sm text-ink-secondary">{observacoesExibida}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -381,13 +475,17 @@ export function OrcamentoPropostaPreview({
             <div className="mb-2 flex items-center gap-1.5 text-ink-muted">
               <IconBuilding className="h-3.5 w-3.5" />
               <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.quemSomosTitulo}</p>
+              {textoInstitucionalExemplo && <TagExemplo texto={dict.orcamentos.previewExemploTag} />}
             </div>
-            {institucional.textoInstitucional && <p className="whitespace-pre-line text-sm text-ink-secondary">{institucional.textoInstitucional}</p>}
-            {institucional.clientesAtendidos.length > 0 && (
+            {textoInstitucionalExibido && <p className="whitespace-pre-line text-sm text-ink-secondary">{textoInstitucionalExibido}</p>}
+            {clientesAtendidosExibidos.length > 0 && (
               <div className="mt-3">
-                <p className="mb-2 text-xs text-ink-muted">{dict.orcamentos.empresasAtendidasTitulo}</p>
+                <p className="mb-2 flex items-center text-xs text-ink-muted">
+                  {dict.orcamentos.empresasAtendidasTitulo}
+                  {clientesAtendidosExemplo && <TagExemplo texto={dict.orcamentos.previewExemploTag} />}
+                </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {institucional.clientesAtendidos.map((nome, idx) => (
+                  {clientesAtendidosExibidos.map((nome, idx) => (
                     <span key={idx} className="rounded-full border border-base-700 bg-base-800/60 px-2.5 py-1 text-xs text-ink-secondary">
                       {nome}
                     </span>
@@ -406,10 +504,14 @@ export function OrcamentoPropostaPreview({
           </div>
         )}
 
-        {institucional.textoEncerramento && (
+        {temEncerramento && (
           <div className="rounded-2xl border border-base-800 bg-gradient-to-br from-accent/10 via-base-950/40 to-accent2/10 p-5 text-center">
             <IconHeart className="mx-auto h-4 w-4 text-accent" />
-            <p className="mt-2 whitespace-pre-line text-sm italic text-ink-secondary">{institucional.textoEncerramento}</p>
+            <p className="mt-2 text-base font-semibold text-ink-primary">{dict.orcamentos.encerramentoTituloPadrao}</p>
+            <p className="mt-1 whitespace-pre-line text-sm italic text-ink-secondary">
+              {textoEncerramentoExibido}
+              {textoEncerramentoExemplo && <TagExemplo texto={dict.orcamentos.previewExemploTag} />}
+            </p>
             {(institucional.emailComercial || institucional.siteComercial) && (
               <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
                 {institucional.emailComercial && (
@@ -424,6 +526,30 @@ export function OrcamentoPropostaPreview({
                     {institucional.siteComercial}
                   </span>
                 )}
+              </div>
+            )}
+
+            {/* QR Code — recurso próprio, sem equivalente no concorrente: em quem vê a proposta pessoalmente (numa reunião, numa tela compartilhada), basta apontar a câmera pra continuar do próprio celular, já na tela de aprovação. Só existe depois da proposta ter um link público de verdade — nunca no rascunho/preview do construtor. */}
+            {qrCodeUrl && (
+              <div className="mx-auto mt-5 flex max-w-[200px] flex-col items-center gap-2 border-t border-base-800 pt-4 print:hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={qrCodeUrl} alt={dict.orcamentos.qrCompartilharTitulo} className="h-28 w-28 rounded-lg border border-base-700 bg-white p-1.5" />
+                <p className="flex items-center gap-1 text-[11px] font-semibold text-ink-secondary">
+                  <IconQrCode className="h-3.5 w-3.5 text-accent" />
+                  {dict.orcamentos.qrCompartilharTitulo}
+                </p>
+                <p className="text-[10px] text-ink-muted">{dict.orcamentos.qrCompartilharHint}</p>
+              </div>
+            )}
+            {modoExemplo && (
+              <div className="mx-auto mt-5 flex max-w-[200px] flex-col items-center gap-2 border-t border-base-800 pt-4">
+                <div className="flex h-28 w-28 items-center justify-center rounded-lg border border-dashed border-base-600">
+                  <IconQrCode className="h-8 w-8 text-ink-muted" />
+                </div>
+                <p className="flex items-center gap-1 text-[11px] font-semibold text-ink-secondary">
+                  {dict.orcamentos.qrCompartilharTitulo}
+                  <TagExemplo texto={dict.orcamentos.previewExemploTag} />
+                </p>
               </div>
             )}
           </div>

@@ -508,11 +508,11 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.emailDestinatarioLabel}</label>
-                <Input type="email" value={emailDestinatario} onChange={(e) => setEmailDestinatario(e.target.value)} />
+                <Input type="email" value={emailDestinatario} onChange={(e) => setEmailDestinatario(e.target.value)} placeholder={dict.orcamentos.placeholderEmailDestinatario} />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.whatsappDestinatarioLabel}</label>
-                <Input value={whatsappDestinatario} onChange={(e) => setWhatsappDestinatario(e.target.value)} />
+                <Input value={whatsappDestinatario} onChange={(e) => setWhatsappDestinatario(e.target.value)} placeholder={dict.orcamentos.placeholderWhatsappDestinatario} />
               </div>
             </div>
 
@@ -595,13 +595,13 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
                       <Input
                         value={item.item}
                         onChange={(e) => atualizarItemEntrega(item.key, { item: e.target.value })}
-                        placeholder={dict.orcamentos.itensEntregaColItem}
+                        placeholder={dict.orcamentos.itensEntregaItemPlaceholder}
                         className="flex-1"
                       />
                       <Input
                         value={item.prazo}
                         onChange={(e) => atualizarItemEntrega(item.key, { prazo: e.target.value })}
-                        placeholder={dict.orcamentos.itensEntregaColPrazo}
+                        placeholder={dict.orcamentos.itensEntregaPrazoPlaceholder}
                         className="w-28 shrink-0"
                       />
                       <button onClick={() => removerItemEntrega(item.key)} className="shrink-0 rounded p-1.5 text-ink-muted hover:text-danger" aria-label={dict.orcamentos.removerItemBtn}>
@@ -667,8 +667,8 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
             {personalizadoAberto ? (
               <div className="space-y-2.5 rounded-lg border border-base-700 p-3">
                 <p className="text-xs font-semibold text-ink-secondary">{dict.orcamentos.itemPersonalizadoTitulo}</p>
-                <Input value={pNome} onChange={(e) => setPNome(e.target.value)} placeholder={dict.orcamentos.nomeServicoLabel} />
-                <Textarea rows={2} value={pDescricao} onChange={(e) => setPDescricao(e.target.value)} placeholder={dict.orcamentos.descricaoOpcionalLabel} />
+                <Input value={pNome} onChange={(e) => setPNome(e.target.value)} placeholder={dict.orcamentos.placeholderNomeServico} />
+                <Textarea rows={2} value={pDescricao} onChange={(e) => setPDescricao(e.target.value)} placeholder={dict.orcamentos.placeholderDescricaoServico} />
                 <CurrencyInput value={pValor} onChange={setPValor} />
                 <label className="flex items-center gap-2 text-xs text-ink-secondary">
                   <input type="checkbox" checked={pOpcional} onChange={(e) => setPOpcional(e.target.checked)} className="h-3.5 w-3.5 rounded border-base-600" />
@@ -834,6 +834,7 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
           <IconEye className="h-3.5 w-3.5" />
           <p className="text-xs font-semibold uppercase tracking-wide">{dict.orcamentos.previewAoVivoTitulo}</p>
         </div>
+        <p className="-mt-2 text-[11px] text-ink-muted">{dict.orcamentos.previewExemploAviso}</p>
 
         <div className="max-h-[calc(100vh-8rem)] overflow-y-auto rounded-3xl">
           <OrcamentoPropostaPreview
@@ -862,6 +863,7 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
             equipeEscalada={equipeEscalada || null}
             itensEntrega={itensEntregaPreview}
             colunasInvestimento={colunasInvestimentoPreview}
+            modoExemplo
           />
         </div>
 

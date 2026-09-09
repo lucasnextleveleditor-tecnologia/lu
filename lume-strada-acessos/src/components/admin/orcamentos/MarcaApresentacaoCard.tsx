@@ -157,11 +157,11 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.emailComercialLabel}</label>
-                  <Input type="email" value={emailComercial} onChange={(e) => setEmailComercial(e.target.value)} placeholder="comercial@suaempresa.com" />
+                  <Input type="email" value={emailComercial} onChange={(e) => setEmailComercial(e.target.value)} placeholder={dict.orcamentos.emailComercialPlaceholder} />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.siteComercialLabel}</label>
-                  <Input value={siteComercial} onChange={(e) => setSiteComercial(e.target.value)} placeholder="www.suaempresa.com" />
+                  <Input value={siteComercial} onChange={(e) => setSiteComercial(e.target.value)} placeholder={dict.orcamentos.siteComercialPlaceholder} />
                 </div>
               </div>
             </div>

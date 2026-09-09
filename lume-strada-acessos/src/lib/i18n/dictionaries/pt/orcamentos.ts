@@ -351,6 +351,39 @@ export interface OrcamentosDict {
   logosClientesSubtitulo: string;
   logoClienteSlotLabel: string;
   logosTamanhoLabel: string;
+
+  // Preview "sempre completo" do construtor (Proposta Comercial Web v2.1) —
+  // com os campos reais vazios, mostra conteúdo de exemplo em vez de
+  // esconder a seção, pra dar uma ideia real do resultado final enquanto a
+  // pessoa ainda está montando a proposta. `modoExemplo` fica sempre `false`
+  // na página pública de verdade — o cliente nunca vê texto de exemplo.
+  previewExemploAviso: string;
+  previewExemploTag: string;
+  placeholderEmailDestinatario: string;
+  placeholderWhatsappDestinatario: string;
+  itensEntregaItemPlaceholder: string;
+  itensEntregaPrazoPlaceholder: string;
+  emailComercialPlaceholder: string;
+  siteComercialPlaceholder: string;
+  termosCondicoesTitulo: string;
+  encerramentoTituloPadrao: string;
+  qrCompartilharTitulo: string;
+  qrCompartilharHint: string;
+  exemplo: {
+    tituloProjeto: string;
+    objetivos: string;
+    textoProposta: string;
+    quantidade: string;
+    equipe: string;
+    condicoesPagamento: string;
+    observacoes: string;
+    textoInstitucional: string;
+    clientesAtendidos: string[];
+    textoEncerramento: string;
+    itensEntrega: { item: string; prazo: string }[];
+    colunasInvestimento: { titulo: string; itens: string }[];
+    portfolioAviso: string;
+  };
 }
 
 export const orcamentos: OrcamentosDict = {
@@ -429,7 +462,7 @@ export const orcamentos: OrcamentosDict = {
   editarServicoTitulo: "Editar Serviço",
   novoServicoTitulo: "Novo Serviço",
   nomeServicoLabel: "Nome do serviço",
-  placeholderNomeServico: "Ex: Edição de vídeo institucional",
+  placeholderNomeServico: "Ex: Sessão de fotos, Gestão de redes sociais, Consultoria de marca",
   descricaoOpcionalLabel: "Descrição (opcional)",
   placeholderDescricaoServico: "O que está incluso, prazos, entregáveis...",
   categoriaLabel: "Categoria",
@@ -457,11 +490,11 @@ export const orcamentos: OrcamentosDict = {
   tipoServicoVazio: "Nenhum específico",
   tipoServicoHint: "Opcional — se escolhido, sugere o mesmo tipo de serviço ao gerar o contrato deste orçamento.",
   tituloOrcamentoLabel: "Título da proposta",
-  placeholderTituloOrcamento: "Ex: Vídeo Institucional — Empresa XYZ",
+  placeholderTituloOrcamento: "Ex: Nome do Projeto — Empresa XYZ",
   clienteExistenteLabel: "Cliente já cadastrado (opcional)",
   clienteNenhum: "Nenhum — proposta avulsa",
   nomeDestinatarioLabel: "Nome do destinatário",
-  placeholderNomeDestinatario: "Pra quem é essa proposta?",
+  placeholderNomeDestinatario: "Ex: Maria Souza",
   emailDestinatarioLabel: "E-mail",
   whatsappDestinatarioLabel: "WhatsApp",
   validadeDiasLabel: "Validade (dias)",
@@ -476,7 +509,7 @@ export const orcamentos: OrcamentosDict = {
   descontoTipoFixo: "Valor fixo (R$)",
 
   propostaTitulo: "Resumo do Projeto",
-  propostaSubtitulo: "Opcional — objetivo, escopo, diárias, equipe e itens de entrega deste orçamento, exibidos na proposta.",
+  propostaSubtitulo: "Opcional — objetivo, escopo, duração, equipe e itens de entrega deste orçamento, exibidos na proposta.",
   textoPropostaLabel: "Descrição do escopo",
   placeholderTextoProposta: "O que será realizado neste projeto? Aparece na proposta e na página do PDF.",
   objetivosLabel: "Objetivo da Produção/Projeto",
@@ -651,10 +684,10 @@ export const orcamentos: OrcamentosDict = {
   escalaTextoCapaMenor: "0.8× menor",
   escalaTextoCapaPadrao: "1.0 padrão",
   escalaTextoCapaMaior: "1.2× maior",
-  quantidadeDiariasLabel: "Quantidade de diárias",
-  placeholderQuantidadeDiarias: "Ex: 3 diárias",
-  equipeEscaladaLabel: "Equipe escalada (separada por vírgula)",
-  placeholderEquipeEscalada: "Ex: 01x Diretor, 02x Câmeras, 01x Drone",
+  quantidadeDiariasLabel: "Duração ou quantidade do serviço",
+  placeholderQuantidadeDiarias: "Ex: 3 diárias, 10 horas, 5 posts, 1 pacote mensal",
+  equipeEscaladaLabel: "Equipe envolvida (separada por vírgula)",
+  placeholderEquipeEscalada: "Ex: 1 Fotógrafo, 2 Designers, 1 Social Media",
   itensEntregaTitulo: "Itens de Entrega",
   itensEntregaVazio: "Nenhum item de entrega ainda — adicione o que será entregue e o prazo de cada um.",
   itensEntregaColItem: "Item de entrega",
@@ -677,4 +710,39 @@ export const orcamentos: OrcamentosDict = {
   logosClientesSubtitulo: "Até 6 logos de marcas/clientes já atendidos — exibidos junto do \"Quem Somos\" na proposta.",
   logoClienteSlotLabel: "Logo {n}",
   logosTamanhoLabel: "Tamanho dos logos",
+
+  previewExemploAviso: "Exemplo de como sua proposta vai ficar — preencha os campos ao lado pra trocar pelo conteúdo real.",
+  previewExemploTag: "exemplo",
+  placeholderEmailDestinatario: "cliente@empresa.com",
+  placeholderWhatsappDestinatario: "(11) 91234-5678",
+  itensEntregaItemPlaceholder: "Ex: Arquivo final em alta resolução",
+  itensEntregaPrazoPlaceholder: "Ex: 10 dias úteis",
+  emailComercialPlaceholder: "comercial@suaempresa.com",
+  siteComercialPlaceholder: "www.suaempresa.com",
+  termosCondicoesTitulo: "Termos e Condições",
+  encerramentoTituloPadrao: "Vamos criar juntos?",
+  qrCompartilharTitulo: "Continue no seu celular",
+  qrCompartilharHint: "Aponte a câmera pra abrir essa proposta na tela do seu celular.",
+  exemplo: {
+    tituloProjeto: "Nome do Projeto — Cliente Exemplo",
+    objetivos: "Aumentar o reconhecimento da marca e gerar mais oportunidades de negócio nos próximos 3 meses.",
+    textoProposta: "Um passo a passo completo do que será entregue, desde o planejamento inicial até a entrega final — ajustado ao objetivo e ao público deste projeto.",
+    quantidade: "3 diárias / 10 horas",
+    equipe: "1 Coordenador(a), 2 Especialistas, 1 Assistente",
+    condicoesPagamento: "50% na aprovação da proposta, 50% na entrega final.",
+    observacoes: "Valores válidos para o escopo descrito — qualquer alteração é orçada à parte.",
+    textoInstitucional: "Somos uma equipe apaixonada por transformar ideias em resultado — cada projeto é tratado com o mesmo cuidado do primeiro.",
+    clientesAtendidos: ["Empresa Alfa", "Empresa Beta", "Empresa Gama"],
+    textoEncerramento: "Ficamos muito felizes com a possibilidade de trabalhar juntos — qualquer dúvida, é só chamar.",
+    itensEntrega: [
+      { item: "Planejamento e briefing alinhado", prazo: "3 dias úteis" },
+      { item: "Primeira entrega para aprovação", prazo: "10 dias úteis" },
+      { item: "Entrega final revisada", prazo: "15 dias úteis" },
+    ],
+    colunasInvestimento: [
+      { titulo: "Equipe & Execução", itens: "Profissionais especializados\nCoordenação do projeto\nReuniões de alinhamento" },
+      { titulo: "Pós-Produção & Entrega", itens: "Revisões inclusas\nArquivos em alta qualidade\nEntrega no prazo combinado" },
+    ],
+    portfolioAviso: "Exemplo de foto ou vídeo do seu portfólio",
+  },
 };

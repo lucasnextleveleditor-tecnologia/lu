@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { OrcItemRow, StatusOrcamento } from "@/lib/types/orcamentos";
 import { calcularTotalOrcamento } from "@/lib/types/orcamentos";
 import type { buscarOrcamentoPublicoPorToken } from "@/app/orcamento/data";
@@ -50,6 +50,13 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
   const [enviando, setEnviando] = useState(false);
   const [statusLocal, setStatusLocal] = useState<StatusOrcamento>(orcamento.statusExibicao);
   const [decidido, setDecidido] = useState<{ nome?: string; data: string; motivo?: string } | null>(null);
+  // Link da própria página, só pra gerar o QR Code de "abrir no celular" no
+  // encerramento — lido do browser (client-side) porque é o link de verdade
+  // que o cliente está vendo agora, com token e tudo.
+  const [linkPublico, setLinkPublico] = useState<string | null>(null);
+  useEffect(() => {
+    setLinkPublico(window.location.href);
+  }, []);
 
   const STATUS_LABEL: Record<StatusOrcamento, string> = {
     rascunho: dict.orcamentos.statusRascunho,
@@ -190,6 +197,7 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
         equipeEscalada={orcamento.equipe_escalada}
         itensEntrega={orcamento.itensEntrega}
         colunasInvestimento={orcamento.colunasInvestimento}
+        linkPublico={linkPublico}
       />
 
       {podeInteragir && (
