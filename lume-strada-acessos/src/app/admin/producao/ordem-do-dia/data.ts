@@ -51,23 +51,22 @@ export async function buscarOrdemDoDia(id: string): Promise<OrdemDoDiaCompleta |
   };
 }
 
-/** Cadastros usados pelos seletores do editor: clientes, equipe da casa e captações agendadas. */
+/**
+ * Cadastros usados pelos seletores do editor: clientes e equipe da casa.
+ *
+ * Roda a cada abertura da folha, então pede só o que o editor mostra — nada
+ * de varrer as captações agendadas "por precaução": consulta que ninguém lê
+ * ainda custa o tempo de quem está esperando a página abrir.
+ */
 export async function opcoesDoEditor() {
   const supabase = await createClient();
-  const [clientesRes, equipeRes, tarefasRes] = await Promise.all([
+  const [clientesRes, equipeRes] = await Promise.all([
     supabase.from("clientes").select("id, nome").order("nome"),
     supabase.from("equipe_membros").select("id, nome, cargo, telefone").order("nome"),
-    supabase
-      .from("prod_tarefas")
-      .select("id, titulo, cliente_id, data_captacao")
-      .not("data_captacao", "is", null)
-      .order("data_captacao", { ascending: false })
-      .limit(50),
   ]);
 
   return {
     clientes: (clientesRes.data ?? []) as { id: string; nome: string }[],
     equipe: (equipeRes.data ?? []) as { id: string; nome: string; cargo: string | null; telefone: string | null }[],
-    captacoes: (tarefasRes.data ?? []) as { id: string; titulo: string; cliente_id: string | null; data_captacao: string | null }[],
   };
 }

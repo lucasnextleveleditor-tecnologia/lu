@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 // Design system "Futurista Minimalista" — fundo quase-preto com leve tom
 // azul (#06070C, ver `--color-base-950` em `globals.css`), superfícies em
@@ -94,7 +95,19 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Variante `papel:` — vale só na impressão EM PRETO E BRANCO.
+    //
+    // A Ordem do Dia sai de dois jeitos: a folha de papel (preto no branco,
+    // que é o que se leva no bolso e se lê no sol) e o PDF colorido (igual à
+    // tela, para mandar por mensagem). As duas usam a mesma impressão do
+    // navegador, então o modo colorido é marcado por uma classe na raiz e
+    // todas as regras de "vira preto no branco" ficam presas a `papel:` — em
+    // vez de `print:`, que dispararia nos dois.
+    plugin(({ addVariant }) => {
+      addVariant("papel", "@media print { html:not(.imprimir-colorido) & }");
+    }),
+  ],
 };
 
 export default config;

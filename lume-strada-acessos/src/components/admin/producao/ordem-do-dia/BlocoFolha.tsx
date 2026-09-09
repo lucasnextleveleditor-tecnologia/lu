@@ -31,22 +31,22 @@ export function BlocoFolha({
     <section className={cn("break-inside-avoid", className)}>
       <div className="mb-4 flex items-center gap-3">
         <span
-          className="text-[11px] font-bold tabular-nums leading-none tracking-[0.1em] text-accent print:text-black"
+          className="text-[11px] font-bold tabular-nums leading-none tracking-[0.1em] text-accent papel:text-black"
           aria-hidden
         >
           {numero}
         </span>
-        <h2 className="whitespace-nowrap text-[11px] font-semibold uppercase leading-none tracking-[0.2em] text-ink-primary print:text-black">
+        <h2 className="whitespace-nowrap text-[11px] font-semibold uppercase leading-none tracking-[0.2em] text-ink-primary papel:text-black">
           {titulo}
         </h2>
         {auxiliar && (
-          <span className="whitespace-nowrap text-[10px] uppercase tracking-[0.12em] text-ink-muted print:text-black/50">
+          <span className="whitespace-nowrap text-[10px] uppercase tracking-[0.12em] text-ink-muted papel:text-black/50">
             {auxiliar}
           </span>
         )}
         {/* O filete come todo o espaço que sobra: é ele que leva o olho da
             esquerda até a margem direita da folha. */}
-        <span className="h-px min-w-4 flex-1 bg-base-700 print:bg-black/25" aria-hidden />
+        <span className="h-px min-w-4 flex-1 bg-base-700 papel:bg-black/25" aria-hidden />
         {/* Botões de edição nunca vão pro papel. */}
         {acao && <div className="shrink-0 print:hidden">{acao}</div>}
       </div>

@@ -77,7 +77,7 @@ export function CampoInline({
     "placeholder:text-ink-muted/45 placeholder:font-normal placeholder:italic",
     // Na impressão nada disso existe: sem borda, sem fundo, e o exemplo não
     // vai para o papel (um placeholder impresso seria ruído).
-    "print:border-transparent print:bg-transparent print:px-0 print:py-0 print:placeholder:text-transparent",
+    "papel:border-transparent papel:bg-transparent papel:px-0 papel:py-0 papel:placeholder:text-transparent",
     className
   );
 

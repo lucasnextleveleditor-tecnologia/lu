@@ -135,16 +135,19 @@ body {
    A regra geral aqui é subtrativa: some com o layout do app (menu, banner,
    botões) e deixe passar só a folha. */
 @media print {
+  /* Sem margem de página: quem controla a margem é a própria folha (regra
+     `.folha-ordem-dia` abaixo). Assim o PDF colorido pode sangrar o fundo
+     escuro até a borda, em vez de ficar um cartão escuro boiando num
+     retângulo branco — e, de quebra, margem zero desliga o cabeçalho e o
+     rodapé automáticos do navegador (URL e data) na maioria deles. */
   @page {
     size: A4;
-    margin: 14mm;
+    margin: 0;
   }
 
-  html,
-  body {
-    background: #fff !important;
-    color: #000 !important;
-  }
+  /* ---------------------------------------------------------------------
+     VALE PARA OS DOIS MODOS DE IMPRESSÃO
+     --------------------------------------------------------------------- */
 
   /* Some com a moldura do app: menu lateral, banner de aviso, seletor de
      idioma/tema. O `main` perde o recuo que existia por causa da sidebar. */
@@ -156,7 +159,6 @@ body {
 
   main {
     padding-left: 0 !important;
-    background: none !important;
   }
 
   main > div {
@@ -164,10 +166,15 @@ body {
     padding: 0 !important;
   }
 
-  /* A folha ocupa a página inteira, sem cartão nem sombra. */
+  .admin-bg-grid {
+    background-image: none !important;
+  }
+
   .folha-ordem-dia {
     box-shadow: none !important;
     backdrop-filter: none !important;
+    /* A margem da página mora aqui (ver `@page { margin: 0 }` acima). */
+    padding: 12mm !important;
   }
 
   /* Por padrão o navegador joga fora TODO fundo colorido ao imprimir — o que
@@ -180,16 +187,15 @@ body {
     print-color-adjust: exact !important;
   }
 
-  /* O documento não pode terminar com uma seção órfã na última folha. */
-  .folha-ordem-dia h2 {
-    break-after: avoid;
-  }
-
-  /* Um bloco (locação, cronograma, equipe) não deve ser partido ao meio pela
-     quebra de página — ler "LOC 02" numa folha e o endereço na outra é pior
-     do que uma página com mais espaço em branco. */
+  /* Um bloco (local, cronograma, pessoas) não deve ser partido ao meio pela
+     quebra de página — ler "2" numa folha e o endereço na outra é pior do que
+     uma página com mais espaço em branco. E nenhum título fica órfão no pé. */
   .break-inside-avoid {
     break-inside: avoid;
+  }
+
+  .folha-ordem-dia h2 {
+    break-after: avoid;
   }
 
   /* Campos editáveis viram texto: sem caixa, sem cursor, sem aparência de
@@ -202,7 +208,6 @@ body {
     appearance: none !important;
     border: 0 !important;
     background: transparent !important;
-    color: #000 !important;
     padding: 0 !important;
     resize: none !important;
   }
@@ -216,5 +221,48 @@ body {
   textarea {
     height: auto !important;
     overflow: visible !important;
+  }
+
+  /* ---------------------------------------------------------------------
+     MODO PAPEL (padrão) — preto no branco
+     ---------------------------------------------------------------------
+     É a folha que a pessoa dobra no bolso e lê no sol, e que sai igual em
+     qualquer impressora de escritório. Toda a cor vira preto; as classes
+     `papel:` espalhadas pelos componentes fazem o resto. */
+
+  html:not(.imprimir-colorido),
+  html:not(.imprimir-colorido) body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  html:not(.imprimir-colorido) main {
+    background: none !important;
+  }
+
+  html:not(.imprimir-colorido) input,
+  html:not(.imprimir-colorido) textarea,
+  html:not(.imprimir-colorido) select {
+    color: #000 !important;
+  }
+
+  /* ---------------------------------------------------------------------
+     MODO COLORIDO — o PDF igual ao que se vê na tela
+     ---------------------------------------------------------------------
+     Para mandar por mensagem: mantém o fundo escuro, a cor da marca e a
+     tipografia exatamente como estão no app. A classe é posta na raiz pelo
+     botão "PDF colorido" e retirada quando a impressão termina. */
+
+  html.imprimir-colorido,
+  html.imprimir-colorido body {
+    background: rgb(var(--color-base-950)) !important;
+    color: rgb(var(--color-ink-primary)) !important;
+  }
+
+  html.imprimir-colorido .folha-ordem-dia {
+    /* Sangra o fundo escuro até a borda do papel. */
+    border-radius: 0 !important;
+    border: 0 !important;
+    background: rgb(var(--color-base-950)) !important;
   }
 }

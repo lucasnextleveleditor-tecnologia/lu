@@ -5,6 +5,17 @@ import { requireModulo } from "@/lib/auth/requireAdmin";
 import { buscarPrevisao, geocodificar } from "@/lib/utils/clima";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
+/** O que a folha mostra na faixa de clima — devolvido para a tela pintar na hora. */
+export interface ClimaSalvo {
+  clima_resumo: string;
+  clima_max: number | null;
+  clima_min: number | null;
+  clima_chuva_mm: number | null;
+  nascer_do_sol: string | null;
+  por_do_sol: string | null;
+  clima_atualizado_em: string;
+}
+
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
 
 const ROTA = "/admin/producao/ordem-do-dia";
@@ -84,7 +95,10 @@ export async function salvarCabecalho(id: string, input: CabecalhoInput): Promis
       .eq("id", id);
 
     if (error) return { ok: false, error: error.message };
-    revalidatePath(`${ROTA}/${id}`);
+    // Sem `revalidatePath` aqui de proposito: quem digitou JA esta vendo o
+    // valor novo na tela. Revalidar obrigaria a pagina inteira a ser
+    // remontada (mais de dez consultas) a cada campo que perde o foco — era
+    // exatamente isso que deixava a folha lenta de digitar.
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -127,11 +141,18 @@ const CAMPOS: Record<ListaOrdemDia, string[]> = {
   equipe: ["membro_id", "funcao", "nome", "contato", "horario_chamada", "ordem"],
 };
 
+/**
+ * Cria a linha e DEVOLVE ela pronta.
+ *
+ * Devolver a linha (em vez de só "deu certo") é o que permite a tela
+ * acrescentá-la na lista sem recarregar a página: o `id` gerado pelo banco
+ * vem junto, que era a única coisa que faltava do lado do navegador.
+ */
 export async function adicionarLinha(
   lista: ListaOrdemDia,
   ordemId: string,
   valores: Record<string, unknown> = {}
-): Promise<ActionResult> {
+): Promise<{ ok: true; linha: Record<string, unknown> } | { ok: false; error: string }> {
   try {
     const { supabase } = await requireModulo("producao");
 
@@ -142,11 +163,15 @@ export async function adicionarLinha(
 
     const permitidos = Object.fromEntries(Object.entries(valores).filter(([chave]) => CAMPOS[lista].includes(chave)));
 
-    const { error } = await supabase.from(TABELA[lista]).insert({ ordem_id: ordemId, ordem: count ?? 0, ...permitidos });
-    if (error) return { ok: false, error: error.message };
+    const { data, error } = await supabase
+      .from(TABELA[lista])
+      .insert({ ordem_id: ordemId, ordem: count ?? 0, ...permitidos })
+      .select("*")
+      .single();
 
-    revalidatePath(`${ROTA}/${ordemId}`);
-    return { ok: true };
+    if (error || !data) return { ok: false, error: error?.message ?? "Não foi possível adicionar a linha." };
+
+    return { ok: true, linha: data as Record<string, unknown> };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
@@ -171,8 +196,6 @@ export async function salvarLinha(
 
     const { error } = await supabase.from(TABELA[lista]).update(permitidos).eq("id", linhaId).eq("ordem_id", ordemId);
     if (error) return { ok: false, error: error.message };
-
-    revalidatePath(`${ROTA}/${ordemId}`);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -184,7 +207,6 @@ export async function removerLinha(lista: ListaOrdemDia, ordemId: string, linhaI
     const { supabase } = await requireModulo("producao");
     const { error } = await supabase.from(TABELA[lista]).delete().eq("id", linhaId).eq("ordem_id", ordemId);
     if (error) return { ok: false, error: error.message };
-    revalidatePath(`${ROTA}/${ordemId}`);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -200,7 +222,7 @@ export async function removerLinha(lista: ListaOrdemDia, ordemId: string, linhaI
  * previsão que a equipe leu naquele dia — e, de quebra, imprimir não depende
  * de a API estar no ar.
  */
-export async function atualizarClima(ordemId: string): Promise<ActionResult> {
+export async function atualizarClima(ordemId: string): Promise<{ ok: true; clima: ClimaSalvo } | { ok: false; error: string }> {
   try {
     const { supabase } = await requireModulo("producao");
 
@@ -237,22 +259,20 @@ export async function atualizarClima(ordemId: string): Promise<ActionResult> {
       return { ok: false, error: "Sem previsão para esta data — o serviço cobre cerca de 16 dias à frente." };
     }
 
-    const { error } = await supabase
-      .from("ordens_do_dia")
-      .update({
-        clima_resumo: previsao.resumo,
-        clima_max: previsao.max,
-        clima_min: previsao.min,
-        clima_chuva_mm: previsao.chuvaMm,
-        nascer_do_sol: previsao.nascerDoSol,
-        por_do_sol: previsao.porDoSol,
-        clima_atualizado_em: new Date().toISOString(),
-      })
-      .eq("id", ordemId);
+    const salvo: ClimaSalvo = {
+      clima_resumo: previsao.resumo,
+      clima_max: previsao.max,
+      clima_min: previsao.min,
+      clima_chuva_mm: previsao.chuvaMm,
+      nascer_do_sol: previsao.nascerDoSol,
+      por_do_sol: previsao.porDoSol,
+      clima_atualizado_em: new Date().toISOString(),
+    };
+
+    const { error } = await supabase.from("ordens_do_dia").update(salvo).eq("id", ordemId);
 
     if (error) return { ok: false, error: error.message };
-    revalidatePath(`${ROTA}/${ordemId}`);
-    return { ok: true };
+    return { ok: true, clima: salvo };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }

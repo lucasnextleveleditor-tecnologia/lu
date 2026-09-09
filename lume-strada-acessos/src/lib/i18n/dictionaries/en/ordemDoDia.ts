@@ -92,7 +92,10 @@ export const ordemDoDia: OrdemDoDiaDict = {
   observacoesPlaceholder:
     "Food, transport, parking, wardrobe, gear each person brings, Wi-Fi password, where the files go at the end of the day...",
 
-  imprimir: "Print / PDF",
+  imprimir: "Print",
+  imprimirHint: "Black and white sheet, to carry in your pocket",
+  pdfColorido: "Colour PDF",
+  pdfColoridoHint: "Exactly what you see here — to send in a message",
   salvo: "Saved",
   salvando: "Saving...",
   rodapeImpressao: "Questions on the day? Talk to whoever is producing.",

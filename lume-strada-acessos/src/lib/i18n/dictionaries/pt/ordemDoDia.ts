@@ -106,6 +106,9 @@ export interface OrdemDoDiaDict {
   observacoesPlaceholder: string;
 
   imprimir: string;
+  imprimirHint: string;
+  pdfColorido: string;
+  pdfColoridoHint: string;
   salvo: string;
   salvando: string;
   rodapeImpressao: string;
@@ -203,7 +206,10 @@ export const ordemDoDia: OrdemDoDiaDict = {
   observacoesPlaceholder:
     "Alimentação, transporte, estacionamento, roupa e figurino, equipamento que cada um leva, senha do Wi-Fi, para onde vão os arquivos no fim do dia...",
 
-  imprimir: "Imprimir / PDF",
+  imprimir: "Imprimir",
+  imprimirHint: "Folha em preto e branco, para levar no bolso",
+  pdfColorido: "PDF colorido",
+  pdfColoridoHint: "Igual ao que você vê aqui — para mandar por mensagem",
   salvo: "Salvo",
   salvando: "Salvando...",
   rodapeImpressao: "Dúvidas no dia? Fale com quem está produzindo.",
