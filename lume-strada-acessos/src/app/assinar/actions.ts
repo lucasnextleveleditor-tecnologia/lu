@@ -1,6 +1,8 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getNomeApp } from "@/lib/branding/getNomeApp";
+import { gerarDocumentoAssinado } from "@/lib/pdf/gerarDocumentoAssinado";
 import { buscarPorToken, origemDaRequisicao } from "./acesso";
 
 export type Resultado = { ok: true } | { ok: false; error: string };
@@ -118,6 +120,20 @@ export async function assinar(
       tipo: "concluido",
       descricao: "Todos os signatários assinaram",
     });
+
+    // O PDF final é montado AGORA, com a última assinatura ainda fresca.
+    // Se falhar, a assinatura já está gravada e o painel oferece refazer —
+    // por isso o erro daqui não derruba a resposta de quem acabou de
+    // assinar: para essa pessoa, o ato terminou.
+    const resultado = await gerarDocumentoAssinado(acesso.documento.id, await getNomeApp());
+    if (!resultado.ok) {
+      await admin.from("assinatura_eventos").insert({
+        company_id: acesso.documento.company_id,
+        documento_id: acesso.documento.id,
+        tipo: "erro",
+        descricao: `Não consegui montar o PDF assinado: ${resultado.error}`,
+      });
+    }
   }
 
   return { ok: true };

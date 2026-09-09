@@ -286,6 +286,7 @@ export function EditorDeCampos({
           documentoId={doc.id}
           titulo={titulo}
           status={doc.status}
+          temArquivoAssinado={Boolean(doc.arquivo_assinado_path)}
           signatarios={signatarios}
           eventos={eventos}
         />

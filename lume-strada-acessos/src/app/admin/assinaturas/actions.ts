@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
 import type { CampoAssinaturaRow, SignatarioRow, TipoCampo } from "@/lib/types/assinatura";
+import { gerarDocumentoAssinado } from "@/lib/pdf/gerarDocumentoAssinado";
+import { getNomeApp } from "@/lib/branding/getNomeApp";
 
 export type Resultado = { ok: true } | { ok: false; error: string };
 
@@ -349,6 +351,46 @@ export async function voltarParaRascunho(id: string): Promise<Resultado> {
 
     const { error } = await supabase.from("assinatura_documentos").update({ status: "rascunho" }).eq("id", id);
     if (error) return { ok: false, error: error.message };
+    revalidatePath(`${ROTA}/${id}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Refaz o PDF carimbado.
+ *
+ * A geração normal acontece no fim da requisição de quem assinou por último
+ * — e é justamente ali que ela pode falhar (Storage fora do ar, arquivo
+ * grande, tempo estourado) sem que ninguém da agência esteja olhando. Sem
+ * este botão, o documento ficaria concluído para sempre sem via final, e a
+ * única saída seria refazer tudo com o cliente.
+ *
+ * Refazer é seguro: a função sobrescreve o mesmo caminho a partir do
+ * original, que nunca é alterado — o resultado é idêntico ao que teria sido
+ * gerado na hora.
+ */
+export async function regerarDocumentoAssinado(id: string): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("orcamentos");
+
+    // A leitura passa pelo RLS de propósito: é ela que garante que o id é de
+    // um documento da própria empresa antes de a geração rodar com Service
+    // Role, que não confere empresa nenhuma.
+    const { data: documento } = await supabase
+      .from("assinatura_documentos")
+      .select("id, status")
+      .eq("id", id)
+      .maybeSingle<{ id: string; status: string }>();
+    if (!documento) return { ok: false, error: "Documento não encontrado." };
+    if (documento.status !== "assinado") {
+      return { ok: false, error: "O PDF final só existe depois que todos assinarem." };
+    }
+
+    const resultado = await gerarDocumentoAssinado(id, await getNomeApp());
+    if (!resultado.ok) return { ok: false, error: resultado.error };
+
     revalidatePath(`${ROTA}/${id}`);
     return { ok: true };
   } catch (err) {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import { listarDocumentos } from "./data";
 import { NovoDocumentoBotao } from "@/components/admin/assinaturas/NovoDocumentoBotao";
-import { IconFileText, IconChevronRight } from "@/components/ui/icons";
+import { IconFileText, IconChevronRight, IconDownload } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -42,8 +42,11 @@ export default async function AssinaturasPage() {
       ) : (
         <ul className="divide-y divide-base-800 overflow-hidden rounded-2xl border border-base-700 bg-base-900/60">
           {documentos.map((d) => (
-            <li key={d.id}>
-              <Link href={`/admin/assinaturas/${d.id}`} className="group flex items-center gap-4 px-5 py-4 transition hover:bg-base-800/50">
+            // O atalho de download fica FORA do `Link` de propósito: âncora
+            // dentro de âncora não é HTML válido, e o navegador desmonta a
+            // marcação sozinho quando encontra uma.
+            <li key={d.id} className="flex items-center transition hover:bg-base-800/50">
+              <Link href={`/admin/assinaturas/${d.id}`} className="group flex min-w-0 flex-1 items-center gap-4 px-5 py-4">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink-primary">{d.titulo || d.arquivo_nome}</p>
                   <p className="mt-0.5 truncate text-xs text-ink-muted">
@@ -53,6 +56,17 @@ export default async function AssinaturasPage() {
                 </div>
                 <IconChevronRight className="h-4 w-4 shrink-0 text-ink-muted transition group-hover:text-ink-secondary" />
               </Link>
+              {d.status === "assinado" && d.arquivo_assinado_path && (
+                <a
+                  href={`/api/assinaturas/${d.id}/pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Baixar PDF assinado"
+                  className="mr-4 shrink-0 rounded-lg border border-base-700 p-2 text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+                >
+                  <IconDownload className="h-3.5 w-3.5" />
+                </a>
+              )}
             </li>
           ))}
         </ul>

@@ -5,7 +5,7 @@ import { TIPOS_CAMPO, type CampoAssinaturaRow, type AssinaturaDocumentoRow, type
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { IconCheckCircle, IconLoader, IconLock } from "@/components/ui/icons";
+import { IconCheckCircle, IconDownload, IconLoader, IconLock } from "@/components/ui/icons";
 import { PaginaPdf } from "./PaginaPdf";
 import { assinar, recusar, registrarVisualizacao } from "@/app/assinar/actions";
 
@@ -69,11 +69,27 @@ export function PainelDeAssinatura({
   }
 
   if (pronto) {
+    // A via de quem assinou fica acessível PELO PRÓPRIO LINK, e não só por
+    // e-mail: quem assina sem ter conta no sistema não tem outro lugar para
+    // voltar e buscar o documento depois. Enquanto faltar alguém assinar, o
+    // download é o texto que ela leu; quando todos assinarem, o mesmo
+    // endereço passa a entregar o arquivo carimbado.
     return (
       <Aviso
         icone={<IconCheckCircle className="h-6 w-6 text-status-good" />}
         titulo="Assinatura registrada"
         texto={`Obrigado. Sua assinatura de "${documento.titulo}" foi registrada com data, hora e endereço de origem. ${nomeApp} avisará quem enviou.`}
+        acao={
+          <a
+            href={`/api/assinar/${token}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-base-600 px-4 py-2 text-sm font-medium text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+          >
+            <IconDownload className="h-4 w-4" />
+            {documento.status === "assinado" ? "Baixar documento assinado" : "Baixar sua via"}
+          </a>
+        }
       />
     );
   }
@@ -204,13 +220,24 @@ export function PainelDeAssinatura({
   );
 }
 
-function Aviso({ icone, titulo, texto }: { icone: React.ReactNode; titulo: string; texto: string }) {
+function Aviso({
+  icone,
+  titulo,
+  texto,
+  acao,
+}: {
+  icone: React.ReactNode;
+  titulo: string;
+  texto: string;
+  acao?: React.ReactNode;
+}) {
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
       <div className="max-w-md text-center">
         <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-base-800">{icone}</span>
         <p className="text-lg font-semibold text-ink-primary">{titulo}</p>
         <p className="mt-2 text-sm text-ink-muted">{texto}</p>
+        {acao && <div className="mt-5">{acao}</div>}
       </div>
     </div>
   );

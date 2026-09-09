@@ -5,8 +5,18 @@ import { useRouter } from "next/navigation";
 import { corDoSignatario, type EventoAssinaturaRow, type SignatarioRow } from "@/lib/types/assinatura";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/Button";
-import { IconSend, IconCopy, IconCheck, IconMessageCircle, IconRotateCcw, IconActivity } from "@/components/ui/icons";
-import { enviarParaAssinatura, voltarParaRascunho } from "@/app/admin/assinaturas/actions";
+import {
+  IconSend,
+  IconCopy,
+  IconCheck,
+  IconMessageCircle,
+  IconRotateCcw,
+  IconActivity,
+  IconDownload,
+  IconFileText,
+  IconAlertTriangle,
+} from "@/components/ui/icons";
+import { enviarParaAssinatura, regerarDocumentoAssinado, voltarParaRascunho } from "@/app/admin/assinaturas/actions";
 
 const ROTULO: Record<string, { texto: string; cor: string }> = {
   pendente: { texto: "Aguardando", cor: "text-ink-muted" },
@@ -27,12 +37,15 @@ export function PainelDeEnvio({
   documentoId,
   titulo,
   status,
+  temArquivoAssinado,
   signatarios,
   eventos,
 }: {
   documentoId: string;
   titulo: string;
   status: string;
+  /** Se o PDF final carimbado já foi gerado e está no Storage. */
+  temArquivoAssinado: boolean;
   signatarios: SignatarioRow[];
   eventos: EventoAssinaturaRow[];
 }) {
@@ -43,6 +56,7 @@ export function PainelDeEnvio({
 
   const origem = typeof window === "undefined" ? "" : window.location.origin;
   const enviado = status !== "rascunho";
+  const concluido = status === "assinado";
 
   async function copiar(token: string) {
     try {
@@ -160,6 +174,69 @@ export function PainelDeEnvio({
               );
             })}
           </ul>
+        </div>
+      )}
+
+      {/* ---------------------------------------------------------------- */}
+      {/* O ARQUIVO                                                         */}
+      {/* ---------------------------------------------------------------- */}
+      {/*
+        Duas vias, e elas são coisas diferentes: o ORIGINAL é o arquivo de
+        onde saiu o hash e é o que cada pessoa leu antes de assinar; o
+        ASSINADO é esse mesmo arquivo com as assinaturas nos lugares
+        marcados e o manifesto no fim. Guardar os dois é o que permite, se
+        alguém contestar, mostrar que o texto não mudou entre um e outro.
+      */}
+      {enviado && (
+        <div className="space-y-2 rounded-2xl border border-base-700 bg-base-900/60 p-4">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-ink-muted">Arquivo</p>
+
+          {concluido && temArquivoAssinado && (
+            <a
+              href={`/api/assinaturas/${documentoId}/pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-accent to-accent2 px-4 py-2 text-sm font-medium text-white transition hover:brightness-110"
+            >
+              <IconDownload className="h-4 w-4" /> Baixar PDF assinado
+            </a>
+          )}
+
+          {concluido && !temArquivoAssinado && (
+            <div className="space-y-2">
+              <p className="flex items-start gap-1.5 text-[11px] leading-snug text-status-warning">
+                <IconAlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+                Todos assinaram, mas o PDF final não foi montado. As assinaturas continuam registradas — é só refazer o
+                arquivo.
+              </p>
+              <Button
+                variant="ghost"
+                className="w-full"
+                disabled={pendente}
+                onClick={() =>
+                  start(async () => {
+                    const r = await regerarDocumentoAssinado(documentoId);
+                    if (!r.ok) setErro(r.error);
+                    else {
+                      setErro(null);
+                      router.refresh();
+                    }
+                  })
+                }
+              >
+                <IconRotateCcw className="h-4 w-4" /> Gerar PDF assinado
+              </Button>
+            </div>
+          )}
+
+          <a
+            href={`/api/assinaturas/${documentoId}/pdf?original=1`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-[11px] text-ink-muted transition hover:text-ink-secondary"
+          >
+            <IconFileText className="h-3 w-3" /> Baixar o original enviado
+          </a>
         </div>
       )}
 

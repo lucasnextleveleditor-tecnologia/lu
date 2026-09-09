@@ -15,6 +15,10 @@ export interface AssinaturaDocumentoRow {
   enviado_em: string | null;
   concluido_em: string | null;
   arquivado: boolean;
+  /** PDF final carimbado. O original em `arquivo_path` NUNCA é alterado. */
+  arquivo_assinado_path: string | null;
+  hash_assinado: string | null;
+  assinado_gerado_em: string | null;
   created_at: string;
   atualizado_em: string;
 }
