@@ -15,6 +15,7 @@ export {
   CAMPOS_COMUNS_CONTRATO,
   obterClausulas,
   montarTextoDoContrato,
+  montarTextoDeClausulas,
   clausulasPadraoSelecionadas,
   ordinalDeClausula,
   dividirTextoEmClausulas,

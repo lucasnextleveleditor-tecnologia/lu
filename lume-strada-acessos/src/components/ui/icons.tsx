@@ -788,3 +788,25 @@ export function IconSignature(props: IconProps) {
     </svg>
   );
 }
+
+/** Seis pontos — a alça de arrastar. Símbolo consagrado: quem vê, sabe que pega ali. */
+export function IconGrip(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <circle cx="9" cy="6" r="1" />
+      <circle cx="15" cy="6" r="1" />
+      <circle cx="9" cy="12" r="1" />
+      <circle cx="15" cy="12" r="1" />
+      <circle cx="9" cy="18" r="1" />
+      <circle cx="15" cy="18" r="1" />
+    </svg>
+  );
+}
+
+export function IconX(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}

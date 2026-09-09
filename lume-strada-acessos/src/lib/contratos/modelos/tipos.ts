@@ -125,6 +125,15 @@ export interface ClausulaModelo {
   opcional?: boolean;
   /** Uma linha dizendo o que essa cláusula protege — aparece ao lado da caixa, para a escolha ser informada. */
   protege?: string;
+  /**
+   * Cláusula escrita pelo próprio profissional dentro de um contrato, e não
+   * vinda do banco de modelos. Existe porque nenhum modelo cobre tudo: falta
+   * a regra de estacionamento daquele condomínio, a exigência do jurídico do
+   * cliente, o combinado que só aquele trabalho tem. A marca serve à tela —
+   * é ela que libera renomear e excluir a cláusula, o que não faz sentido
+   * para as do banco.
+   */
+  personalizada?: boolean;
 }
 
 /** Ordinais por extenso, em maiúsculas, como se escreve em contrato. */
@@ -218,11 +227,27 @@ export function montarTextoDoContrato(
   idsSelecionados: readonly string[],
   sobrescritas: Record<string, string> = {}
 ): string {
+  return montarTextoDeClausulas(obterClausulas(modelo), idsSelecionados, sobrescritas);
+}
+
+/**
+ * A mesma montagem, mas a partir de uma lista de cláusulas montada por fora.
+ *
+ * É esta que a tela usa, porque lá a lista não é mais a do modelo: pode ter
+ * sido reordenada com o arraste e pode conter cláusulas escritas pela própria
+ * pessoa. A ORDEM DA LISTA MANDA — a numeração sai da posição em que cada
+ * cláusula está aqui, não de onde ela nasceu no modelo.
+ */
+export function montarTextoDeClausulas(
+  clausulas: readonly ClausulaModelo[],
+  idsSelecionados: readonly string[],
+  sobrescritas: Record<string, string> = {}
+): string {
   const escolhidas = new Set(idsSelecionados);
   const partes: string[] = [];
   let numero = 0;
 
-  for (const clausula of obterClausulas(modelo)) {
+  for (const clausula of clausulas) {
     if (!escolhidas.has(clausula.id)) continue;
     const corpo = (sobrescritas[clausula.id] ?? clausula.texto).trim();
     if (!corpo) continue;

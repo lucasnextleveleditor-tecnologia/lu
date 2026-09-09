@@ -10,12 +10,14 @@ import { listarModelosPorPerfil, buscarModelo, montarValoresAutoPreenchiveis } f
 import {
   substituirPlaceholders as substituirPlaceholdersModelo,
   listarPlaceholdersPendentes,
-  montarTextoDoContrato,
+  montarTextoDeClausulas,
   clausulasPadraoSelecionadas,
   obterClausulas,
   type CampoDinamicoModelo,
+  type ClausulaModelo,
 } from "@/lib/contratos/modelos/tipos";
 import { ChecklistDeClausulas } from "./ChecklistDeClausulas";
+import { PreviaDoContrato } from "./PreviaDoContrato";
 import { criarContratoCompleto, atualizarContratoCompleto, enviarContrato, type ContratoItemInput } from "@/app/admin/contratos/actions";
 import type { buscarContratoPorId, OrcamentoParaVincular, EmpresaContratante } from "@/app/admin/contratos/data";
 import { Card } from "@/components/ui/Card";
@@ -99,6 +101,12 @@ export function ContratoBuilder({
   const [clausulasSelecionadas, setClausulasSelecionadas] = useState<string[]>([]);
   const [textosClausulas, setTextosClausulas] = useState<Record<string, string>>({});
   const [modeloAplicado, setModeloAplicado] = useState(false);
+  // A ORDEM é estado próprio, e não a ordem do modelo, porque ela pode ser
+  // mudada no arraste. É esta lista que manda na numeração do documento.
+  const [ordemClausulas, setOrdemClausulas] = useState<string[]>([]);
+  // Cláusulas escritas pela própria pessoa, que não existem em modelo nenhum.
+  const [clausulasProprias, setClausulasProprias] = useState<ClausulaModelo[]>([]);
+  const [previaAberta, setPreviaAberta] = useState(false);
   const [valoresManuais, setValoresManuais] = useState<Record<string, string>>({});
   const [camposPendentes, setCamposPendentes] = useState<string[]>([]);
   const [titulo, setTitulo] = useState(contratoParaEditar?.titulo ?? "");
@@ -177,77 +185,137 @@ export function ContratoBuilder({
   }
 
   /**
-   * Monta o documento a partir das cláusulas marcadas e joga no editor.
+   * A lista de cláusulas como ela está na tela: as do modelo mais as escritas
+   * à mão, na ordem definida pelo arraste.
    *
-   * Recebe a seleção e os textos por parâmetro em vez de ler o estado porque
-   * é chamada de dentro dos próprios handlers que acabaram de alterá-los —
-   * ler o estado ali devolveria o valor anterior, e o texto sairia sempre uma
-   * marcação atrasada.
+   * Recebe ordem e próprias por parâmetro porque é chamada de dentro dos
+   * handlers que acabaram de alterá-las — ler o estado ali devolveria o valor
+   * anterior, e o documento sairia sempre uma ação atrasada.
    */
-  function montarComClausulas(ids: readonly string[], textos: Record<string, string>, manuais: Record<string, string>) {
-    if (!tipoPerfil || !tipoServico) return;
-    const modelo = buscarModelo(tipoPerfil, tipoServico);
-    if (!modelo) return;
+  function listaDeClausulas(ordem: readonly string[] = ordemClausulas, proprias: readonly ClausulaModelo[] = clausulasProprias): ClausulaModelo[] {
+    const modelo = tipoPerfil && tipoServico ? buscarModelo(tipoPerfil, tipoServico) : undefined;
+    const todas = [...(modelo ? obterClausulas(modelo) : []), ...proprias];
+    const porId = new Map(todas.map((c) => [c.id, c]));
+    const ordenadas = ordem.map((id) => porId.get(id)).filter((c): c is ClausulaModelo => c != null);
+    // O que ainda não estiver na ordem entra no fim, na ordem natural — é o
+    // caso da primeira montagem e o de uma cláusula recém-criada.
+    const jaColocadas = new Set(ordenadas.map((c) => c.id));
+    return [...ordenadas, ...todas.filter((c) => !jaColocadas.has(c.id))];
+  }
 
-    const bruto = montarTextoDoContrato(modelo, ids, textos);
+  /** Monta o documento a partir do que está marcado, na ordem da tela, e joga no editor. */
+  function montarComClausulas(
+    lista: readonly ClausulaModelo[],
+    ids: readonly string[],
+    textos: Record<string, string>,
+    manuais: Record<string, string>
+  ) {
+    const bruto = montarTextoDeClausulas(lista, ids, textos);
     const resultado = substituirPlaceholdersModelo(bruto, { ...valoresConhecidos(), ...manuais });
     setClausulas(resultado);
     setCamposPendentes(listarPlaceholdersPendentes(resultado));
   }
 
-  /** Primeiro "Aplicar": marca o padrão do modelo, monta o texto e liga a remontagem automática. */
+  /** O texto como está agora, sem gravar em lugar nenhum — é o que a prévia mostra. */
+  function textoDaPrevia(): string {
+    const bruto = montarTextoDeClausulas(listaDeClausulas(), clausulasSelecionadas, textosClausulas);
+    return substituirPlaceholdersModelo(bruto, { ...valoresConhecidos(), ...valoresManuais });
+  }
+
+  /** Primeiro "Aplicar": monta o texto e liga a remontagem automática a cada mexida no checklist. */
   function aplicarModeloNovo() {
     if (!tipoPerfil || !tipoServico) return;
     const modelo = buscarModelo(tipoPerfil, tipoServico);
     if (!modelo) return;
 
-    const padrao = clausulasPadraoSelecionadas(modelo);
-    const ids = modeloAplicado && clausulasSelecionadas.length > 0 ? clausulasSelecionadas : padrao;
+    const ids = clausulasSelecionadas.length > 0 ? clausulasSelecionadas : clausulasPadraoSelecionadas(modelo);
     setClausulasSelecionadas(ids);
     setValoresManuais({});
     setModeloAplicado(true);
-    montarComClausulas(ids, textosClausulas, {});
+    montarComClausulas(listaDeClausulas(), ids, textosClausulas, {});
   }
 
   function alternarClausula(id: string) {
     const proximas = clausulasSelecionadas.includes(id)
       ? clausulasSelecionadas.filter((c) => c !== id)
       : [...clausulasSelecionadas, id];
-    // Reordena pela ordem do modelo: a lista guarda ids soltos, e o contrato
-    // não pode sair com a cláusula de foro no meio só porque foi remarcada.
-    const modelo = tipoPerfil && tipoServico ? buscarModelo(tipoPerfil, tipoServico) : undefined;
-    const ordenadas = modelo ? obterClausulas(modelo).map((c) => c.id).filter((c) => proximas.includes(c)) : proximas;
-    setClausulasSelecionadas(ordenadas);
-    if (modeloAplicado) montarComClausulas(ordenadas, textosClausulas, valoresManuais);
+    setClausulasSelecionadas(proximas);
+    if (modeloAplicado) montarComClausulas(listaDeClausulas(), proximas, textosClausulas, valoresManuais);
   }
 
   function marcarTodasClausulas(marcar: boolean) {
-    if (!tipoPerfil || !tipoServico) return;
-    const modelo = buscarModelo(tipoPerfil, tipoServico);
-    if (!modelo) return;
-    const ids = obterClausulas(modelo)
+    const ids = listaDeClausulas()
       .filter((c) => marcar || c.essencial)
       .map((c) => c.id);
     setClausulasSelecionadas(ids);
-    if (modeloAplicado) montarComClausulas(ids, textosClausulas, valoresManuais);
+    if (modeloAplicado) montarComClausulas(listaDeClausulas(), ids, textosClausulas, valoresManuais);
+  }
+
+  /** Tira a cláusula arrastada de onde estava e a põe na posição da cláusula sobre a qual foi solta. */
+  function reordenarClausulas(idArrastado: string, idAlvo: string) {
+    const atual = listaDeClausulas().map((c) => c.id);
+    const de = atual.indexOf(idArrastado);
+    const para = atual.indexOf(idAlvo);
+    if (de < 0 || para < 0 || de === para) return;
+
+    const nova = [...atual];
+    nova.splice(de, 1);
+    nova.splice(para, 0, idArrastado);
+    setOrdemClausulas(nova);
+    if (modeloAplicado) montarComClausulas(listaDeClausulas(nova), clausulasSelecionadas, textosClausulas, valoresManuais);
+  }
+
+  function adicionarClausulaPropria(titulo: string) {
+    // Id com carimbo de tempo: precisa ser único dentro do contrato e não pode
+    // colidir com nenhum id do banco de modelos, hoje ou depois.
+    const id = `propria_${Date.now().toString(36)}`;
+    const nova: ClausulaModelo = { id, titulo, texto: "", personalizada: true, protege: "Cláusula escrita por você." };
+    const proprias = [...clausulasProprias, nova];
+    const ordem = [...listaDeClausulas().map((c) => c.id), id];
+    const marcadas = [...clausulasSelecionadas, id];
+
+    setClausulasProprias(proprias);
+    setOrdemClausulas(ordem);
+    setClausulasSelecionadas(marcadas);
+    if (modeloAplicado) montarComClausulas(listaDeClausulas(ordem, proprias), marcadas, textosClausulas, valoresManuais);
+  }
+
+  function renomearClausulaPropria(id: string, titulo: string) {
+    const proprias = clausulasProprias.map((c) => (c.id === id ? { ...c, titulo } : c));
+    setClausulasProprias(proprias);
+    if (modeloAplicado) montarComClausulas(listaDeClausulas(ordemClausulas, proprias), clausulasSelecionadas, textosClausulas, valoresManuais);
+  }
+
+  function excluirClausulaPropria(id: string) {
+    const proprias = clausulasProprias.filter((c) => c.id !== id);
+    const ordem = ordemClausulas.filter((c) => c !== id);
+    const marcadas = clausulasSelecionadas.filter((c) => c !== id);
+    const textos = { ...textosClausulas };
+    delete textos[id];
+
+    setClausulasProprias(proprias);
+    setOrdemClausulas(ordem);
+    setClausulasSelecionadas(marcadas);
+    setTextosClausulas(textos);
+    if (modeloAplicado) montarComClausulas(listaDeClausulas(ordem, proprias), marcadas, textos, valoresManuais);
   }
 
   function editarTextoClausula(id: string, texto: string) {
     const proximos = { ...textosClausulas, [id]: texto };
     setTextosClausulas(proximos);
-    if (modeloAplicado) montarComClausulas(clausulasSelecionadas, proximos, valoresManuais);
+    if (modeloAplicado) montarComClausulas(listaDeClausulas(), clausulasSelecionadas, proximos, valoresManuais);
   }
 
   function restaurarTextoClausula(id: string) {
     const proximos = { ...textosClausulas };
     delete proximos[id];
     setTextosClausulas(proximos);
-    if (modeloAplicado) montarComClausulas(clausulasSelecionadas, proximos, valoresManuais);
+    if (modeloAplicado) montarComClausulas(listaDeClausulas(), clausulasSelecionadas, proximos, valoresManuais);
   }
 
   /** Reaplica juntando o que o sistema sabe com o que a pessoa preencheu à mão nos campos pendentes. */
   function preencherCamposPendentes() {
-    montarComClausulas(clausulasSelecionadas, textosClausulas, valoresManuais);
+    montarComClausulas(listaDeClausulas(), clausulasSelecionadas, textosClausulas, valoresManuais);
   }
 
   function adicionarItem() {
@@ -317,6 +385,7 @@ export function ContratoBuilder({
   }
 
   return (
+    <>
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <div className="space-y-4 lg:col-span-2">
         {!editando && orcamentosParaVincular.length > 0 && (
@@ -351,6 +420,8 @@ export function ContratoBuilder({
                       setClausulasSelecionadas([]);
                       setTextosClausulas({});
                       setModeloAplicado(false);
+                      setOrdemClausulas([]);
+                      setClausulasProprias([]);
                     }}
                     className={cn(
                       "rounded-full border px-3 py-1.5 text-xs font-medium transition",
@@ -382,6 +453,8 @@ export function ContratoBuilder({
                           // do contrato, que só muda no clique de aplicar.
                           const modelo = tipoPerfil && escolhido ? buscarModelo(tipoPerfil, escolhido) : undefined;
                           setClausulasSelecionadas(modelo ? clausulasPadraoSelecionadas(modelo) : []);
+                          setOrdemClausulas(modelo ? obterClausulas(modelo).map((c) => c.id) : []);
+                          setClausulasProprias([]);
                         }}
                       >
                         <option value="">{dict.contratos.tipoServicoVazio}</option>
@@ -399,18 +472,23 @@ export function ContratoBuilder({
                           <div className="mb-2">
                             <p className="text-xs font-medium text-ink-secondary">Cláusulas deste contrato</p>
                             <p className="mt-0.5 text-[11px] leading-snug text-ink-muted">
-                              Marque o que entra, abra para ler e editar. A numeração se refaz sozinha conforme você
-                              marca e desmarca.
+                              Marque o que entra, abra para ler e editar, arraste para mudar a ordem e acrescente cláusulas
+                              suas no fim. A numeração se refaz sozinha.
                             </p>
                           </div>
                           <ChecklistDeClausulas
-                            modelo={buscarModelo(tipoPerfil, tipoServico)!}
+                            clausulas={listaDeClausulas()}
                             selecionadas={clausulasSelecionadas}
                             textos={textosClausulas}
                             aoAlternar={alternarClausula}
                             aoEditarTexto={editarTextoClausula}
                             aoRestaurarTexto={restaurarTextoClausula}
                             aoMarcarTodas={marcarTodasClausulas}
+                            aoReordenar={reordenarClausulas}
+                            aoAdicionarPropria={adicionarClausulaPropria}
+                            aoRenomearPropria={renomearClausulaPropria}
+                            aoExcluirPropria={excluirClausulaPropria}
+                            aoVerPrevia={() => setPreviaAberta(true)}
                           />
                           <button type="button" onClick={aplicarModeloNovo} className="mt-2 text-xs font-medium text-accent hover:underline">
                             {modeloAplicado ? "Regerar o texto do contrato" : dict.contratos.aplicarModeloNovoBtn}
@@ -575,5 +653,10 @@ export function ContratoBuilder({
         </Card>
       </div>
     </div>
+
+      {previaAberta && (
+        <PreviaDoContrato titulo={titulo} texto={textoDaPrevia()} aoFechar={() => setPreviaAberta(false)} />
+      )}
+    </>
   );
 }
