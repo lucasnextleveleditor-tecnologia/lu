@@ -6,7 +6,7 @@ export const agenda: AgendaDict = {
   novoCompromissoBtn: "New Appointment",
   filtrarPorCliente: "Filter by Client",
   semClienteFiltro: "No Client",
-  semClientesCadastradosAjuda: "Add clients under Records → Clients to color them here.",
+  semClientesCadastradosAjuda: "No appointment or task linked to a client yet.",
   tipoCaptacao: "Shoot",
   tipoReuniao: "Meeting",
   tipoEntrega: "Delivery",

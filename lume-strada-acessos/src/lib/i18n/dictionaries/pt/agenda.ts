@@ -62,7 +62,7 @@ export const agenda: AgendaDict = {
   novoCompromissoBtn: "Novo Compromisso",
   filtrarPorCliente: "Filtrar por Cliente",
   semClienteFiltro: "Sem Cliente",
-  semClientesCadastradosAjuda: "Cadastre clientes em Cadastros → Clientes pra colori-los aqui.",
+  semClientesCadastradosAjuda: "Nenhum compromisso ou tarefa vinculado a cliente ainda.",
   tipoCaptacao: "Captação",
   tipoReuniao: "Reunião",
   tipoEntrega: "Entrega",

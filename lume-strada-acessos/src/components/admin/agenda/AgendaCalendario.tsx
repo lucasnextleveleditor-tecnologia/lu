@@ -154,6 +154,23 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, cli
     return mapa;
   }, [compromissosLocais, tarefasAgenda, leadsAbertos, clientesPorId]);
 
+  // Filtro só mostra quem TEM algo no calendário (compromisso manual ou
+  // captação/entrega auto-surfada de Produção) — pedido explícito pra não
+  // listar a base inteira de clientes cadastrados, só os que realmente
+  // aparecem aqui. Considera TODOS os meses já carregados, não só o mês em
+  // exibição (senão o filtro mudaria de opções a cada troca de mês).
+  const { clientesComItens, temItemSemCliente } = useMemo(() => {
+    const ids = new Set<string>();
+    let semCliente = false;
+    for (const itens of itensPorDia.values()) {
+      for (const item of itens) {
+        if (item.clienteId) ids.add(item.clienteId);
+        else semCliente = true;
+      }
+    }
+    return { clientesComItens: clientes.filter((c) => ids.has(c.id)), temItemSemCliente: semCliente };
+  }, [itensPorDia, clientes]);
+
   function alternarCliente(chave: string) {
     setClientesVisiveis((atual) => {
       const proximo = new Set(atual);
@@ -200,11 +217,11 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, cli
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr_1fr]">
         <Card className="p-4 sm:p-5">
           <p className="mb-3 text-sm font-semibold text-ink-primary">{dict.agenda.filtrarPorCliente}</p>
-          {clientes.length === 0 ? (
+          {clientesComItens.length === 0 && !temItemSemCliente ? (
             <p className="text-xs text-ink-muted">{dict.agenda.semClientesCadastradosAjuda}</p>
           ) : (
             <div className="flex max-h-28 flex-wrap gap-x-5 gap-y-2 overflow-y-auto">
-              {clientes.map((cliente) => (
+              {clientesComItens.map((cliente) => (
                 <label key={cliente.id} className="flex cursor-pointer items-center gap-2 text-sm">
                   <input
                     type="checkbox"
@@ -216,16 +233,18 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, cli
                   <span className="text-ink-primary">{cliente.nome}</span>
                 </label>
               ))}
-              <label className="flex cursor-pointer items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={clientesVisiveis.has(SEM_CLIENTE_KEY)}
-                  onChange={() => alternarCliente(SEM_CLIENTE_KEY)}
-                  className="h-4 w-4 shrink-0 rounded border-base-600 bg-base-900 accent-accent"
-                />
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full border border-dashed border-ink-muted" />
-                <span className="text-ink-secondary">{dict.agenda.semClienteFiltro}</span>
-              </label>
+              {temItemSemCliente && (
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={clientesVisiveis.has(SEM_CLIENTE_KEY)}
+                    onChange={() => alternarCliente(SEM_CLIENTE_KEY)}
+                    className="h-4 w-4 shrink-0 rounded border-base-600 bg-base-900 accent-accent"
+                  />
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full border border-dashed border-ink-muted" />
+                  <span className="text-ink-secondary">{dict.agenda.semClienteFiltro}</span>
+                </label>
+              )}
             </div>
           )}
         </Card>
