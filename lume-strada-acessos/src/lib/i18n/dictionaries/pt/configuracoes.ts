@@ -80,8 +80,10 @@ export interface ConfiguracoesDict {
   assinaturaSuspensa: string;
   assinaturaExpirada: string;
   assinaturaBotao: string;
-  assinaturaBotaoIndisponivel: string;
+  /** Rótulo do botão enquanto o link de contratação ainda não existe — o botão aparece, desabilitado, em vez de sumir. */
+  assinaturaBotaoEmBreve: string;
   assinaturaAvisoManual: string;
+  assinaturaAvisoEmBreve: string;
 }
 
 export const configuracoes: ConfiguracoesDict = {
@@ -151,7 +153,9 @@ export const configuracoes: ConfiguracoesDict = {
   assinaturaSuspensa: "Suspensa",
   assinaturaExpirada: "Expirada",
   assinaturaBotao: "Ir para o carrinho",
-  assinaturaBotaoIndisponivel: "Link de contratação ainda não configurado.",
+  assinaturaBotaoEmBreve: "Em breve",
   assinaturaAvisoManual:
     "O pagamento é processado fora do sistema. Depois de pagar, a liberação é feita manualmente — pode levar algumas horas.",
+  assinaturaAvisoEmBreve:
+    "A página de contratação ainda está sendo preparada. Quando ficar pronta, este botão leva direto ao carrinho.",
 };

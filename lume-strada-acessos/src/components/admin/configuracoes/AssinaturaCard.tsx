@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { IconCreditCard, IconExternalLink } from "@/components/ui/icons";
+import { IconCreditCard, IconExternalLink, IconPauseCircle } from "@/components/ui/icons";
 import type { Tone } from "@/lib/utils/tone";
 import type { ConfiguracoesDict } from "@/lib/i18n/dictionaries/pt/configuracoes";
 import type { Locale } from "@/lib/i18n/locales";
@@ -82,11 +82,24 @@ export function AssinaturaCard({ nomeEmpresa, status, expiraEm, checkoutUrl, dic
             <IconExternalLink className="h-4 w-4" />
           </a>
         ) : (
-          // Sem a variável de ambiente configurada, mostrar um botão morto
-          // seria pior do que dizer o que está faltando.
-          <p className="text-sm text-ink-muted">{dict.assinaturaBotaoIndisponivel}</p>
+          // Sem `NEXT_PUBLIC_CHECKOUT_URL`, o botão continua aparecendo —
+          // desabilitado e dizendo "Em breve". É mais honesto do que um
+          // parágrafo solto: quem abre a aba entende que a contratação existe
+          // e ainda não está pronta, em vez de achar que a tela está pela
+          // metade. `disabled` (e não um link para "#") garante que ele não
+          // recebe foco nem clique enquanto não houver para onde ir.
+          <button
+            type="button"
+            disabled
+            className="inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-lg border border-base-600 px-4 py-2 text-sm font-medium text-ink-muted opacity-70"
+          >
+            <IconPauseCircle className="h-4 w-4" />
+            {dict.assinaturaBotaoEmBreve}
+          </button>
         )}
-        <p className="mt-3 text-xs text-ink-muted">{dict.assinaturaAvisoManual}</p>
+        <p className="mt-3 text-xs text-ink-muted">
+          {checkoutUrl ? dict.assinaturaAvisoManual : dict.assinaturaAvisoEmBreve}
+        </p>
       </Card>
     </div>
   );

@@ -67,7 +67,9 @@ export const configuracoes: ConfiguracoesDict = {
   assinaturaSuspensa: "Suspendida",
   assinaturaExpirada: "Vencida",
   assinaturaBotao: "Ir al carrito",
-  assinaturaBotaoIndisponivel: "Enlace de contratación aún no configurado.",
+  assinaturaBotaoEmBreve: "Muy pronto",
   assinaturaAvisoManual:
     "El pago se procesa fuera del sistema. Después de pagar, la activación es manual — puede tardar algunas horas.",
+  assinaturaAvisoEmBreve:
+    "La página de contratación todavía se está preparando. Cuando esté lista, este botón te lleva directo al carrito.",
 };

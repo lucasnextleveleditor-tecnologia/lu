@@ -67,7 +67,9 @@ export const configuracoes: ConfiguracoesDict = {
   assinaturaSuspensa: "Suspended",
   assinaturaExpirada: "Expired",
   assinaturaBotao: "Go to checkout",
-  assinaturaBotaoIndisponivel: "Checkout link not configured yet.",
+  assinaturaBotaoEmBreve: "Coming soon",
   assinaturaAvisoManual:
     "Payment is processed outside the system. After paying, activation is done manually — it may take a few hours.",
+  assinaturaAvisoEmBreve:
+    "The checkout page is still being prepared. Once it is ready, this button takes you straight to it.",
 };
