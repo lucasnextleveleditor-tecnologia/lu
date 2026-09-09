@@ -209,6 +209,23 @@ export async function middleware(request: NextRequest) {
           url.pathname = home;
           return NextResponse.redirect(url);
         }
+
+        // O portal do cliente (`/dashboard`) precisa da MESMA exclusividade —
+        // ela faltava aqui, e a falta tinha efeito real: um super_admin (ou
+        // admin/funcionário) que caísse em `/dashboard` por qualquer caminho
+        // — um `?redirectTo=` guardado na URL de login, um link antigo, o
+        // histórico do navegador — simplesmente FICAVA no portal do cliente,
+        // porque nada o mandava de volta. Do lado de fora parecia "entrei e
+        // caí como se fosse um usuário comum".
+        //
+        // `/dashboard/*` continua sendo a casa de quem é `cliente`; todos os
+        // outros papéis voltam pra própria home, igual às duas checagens
+        // acima.
+        if (pathname.startsWith("/dashboard") && role !== "cliente") {
+          const url = request.nextUrl.clone();
+          url.pathname = home;
+          return NextResponse.redirect(url);
+        }
       }
     } else if (pathname === "/") {
       const url = request.nextUrl.clone();

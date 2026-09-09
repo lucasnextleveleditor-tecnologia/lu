@@ -20,10 +20,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, email")
+    .select("full_name, email, role")
     .eq("id", user.id)
     .single()
-    .overrideTypes<Pick<ProfileRow, "full_name" | "email">, { merge: false }>();
+    .overrideTypes<Pick<ProfileRow, "full_name" | "email" | "role">, { merge: false }>();
+
+  // Segunda camada de proteção (a primeira é o middleware) — mesma dupla
+  // checagem que `AdminLayout` e `SuperAdminLayout` já faziam, e que aqui
+  // faltava: o portal é de quem é `cliente`. Sem isto, um super_admin ou um
+  // admin que chegasse por um link antigo ficava vendo a área de membros
+  // como se fosse um cliente.
+  if (profile && profile.role !== "cliente") {
+    redirect(profile.role === "super_admin" ? "/super-admin" : "/admin");
+  }
 
   const branding = await getBrandingConfig();
   const nomeApp = await getNomeApp();

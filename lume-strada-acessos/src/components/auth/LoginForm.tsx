@@ -37,11 +37,18 @@ export function LoginForm() {
       return;
     }
 
-    // O middleware decide o destino certo (admin/dashboard/acesso-expirado)
-    // já na próxima requisição — refresh() força o Next a revalidar server
-    // components com a sessão nova antes de navegar.
+    // Vai sempre pra "/" e deixa o MIDDLEWARE escolher o destino a partir do
+    // papel (super_admin -> /super-admin, admin -> /admin, funcionário ->
+    // /admin/dashboard, cliente -> /dashboard).
+    //
+    // O `?redirectTo=` da URL é ignorado de propósito: ele é escrito por
+    // quem foi barrado numa rota protegida, e pode ter ficado guardado de
+    // uma sessão anterior, de outro papel ou de um link velho. Mandar a
+    // pessoa direto pra ele fazia um super_admin aterrissar em `/dashboard`
+    // e ficar lá, vendo o portal do cliente. `refresh()` força o Next a
+    // revalidar os server components com a sessão nova antes de navegar.
     router.refresh();
-    router.push(searchParams.get("redirectTo") || "/");
+    router.push("/");
   }
 
   return (
