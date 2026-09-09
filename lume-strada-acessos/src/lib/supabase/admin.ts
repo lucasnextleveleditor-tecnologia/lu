@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { randomBytes } from "crypto";
 
 /**
  * Cliente Supabase com a SERVICE ROLE KEY — ignora RLS e tem acesso à API
@@ -39,12 +40,32 @@ export function createAdminClient() {
   });
 }
 
-/** Senha provisória atribuída a TODA conta nova — a pessoa loga com ela e o `senha_provisoria = true` (ver `supabase/senha-provisoria.sql`) força a troca antes de qualquer outra tela. Fixa e curta de propósito: não é segurança de verdade (é só o portão de entrada), a segurança real é obrigar a troca antes de liberar o resto do painel. */
-export const SENHA_PADRAO_ACESSO = "123";
+/**
+ * Senha provisória de uma conta nova. ALEATÓRIA e diferente a cada acesso
+ * gerado — antes era a constante "123" para todo mundo, o que é um buraco
+ * real: quem soubesse (ou adivinhasse) o e-mail de alguém recém-convidado
+ * entrava na conta dele antes da própria pessoa, e a partir daí definia a
+ * senha definitiva. O `senha_provisoria = true` obriga a troca no primeiro
+ * login, mas isso só ajuda depois que a pessoa CERTA entra primeiro.
+ *
+ * Sem caracteres ambíguos (0/O, 1/l/I) porque ela é ditada por telefone e
+ * colada em WhatsApp; 14 posições nesse alfabeto dão folga suficiente contra
+ * tentativa e erro, e satisfazem qualquer política de tamanho mínimo do
+ * Supabase Auth. `crypto.randomUUID` não serve aqui — é hexadecimal e
+ * previsível em formato; `randomBytes` dá entropia de verdade.
+ */
+const ALFABETO_SENHA = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+export function gerarSenhaProvisoria(tamanho = 14): string {
+  const bytes = randomBytes(tamanho);
+  let senha = "";
+  for (let i = 0; i < tamanho; i++) senha += ALFABETO_SENHA[bytes[i]! % ALFABETO_SENHA.length];
+  return senha;
+}
 
 /**
  * Cria o login de um cliente/funcionário/dono de empresa já com e-mail
- * confirmado e a senha padrão (`SENHA_PADRAO_ACESSO`) — via
+ * confirmado e uma senha provisória ALEATÓRIA (`gerarSenhaProvisoria`) — via
  * `auth.admin.createUser`. É a função usada por TODA ação de "Gerar acesso"
  * do sistema (`gerarAcessoCliente`, `gerarAcessoFuncionario`,
  * `gerarAcessoCompanyAdmin`, `converterLeadEmCliente`).
@@ -76,9 +97,11 @@ export async function criarAcessoComSenhaPadrao(
   email: string,
   options: { data?: Record<string, unknown> }
 ): Promise<{ ok: true; userId: string; senhaPadrao: string } | { ok: false; error: string }> {
+  // Uma senha nova por convite — nunca a mesma duas vezes.
+  const senhaProvisoria = gerarSenhaProvisoria();
   const { data, error } = await admin.auth.admin.createUser({
     email,
-    password: SENHA_PADRAO_ACESSO,
+    password: senhaProvisoria,
     email_confirm: true,
     user_metadata: options.data,
   });
@@ -88,5 +111,5 @@ export async function criarAcessoComSenhaPadrao(
   const { error: erroFlag } = await admin.from("profiles").update({ senha_provisoria: true }).eq("id", data.user.id);
   if (erroFlag) return { ok: false, error: erroFlag.message };
 
-  return { ok: true, userId: data.user.id, senhaPadrao: SENHA_PADRAO_ACESSO };
+  return { ok: true, userId: data.user.id, senhaPadrao: senhaProvisoria };
 }
