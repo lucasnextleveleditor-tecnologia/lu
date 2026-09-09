@@ -5,6 +5,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { PDFDocument } from "pdf-lib";
 import { requireModulo } from "@/lib/auth/requireAdmin";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
+import { buscarLogoDoContrato } from "@/app/admin/contratos/data";
 import { ContratoPdfDocument } from "@/lib/pdf/ContratoPdfDocument";
 import { hashDeBytes } from "@/lib/pdf/carimbarAssinaturas";
 import { calcularTotalContrato } from "@/lib/types/contratos";
@@ -40,9 +41,10 @@ export async function prepararContratoParaAssinatura(
       .maybeSingle<ContratoRow & { clientes: { nome: string } | null }>();
     if (!contrato) return { ok: false, error: "Contrato não encontrado." };
 
-    const [{ data: itens }, nomeApp] = await Promise.all([
+    const [{ data: itens }, nomeApp, logoUrl] = await Promise.all([
       supabase.from("contratos_itens").select("*").eq("contrato_id", contratoId).order("ordem"),
       getNomeApp(),
+      buscarLogoDoContrato(),
     ]);
     const listaItens = (itens ?? []) as ContratoItemRow[];
 
@@ -52,6 +54,7 @@ export async function prepararContratoParaAssinatura(
     const buffer = await renderToBuffer(
       <ContratoPdfDocument
         empresaNome={nomeApp}
+        logoUrl={logoUrl}
         titulo={contrato.titulo}
         nomeCliente={contrato.clientes?.nome ?? contrato.nome_cliente}
         itens={listaItens.map((i) => ({

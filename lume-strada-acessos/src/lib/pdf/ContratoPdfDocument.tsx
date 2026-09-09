@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import { fmtBRL } from "@/lib/utils/format";
 
 // ============================================================================
@@ -17,6 +17,13 @@ import { fmtBRL } from "@/lib/utils/format";
 const styles = StyleSheet.create({
   page: { padding: 48, paddingBottom: 64, fontSize: 10, fontFamily: "Helvetica", color: "#1a1a1a", lineHeight: 1.5 },
   header: { marginBottom: 16, borderBottom: "1pt solid #cccccc", paddingBottom: 12 },
+  // A logo abre o documento centralizada, acima de tudo. 170x56 pontos são
+  // cerca de 6 x 2 cm no papel — presença suficiente para identificar a marca
+  // sem transformar a primeira página num folder. `objectFit: "contain"`
+  // segura a proporção: logo alta e logo comprida cabem na mesma caixa sem
+  // esticar.
+  marcaArea: { alignItems: "center", marginBottom: 14 },
+  marca: { maxWidth: 170, maxHeight: 56, objectFit: "contain" },
   empresa: { fontSize: 9, color: "#666666" },
   titulo: { fontSize: 16, fontFamily: "Helvetica-Bold", marginTop: 4 },
   cliente: { marginTop: 4, fontSize: 10 },
@@ -41,6 +48,8 @@ export interface ContratoPdfItem {
 
 export interface ContratoPdfProps {
   empresaNome: string;
+  /** URL pública da logo (`companies.contrato_logo_path`). Null = documento sem marca. */
+  logoUrl?: string | null;
   titulo: string;
   nomeCliente: string;
   itens: ContratoPdfItem[];
@@ -49,10 +58,17 @@ export interface ContratoPdfProps {
   assinatura?: { nome: string; data: string; ip: string | null } | null;
 }
 
-export function ContratoPdfDocument({ empresaNome, titulo, nomeCliente, itens, total, clausulas, assinatura }: ContratoPdfProps) {
+export function ContratoPdfDocument({ empresaNome, logoUrl, titulo, nomeCliente, itens, total, clausulas, assinatura }: ContratoPdfProps) {
   return (
     <Document title={titulo} author={empresaNome}>
       <Page size="A4" style={styles.page}>
+        {logoUrl && (
+          <View style={styles.marcaArea}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- o Image do react-pdf não aceita alt */}
+            <Image src={logoUrl} style={styles.marca} />
+          </View>
+        )}
+
         <View style={styles.header}>
           <Text style={styles.empresa}>{empresaNome}</Text>
           <Text style={styles.titulo}>{titulo}</Text>

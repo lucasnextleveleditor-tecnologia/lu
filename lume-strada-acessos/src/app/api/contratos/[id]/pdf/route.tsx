@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { buscarContratoPorId } from "@/app/admin/contratos/data";
+import { buscarContratoPorId, buscarLogoDoContrato } from "@/app/admin/contratos/data";
 import { calcularTotalContrato } from "@/lib/types/contratos";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
 import { ContratoPdfDocument } from "@/lib/pdf/ContratoPdfDocument";
@@ -21,11 +21,12 @@ interface RouteParams {
  */
 export async function GET(_req: Request, { params }: RouteParams) {
   const { id } = await params;
-  const [contrato, nomeEmpresa] = await Promise.all([buscarContratoPorId(id), getNomeApp()]);
+  const [contrato, nomeEmpresa, logoUrl] = await Promise.all([buscarContratoPorId(id), getNomeApp(), buscarLogoDoContrato()]);
 
   const buffer = await renderToBuffer(
     <ContratoPdfDocument
       empresaNome={nomeEmpresa}
+      logoUrl={logoUrl}
       titulo={contrato.titulo}
       nomeCliente={contrato.cliente_nome ?? contrato.nome_cliente}
       itens={contrato.itens.map((i) => ({ nome: i.nome, descricao: i.descricao, quantidade: i.quantidade, valorUnitario: i.valor_unitario }))}

@@ -160,7 +160,15 @@ export async function salvarPortfolioDoOrcamento(orcamentoId: string, portfolioI
 // identidade visual da agência não é delegável por permissão de
 // funcionário, mesma regra já aplicada em Aparência.
 // ----------------------------------------------------------------------------
-export type CampoMarcaOrcamento = "orc_logo_path" | "orc_banner_path" | "orc_rodape_path";
+/**
+ * `contrato_logo_path` entra aqui, e nao numa acao propria, porque o
+ * mecanismo e identico: mesmo bucket, mesma checagem de admin, mesma
+ * gravacao numa coluna de `companies`. O que muda e so o destino da imagem —
+ * e a logo do contrato e separada da logo da proposta de proposito: a
+ * proposta e vista na tela, o contrato e papel branco, e e comum a mesma
+ * marca ter duas versoes.
+ */
+export type CampoMarcaOrcamento = "orc_logo_path" | "orc_banner_path" | "orc_rodape_path" | "contrato_logo_path";
 
 export async function uploadMarcaOrcamento(campo: CampoMarcaOrcamento, formData: FormData): Promise<UploadMarcaResult> {
   try {
@@ -184,6 +192,7 @@ export async function uploadMarcaOrcamento(campo: CampoMarcaOrcamento, formData:
     if (erroUpdate) return { ok: false, error: erroUpdate.message };
 
     revalidatePath(PATH);
+    revalidatePath("/admin/contratos/lista");
     return { ok: true, url: urlData.publicUrl };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

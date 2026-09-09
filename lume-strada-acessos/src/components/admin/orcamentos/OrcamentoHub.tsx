@@ -85,6 +85,7 @@ export function OrcamentoHub({ orcamento, contratoVinculado, dadosContrato, nome
           <ContratoBuilder
             nomeEmpresa={nomeEmpresa}
             empresa={dadosContrato.empresa}
+            logoContratoUrl={dadosContrato.logoContratoUrl}
             clientes={dadosContrato.clientes}
             tiposContrato={dadosContrato.tiposContrato}
             orcamentosParaVincular={dadosContrato.orcamentosParaVincular}

@@ -93,18 +93,24 @@ export function ChecklistDeClausulas({
           {dentro} de {clausulas.length} cláusulas neste contrato
         </p>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={aoVerPrevia}
-            className="inline-flex items-center gap-1 text-xs font-medium text-ink-secondary transition hover:text-ink-primary"
-          >
-            <IconEye className="h-3.5 w-3.5" /> Prévia
-          </button>
           <button type="button" onClick={() => aoMarcarTodas(true)} className="text-xs font-medium text-accent hover:underline">
             Marcar todas
           </button>
           <button type="button" onClick={() => aoMarcarTodas(false)} className="text-xs text-ink-muted transition hover:text-ink-secondary">
             Só as essenciais
+          </button>
+          {/*
+            A prévia deixou de ser um link discreto no meio dos outros: é a
+            ação que responde à pergunta que a pessoa realmente tem na frente
+            de um checklist de trinta linhas — "como isso vai ficar?". Sendo a
+            mais útil, é a que tem que saltar aos olhos.
+          */}
+          <button
+            type="button"
+            onClick={aoVerPrevia}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-accent to-accent2 px-3 py-1.5 text-xs font-semibold text-white shadow-[0_8px_20px_-10px_rgb(var(--color-accent)/0.8)] transition hover:brightness-110"
+          >
+            <IconEye className="h-3.5 w-3.5" /> Ver prévia
           </button>
         </div>
       </div>

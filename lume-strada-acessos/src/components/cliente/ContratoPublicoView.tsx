@@ -100,6 +100,14 @@ export function ContratoPublicoView({ contrato, token }: { contrato: ContratoPub
       {error && <p className="text-sm text-danger print:hidden">{error}</p>}
 
       <Card>
+        {/* A logo abre o documento, centralizada — mesmo lugar em que aparece no PDF. */}
+        {contrato.logoUrl && (
+          <div className="mb-5 flex justify-center border-b border-base-800 pb-5">
+            {/* eslint-disable-next-line @next/next/no-img-element -- imagem do bucket do próprio projeto */}
+            <img src={contrato.logoUrl} alt="" className="max-h-16 w-auto max-w-[220px] object-contain" />
+          </div>
+        )}
+
         <div className="mb-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.contratos.contratoTitulo}</p>
           <h1 className="mt-1 text-xl font-semibold tracking-tight text-ink-primary">{contrato.titulo}</h1>

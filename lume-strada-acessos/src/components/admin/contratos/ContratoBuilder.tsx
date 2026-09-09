@@ -18,6 +18,8 @@ import {
 } from "@/lib/contratos/modelos/tipos";
 import { ChecklistDeClausulas } from "./ChecklistDeClausulas";
 import { PreviaDoContrato } from "./PreviaDoContrato";
+import { MarcaOrcamentoUploadField } from "@/components/admin/orcamentos/MarcaOrcamentoUploadField";
+import { IconEye } from "@/components/ui/icons";
 import { criarContratoCompleto, atualizarContratoCompleto, enviarContrato, type ContratoItemInput } from "@/app/admin/contratos/actions";
 import type { buscarContratoPorId, OrcamentoParaVincular, EmpresaContratante } from "@/app/admin/contratos/data";
 import { Card } from "@/components/ui/Card";
@@ -56,6 +58,8 @@ function novaChave(): string {
 interface ContratoBuilderProps {
   /** Nome de MARCA (branding, `companies.nome_app` via `getNomeApp()`) — usado só pelo modelo simples legado (placeholder `{{empresa}}`). Nunca usar aqui pro CONTRATADO jurídico dos modelos ricos — ver prop `empresa`. */
   nomeEmpresa: string;
+  /** URL pública da logo do contrato (`companies.contrato_logo_path`). Null = ainda não enviada. */
+  logoContratoUrl: string | null;
   /** Dados jurídicos reais da própria empresa (CONTRATADO) — razão social (`companies.nome`) + CPF/CNPJ + endereço, usados só pra auto-preencher os `[TAG]` do banco de modelos ricos (`BANCO_DE_MODELOS`). Prop separada de `nomeEmpresa` de propósito (ver comentário acima). */
   empresa: EmpresaContratante;
   clientes: ClienteOpcao[];
@@ -79,6 +83,7 @@ interface ContratoBuilderProps {
 
 export function ContratoBuilder({
   empresa,
+  logoContratoUrl,
   clientes,
   orcamentosParaVincular,
   contratoParaEditar,
@@ -107,6 +112,9 @@ export function ContratoBuilder({
   // Cláusulas escritas pela própria pessoa, que não existem em modelo nenhum.
   const [clausulasProprias, setClausulasProprias] = useState<ClausulaModelo[]>([]);
   const [previaAberta, setPreviaAberta] = useState(false);
+  // O upload grava direto em `companies` e devolve a URL — este estado só
+  // mantém a tela e a prévia em dia sem precisar recarregar a página.
+  const [logoUrl, setLogoUrl] = useState<string | null>(logoContratoUrl);
   const [valoresManuais, setValoresManuais] = useState<Record<string, string>>({});
   const [camposPendentes, setCamposPendentes] = useState<string[]>([]);
   const [titulo, setTitulo] = useState(contratoParaEditar?.titulo ?? "");
@@ -547,6 +555,32 @@ export function ContratoBuilder({
           </div>
         </Card>
 
+        {/* ----------------------------------------------------------------- */}
+        {/* LOGO NO TOPO DO CONTRATO                                           */}
+        {/* ----------------------------------------------------------------- */}
+        {/*
+          Fica aqui, no construtor, e não escondido numa tela de configuração:
+          é olhando o contrato que a pessoa lembra que ele está sem a marca.
+          O arquivo é da EMPRESA, não deste contrato — sobe uma vez e passa a
+          valer para todos os próximos.
+        */}
+        <Card>
+          <h2 className="mb-1 text-sm font-semibold">Logo no topo do contrato</h2>
+          <p className="mb-3 text-xs leading-relaxed text-ink-muted">
+            Aparece centralizada na primeira página, acima do título — no PDF e no link que o cliente abre. Sobe uma vez
+            e vale para todos os contratos.
+          </p>
+          <MarcaOrcamentoUploadField
+            campo="contrato_logo_path"
+            label="Arquivo da logo"
+            valorAtual={logoUrl}
+            onChange={setLogoUrl}
+            formato="wide"
+            hint="O papel do contrato é BRANCO: envie a versão escura ou colorida da sua marca. Logo branca some no documento."
+            specs="PNG com fundo transparente · horizontal (deitada) funciona melhor · mínimo 600 px de largura, ideal 1200 px · no papel ela sai com cerca de 6 cm de largura por 2 cm de altura · até 3 MB"
+          />
+        </Card>
+
         {tipoServico && camposPendentes.length > 0 && (
           <Card>
             <h2 className="mb-1 text-sm font-semibold">{dict.contratos.camposPendentesTitulo}</h2>
@@ -655,7 +689,7 @@ export function ContratoBuilder({
     </div>
 
       {previaAberta && (
-        <PreviaDoContrato titulo={titulo} texto={textoDaPrevia()} aoFechar={() => setPreviaAberta(false)} />
+        <PreviaDoContrato titulo={titulo} texto={textoDaPrevia()} logoUrl={logoUrl} aoFechar={() => setPreviaAberta(false)} />
       )}
     </>
   );

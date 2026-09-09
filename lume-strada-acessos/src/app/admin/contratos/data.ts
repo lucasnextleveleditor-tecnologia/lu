@@ -5,6 +5,9 @@ import type { OrcamentoRow, OrcItemRow, PerfilOrcamento } from "@/lib/types/orca
 import { calcularTotalOrcamento } from "@/lib/types/orcamentos";
 import { CATEGORIAS_PORTFOLIO } from "@/lib/utils/orcamentos";
 
+/** Mesmo bucket da marca das propostas — a logo do contrato mora ao lado das outras imagens da empresa. */
+const BUCKET_ORCAMENTOS_MIDIA = "orcamentos-midia";
+
 export interface ContratosSearchParams {
   status?: string;
   busca?: string;
@@ -121,7 +124,10 @@ export async function buscarDadosConstrutorContrato() {
     // `companies_select_own` já restringe a UMA linha só (a própria empresa de
     // quem chama), então não precisa `.eq()`. Diferente de `getNomeApp()`, aqui
     // é a razão social real (`nome`), não o nome de marca (`nome_app`).
-    supabase.from("companies").select("nome, cpf_cnpj, endereco").maybeSingle<{ nome: string | null; cpf_cnpj: string | null; endereco: string | null }>(),
+    supabase
+      .from("companies")
+      .select("nome, cpf_cnpj, endereco, contrato_logo_path")
+      .maybeSingle<{ nome: string | null; cpf_cnpj: string | null; endereco: string | null; contrato_logo_path: string | null }>(),
   ]);
 
   const tipos = tiposRes.data ?? [];
@@ -166,7 +172,11 @@ export async function buscarDadosConstrutorContrato() {
     endereco: empresaRes.data?.endereco || null,
   };
 
-  return { clientes: clientesRes.data ?? [], tiposContrato, orcamentosParaVincular, empresa };
+  const logoContratoUrl = empresaRes.data?.contrato_logo_path
+    ? supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(empresaRes.data.contrato_logo_path).data.publicUrl
+    : null;
+
+  return { clientes: clientesRes.data ?? [], tiposContrato, orcamentosParaVincular, empresa, logoContratoUrl };
 }
 
 /** Um contrato completo (cabeçalho + itens + nomes vinculados) — usado pelas telas de detalhe e edição. */
@@ -207,4 +217,22 @@ export async function buscarContratoVinculado(orcamentoId: string): Promise<Awai
   if (!vinculo) return null;
 
   return buscarContratoPorId(vinculo.id);
+}
+
+/**
+ * A logo que vai no topo do contrato, já como URL pronta para uso.
+ *
+ * Fica numa função à parte porque quem precisa dela são três lugares com
+ * caminhos diferentes: o PDF gerado no servidor, a tela de detalhe e o link
+ * público que o cliente abre — e nenhum deles precisa do resto dos dados do
+ * construtor.
+ */
+export async function buscarLogoDoContrato(): Promise<string | null> {
+  const { supabase } = await requireModuloOuRedirect("orcamentos");
+  const { data } = await supabase
+    .from("companies")
+    .select("contrato_logo_path")
+    .maybeSingle<{ contrato_logo_path: string | null }>();
+  if (!data?.contrato_logo_path) return null;
+  return supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(data.contrato_logo_path).data.publicUrl;
 }

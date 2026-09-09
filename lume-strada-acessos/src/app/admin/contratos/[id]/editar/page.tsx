@@ -14,7 +14,7 @@ interface PageProps {
 export default async function EditarContratoPage({ params }: PageProps) {
   const { id } = await params;
   const { dict } = await getDictionary();
-  const [{ clientes, tiposContrato, orcamentosParaVincular, empresa }, contrato, nomeEmpresa] = await Promise.all([buscarDadosConstrutorContrato(), buscarContratoPorId(id), getNomeApp()]);
+  const [{ clientes, tiposContrato, orcamentosParaVincular, empresa, logoContratoUrl }, contrato, nomeEmpresa] = await Promise.all([buscarDadosConstrutorContrato(), buscarContratoPorId(id), getNomeApp()]);
 
   return (
     <div className="space-y-6">
@@ -26,7 +26,7 @@ export default async function EditarContratoPage({ params }: PageProps) {
         <h1 className="text-lg font-semibold tracking-tight">{dict.orcamentos.editarBtn}</h1>
       </div>
 
-      <ContratoBuilder nomeEmpresa={nomeEmpresa} empresa={empresa} clientes={clientes} tiposContrato={tiposContrato} orcamentosParaVincular={orcamentosParaVincular} contratoParaEditar={contrato} />
+      <ContratoBuilder nomeEmpresa={nomeEmpresa} empresa={empresa} logoContratoUrl={logoContratoUrl} clientes={clientes} tiposContrato={tiposContrato} orcamentosParaVincular={orcamentosParaVincular} contratoParaEditar={contrato} />
     </div>
   );
 }
