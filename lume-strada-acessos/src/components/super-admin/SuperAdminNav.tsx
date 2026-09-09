@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
-import { IconBuilding, IconPalette } from "@/components/ui/icons";
+import { IconBuilding, IconPalette, IconUsers } from "@/components/ui/icons";
 
 const ITENS = [
   { href: "/super-admin", label: "Empresas", icon: IconBuilding, exato: true },
   { href: "/super-admin/tela-login", label: "Tela de Login", icon: IconPalette, exato: false },
+  { href: "/super-admin/conta", label: "Minha Conta", icon: IconUsers, exato: false },
 ] as const;
 
 /**
