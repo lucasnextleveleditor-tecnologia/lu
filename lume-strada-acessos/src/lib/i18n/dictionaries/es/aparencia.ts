@@ -77,6 +77,11 @@ export const aparencia: AparenciaDict = {
   previewCardDestaque: "Tarjeta con borde destacado",
 
   enviarImagem: "Subir imagen",
+  uploadFormatos: "PNG, JPG, WEBP o GIF · hasta 3 MB · SVG no se acepta",
+  dimLogo: "Ideal: fondo transparente, de 96 a 160 px de alto (ej.: 480×120). Se muestra a 32 px en el menú y 48 px en la pantalla de contraseña, así que envía el doble para que se vea nítida en Retina.",
+  dimFavicon: "Ideal: PNG cuadrado de 128×128 px. Se reduce a 16 px en la pestaña del navegador — evita el texto, usa solo un símbolo.",
+  dimFundoLogin: "Ideal: 1920×1080 px (16:9), horizontal. La imagen cubre toda la pantalla y se recorta en los bordes — deja el motivo principal en el centro.",
+  dimBannerImg: "Ideal: 1200×300 px (4:1), horizontal. Se convierte en el fondo de la franja con el texto encima — prefiere una imagen oscura y sin detalle en el centro.",
   trocar: "Cambiar",
   enviando: "Subiendo...",
 

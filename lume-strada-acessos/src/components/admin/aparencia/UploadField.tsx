@@ -8,7 +8,15 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface UploadFieldProps {
   label: string;
+  /** Para que serve o arquivo. */
   hint?: string;
+  /**
+   * Dimensões recomendadas deste campo específico (ver `dim*` no dicionário
+   * de Aparência). Fica junto da linha fixa de formatos/limite, logo abaixo
+   * do botão — o momento de saber o tamanho certo é ANTES de escolher o
+   * arquivo, não depois de o upload sair torto.
+   */
+  dimensoes?: string;
   campo: CampoUpload;
   valorAtual: string | null;
   onChange: (url: string | null) => void;
@@ -16,7 +24,7 @@ interface UploadFieldProps {
   formato?: "square" | "wide";
 }
 
-export function UploadField({ label, hint, campo, valorAtual, onChange, formato = "square" }: UploadFieldProps) {
+export function UploadField({ label, hint, dimensoes, campo, valorAtual, onChange, formato = "square" }: UploadFieldProps) {
   const { dict } = useLocale();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
@@ -83,6 +91,12 @@ export function UploadField({ label, hint, campo, valorAtual, onChange, formato 
             )}
           </div>
           {hint && <p className="text-xs text-ink-muted">{hint}</p>}
+          {dimensoes && <p className="max-w-md text-xs text-ink-muted">{dimensoes}</p>}
+          {/* Formatos e limite são iguais em todo upload de branding
+              (`ehImagemPermitida` + `TAMANHO_MAX_BYTES` em
+              `aparencia/actions.ts`), então a linha é fixa aqui em vez de
+              repetida em cada chamada — se o limite mudar, muda num lugar só. */}
+          <p className="text-[11px] text-ink-muted/80">{dict.aparencia.uploadFormatos}</p>
         </div>
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
       </div>

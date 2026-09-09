@@ -5,6 +5,8 @@ import { createAdminClient, criarAcessoComSenhaPadrao } from "@/lib/supabase/adm
 import { requireSuperAdmin } from "@/lib/auth/requireAdmin";
 import type { AcessoEmpresaRow, StatusEmpresa } from "@/lib/types/super-admin";
 import type { AcessoGeradoResult } from "@/lib/types/acesso";
+import type { LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
+import { ehImagemPermitida } from "@/lib/utils/upload";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
@@ -241,6 +243,110 @@ export async function excluirAcessoEmpresa(profileId: string, companyId: string)
     if (error) return { ok: false, error: error.message };
 
     revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Tela de Login (pública)
+// ----------------------------------------------------------------------------
+// A tela de login é renderizada ANTES de qualquer autenticação, então o
+// sistema não sabe de qual empresa é quem chegou: ela sempre mostra a marca
+// da empresa dona do SaaS (policy `branding_config_select_publico`, ver
+// `supabase/branding-por-empresa.sql`). Como é uma tela só, compartilhada por
+// TODAS as agências, quem edita é o dono do SaaS — não a agência.
+//
+// Por isso estas ações usam Service Role em vez do cliente da sessão: o
+// `super_admin` não tem `company_id`, então o RLS de `branding_config` não
+// devolve nenhuma linha pra ele. O alvo é sempre resolvido no servidor por
+// `saas_owner_company_id()`, nunca vem do cliente — mesmo padrão de
+// `atualizarEmailAcesso` acima.
+
+const BUCKET_BRANDING = "branding";
+const TAMANHO_MAX_LOGIN_BG = 3 * 1024 * 1024; // mesmo limite dos uploads de Aparência
+
+/** Id da empresa dona do SaaS — a mais antiga da tabela (ver a função SQL de mesmo nome). */
+async function idEmpresaDonaDoSaas(): Promise<string> {
+  const admin = createAdminClient();
+  const { data, error } = await admin.rpc("saas_owner_company_id");
+  if (error || !data) throw new Error("Não foi possível identificar a empresa dona do SaaS.");
+  return data as string;
+}
+
+export interface TelaLoginInput {
+  loginTitle: string;
+  loginSubtitle: string;
+  loginBoxPosition: LoginBoxPosition;
+  loginBgPreset: LoginBgPreset;
+  bannerAtivoLogin: boolean;
+}
+
+export async function salvarTelaLogin(input: TelaLoginInput): Promise<ActionResult> {
+  try {
+    await requireSuperAdmin();
+
+    if (!input.loginTitle.trim()) return { ok: false, error: "Informe o título da tela de login." };
+
+    const admin = createAdminClient();
+    const { error } = await admin
+      .from("branding_config")
+      .update({
+        login_title: input.loginTitle.trim(),
+        login_subtitle: input.loginSubtitle.trim(),
+        login_box_position: input.loginBoxPosition,
+        login_bg_preset: input.loginBgPreset,
+        banner_ativo_login: input.bannerAtivoLogin,
+      })
+      .eq("company_id", await idEmpresaDonaDoSaas());
+
+    if (error) return { ok: false, error: error.message };
+
+    // A tela de login é estática por request, mas o `<title>` e o favicon do
+    // layout raiz vêm da mesma linha — invalidação ampla, igual `salvarBranding`.
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+export async function uploadFundoLogin(formData: FormData): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  try {
+    await requireSuperAdmin();
+    const file = formData.get("file");
+
+    if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Selecione um arquivo." };
+    if (file.size > TAMANHO_MAX_LOGIN_BG) return { ok: false, error: "Arquivo muito grande (máximo 3MB)." };
+    if (!ehImagemPermitida(file.type)) return { ok: false, error: "Envie um arquivo de imagem (PNG, JPG, WEBP ou GIF). SVG não é permitido." };
+
+    const companyId = await idEmpresaDonaDoSaas();
+    const admin = createAdminClient();
+    const extensao = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const caminho = `${companyId}/login_bg_url/${Date.now()}.${extensao}`;
+
+    const { error: erroUpload } = await admin.storage.from(BUCKET_BRANDING).upload(caminho, file, { upsert: true, contentType: file.type });
+    if (erroUpload) return { ok: false, error: erroUpload.message };
+
+    const { data: urlData } = admin.storage.from(BUCKET_BRANDING).getPublicUrl(caminho);
+    const { error } = await admin.from("branding_config").update({ login_bg_url: urlData.publicUrl }).eq("company_id", companyId);
+    if (error) return { ok: false, error: error.message };
+
+    revalidatePath("/", "layout");
+    return { ok: true, url: urlData.publicUrl };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+export async function removerFundoLogin(): Promise<ActionResult> {
+  try {
+    await requireSuperAdmin();
+    const admin = createAdminClient();
+    const { error } = await admin.from("branding_config").update({ login_bg_url: null }).eq("company_id", await idEmpresaDonaDoSaas());
+    if (error) return { ok: false, error: error.message };
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

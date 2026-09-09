@@ -2,6 +2,7 @@ import { requireSuperAdminOuRedirect } from "@/lib/auth/requireAdmin";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { IconBuilding } from "@/components/ui/icons";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { SuperAdminNav } from "@/components/super-admin/SuperAdminNav";
 
 /**
  * Shell PROPOSITALMENTE mais simples que `AdminShell` (usado em `/admin`):
@@ -34,7 +35,10 @@ export default async function SuperAdminLayout({ children }: { children: React.R
               <p className="text-xs leading-tight text-ink-muted">Gestão de licenças do SaaS</p>
             </div>
           </div>
-          <LogoutButton />
+          <div className="flex items-center gap-3">
+            <SuperAdminNav />
+            <LogoutButton />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>

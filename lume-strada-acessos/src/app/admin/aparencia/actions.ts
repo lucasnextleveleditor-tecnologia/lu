@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { NOME_APP_PADRAO } from "@/lib/branding/getNomeApp";
 import { ehImagemPermitida } from "@/lib/utils/upload";
 import { ehHexValido, normalizarHex } from "@/lib/branding/corDeMarca";
-import type { BannerTone, LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
+import type { BannerTone } from "@/lib/types/database";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type UploadResult = { ok: true; url: string } | { ok: false; error: string };
@@ -14,7 +14,8 @@ export type UploadResult = { ok: true; url: string } | { ok: false; error: strin
 const BUCKET = "branding";
 const TAMANHO_MAX_BYTES = 3 * 1024 * 1024; // 3MB — logo/favicon/fundo não precisam de mais que isso
 
-export type CampoUpload = "logo_url" | "logo_dark_url" | "logo_light_url" | "favicon_url" | "login_bg_url" | "banner_img_url";
+/** `login_bg_url` não está aqui: o fundo do login é enviado em `/super-admin/tela-login`, com Service Role (ver `super-admin/actions.ts`). */
+export type CampoUpload = "logo_url" | "logo_dark_url" | "logo_light_url" | "favicon_url" | "banner_img_url";
 
 /**
  * Envia um arquivo pro bucket `branding` (Supabase Storage) e já grava a
@@ -76,12 +77,7 @@ export async function removerBrandingAsset(campo: CampoUpload): Promise<ActionRe
 }
 
 export interface BrandingInput {
-  loginTitle: string;
-  loginSubtitle: string;
-  loginBoxPosition: LoginBoxPosition;
-  loginBgPreset: LoginBgPreset;
   sidebarCompactoPadrao: boolean;
-  bannerAtivoLogin: boolean;
   bannerAtivoAdmin: boolean;
   bannerAtivoCliente: boolean;
   bannerTitulo: string;
@@ -93,7 +89,7 @@ export interface BrandingInput {
 }
 
 /**
- * Salva textos/posição/fundo do login, o padrão do menu lateral e o banner
+ * Salva o padrão do menu lateral e o banner
  * de destaque — os campos de upload já são salvos à parte, ver acima. Cores
  * (`primary_color`/`accent_color`/`theme_preset`) não são mais
  * configuráveis: a paleta preto/branco é fixa em toda a plataforma (ver
@@ -104,13 +100,11 @@ export async function salvarBranding(input: BrandingInput): Promise<ActionResult
   try {
     const { supabase, companyId } = await requireAdmin();
 
-    if (!input.loginTitle.trim()) return { ok: false, error: "Informe o título da tela de login." };
-
     // Ligar qualquer toggle de "onde aparece" sem preencher o título do
     // banner deixaria o admin achando que salvou algo que na prática nunca
     // vai aparecer pra ninguém (`AnnouncementBanner` exige título) — mais
     // seguro barrar aqui do que deixar o admin descobrir isso sozinho.
-    const bannerAtivoEmAlgumLugar = input.bannerAtivoLogin || input.bannerAtivoAdmin || input.bannerAtivoCliente;
+    const bannerAtivoEmAlgumLugar = input.bannerAtivoAdmin || input.bannerAtivoCliente;
     if (bannerAtivoEmAlgumLugar && !input.bannerTitulo.trim()) {
       return { ok: false, error: "Preencha o título do banner antes de ativá-lo em algum lugar." };
     }
@@ -118,12 +112,12 @@ export async function salvarBranding(input: BrandingInput): Promise<ActionResult
     const { error } = await supabase
       .from("branding_config")
       .update({
-        login_title: input.loginTitle.trim(),
-        login_subtitle: input.loginSubtitle.trim(),
-        login_box_position: input.loginBoxPosition,
-        login_bg_preset: input.loginBgPreset,
+        // Campos de login (`login_*`, `banner_ativo_login`) NÃO entram neste
+        // update de propósito: eles pertencem à tela pública, editada só pelo
+        // dono do SaaS em `/super-admin/tela-login`. Se voltassem aqui, um
+        // "Salvar" comum de uma agência sobrescreveria a tela de login de
+        // todo mundo com os valores dela.
         sidebar_compacto_padrao: input.sidebarCompactoPadrao,
-        banner_ativo_login: input.bannerAtivoLogin,
         banner_ativo_admin: input.bannerAtivoAdmin,
         banner_ativo_cliente: input.bannerAtivoCliente,
         banner_titulo: input.bannerTitulo.trim(),

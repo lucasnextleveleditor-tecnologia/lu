@@ -77,6 +77,11 @@ export const aparencia: AparenciaDict = {
   previewCardDestaque: "Card with highlighted border",
 
   enviarImagem: "Upload image",
+  uploadFormatos: "PNG, JPG, WEBP or GIF · up to 3 MB · SVG is not accepted",
+  dimLogo: "Best: transparent background, 96–160 px tall (e.g. 480×120). It renders at 32 px in the menu and 48 px on the password screen, so send double for Retina sharpness.",
+  dimFavicon: "Best: square PNG, 128×128 px. It shrinks to 16 px in the browser tab — avoid text, use a single symbol.",
+  dimFundoLogin: "Best: 1920×1080 px (16:9), landscape. The image covers the whole screen and gets cropped at the edges — keep the subject centred.",
+  dimBannerImg: "Best: 1200×300 px (4:1), landscape. It becomes the strip's background with text on top — prefer a dark image with an uncluttered centre.",
   trocar: "Change",
   enviando: "Uploading...",
 

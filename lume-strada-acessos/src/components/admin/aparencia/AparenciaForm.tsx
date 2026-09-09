@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { BannerTone, BrandingConfigRow, LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
+import type { BannerTone, BrandingConfigRow } from "@/lib/types/database";
 import { salvarBranding, atualizarNomeApp } from "@/app/admin/aparencia/actions";
-import { BANNER_TONE_LABELS, LOGIN_BG_PRESETS } from "@/lib/branding/constants";
+import { BANNER_TONE_LABELS } from "@/lib/branding/constants";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -11,10 +11,24 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { UploadField } from "@/components/admin/aparencia/UploadField";
-import { LoginPreview } from "@/components/admin/aparencia/LoginPreview";
 import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
+/**
+ * Formulário de Aparência da EMPRESA — logo, favicon, nome do app e banner
+ * interno.
+ *
+ * A "Tela de Login" NÃO está mais aqui, e a ausência é de propósito: o login
+ * é renderizado antes de qualquer autenticação, então o sistema ainda não
+ * sabe de qual empresa é quem chegou e sempre mostra a marca da empresa dona
+ * do SaaS (ver a policy `branding_config_select_publico` em
+ * `supabase/branding-por-empresa.sql`). Enquanto esses campos ficavam aqui,
+ * qualquer agência podia editá-los e não veria efeito nenhum — ou pior,
+ * acharia que estava mudando o próprio login. Agora eles vivem em
+ * `/super-admin/tela-login`, onde só o dono do SaaS chega.
+ *
+ * O toggle "mostrar banner no login" foi junto, pela mesma razão.
+ */
 export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBranding: BrandingConfigRow; initialNomeApp: string }) {
   const { dict } = useLocale();
 
@@ -25,24 +39,14 @@ export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBran
   // numa Server Action separada.
   const [nomeApp, setNomeApp] = useState(initialNomeApp);
 
-  const POSICOES: { value: LoginBoxPosition; label: string }[] = [
-    { value: "esquerda", label: dict.aparencia.posicaoEsquerda },
-    { value: "centro", label: dict.aparencia.posicaoCentro },
-    { value: "direita", label: dict.aparencia.posicaoDireita },
-  ];
   // Uploads salvam sozinhos (ver UploadField/uploadBrandingAsset) — o estado
   // local só espelha o resultado pra atualizar sidebar/preview na hora.
   const [logoUrl, setLogoUrl] = useState(initialBranding.logo_url);
   const [logoDarkUrl, setLogoDarkUrl] = useState(initialBranding.logo_dark_url);
   const [logoLightUrl, setLogoLightUrl] = useState(initialBranding.logo_light_url);
   const [faviconUrl, setFaviconUrl] = useState(initialBranding.favicon_url);
-  const [loginBgUrl, setLoginBgUrl] = useState(initialBranding.login_bg_url);
 
   // Os demais campos só persistem ao clicar "Salvar Alterações".
-  const [loginTitle, setLoginTitle] = useState(initialBranding.login_title);
-  const [loginSubtitle, setLoginSubtitle] = useState(initialBranding.login_subtitle);
-  const [loginBoxPosition, setLoginBoxPosition] = useState<LoginBoxPosition>(initialBranding.login_box_position);
-  const [loginBgPreset, setLoginBgPreset] = useState<LoginBgPreset>(initialBranding.login_bg_preset);
   const [sidebarCompactoPadrao, setSidebarCompactoPadrao] = useState(initialBranding.sidebar_compacto_padrao);
 
   // Banner de destaque — `bannerImgUrl` salva sozinho (upload), o resto só
@@ -52,7 +56,6 @@ export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBran
   // existem e `initialBranding.banner_*` chega como `undefined` — sem essa
   // proteção o `.trim()` do preview mais abaixo quebraria a página inteira.
   const [bannerImgUrl, setBannerImgUrl] = useState(initialBranding.banner_img_url ?? null);
-  const [bannerAtivoLogin, setBannerAtivoLogin] = useState(initialBranding.banner_ativo_login ?? false);
   const [bannerAtivoAdmin, setBannerAtivoAdmin] = useState(initialBranding.banner_ativo_admin ?? false);
   const [bannerAtivoCliente, setBannerAtivoCliente] = useState(initialBranding.banner_ativo_cliente ?? false);
   const [bannerTitulo, setBannerTitulo] = useState(initialBranding.banner_titulo ?? "");
@@ -75,12 +78,7 @@ export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBran
       const [resultNomeApp, resultBranding] = await Promise.all([
         atualizarNomeApp(nomeApp),
         salvarBranding({
-          loginTitle,
-          loginSubtitle,
-          loginBoxPosition,
-          loginBgPreset,
           sidebarCompactoPadrao,
-          bannerAtivoLogin,
           bannerAtivoAdmin,
           bannerAtivoCliente,
           bannerTitulo,
@@ -119,10 +117,12 @@ export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBran
           <h2 className="mb-1 text-sm font-semibold">{dict.aparencia.logoCardTitulo}</h2>
           <p className="mb-4 text-xs text-ink-muted">{dict.aparencia.logoCardDescricao}</p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <UploadField label={dict.aparencia.logoPrincipalLabel} campo="logo_url" valorAtual={logoUrl} onChange={setLogoUrl} />
+            <UploadField label={dict.aparencia.logoPrincipalLabel} campo="logo_url"
+              dimensoes={dict.aparencia.dimLogo} valorAtual={logoUrl} onChange={setLogoUrl} />
             <UploadField
               label={dict.aparencia.faviconLabel}
               campo="favicon_url"
+              dimensoes={dict.aparencia.dimFavicon}
               valorAtual={faviconUrl}
               onChange={setFaviconUrl}
               hint={dict.aparencia.faviconHint}
@@ -130,6 +130,7 @@ export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBran
             <UploadField
               label={dict.aparencia.logoDarkLabel}
               campo="logo_dark_url"
+              dimensoes={dict.aparencia.dimLogo}
               valorAtual={logoDarkUrl}
               onChange={setLogoDarkUrl}
               hint={dict.aparencia.logoDarkHint}
@@ -137,64 +138,10 @@ export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBran
             <UploadField
               label={dict.aparencia.logoLightLabel}
               campo="logo_light_url"
+              dimensoes={dict.aparencia.dimLogo}
               valorAtual={logoLightUrl}
               onChange={setLogoLightUrl}
               hint={dict.aparencia.logoLightHint}
-            />
-          </div>
-        </Card>
-
-        <Card>
-          <h2 className="mb-1 text-sm font-semibold">{dict.aparencia.loginCardTitulo}</h2>
-          <p className="mb-4 text-xs text-ink-muted">{dict.aparencia.loginCardDescricao}</p>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.tituloLabel}</label>
-                <Input value={loginTitle} onChange={(e) => setLoginTitle(e.target.value)} placeholder={dict.aparencia.tituloPlaceholder} />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.subtituloLabel}</label>
-                <Input value={loginSubtitle} onChange={(e) => setLoginSubtitle(e.target.value)} placeholder={dict.aparencia.subtituloPlaceholder} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.posicaoLabel}</label>
-                <Select value={loginBoxPosition} onChange={(e) => setLoginBoxPosition(e.target.value as LoginBoxPosition)}>
-                  {POSICOES.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {p.label}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.aparencia.fundoLabel}</label>
-                <Select
-                  value={loginBgPreset}
-                  onChange={(e) => setLoginBgPreset(e.target.value as LoginBgPreset)}
-                  disabled={Boolean(loginBgUrl)}
-                >
-                  {LOGIN_BG_PRESETS.map((p) => (
-                    <option key={p.key} value={p.key}>
-                      {p.label}
-                    </option>
-                  ))}
-                </Select>
-                {loginBgUrl && <p className="mt-1 text-xs text-ink-muted">{dict.aparencia.fundoDesativeHint}</p>}
-              </div>
-            </div>
-
-            <UploadField
-              label={dict.aparencia.fundoCustomLabel}
-              campo="login_bg_url"
-              valorAtual={loginBgUrl}
-              onChange={setLoginBgUrl}
-              formato="wide"
-              hint={dict.aparencia.fundoCustomHint}
             />
           </div>
         </Card>
@@ -204,13 +151,6 @@ export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBran
           <p className="mb-4 text-xs text-ink-muted">{dict.aparencia.bannerCardDescricao}</p>
 
           <div className="mb-4 divide-y divide-base-800 rounded-xl border border-base-800">
-            <div className="flex items-center justify-between gap-3 px-4 py-3">
-              <div>
-                <p className="text-sm text-ink-primary">{dict.aparencia.bannerLoginTitulo}</p>
-                <p className="text-xs text-ink-muted">{dict.aparencia.bannerLoginDescricao}</p>
-              </div>
-              <Switch checked={bannerAtivoLogin} onChange={setBannerAtivoLogin} label={dict.aparencia.bannerLoginTitulo} />
-            </div>
             <div className="flex items-center justify-between gap-3 px-4 py-3">
               <div>
                 <p className="text-sm text-ink-primary">{dict.aparencia.bannerAdminTitulo}</p>
@@ -281,6 +221,7 @@ export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBran
             <UploadField
               label={dict.aparencia.bannerImgLabel}
               campo="banner_img_url"
+              dimensoes={dict.aparencia.dimBannerImg}
               valorAtual={bannerImgUrl}
               onChange={setBannerImgUrl}
               formato="wide"
@@ -319,21 +260,6 @@ export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBran
 
           <div className="space-y-4">
             <div>
-              <p className="mb-2 text-xs font-medium text-ink-secondary">{dict.aparencia.previewLoginLabel}</p>
-              {/* A logotipo do login é sempre a marca padrão (nunca a
-                  customizada) — o preview usa `logoUrl={null}` de propósito,
-                  pra refletir exatamente o que aparece na tela real. */}
-              <LoginPreview
-                logoUrl={null}
-                titulo={loginTitle}
-                subtitulo={loginSubtitle}
-                posicao={loginBoxPosition}
-                bgPreset={loginBgPreset}
-                bgUrl={loginBgUrl}
-              />
-            </div>
-
-            <div>
               <p className="mb-2 text-xs font-medium text-ink-secondary">{dict.aparencia.bannerCardTitulo}</p>
               {bannerTitulo.trim() ? (
                 // `dispensavel={false}` de propósito só aqui no preview — evita
@@ -354,7 +280,7 @@ export function AparenciaForm({ initialBranding, initialNomeApp }: { initialBran
                   {dict.aparencia.previewBannerPlaceholder}
                 </div>
               )}
-              {bannerTitulo.trim() && !bannerAtivoLogin && !bannerAtivoAdmin && !bannerAtivoCliente && (
+              {bannerTitulo.trim() && !bannerAtivoAdmin && !bannerAtivoCliente && (
                 <p className="mt-2 text-xs text-status-warning">{dict.aparencia.previewBannerAvisoNenhumToggle}</p>
               )}
             </div>

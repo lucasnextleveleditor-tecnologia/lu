@@ -80,6 +80,13 @@ export interface AparenciaDict {
   previewCardDestaque: string;
 
   enviarImagem: string;
+  /** Linha fixa embaixo de TODO upload — formatos aceitos e limite, iguais pra todos (ver `TAMANHO_MAX_BYTES`/`ehImagemPermitida` em `aparencia/actions.ts`). */
+  uploadFormatos: string;
+  /** Dimensões recomendadas, uma por campo. Não são obrigatórias (nada é redimensionado no servidor) — são o que evita logo serrilhado e fundo esticado. */
+  dimLogo: string;
+  dimFavicon: string;
+  dimFundoLogin: string;
+  dimBannerImg: string;
   trocar: string;
   enviando: string;
 
@@ -163,6 +170,11 @@ export const aparencia: AparenciaDict = {
   previewCardDestaque: "Card com borda de destaque",
 
   enviarImagem: "Enviar imagem",
+  uploadFormatos: "PNG, JPG, WEBP ou GIF · até 3 MB · SVG não é aceito",
+  dimLogo: "Ideal: fundo transparente, altura de 96 a 160 px (ex.: 480×120). Aparece com 32 px de altura no menu e 48 px na tela de senha, então mande o dobro pra ficar nítida em tela Retina.",
+  dimFavicon: "Ideal: PNG quadrado de 128×128 px. É reduzido para 16 px na aba do navegador — evite texto, use só um símbolo.",
+  dimFundoLogin: "Ideal: 1920×1080 px (16:9), paisagem. A imagem cobre a tela inteira e é cortada nas bordas — deixe o assunto principal no centro.",
+  dimBannerImg: "Ideal: 1200×300 px (4:1), paisagem. Vira o fundo da faixa, com o texto por cima — prefira imagem escura e sem detalhe no centro.",
   trocar: "Trocar",
   enviando: "Enviando...",
 
