@@ -1,4 +1,31 @@
 import { CAMPOS_COMUNS_CONTRATO, type ModeloContratoServico } from "./tipos";
+import {
+  CAMPOS_OPERACIONAIS_COMUNS,
+  CLAUSULAS_DE_FECHAMENTO,
+  CLAUSULA_ALTERACOES_DE_ESCOPO,
+  CLAUSULA_APROVACAO_E_REFACOES,
+  CLAUSULA_BACKUP,
+  CLAUSULA_DIREITOS_AUTORAIS,
+  CLAUSULA_DIREITO_DE_IMAGEM,
+  CLAUSULA_ENTREGA,
+  CLAUSULA_OBRIGACOES_DAS_PARTES,
+  CLAUSULA_PORTFOLIO,
+  CLAUSULA_PRAZOS_E_INSUMOS,
+} from "./clausulas-comuns";
+import {
+  CAMPOS_MARCA,
+  CAMPOS_SERVICO_CONTINUO,
+  CAMPOS_TRAFEGO,
+  CLAUSULAS_DE_ROTINA,
+  CLAUSULA_ACESSOS_E_CONTAS,
+  CLAUSULA_ARQUIVOS_ABERTOS,
+  CLAUSULA_CESSAO_DE_MARCA,
+  CLAUSULA_HOMOLOGACAO_TECNICA,
+  CLAUSULA_PLATAFORMAS_TERCEIROS,
+  CLAUSULA_ROTINA_E_ATENDIMENTO,
+  CLAUSULA_VIGENCIA_E_RENOVACAO,
+} from "./clausulas-continuas";
+
 
 /**
  * Banco de modelos de contrato do perfil DESIGNER — v2, 7 tipos de serviço
@@ -13,78 +40,6 @@ import { CAMPOS_COMUNS_CONTRATO, type ModeloContratoServico } from "./tipos";
  * clientes reais.
  */
 export const MODELOS_DESIGNER: ModeloContratoServico[] = [
-  {
-    perfil: "designer",
-    tipoServico: "identidade_visual_branding",
-    nome: "Identidade Visual / Branding",
-    descricao: "Criação de logotipo e manual de marca, com cessão de direitos mediante quitação integral e isenção sobre busca de disponibilidade de marca no INPI, quando não contratada.",
-    camposDinamicos: [
-      ...CAMPOS_COMUNS_CONTRATO,
-      { tag: "QUALIFICACAO_CLIENTE", label: "Qualificação do cliente", tipo: "texto" },
-      { tag: "NOME_DA_MARCA", label: "Nome da marca", tipo: "texto" },
-      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea" },
-      { tag: "NUMERO_DE_PROPOSTAS_INICIAIS", label: "Nº de propostas iniciais", tipo: "numero", exemplo: "3" },
-      { tag: "FORMATO_DE_APRESENTACAO", label: "Formato de apresentação", tipo: "texto", exemplo: "reunião online" },
-      { tag: "PRAZO_PROPOSTAS_INICIAIS", label: "Prazo de entrega das propostas iniciais", tipo: "texto", exemplo: "10 dias" },
-      { tag: "NUMERO_REVISOES_INCLUSAS", label: "Nº de revisões inclusas", tipo: "numero", exemplo: "2" },
-      { tag: "VALOR_RODADA_ADICIONAL", label: "Valor de rodada adicional", tipo: "moeda" },
-      { tag: "PERCENTUAL_MULTA_RESCISORIA", label: "% multa rescisória", tipo: "percentual", exemplo: "30" },
-    ],
-    texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE CRIAÇÃO DE IDENTIDADE VISUAL
-
-CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], CPF/CNPJ nº [CPF_CNPJ_CLIENTE], sede em [ENDERECO_CLIENTE].
-CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliado(a) em [ENDERECO_CONTRATADO].
-
-1. DO OBJETO
-1.1. Criação de identidade visual da marca [NOME_DA_MARCA], compreendendo [DESCRICAO_DOS_ENTREGAVEIS].
-
-2. DO ESCOPO E DO PROCESSO CRIATIVO
-2.1. Etapas: briefing, [NUMERO_DE_PROPOSTAS_INICIAIS] propostas iniciais de conceito, refinamento da opção escolhida, e entrega final. Etapa de briefing preenchido pela CONTRATANTE é pré-requisito para início do trabalho.
-2.2. Apresentação das propostas conforme [FORMATO_DE_APRESENTACAO].
-
-3. DO PRAZO DE ENTREGA
-3.1. Entrega das propostas iniciais em até [PRAZO_PROPOSTAS_INICIAIS] dias corridos após o briefing. Entrega final em até [PRAZO_DE_ENTREGA] dias corridos após a aprovação do conceito escolhido.
-3.2. Atrasos motivados pela CONTRATANTE (briefing incompleto, demora em aprovações) suspendem a contagem do prazo.
-
-4. DAS REVISÕES
-4.1. Inclusas [NUMERO_REVISOES_INCLUSAS] rodada(s) de ajuste sobre o conceito escolhido. Mudança de conceito já aprovado, ou nova rodada de propostas iniciais após a escolha, é cobrada à parte no valor de [VALOR_RODADA_ADICIONAL].
-4.2. Comentários genéricos e não específicos (ex.: "não gostei", "quero algo diferente") sem direcionamento objetivo podem ser solicitados a ser detalhados pelo(a) CONTRATADO(A) antes de iniciar nova rodada, para preservar a rodada de revisão.
-
-5. DO VALOR E DAS CONDIÇÕES DE PAGAMENTO
-5.1. Valor total: [VALOR_DO_SERVIÇO]. Pagamento: [CONDICOES_DE_PAGAMENTO].
-5.2. Os arquivos finais em alta resolução e formatos editáveis (vetoriais) só são entregues após a quitação integral do valor contratado.
-
-6. DA CESSÃO DE DIREITOS AUTORAIS
-6.1. Mediante pagamento integral, o(a) CONTRATADO(A) cede à CONTRATANTE os direitos patrimoniais de uso da identidade visual criada, para os fins comerciais da marca, sem limitação de prazo.
-6.2. O(a) CONTRATADO(A) pode usar o material (incluindo processo criativo/bastidores) em portfólio e divulgação profissional, com crédito, salvo pedido expresso e por escrito de embargo de divulgação por prazo determinado.
-6.3. Da busca prévia de disponibilidade de marca (cláusula essencial): salvo se expressamente contratada como serviço adicional, a pesquisa de disponibilidade e viabilidade de registro do nome/marca perante o INPI e órgãos correlatos NÃO está incluída neste contrato, sendo de responsabilidade exclusiva da CONTRATANTE verificar a disponibilidade do nome/marca escolhido antes do lançamento comercial. O(a) CONTRATADO(A) não se responsabiliza por eventual conflito com marca de terceiros já registrada.
-
-7. DA RESCISÃO E DAS MULTAS
-7.1. Desistência da CONTRATANTE após início do trabalho: pagamento proporcional às etapas já entregues (propostas iniciais, refinamento), acrescido de [PERCENTUAL_MULTA_RESCISORIA]% sobre o saldo remanescente, a título de reserva de agenda.
-7.2. Rescisão por inadimplemento do(a) CONTRATADO(A) sem justa causa: devolução dos valores de etapas não realizadas, sem prejuízo de indenização por danos comprovados.
-
-8. DA CONFIDENCIALIDADE
-8.1. Sigilo sobre a marca/produto não lançado, propostas de conceito e briefing estratégico pelo prazo de [PRAZO_CONFIDENCIALIDADE], especialmente relevante para marcas ainda não divulgadas publicamente.
-
-9. DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
-9.1. Tratamento de dados pessoais conforme a Lei nº 13.709/2018.
-
-10. DO CASO FORTUITO E FORÇA MAIOR
-10.1. Nenhuma parte responde por atraso decorrente de caso fortuito ou força maior.
-
-11. DA LIMITAÇÃO DE RESPONSABILIDADE E DA INDENIZAÇÃO
-11.1. A responsabilidade do(a) CONTRATADO(A) fica limitada ao valor total pago, excluída responsabilidade por lucros cessantes, danos indiretos, ou por conflito de marca/registro decorrente da ausência de busca prévia (cláusula 6.3), quando não contratada.
-11.2. A CONTRATANTE se compromete a indenizar e manter o(a) CONTRATADO(A) isento(a) de qualquer reclamação, multa ou processo decorrente de: (i) uso do nome/marca escolhido sem verificação prévia de disponibilidade; (ii) informações/briefing falsos ou incompletos; (iii) uso do material fora dos limites da cessão concedida neste contrato.
-11.3. Manifestações públicas negativas feitas pela CONTRATANTE de forma comprovadamente inverídica ou de má-fé poderão ser objeto de notificação extrajudicial e das medidas cabíveis, sem prejuízo do direito de resposta do(a) CONTRATADO(A).
-
-12. DAS DISPOSIÇÕES GERAIS
-12.1. Sem vínculo empregatício, societário ou de representação. Alterações somente por aditivo escrito.
-
-13. DO FORO
-13.1. Foro da Comarca de [FORO_COMARCA].
-
-Local e data: [DATA_ASSINATURA].`,
-  },
   {
     perfil: "designer",
     tipoServico: "design_redes_sociais",
@@ -288,132 +243,6 @@ Local e data: [DATA_ASSINATURA].`,
   },
   {
     perfil: "designer",
-    tipoServico: "design_materiais_impressos",
-    nome: "Design de Materiais Impressos",
-    descricao: "Criação de peças gráficas para impressão, com transferência de responsabilidade à contratante após aprovação da prova de impressão.",
-    camposDinamicos: [
-      ...CAMPOS_COMUNS_CONTRATO,
-      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea" },
-      { tag: "NUMERO_DE_PROPOSTAS_INICIAIS", label: "Nº de propostas iniciais", tipo: "numero", exemplo: "2" },
-      { tag: "NUMERO_REVISOES_INCLUSAS", label: "Nº de revisões inclusas", tipo: "numero", exemplo: "2" },
-      { tag: "PERCENTUAL_MULTA_RESCISORIA", label: "% multa rescisória", tipo: "percentual", exemplo: "30" },
-    ],
-    texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DESIGN GRÁFICO PARA MATERIAIS IMPRESSOS
-
-CONTRATANTE: [NOME_DO_CLIENTE], CPF/CNPJ nº [CPF_CNPJ_CLIENTE], sede em [ENDERECO_CLIENTE].
-CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliado(a) em [ENDERECO_CONTRATADO].
-
-1. DO OBJETO
-1.1. Criação de peças gráficas para impressão: [DESCRICAO_DOS_ENTREGAVEIS].
-
-2. DO ESCOPO E DA PROVA DE IMPRESSÃO
-2.1. Etapas: briefing, [NUMERO_DE_PROPOSTAS_INICIAIS] propostas, refinamento, arquivo final print-ready.
-2.2. Cláusula essencial: a aprovação por escrito da "prova de impressão" (arquivo final, nas dimensões/sangria/cores especificadas) pela CONTRATANTE é condição para envio à gráfica; erros de conteúdo, texto ou especificação técnica (medidas, cores, sangria) não identificados pela CONTRATANTE nessa aprovação, e que resultem em problema na impressão física, são de responsabilidade exclusiva da CONTRATANTE, não gerando obrigação de reimpressão gratuita pelo(a) CONTRATADO(A).
-2.3. O(a) CONTRATADO(A) não se responsabiliza pela qualidade de impressão realizada por gráfica de escolha da CONTRATANTE, salvo se o arquivo fornecido estiver comprovadamente fora das especificações técnicas informadas.
-
-3. DO PRAZO DE ENTREGA
-3.1. Entrega do arquivo final em até [PRAZO_DE_ENTREGA] dias corridos após aprovação do conceito.
-
-4. DAS REVISÕES
-4.1. Inclusas [NUMERO_REVISOES_INCLUSAS] rodada(s) de ajuste. Alterações após aprovação da prova de impressão são cobradas à parte, incluindo eventual retrabalho de arquivo para reimpressão.
-
-5. DO VALOR E DAS CONDIÇÕES DE PAGAMENTO
-5.1. Valor total: [VALOR_DO_SERVIÇO]. Pagamento: [CONDICOES_DE_PAGAMENTO]. Arquivo final liberado após quitação integral.
-
-6. DA CESSÃO DE DIREITOS DE USO
-6.1. Cedidos à CONTRATANTE os direitos de uso das peças, sem limitação de prazo, mediante pagamento integral. O(a) CONTRATADO(A) pode usar em portfólio, salvo vedação por escrito.
-
-7. DA RESCISÃO
-7.1. Desistência após início do trabalho: pagamento proporcional às etapas entregues, acrescido de [PERCENTUAL_MULTA_RESCISORIA]% sobre o saldo remanescente.
-
-8. DA CONFIDENCIALIDADE
-8.1. Sigilo sobre material não divulgado pelo prazo de [PRAZO_CONFIDENCIALIDADE].
-
-9. DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
-9.1. Conforme Lei nº 13.709/2018.
-
-10. DO CASO FORTUITO E FORÇA MAIOR
-10.1. Termos gerais.
-
-11. DA LIMITAÇÃO DE RESPONSABILIDADE E DA INDENIZAÇÃO
-11.1. Limitada ao valor total pago, excluída responsabilidade por erros aprovados na prova de impressão (cláusula 2.2) e por qualidade de impressão de gráfica de escolha da CONTRATANTE.
-11.2. A CONTRATANTE indeniza por: (i) informações/imagens fornecidas sem direito de uso; (ii) aprovação de prova com erro não apontado; (iii) uso do material fora da cessão concedida.
-11.3. Avaliações negativas de má-fé sujeitas a notificação extrajudicial.
-
-12. DISPOSIÇÕES GERAIS
-12.1. Sem vínculo empregatício/societário.
-
-13. DO FORO
-13.1. Foro: [FORO_COMARCA].
-
-Local e data: [DATA_ASSINATURA].`,
-  },
-  {
-    perfil: "designer",
-    tipoServico: "ui_ux_design",
-    nome: "UI/UX Design",
-    descricao: "Design de interface e experiência do usuário, com isenção sobre divergência entre design entregue e implementação técnica realizada por terceiros.",
-    camposDinamicos: [
-      ...CAMPOS_COMUNS_CONTRATO,
-      { tag: "QUALIFICACAO_CLIENTE", label: "Qualificação do cliente", tipo: "texto" },
-      { tag: "NOME_DO_PRODUTO_DIGITAL", label: "Nome do produto digital", tipo: "texto" },
-      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea" },
-      { tag: "CRONOGRAMA_POR_ETAPAS", label: "Cronograma por etapas", tipo: "textarea" },
-      { tag: "NUMERO_REVISOES_INCLUSAS", label: "Nº de revisões inclusas por etapa", tipo: "numero", exemplo: "2" },
-      { tag: "PERCENTUAL_MULTA_RESCISORIA", label: "% multa rescisória", tipo: "percentual", exemplo: "30" },
-    ],
-    texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DESIGN DE INTERFACE E EXPERIÊNCIA DO USUÁRIO (UI/UX)
-
-CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], CPF/CNPJ nº [CPF_CNPJ_CLIENTE], sede em [ENDERECO_CLIENTE].
-CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliado(a) em [ENDERECO_CONTRATADO].
-
-1. DO OBJETO
-1.1. Design de interface e experiência do usuário (UI/UX) do produto digital [NOME_DO_PRODUTO_DIGITAL], compreendendo [DESCRICAO_DOS_ENTREGAVEIS].
-
-2. DO ESCOPO E DA ENTREGA DE ARQUIVOS
-2.1. Entrega em ferramenta de design colaborativa (ex.: Figma), com handoff de especificações (medidas, cores, componentes) para a equipe de desenvolvimento.
-2.2. Da fidelidade de implementação (cláusula essencial): o(a) CONTRATADO(A) não se responsabiliza por divergências entre o design entregue e a implementação final realizada pela equipe de desenvolvimento (própria da CONTRATANTE ou terceirizada), sendo a responsabilidade pela fidelidade da implementação exclusiva de quem a executa.
-2.3. Alterações de escopo (novas telas, funcionalidades não previstas no briefing inicial) são orçadas e formalizadas em aditivo.
-
-3. DO PRAZO DE ENTREGA
-3.1. Entrega por etapas conforme [CRONOGRAMA_POR_ETAPAS], observado prazo total de [PRAZO_DE_ENTREGA] dias corridos após o briefing.
-
-4. DAS REVISÕES
-4.1. Inclusas [NUMERO_REVISOES_INCLUSAS] rodada(s) de ajuste por etapa/tela. Mudanças de direção de produto após aprovação de wireframes (ex.: nova arquitetura de informação) são cobradas à parte.
-
-5. DO VALOR E DAS CONDIÇÕES DE PAGAMENTO
-5.1. Valor total: [VALOR_DO_SERVIÇO]. Pagamento: [CONDICOES_DE_PAGAMENTO], vinculado às etapas de entrega. Arquivos-fonte liberados após quitação integral.
-
-6. DA CESSÃO DE DIREITOS DE USO
-6.1. Cedidos à CONTRATANTE os direitos de uso do design para o produto especificado, sem limitação de prazo, mediante pagamento integral. O(a) CONTRATADO(A) pode usar telas/protótipo em portfólio (inclusive em plataformas como Behance/Dribbble), salvo vedação por escrito antes do lançamento do produto.
-
-7. DA RESCISÃO
-7.1. Desistência após início do trabalho: pagamento proporcional às etapas entregues, acrescido de [PERCENTUAL_MULTA_RESCISORIA]% sobre o saldo remanescente.
-
-8. DA CONFIDENCIALIDADE
-8.1. Sigilo sobre o produto digital não lançado, funcionalidades e estratégia de negócio pelo prazo de [PRAZO_CONFIDENCIALIDADE].
-
-9. DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
-9.1. Conforme Lei nº 13.709/2018.
-
-10. DO CASO FORTUITO E FORÇA MAIOR
-10.1. Termos gerais, incluindo indisponibilidade de ferramentas de design colaborativo por falha de terceiros.
-
-11. DA LIMITAÇÃO DE RESPONSABILIDADE E DA INDENIZAÇÃO
-11.1. Limitada ao valor total pago, excluída responsabilidade por divergência de implementação (cláusula 2.2) e por decisões de produto tomadas pela CONTRATANTE após a entrega do design.
-11.2. A CONTRATANTE indeniza por: (i) informações/briefing incorretos que gerem retrabalho ou reclamação de terceiros; (ii) uso do design fora da cessão concedida; (iii) implementação divergente atribuída ao(à) CONTRATADO(A) sem que este(a) tenha participado do desenvolvimento.
-11.3. Avaliações negativas de má-fé sujeitas a notificação extrajudicial.
-
-12. DISPOSIÇÕES GERAIS
-12.1. Sem vínculo empregatício/societário.
-
-13. DO FORO
-13.1. Foro: [FORO_COMARCA].
-
-Local e data: [DATA_ASSINATURA].`,
-  },
-  {
-    perfil: "designer",
     tipoServico: "ilustracao_personalizada",
     nome: "Ilustração Personalizada / Arte Autoral",
     descricao: "Criação de ilustração autoral com licenciamento de uso por prazo/meios definidos, autoria preservada nos termos da Lei nº 9.610/98 e vedação de alteração não autorizada da obra.",
@@ -481,5 +310,446 @@ CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliad
 13.1. Foro: [FORO_COMARCA].
 
 Local e data: [DATA_ASSINATURA].`,
+  },
+  /* ================================================================== */
+  /* GRUPO 5 — DESIGNER · 1. IDENTIDADE VISUAL / BRANDING               */
+  /* ================================================================== */
+  {
+    perfil: "designer",
+    tipoServico: "identidade_visual_branding",
+    nome: "Identidade Visual / Branding",
+    descricao:
+      "Criação de marca com cessão definitiva de direitos ao cliente, propostas contadas, arquivos vetoriais garantidos, ressalva sobre busca de anterioridade no INPI e crédito de autoria preservado.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_MARCA,
+      { tag: "SEGMENTO_DA_MARCA", label: "Segmento de atuação", tipo: "texto" },
+      { tag: "ETAPAS_DO_PROJETO", label: "Etapas do projeto", tipo: "textarea", exemplo: "imersão e briefing, pesquisa e território criativo, propostas, refinamento, manual e entrega" },
+      { tag: "PRAZO_ETAPA_PESQUISA", label: "Prazo da etapa de pesquisa", tipo: "texto", exemplo: "10 dias úteis" },
+      { tag: "PRAZO_ETAPA_CRIACAO", label: "Prazo da etapa de criação", tipo: "texto", exemplo: "15 dias úteis" },
+      { tag: "APLICACOES_INCLUSAS", label: "Aplicações inclusas", tipo: "textarea", exemplo: "cartão de visita, assinatura de e-mail, papel timbrado e avatar de redes" },
+      { tag: "VALOR_APLICACAO_EXTRA", label: "Valor de aplicação extra", tipo: "moeda" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE CRIAÇÃO DE IDENTIDADE VISUAL
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002, pela Lei nº 9.610/1998 e pela Lei nº 9.279/1996.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a criação da identidade visual da marca [NOME_DA_MARCA_OU_PRODUTO], atuante no segmento [SEGMENTO_DA_MARCA].
+
+Parágrafo primeiro. O projeto observará as etapas: [ETAPAS_DO_PROJETO], com prazos de [PRAZO_ETAPA_PESQUISA] para a pesquisa e [PRAZO_ETAPA_CRIACAO] para a criação.
+
+Parágrafo segundo. Os entregáveis compreendem: [ENTREGAVEIS_MARCA], além das aplicações [APLICACOES_INCLUSAS]. Aplicações adicionais serão orçadas a [VALOR_APLICACAO_EXTRA] cada.
+
+Parágrafo terceiro. Serão apresentadas [NUMERO_PROPOSTAS_CONCEITO] propostas de conceito, entre as quais a CONTRATANTE escolherá UMA para refinamento. Não há apresentação de propostas adicionais dentro do preço contratado: cada nova rodada de conceito equivale a novo ciclo criativo e será orçada como alteração de escopo.
+
+Parágrafo quarto. NÃO integram o objeto, salvo contratação apartada: naming e criação de nome; registro de marca no INPI e honorários de agente da propriedade industrial; busca de anterioridade marcária; embalagens, rótulos e materiais impressos; site, e-commerce e interfaces digitais; fotografia e vídeo; sinalização e ambientação; e material de campanha.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "processo_criativo_marca",
+        titulo: "Do Processo Criativo, do Briefing e da Escolha da Proposta",
+        essencial: true,
+        protege: "Briefing ruim custa caro — e escolher uma proposta é fechar, não abrir a negociação.",
+        texto: `O projeto parte do briefing preenchido e assinado pela CONTRATANTE, que declara que as informações nele prestadas — público, posicionamento, concorrência, valores da marca, referências e restrições — são verdadeiras e completas.
+
+Parágrafo primeiro. Alteração substancial de briefing após o início da criação — mudança de público, de posicionamento, de nome, de segmento ou de referências — constitui alteração de escopo e enseja reorçamento da etapa afetada.
+
+Parágrafo segundo. As propostas de conceito serão apresentadas em conjunto, acompanhadas da respectiva justificativa estratégica, e a CONTRATANTE escolherá UMA no prazo de [PRAZO_APROVACAO_CLIENTE]. A ESCOLHA É DEFINITIVA: escolhido o caminho, o trabalho segue para refinamento, não sendo admitido retomar proposta descartada, combinar elementos de propostas distintas ou solicitar nova rodada de conceitos dentro do preço.
+
+Parágrafo terceiro. O refinamento comporta [NUMERO_REVISOES_INCLUSAS] rodadas de ajuste sobre a proposta escolhida, limitadas a proporção, cor, tipografia, espaçamento e variações de aplicação — não a mudança de conceito.
+
+Parágrafo quarto. A submissão da marca a votação popular, enquete em redes sociais, pesquisa com clientes ou apreciação de terceiros não vincula o CONTRATADO e não substitui a decisão do responsável indicado pela CONTRATANTE; o tempo consumido nessas consultas corre por conta dela, na forma da cláusula Dos Prazos.
+
+Parágrafo quinto. Propostas não escolhidas permanecem de titularidade do CONTRATADO, que poderá reaproveitá-las em outros projetos, vedado à CONTRATANTE utilizá-las sob qualquer forma.`,
+      },
+      CLAUSULA_CESSAO_DE_MARCA,
+      CLAUSULA_ARQUIVOS_ABERTOS,
+      {
+        id: "manual_e_uso",
+        titulo: "Do Manual de Marca e do Uso Correto",
+        protege: "O manual é a regra da marca — e distorcer o logo depois não é problema do autor.",
+        texto: `O manual de identidade entregue define as regras de aplicação da marca: versões autorizadas, área de proteção, tamanho mínimo, paleta, tipografia, usos indevidos e aplicação sobre fundos.
+
+Parágrafo primeiro. A CONTRATANTE obriga-se a observar o manual em todas as aplicações, respondendo pela descaracterização decorrente de uso em desacordo com ele.
+
+Parágrafo segundo. O CONTRATADO não responde por resultado estético, técnico ou de impressão de peças produzidas por terceiros a partir dos arquivos entregues, nem por adaptação, redesenho ou alteração da marca promovidos após a entrega.
+
+Parágrafo terceiro. Alterada a marca por terceiro, a obra resultante não poderá ser apresentada como de autoria do CONTRATADO, e este poderá exigir a retirada do seu crédito.
+
+Parágrafo quarto. Dúvidas pontuais sobre aplicação correta da marca serão respondidas pelo CONTRATADO, sem custo, pelo prazo de 90 (noventa) dias contados da entrega; suporte além disso será orçado à parte.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 5 — DESIGNER · 2. RETENÇÃO MENSAL                            */
+  /* ================================================================== */
+  {
+    perfil: "designer",
+    tipoServico: "retencao_mensal",
+    nome: "Retenção Mensal (Design Recorrente)",
+    descricao:
+      "Pacote mensal de peças com volume fechado, fila de prioridade, prazo por peça, banco de horas que não acumula e vigência com renovação automática.",
+    camposDinamicos: [
+      { tag: "VALOR_CESSAO_ARQUIVOS_ABERTOS", label: "Valor da cessão de arquivos abertos", tipo: "moeda" },
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_SERVICO_CONTINUO,
+      { tag: "TIPOS_DE_PECA", label: "Tipos de peça atendidos", tipo: "textarea", exemplo: "posts, stories, banners de e-commerce, apresentações e e-mails" },
+      { tag: "PRAZO_ENTREGA_POR_PECA", label: "Prazo por peça", tipo: "texto", exemplo: "2 dias úteis" },
+      { tag: "PRAZO_ENTREGA_URGENTE", label: "Prazo em regime de urgência", tipo: "texto", exemplo: "24 horas úteis, com acréscimo de 50%" },
+      { tag: "FORMA_DE_SOLICITACAO", label: "Como as demandas são abertas", tipo: "texto", exemplo: "por formulário de briefing em quadro compartilhado" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO CONTINUADA DE SERVIÇOS DE DESIGN
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento de prestação de serviços de trato sucessivo, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a prestação continuada de serviços de design gráfico, no volume mensal de [VOLUME_MENSAL_CONTRATADO], compreendendo os seguintes tipos de peça: [TIPOS_DE_PECA].
+
+Parágrafo primeiro. As demandas serão abertas por [FORMA_DE_SOLICITACAO], acompanhadas de briefing, textos finais, imagens e referências, e atendidas por ordem de entrada, no prazo de [PRAZO_ENTREGA_POR_PECA] por peça.
+
+Parágrafo segundo. NÃO integram o objeto, salvo contratação apartada: criação e revisão de identidade visual; ilustração autoral e infográfico complexo; motion design e animação; edição de vídeo; fotografia e tratamento avançado de imagem; redação e revisão de texto; impressão e acompanhamento gráfico; e desenvolvimento de site ou sistema.
+
+Parágrafo terceiro. O valor mensal de [VALOR_MENSAL] remunera a reserva de agenda e o volume contratado, na forma da cláusula Do Volume Mensal.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "fila_e_prioridade",
+        titulo: "Da Fila de Atendimento, da Prioridade e da Urgência",
+        essencial: true,
+        protege: "Ordem de chegada é o que impede que tudo seja urgente e nada tenha prazo.",
+        texto: `As demandas são atendidas por ordem de entrada na fila, e o prazo de cada peça começa a correr do recebimento do briefing COMPLETO, com textos finais e materiais necessários.
+
+Parágrafo primeiro. Briefing incompleto, texto não definitivo, imagem em baixa resolução ou ausência de arquivo de marca suspendem o prazo até o saneamento, na forma da cláusula Dos Prazos.
+
+Parágrafo segundo. A CONTRATANTE poderá reordenar a prioridade das demandas em fila a qualquer momento, sem custo; a reordenação, contudo, desloca proporcionalmente o prazo das peças preteridas.
+
+Parágrafo terceiro. Demandas em regime de URGÊNCIA — prazo de [PRAZO_ENTREGA_URGENTE] — dependem de aceite do CONTRATADO e importam o acréscimo previsto na cláusula Das Alterações de Escopo, dado que exigem a suspensão da fila e a realocação da agenda.
+
+Parágrafo quarto. Peças aguardando insumo, aprovação ou resposta da CONTRATANTE por mais de 15 (quinze) dias saem da fila e retornam ao seu fim quando retomadas.
+
+Parágrafo quinto. O CONTRATADO informará à CONTRATANTE, sempre que solicitado, a posição da fila e a previsão de entrega de cada demanda.`,
+      },
+      ...CLAUSULAS_DE_ROTINA,
+      CLAUSULA_ARQUIVOS_ABERTOS,
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 5 — DESIGNER · 3. LANÇAMENTOS DIGITAIS                       */
+  /* ================================================================== */
+  {
+    perfil: "designer",
+    tipoServico: "lancamentos_digitais",
+    nome: "Lançamentos Digitais",
+    descricao:
+      "Pacote de design para lançamento: criativos de anúncio, páginas e materiais de carrinho, com cronograma travado, banco de variações e responsabilidade do produtor pela promessa vendida.",
+    camposDinamicos: [
+      { tag: "VALOR_CESSAO_ARQUIVOS_ABERTOS", label: "Valor da cessão de arquivos abertos", tipo: "moeda" },
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_TRAFEGO,
+      { tag: "NOME_DO_PRODUTO", label: "Produto lançado", tipo: "texto" },
+      { tag: "DATA_ABERTURA_CARRINHO", label: "Abertura do carrinho", tipo: "data" },
+      { tag: "DATA_FECHAMENTO_CARRINHO", label: "Fechamento do carrinho", tipo: "data" },
+      { tag: "ENTREGAVEIS_LANCAMENTO", label: "Entregáveis", tipo: "textarea", exemplo: "1 identidade da campanha, 30 criativos estáticos, 10 criativos em vídeo curto, 2 páginas, 8 e-mails e kit de stories" },
+      { tag: "NUMERO_VARIACOES_CRIATIVO", label: "Variações por criativo", tipo: "numero", exemplo: "3" },
+      { tag: "PRAZO_ENTREGA_LOTE", label: "Prazo de entrega por lote", tipo: "texto", exemplo: "5 dias úteis" },
+      { tag: "VALOR_CRIATIVO_EXCEDENTE", label: "Valor do criativo excedente", tipo: "moeda" },
+      { tag: "VALOR_MULTA_ADIAMENTO", label: "Multa por adiamento", tipo: "moeda" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DESIGN PARA LANÇAMENTO DIGITAL
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a criação das peças de design do lançamento do produto [NOME_DO_PRODUTO], com carrinho aberto de [DATA_ABERTURA_CARRINHO] a [DATA_FECHAMENTO_CARRINHO].
+
+Parágrafo primeiro. Os entregáveis compreendem: [ENTREGAVEIS_LANCAMENTO], organizados em lotes com prazo de [PRAZO_ENTREGA_LOTE] cada.
+
+Parágrafo segundo. Cada criativo será entregue com até [NUMERO_VARIACOES_CRIATIVO] variações de formato ou de headline, contadas como UMA peça. Criativos além do volume contratado serão orçados a [VALOR_CRIATIVO_EXCEDENTE] cada.
+
+Parágrafo terceiro. NÃO integram o objeto, salvo contratação apartada: redação publicitária e copy; gestão de tráfego e configuração de campanhas; verba de mídia; edição de vídeo longo; captação de imagem; programação e integração de páginas em plataforma; configuração de e-mail marketing; e produção do produto vendido.
+
+Parágrafo quarto. Este é contrato de PROJETO com data certa, não de trato sucessivo.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "cronograma_lancamento_design",
+        titulo: "Do Cronograma, dos Lotes e do Adiamento",
+        essencial: true,
+        protege: "Criativo entregue depois do carrinho aberto não serve para nada — a data é essencial.",
+        texto: `As datas de abertura e fechamento do carrinho são ESSENCIAIS: sobre elas se organizam a produção em lotes e a reserva da agenda do CONTRATADO.
+
+Parágrafo primeiro. Cada lote depende do recebimento prévio, pela CONTRATANTE, dos textos finais, das imagens, do posicionamento da oferta e das aprovações do lote anterior. O atraso nesses insumos desloca o lote e, em consequência, os seguintes.
+
+Parágrafo segundo. O adiamento do lançamento comunicado com menos de 15 (quinze) dias da abertura do carrinho sujeita a CONTRATANTE à multa de [VALOR_MULTA_ADIAMENTO], além do valor integral das etapas executadas.
+
+Parágrafo terceiro. O cancelamento após a entrega do primeiro lote torna devido o valor integral do contrato.
+
+Parágrafo quarto. Durante a semana de carrinho aberto, ajustes de headline, preço e prova social em criativos já entregues serão atendidos em regime de urgência, consumindo rodada de refação e, esgotadas, cobrados como peça excedente.
+
+Parágrafo quinto. Os criativos são entregues nos formatos e nas especificações vigentes das plataformas na data da entrega; alterações posteriores de requisitos por elas impostas não constituem vício.`,
+      },
+      {
+        id: "promessa_design",
+        titulo: "Da Promessa Publicitária e da Conformidade das Peças",
+        essencial: true,
+        protege: "O designer desenha o que foi aprovado — quem promete resultado é quem vende.",
+        texto: `Textos, ofertas, preços, garantias, depoimentos, números e promessas de resultado exibidos nas peças são fornecidos e aprovados pela CONTRATANTE, única responsável por sua veracidade e conformidade legal.
+
+Parágrafo primeiro. O CONTRATADO não produzirá peça que contenha promessa de ganho garantido, resultado de saúde sem respaldo, prova social forjada, escassez inverídica ou selo, prêmio e certificação inexistentes; a exigência nesse sentido autoriza a recusa e, persistindo, a rescisão por justa causa.
+
+Parágrafo segundo. Imagens, fotografias, ícones, fontes e mockups de terceiros utilizados observarão as licenças de seus titulares, na forma da cláusula Dos Arquivos Abertos, cabendo à CONTRATANTE arcar com as licenças necessárias ao uso continuado e à veiculação paga.
+
+Parágrafo terceiro. Reprovação de anúncio, restrição de conta ou remoção de peça pelas plataformas por razões de política de conteúdo relativas à OFERTA são risco da CONTRATANTE; quando a reprovação decorrer exclusivamente de elemento gráfico corrigível, o CONTRATADO fará a adequação sem custo, uma vez por peça.
+
+Parágrafo quarto. O CONTRATADO não responde por desempenho de campanha, custo por resultado, taxa de conversão ou faturamento, obrigação de meio na forma da cláusula Da Limitação de Responsabilidade.`,
+      },
+      CLAUSULA_PLATAFORMAS_TERCEIROS,
+      CLAUSULA_ARQUIVOS_ABERTOS,
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 5 — DESIGNER · 4. MATERIAIS GRÁFICOS OFFLINE (PDV)           */
+  /* ================================================================== */
+  {
+    perfil: "designer",
+    tipoServico: "design_materiais_impressos",
+    nome: "Materiais Gráficos Offline (PDV)",
+    descricao:
+      "Design para impressão e ponto de venda, com o que só existe no offline: prova de cor, fechamento de arquivo, sangria, acabamento, e a linha exata onde a responsabilidade do designer termina e a da gráfica começa.",
+    camposDinamicos: [
+      { tag: "VALOR_CESSAO_ARQUIVOS_ABERTOS", label: "Valor da cessão de arquivos abertos", tipo: "moeda" },
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      { tag: "PECAS_CONTRATADAS", label: "Peças contratadas", tipo: "textarea", exemplo: "wobbler, faixa de gôndola, cartaz A2, adesivo de chão e testeira" },
+      { tag: "ESPECIFICACOES_GRAFICAS", label: "Especificações fornecidas pela gráfica", tipo: "textarea", exemplo: "formato final, sangria de 3mm, perfil de cor, tipo de papel e acabamento" },
+      { tag: "NOME_DA_GRAFICA", label: "Gráfica responsável", tipo: "texto" },
+      { tag: "RESPONSAVEL_PROVA_DE_COR", label: "Quem aprova a prova de cor", tipo: "texto" },
+      { tag: "VALOR_PECA_EXCEDENTE", label: "Valor da peça excedente", tipo: "moeda" },
+      { tag: "VALOR_REFECHAMENTO_ARQUIVO", label: "Valor de refechamento de arquivo", tipo: "moeda" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DESIGN GRÁFICO PARA MATERIAL IMPRESSO
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a criação e o fechamento de arquivos das seguintes peças gráficas destinadas a ponto de venda: [PECAS_CONTRATADAS].
+
+Parágrafo primeiro. Os arquivos serão fechados conforme as especificações técnicas fornecidas pela gráfica [NOME_DA_GRAFICA]: [ESPECIFICACOES_GRAFICAS].
+
+Parágrafo segundo. Peças excedentes serão orçadas a [VALOR_PECA_EXCEDENTE] cada.
+
+Parágrafo terceiro. NÃO integram o objeto, em nenhuma hipótese: a IMPRESSÃO e os seus custos; corte, acabamento, aplicação e instalação; frete e logística; intermediação, cotação e negociação com gráficas; acompanhamento presencial de impressão; e revisão ortográfica ou de conteúdo dos textos fornecidos.
+
+Parágrafo quarto. A CONTRATANTE contrata a gráfica diretamente e mantém com ela relação jurídica autônoma, à qual o CONTRATADO é estranho.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "fechamento_e_prova",
+        titulo: "Do Fechamento de Arquivo, da Prova de Cor e da Responsabilidade da Gráfica",
+        essencial: true,
+        protege: "Cor de tela nunca é cor de papel — e essa é a briga mais comum do impresso.",
+        texto: `O CONTRATADO entregará os arquivos fechados no padrão exigido pela gráfica, com sangria, marcas de corte, perfil de cor, conversão de fontes e resolução adequados, conforme as especificações por ela fornecidas.
+
+Parágrafo primeiro. A CONTRATANTE obriga-se a obter da gráfica, e a repassar ao CONTRATADO ANTES do início do trabalho, as especificações técnicas completas. Especificação incorreta, incompleta ou desatualizada fornecida pela CONTRATANTE que exija o refechamento dos arquivos importará cobrança de [VALOR_REFECHAMENTO_ARQUIVO] por peça.
+
+Parágrafo segundo. AS CORES EXIBIDAS EM TELA NÃO CORRESPONDEM ÀS CORES IMPRESSAS. Monitores trabalham em luz emitida e a impressão em pigmento sobre substrato; variações de tom decorrentes de papel, tinta, calibragem de máquina, tipo de impressão e acabamento são inerentes ao processo gráfico e NÃO constituem vício do serviço.
+
+Parágrafo terceiro. A prova de cor física, quando desejada, será solicitada à gráfica pela CONTRATANTE e aprovada por [RESPONSAVEL_PROVA_DE_COR]. A aprovação da prova vincula a CONTRATANTE quanto ao resultado impresso. Dispensada a prova, a CONTRATANTE assume integralmente o risco da variação cromática.
+
+Parágrafo quarto. Aprovado o arquivo pela CONTRATANTE e enviado à gráfica, cessa a responsabilidade do CONTRATADO. Erros de impressão, registro, corte, dobra, acabamento, gramatura, atraso e quantidade são de responsabilidade da gráfica.
+
+Parágrafo quinto. ERRO DE TEXTO É RESPONSABILIDADE DE QUEM APROVOU: o CONTRATADO reproduz os textos fornecidos por escrito, não lhe cabendo revisá-los. A aprovação escrita da arte final pela CONTRATANTE, ou a aprovação tácita, valem como revisão final de conteúdo, e eventual reimpressão por erro de texto aprovado corre por conta dela.
+
+Parágrafo sexto. Recomenda-se expressamente que a CONTRATANTE realize revisão ortográfica e de conteúdo antes de aprovar a arte final, providência cuja ausência é risco assumido por ela.`,
+      },
+      CLAUSULA_ARQUIVOS_ABERTOS,
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 5 — DESIGNER · 5. UI / WEB DESIGN                            */
+  /* ================================================================== */
+  {
+    perfil: "designer",
+    tipoServico: "ui_ux_design",
+    nome: "UI / Web Design",
+    descricao:
+      "Design de interface e de site, com número de telas contado, ambiente de homologação definido, entrega de design system, e a fronteira clara entre desenhar e programar.",
+    camposDinamicos: [
+      { tag: "VALOR_CESSAO_ARQUIVOS_ABERTOS", label: "Valor da cessão de arquivos abertos", tipo: "moeda" },
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      { tag: "NOME_DO_PROJETO_DIGITAL", label: "Nome do projeto", tipo: "texto" },
+      { tag: "NUMERO_DE_TELAS", label: "Nº de telas/páginas", tipo: "numero", exemplo: "12" },
+      { tag: "BREAKPOINTS", label: "Versões responsivas", tipo: "texto", exemplo: "desktop e mobile" },
+      { tag: "ENTREGAVEIS_DIGITAIS", label: "Entregáveis", tipo: "textarea", exemplo: "wireframes, layout de 12 telas em desktop e mobile, protótipo navegável e design system com componentes" },
+      { tag: "FERRAMENTA_DE_DESIGN", label: "Ferramenta de entrega", tipo: "texto", exemplo: "Figma, com acesso de visualização e exportação" },
+      { tag: "AMBIENTE_DE_REFERENCIA", label: "Ambiente de homologação", tipo: "textarea", exemplo: "Chrome, Safari e Edge nas duas últimas versões; iOS e Android em suporte oficial" },
+      { tag: "VALOR_TELA_EXCEDENTE", label: "Valor da tela excedente", tipo: "moeda" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE DESIGN DE INTERFACE DIGITAL
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Tela é a unidade de medida — sem contá-las, o projeto não tem fim.",
+        texto: `Constitui objeto deste contrato o design de interface do projeto [NOME_DO_PROJETO_DIGITAL], compreendendo [NUMERO_DE_TELAS] telas, nas versões [BREAKPOINTS].
+
+Parágrafo primeiro. Os entregáveis compreendem: [ENTREGAVEIS_DIGITAIS], disponibilizados em [FERRAMENTA_DE_DESIGN].
+
+Parágrafo segundo. Considera-se TELA cada layout único; estados de uma mesma tela — carregamento, erro, vazio, sucesso, aberto e fechado — quando expressamente contratados, contam como meia tela cada. Telas excedentes serão orçadas a [VALOR_TELA_EXCEDENTE] cada.
+
+Parágrafo terceiro. NÃO INTEGRA O OBJETO A PROGRAMAÇÃO. Também não integram, salvo contratação apartada: desenvolvimento front-end e back-end; implementação em CMS, construtor de páginas ou e-commerce; integrações com sistemas, pagamentos e automações; hospedagem, domínio e certificado; SEO técnico e conteúdo; redação de textos; produção de fotografia, ilustração e vídeo; testes com usuários e pesquisa de campo; e manutenção evolutiva.
+
+Parágrafo quarto. O CONTRATADO prestará suporte de esclarecimento à equipe de desenvolvimento da CONTRATANTE, por até 5 (cinco) horas, quanto à interpretação do layout entregue.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "fidelidade_implementacao",
+        titulo: "Da Implementação por Terceiros e da Fidelidade ao Layout",
+        essencial: true,
+        protege: "Se o programador implementar diferente, o resultado não é responsabilidade do designer.",
+        texto: `Entregue e aprovado o layout, a sua implementação será realizada pela CONTRATANTE ou por terceiro por ela contratado.
+
+Parágrafo primeiro. O CONTRATADO NÃO responde pelo resultado da implementação, por divergências entre o layout e o produto publicado, por desempenho, tempo de carregamento, comportamento em dispositivos, erros de código, falhas de integração ou indisponibilidade.
+
+Parágrafo segundo. A CONTRATANTE poderá contratar do CONTRATADO, à parte, o acompanhamento da implementação e a validação visual do resultado, atividade distinta do design e remunerada por hora ou por etapa.
+
+Parágrafo terceiro. Alterações de layout promovidas na implementação — troca de fontes, cores, espaçamentos, componentes ou hierarquia — descaracterizam a obra, e o CONTRATADO poderá exigir a retirada do seu crédito e vedar a apresentação do resultado como de sua autoria.
+
+Parágrafo quarto. Fontes, ícones, ilustrações e imagens de terceiros usados no layout dependem das licenças de seus titulares, na forma da cláusula Dos Arquivos Abertos, cabendo à CONTRATANTE adquiri-las para o uso em produção.
+
+Parágrafo quinto. O design system entregue, quando previsto, é documento de referência: a sua manutenção após a entrega é da CONTRATANTE.`,
+      },
+      CLAUSULA_HOMOLOGACAO_TECNICA,
+      CLAUSULA_ARQUIVOS_ABERTOS,
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
   },
 ];

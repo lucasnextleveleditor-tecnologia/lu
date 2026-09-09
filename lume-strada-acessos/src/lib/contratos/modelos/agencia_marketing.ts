@@ -1,4 +1,29 @@
 import { CAMPOS_COMUNS_CONTRATO, type ModeloContratoServico } from "./tipos";
+import {
+  CAMPOS_OPERACIONAIS_COMUNS,
+  CLAUSULAS_DE_FECHAMENTO,
+  CLAUSULA_ALTERACOES_DE_ESCOPO,
+  CLAUSULA_APROVACAO_E_REFACOES,
+  CLAUSULA_BACKUP,
+  CLAUSULA_DIREITOS_AUTORAIS,
+  CLAUSULA_DIREITO_DE_IMAGEM,
+  CLAUSULA_ENTREGA,
+  CLAUSULA_OBRIGACOES_DAS_PARTES,
+  CLAUSULA_PORTFOLIO,
+  CLAUSULA_PRAZOS_E_INSUMOS,
+  comoOpcional,
+} from "./clausulas-comuns";
+import {
+  CAMPOS_SERVICO_CONTINUO,
+  CAMPOS_TRAFEGO,
+  CLAUSULAS_DE_ROTINA,
+  CLAUSULA_ACESSOS_E_CONTAS,
+  CLAUSULA_PLATAFORMAS_TERCEIROS,
+  CLAUSULA_ROTINA_E_ATENDIMENTO,
+  CLAUSULA_VERBA_DE_MIDIA,
+  CLAUSULA_VIGENCIA_E_RENOVACAO,
+} from "./clausulas-continuas";
+
 
 /**
  * Banco de modelos de contrato do perfil AGÊNCIA DE MARKETING — v2, 7 tipos de
@@ -24,159 +49,6 @@ import { CAMPOS_COMUNS_CONTRATO, type ModeloContratoServico } from "./tipos";
  * clientes reais.
  */
 export const MODELOS_AGENCIA_MARKETING: ModeloContratoServico[] = [
-  {
-    perfil: "agencia_marketing",
-    tipoServico: "gestao_redes_sociais_marketing_digital",
-    nome: "Gestão de Redes Sociais e Marketing Digital (Retainer Mensal)",
-    descricao: "Gestão contínua de marketing digital em regime de mensalidade, com cláusula de obrigação de meio, gestão de verba de mídia distinta dos honorários e devolução de credenciais ao término.",
-    camposDinamicos: [
-      ...CAMPOS_COMUNS_CONTRATO,
-      { tag: "QUALIFICACAO_CLIENTE", label: "Qualificação do cliente", tipo: "texto" },
-      { tag: "DESCRICAO_DO_ESCOPO_MENSAL", label: "Descrição do escopo mensal", tipo: "textarea" },
-      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis mensais", tipo: "textarea" },
-      { tag: "PRAZO_APROVACAO_PAUTA", label: "Prazo de aprovação de pauta", tipo: "texto", exemplo: "3 dias úteis" },
-      { tag: "DIA_VENCIMENTO_MENSAL", label: "Dia de vencimento mensal", tipo: "texto", exemplo: "5" },
-      { tag: "INDICE_DE_CORRECAO", label: "Índice de correção anual", tipo: "texto", exemplo: "IPCA" },
-      { tag: "PRAZO_SUSPENSAO_POR_INADIMPLENCIA", label: "Prazo para suspensão por inadimplência", tipo: "texto", exemplo: "5 dias" },
-      { tag: "MODELO_DE_GESTAO_DE_VERBA", label: "Modelo de gestão de verba de mídia", tipo: "texto", exemplo: "conta de anúncios da própria contratante" },
-      { tag: "PRAZO_DEVOLUCAO_ACESSOS", label: "Prazo de devolução de acessos", tipo: "texto", exemplo: "5 dias úteis" },
-      { tag: "PRAZO_FIDELIDADE_MINIMA", label: "Prazo de fidelidade mínima", tipo: "texto", exemplo: "6 meses" },
-      { tag: "PERCENTUAL_MULTA_FIDELIDADE", label: "% multa por rescisão antecipada na fidelidade", tipo: "percentual", exemplo: "30" },
-      { tag: "PRAZO_AVISO_RESCISAO", label: "Prazo de aviso para rescisão", tipo: "texto", exemplo: "30 dias" },
-      { tag: "PERIODO_BASE_LIMITACAO", label: "Período-base para cálculo do limite de responsabilidade", tipo: "texto", exemplo: "3 meses" },
-    ],
-    texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE GESTÃO DE MARKETING DIGITAL
-
-CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], CPF/CNPJ nº [CPF_CNPJ_CLIENTE], sede em [ENDERECO_CLIENTE].
-CONTRATADA: [NOME_CONTRATADO], CNPJ nº [CPF_CNPJ_CONTRATADO], sede em [ENDERECO_CONTRATADO], doravante AGÊNCIA.
-
-1. DO OBJETO
-1.1. Prestação contínua de serviços de gestão de marketing digital, compreendendo [DESCRICAO_DO_ESCOPO_MENSAL].
-
-2. DO ESCOPO MENSAL
-2.1. Entregáveis mensais: [DESCRICAO_DOS_ENTREGAVEIS]. Calendário e pautas aprovados em até [PRAZO_APROVACAO_PAUTA].
-2.2. Serviços fora do escopo mensal (produção audiovisual avulsa, campanhas publicitárias com verba de mídia, assessoria de imprensa) são orçados à parte.
-
-3. DA OBRIGAÇÃO DE MEIO
-3.1. Cláusula essencial: a AGÊNCIA se obriga a empregar as melhores práticas de mercado e diligência técnica, mas não garante resultados específicos de alcance, engajamento, número de seguidores, leads ou vendas, por dependerem de fatores fora de seu controle (algoritmos de plataformas, comportamento de mercado, qualidade do produto/serviço da CONTRATANTE, atendimento comercial).
-
-4. DO VALOR E DAS CONDIÇÕES DE PAGAMENTO
-4.1. Mensalidade: [VALOR_DO_SERVIÇO], vencimento todo dia [DIA_VENCIMENTO_MENSAL]. Reajuste anual pelo índice [INDICE_DE_CORRECAO].
-4.2. Atraso superior a [PRAZO_SUSPENSAO_POR_INADIMPLENCIA] autoriza a suspensão dos serviços (incluindo pausa de campanhas em andamento) sem prejuízo da cobrança integral do mês.
-
-5. DA GESTÃO DE VERBA DE MÍDIA (QUANDO APLICÁVEL)
-5.1. Quando houver investimento em mídia paga, a verba de anúncios é distinta dos honorários da AGÊNCIA e deve ser aportada diretamente pela CONTRATANTE na plataforma de anúncios ou repassada previamente à AGÊNCIA, conforme [MODELO_DE_GESTAO_DE_VERBA].
-5.2. A AGÊNCIA não se responsabiliza por bloqueios, suspensões ou políticas de conta impostas pelas plataformas de anúncios (Meta, Google e similares) alheios à sua conduta.
-
-6. DAS CREDENCIAIS E DO ACESSO A CONTAS
-6.1. Acessos a contas, senhas e credenciais de redes sociais/plataformas são de propriedade da CONTRATANTE. Ao término do contrato, a AGÊNCIA devolve o controle total das contas em até [PRAZO_DEVOLUCAO_ACESSOS], retendo apenas o histórico necessário para fins fiscais.
-6.2. A CONTRATANTE é exclusivamente responsável por manter cadastro de pagamento válido e atualizado nas plataformas de anúncios.
-
-7. DA CONFORMIDADE PUBLICITÁRIA
-7.1. A CONTRATANTE é exclusivamente responsável pela veracidade de informações, dados, resultados, preços e afirmações sobre produtos/serviços fornecidos à AGÊNCIA para uso em peças publicitárias, respondendo por eventual infração ao Código de Defesa do Consumidor, ao Código Brasileiro de Autorregulamentação Publicitária (CONAR) ou a normas setoriais específicas.
-
-8. DA PROPRIEDADE INTELECTUAL
-8.1. Mediante pagamento em dia, os materiais criativos finais aprovados são de uso da CONTRATANTE para os fins deste contrato. A AGÊNCIA pode usar o material produzido em portfólio e divulgação profissional, com crédito, salvo vedação por escrito.
-8.2. Metodologias, templates, processos e ferramentas proprietárias da AGÊNCIA não são cedidos, ainda que utilizados na execução dos serviços.
-
-9. DA RESCISÃO E DA FIDELIDADE
-9.1. Prazo de fidelidade mínima: [PRAZO_FIDELIDADE_MINIMA]. Rescisão antecipada pela CONTRATANTE sem justa causa dentro desse prazo sujeita-se a multa de [PERCENTUAL_MULTA_FIDELIDADE]% sobre as mensalidades remanescentes.
-9.2. Após o período de fidelidade, rescisão mediante aviso prévio de [PRAZO_AVISO_RESCISAO].
-
-10. DA CONFIDENCIALIDADE
-10.1. Sigilo sobre dados estratégicos, financeiros e de negócio da CONTRATANTE pelo prazo de [PRAZO_CONFIDENCIALIDADE].
-
-11. DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
-11.1. A AGÊNCIA atua como operadora de dados pessoais de leads/clientes da CONTRATANTE eventualmente tratados na execução dos serviços, obrigando-se a tratá-los exclusivamente para as finalidades contratadas e conforme as instruções da CONTRATANTE, nos termos da Lei nº 13.709/2018.
-
-12. DO CASO FORTUITO E FORÇA MAIOR
-12.1. Nenhuma parte responde por descumprimento decorrente de caso fortuito ou força maior.
-
-13. DA LIMITAÇÃO DE RESPONSABILIDADE E DA INDENIZAÇÃO
-13.1. A responsabilidade da AGÊNCIA fica limitada ao valor pago nos últimos [PERIODO_BASE_LIMITACAO] de contrato, excluídos lucros cessantes, danos indiretos e resultados de negócio não alcançados.
-13.2. A CONTRATANTE se compromete a indenizar e manter a AGÊNCIA isenta de qualquer reclamação, multa ou processo decorrente de: (i) informações, dados ou afirmações falsas ou não verificadas sobre produtos/serviços fornecidas para uso publicitário; (ii) bloqueio/banimento de contas por violação de políticas de plataforma imputável à CONTRATANTE; (iii) uso do material fora do combinado.
-13.3. Manifestações públicas negativas feitas pela CONTRATANTE de forma comprovadamente inverídica ou de má-fé poderão ser objeto de notificação extrajudicial, sem prejuízo do direito de resposta da AGÊNCIA.
-
-14. DAS DISPOSIÇÕES GERAIS
-14.1. Sem vínculo empregatício, societário ou de exclusividade, salvo cláusula em contrário.
-
-15. DO FORO
-15.1. Foro da Comarca de [FORO_COMARCA].
-
-Local e data: [DATA_ASSINATURA].`,
-  },
-  {
-    perfil: "agencia_marketing",
-    tipoServico: "gestao_trafego_pago",
-    nome: "Gestão de Tráfego Pago (Mídia Paga)",
-    descricao: "Gestão de campanhas de mídia paga (Meta Ads, Google Ads e similares), com honorários separados da verba de mídia e cláusula de obrigação de meio quanto a ROI e conversões.",
-    camposDinamicos: [
-      ...CAMPOS_COMUNS_CONTRATO,
-      { tag: "QUALIFICACAO_CLIENTE", label: "Qualificação do cliente", tipo: "texto" },
-      { tag: "PLATAFORMAS_DE_ANUNCIO", label: "Plataformas de anúncio", tipo: "texto", exemplo: "Meta Ads, Google Ads" },
-      { tag: "MODELO_DE_GESTAO_DE_VERBA", label: "Modelo de gestão de verba de mídia", tipo: "texto", exemplo: "conta de anúncios da própria contratante" },
-      { tag: "VALOR_MINIMO_VERBA_MENSAL", label: "Valor mínimo de verba de mídia mensal recomendado", tipo: "moeda" },
-      { tag: "DIA_VENCIMENTO_MENSAL", label: "Dia de vencimento mensal", tipo: "texto", exemplo: "5" },
-      { tag: "PRAZO_SUSPENSAO_POR_INADIMPLENCIA", label: "Prazo para suspensão por inadimplência", tipo: "texto", exemplo: "5 dias" },
-      { tag: "PRAZO_AVISO_RESCISAO", label: "Prazo de aviso para rescisão", tipo: "texto", exemplo: "30 dias" },
-      { tag: "PRAZO_FIDELIDADE_MINIMA", label: "Prazo de fidelidade mínima", tipo: "texto", exemplo: "3 meses" },
-      { tag: "PERCENTUAL_MULTA_FIDELIDADE", label: "% multa por rescisão antecipada na fidelidade", tipo: "percentual", exemplo: "30" },
-      { tag: "PERIODO_BASE_LIMITACAO", label: "Período-base para cálculo do limite de responsabilidade", tipo: "texto", exemplo: "3 meses" },
-    ],
-    texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE GESTÃO DE TRÁFEGO PAGO
-
-CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], CPF/CNPJ nº [CPF_CNPJ_CLIENTE], sede em [ENDERECO_CLIENTE].
-CONTRATADA: [NOME_CONTRATADO], CNPJ nº [CPF_CNPJ_CONTRATADO], sede em [ENDERECO_CONTRATADO], doravante AGÊNCIA.
-
-1. DO OBJETO
-1.1. Gestão de campanhas de mídia paga (tráfego pago) nas plataformas [PLATAFORMAS_DE_ANUNCIO], compreendendo estruturação, otimização e relatórios de campanha.
-
-2. DO ESCOPO E DA VERBA DE MÍDIA
-2.1. Honorários de gestão: [VALOR_DO_SERVIÇO]. Verba de mídia (investimento em anúncios) é distinta dos honorários e deve ser aportada pela CONTRATANTE diretamente na plataforma de anúncios, salvo modelo de gestão de verba centralizada expressamente pactuado em [MODELO_DE_GESTAO_DE_VERBA].
-2.2. Valor mínimo mensal de verba de mídia recomendado: [VALOR_MINIMO_VERBA_MENSAL], sem o qual a AGÊNCIA não garante volume mínimo de resultados por limitação orçamentária, não imputável a sua atuação técnica.
-
-3. DA OBRIGAÇÃO DE MEIO
-3.1. Cláusula essencial: a gestão de tráfego pago é obrigação de meio. A AGÊNCIA não garante custo por resultado, taxa de conversão, ROI (retorno sobre investimento) ou volume de vendas específicos, dependendo tais métricas de fatores externos (qualidade do produto/oferta, atendimento comercial da CONTRATANTE, sazonalidade, políticas e leilão das plataformas).
-
-4. DO VALOR E DAS CONDIÇÕES DE PAGAMENTO
-4.1. Honorários mensais: [VALOR_DO_SERVIÇO], vencimento todo dia [DIA_VENCIMENTO_MENSAL].
-4.2. Atraso superior a [PRAZO_SUSPENSAO_POR_INADIMPLENCIA] autoriza a suspensão ou pausa das campanhas ativas, sem responsabilidade da AGÊNCIA pela perda de desempenho decorrente da pausa.
-
-5. DAS CONTAS DE ANÚNCIO
-5.1. As contas de anúncio e formas de pagamento nas plataformas permanecem de titularidade e responsabilidade da CONTRATANTE, exceto quando expressamente pactuada conta gerenciada pela AGÊNCIA.
-5.2. A AGÊNCIA não se responsabiliza por bloqueio, banimento, glosa de cartão ou suspensão de conta de anúncio determinados pela própria plataforma, alheios à sua conduta técnica.
-
-6. DA CONFORMIDADE PUBLICITÁRIA
-6.1. A CONTRATANTE é exclusivamente responsável pela veracidade das informações, preços, condições de oferta e demais afirmações usadas nos anúncios, inclusive quanto à conformidade com o Código de Defesa do Consumidor e políticas de anúncio das plataformas.
-
-7. DA PROPRIEDADE INTELECTUAL
-7.1. Criativos publicitários produzidos pela AGÊNCIA são de uso da CONTRATANTE mediante pagamento em dia. Metodologias e estruturas de campanha proprietárias da AGÊNCIA não são cedidas.
-
-8. DA RESCISÃO
-8.1. Rescisão mediante aviso prévio de [PRAZO_AVISO_RESCISAO], respeitado eventual prazo de fidelidade mínima de [PRAZO_FIDELIDADE_MINIMA], sujeito a multa de [PERCENTUAL_MULTA_FIDELIDADE]% sobre as mensalidades remanescentes em caso de rescisão antecipada sem justa causa.
-
-9. DA CONFIDENCIALIDADE
-9.1. Sigilo sobre estratégias, orçamentos e dados de campanha pelo prazo de [PRAZO_CONFIDENCIALIDADE].
-
-10. DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
-10.1. A AGÊNCIA atua como operadora de dados de leads/clientes eventualmente coletados via formulários e pixels de conversão, conforme a Lei nº 13.709/2018.
-
-11. DO CASO FORTUITO E FORÇA MAIOR
-11.1. Nenhuma parte responde por instabilidade, alteração de política ou indisponibilidade das plataformas de anúncio.
-
-12. DA LIMITAÇÃO DE RESPONSABILIDADE E DA INDENIZAÇÃO
-12.1. Responsabilidade da AGÊNCIA limitada ao valor de honorários pago nos últimos [PERIODO_BASE_LIMITACAO], excluída a verba de mídia investida diretamente pela CONTRATANTE, lucros cessantes e danos indiretos.
-12.2. A CONTRATANTE indeniza a AGÊNCIA por: (i) informações falsas usadas em anúncios; (ii) bloqueio de conta por violação de política imputável à CONTRATANTE; (iii) reclamações de consumidores decorrentes de oferta/produto da CONTRATANTE.
-12.3. Avaliações públicas negativas de má-fé sujeitas a notificação extrajudicial, sem prejuízo do direito de resposta.
-
-13. DAS DISPOSIÇÕES GERAIS
-13.1. Sem vínculo empregatício ou societário.
-
-14. DO FORO
-14.1. Foro da Comarca de [FORO_COMARCA].
-
-Local e data: [DATA_ASSINATURA].`,
-  },
   {
     perfil: "agencia_marketing",
     tipoServico: "campanha_publicitaria",
@@ -523,5 +395,552 @@ CONTRATADA: [NOME_CONTRATADO], CNPJ nº [CPF_CNPJ_CONTRATADO], sede em [ENDERECO
 13.1. Foro da Comarca de [FORO_COMARCA].
 
 Local e data: [DATA_ASSINATURA].`,
+  },
+  /* ================================================================== */
+  /* GRUPO 7 — AGÊNCIA · 1. ASSESSORIA — SERVIÇO COMPLETO               */
+  /* ================================================================== */
+  {
+    perfil: "agencia_marketing",
+    tipoServico: "gestao_redes_sociais_marketing_digital",
+    nome: "Assessoria de Marketing — Serviço Completo",
+    descricao:
+      "Retainer completo: estratégia, conteúdo, tráfego e relatório sob um mesmo contrato, com escopo por frentes, governança de aprovação, exclusividade de segmento opcional e transição ordenada na saída.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_SERVICO_CONTINUO,
+      ...CAMPOS_TRAFEGO,
+      { tag: "FRENTES_CONTRATADAS", label: "Frentes contratadas", tipo: "textarea", exemplo: "estratégia, social media, tráfego pago, e-mail marketing e relatórios" },
+      { tag: "PERFIS_GERENCIADOS", label: "Canais gerenciados", tipo: "textarea" },
+      { tag: "EQUIPE_ALOCADA", label: "Equipe alocada", tipo: "textarea", exemplo: "1 gestor de conta, 1 social media, 1 designer e 1 gestor de tráfego, em regime compartilhado" },
+      { tag: "CATEGORIA_EXCLUSIVIDADE", label: "Segmento de exclusividade (se houver)", tipo: "texto" },
+      { tag: "VALOR_EXCLUSIVIDADE", label: "Valor da exclusividade de segmento", tipo: "moeda" },
+      { tag: "PRAZO_TRANSICAO", label: "Prazo de transição na saída", tipo: "texto", exemplo: "15 dias" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO CONTINUADA DE SERVIÇOS DE ASSESSORIA DE MARKETING
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADA: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADA;
+
+têm entre si justo e contratado o presente instrumento de prestação de serviços de trato sucessivo, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002, pela Lei nº 9.610/1998 e pela Lei nº 13.709/2018.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Frentes contratadas por escrito — o que não está listado não está incluído.",
+        texto: `Constitui objeto deste contrato a prestação continuada de serviços de assessoria de marketing, compreendendo as seguintes frentes: [FRENTES_CONTRATADAS], nos canais [PERFIS_GERENCIADOS].
+
+Parágrafo primeiro. O volume mensal contratado é de [VOLUME_MENSAL_CONTRATADO], executado pela equipe [EQUIPE_ALOCADA], alocada em REGIME COMPARTILHADO — a CONTRATADA atende outros clientes com a mesma estrutura, e a dedicação exclusiva de profissional, quando desejada, será contratada à parte.
+
+Parágrafo segundo. NÃO integram o objeto, salvo contratação apartada: verba de mídia, que observa a cláusula Da Verba; produção audiovisual de alta complexidade; fotografia profissional; identidade visual e rebranding; desenvolvimento de site, e-commerce e sistemas; licenças de ferramentas, plataformas e bancos de imagem; assessoria de imprensa; eventos e ativações físicas; influenciadores e permutas; e consultoria jurídica, contábil ou fiscal.
+
+Parágrafo terceiro. O valor mensal de [VALOR_MENSAL] remunera a disponibilidade da equipe, o planejamento e o volume contratado, e é devido integralmente ainda que a CONTRATANTE demande menos no período.
+
+Parágrafo quarto. A execução observa obrigação de MEIO, na forma da cláusula Das Plataformas de Terceiros.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "governanca",
+        titulo: "Da Governança, do Interlocutor Único e da Cadeia de Aprovação",
+        essencial: true,
+        protege: "Um interlocutor, uma decisão — é o que impede o retrabalho por comitê.",
+        texto: `A CONTRATANTE designará UM interlocutor com poderes de decisão e de aprovação para todos os efeitos deste contrato, e a CONTRATADA designará um gestor de conta como ponto único de contato.
+
+Parágrafo primeiro. Todas as demandas, aprovações e apontamentos transitarão entre esses dois interlocutores. Solicitações formuladas por outras pessoas da CONTRATANTE diretamente a integrantes da equipe da CONTRATADA não serão executadas, e deverão ser consolidadas pelo interlocutor designado.
+
+Parágrafo segundo. Apontamentos divergentes vindos de pessoas distintas da CONTRATANTE serão devolvidos para consolidação, ficando o prazo suspenso até a manifestação única, na forma da cláusula Dos Prazos.
+
+Parágrafo terceiro. A substituição do interlocutor será comunicada por escrito, e o novo interlocutor recebe o projeto no estado em que se encontra: decisões já aprovadas não se reabrem, e a sua revisão constitui alteração de escopo.
+
+Parágrafo quarto. A CONTRATADA poderá substituir integrantes da sua equipe a qualquer tempo, por profissionais de qualificação equivalente, mantida a responsabilidade pelo resultado, na forma da cláusula Da Equipe.
+
+Parágrafo quinto. Reuniões observam a periodicidade da cláusula Da Rotina, e as decisões nelas tomadas serão registradas em ata enviada pela CONTRATADA, reputando-se aceita se não impugnada em 2 (dois) dias úteis.`,
+      },
+      {
+        id: "exclusividade_segmento",
+        titulo: "Da Exclusividade de Segmento",
+        opcional: true,
+        protege: "Se o cliente quer a agência longe dos concorrentes dele, isso se paga.",
+        texto: `Mediante o pagamento adicional de [VALOR_EXCLUSIVIDADE] mensais, a CONTRATADA obriga-se a não prestar serviços de mesma natureza a empresas concorrentes da CONTRATANTE no segmento [CATEGORIA_EXCLUSIVIDADE] e na mesma praça de atuação, enquanto vigorar este contrato.
+
+Parágrafo primeiro. A exclusividade restringe-se ao segmento e à praça expressamente indicados, não alcançando outros setores, linhas de produto ou regiões.
+
+Parágrafo segundo. Não havendo o pagamento previsto no caput, NÃO HÁ EXCLUSIVIDADE, permanecendo a CONTRATADA livre para atender qualquer cliente, inclusive concorrentes, sem que isso configure conflito de interesses ou quebra de confiança — ressalvado, sempre, o dever de sigilo da cláusula Da Confidencialidade, que se aplica integralmente a cada cliente.
+
+Parágrafo terceiro. Clientes do segmento já atendidos pela CONTRATADA na data de assinatura estão ressalvados, e serão informados à CONTRATANTE antes da contratação da exclusividade.
+
+Parágrafo quarto. A exclusividade cessa automaticamente com o término deste contrato, sem período residual, salvo pactuação escrita em contrário e onerosa.`,
+      },
+      ...CLAUSULAS_DE_ROTINA,
+      CLAUSULA_ACESSOS_E_CONTAS,
+      CLAUSULA_VERBA_DE_MIDIA,
+      CLAUSULA_PLATAFORMAS_TERCEIROS,
+      {
+        id: "transicao_saida",
+        titulo: "Da Transição na Saída",
+        protege: "Saída organizada protege os dois: o cliente não fica parado, a agência não fica refém.",
+        texto: `Encerrado o contrato por qualquer motivo, a CONTRATADA promoverá transição ordenada no prazo de [PRAZO_TRANSICAO], contados do último dia de vigência.
+
+Parágrafo primeiro. A transição compreende: devolução ou revogação de acessos; entrega dos materiais produzidos e já quitados, em formato de uso; entrega dos relatórios do período; e uma reunião de repasse de até 2 (duas) horas com o interlocutor da CONTRATANTE ou com o novo prestador por ela indicado.
+
+Parágrafo segundo. NÃO integram a transição, por constituírem instrumento de trabalho e conhecimento próprio da CONTRATADA: metodologias, processos internos, planilhas de gestão, modelos, estruturas de campanha proprietárias, ferramentas licenciadas em seu nome, treinamento do novo prestador e consultoria além da reunião prevista.
+
+Parágrafo terceiro. Campanhas em veiculação na data do encerramento serão pausadas ou transferidas conforme instrução escrita da CONTRATANTE; não havendo instrução até o último dia, serão pausadas, sem responsabilidade da CONTRATADA pelo resultado dessa pausa.
+
+Parágrafo quarto. A CONTRATADA não reterá ativos, contas ou dados da CONTRATANTE como meio de coerção para pagamento, na forma da cláusula Dos Acessos, o que não afasta a cobrança do débito pelos meios próprios.
+
+Parágrafo quinto. Solicitações de suporte após o prazo de transição serão orçadas por hora técnica.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 7 — AGÊNCIA · 2. GESTÃO DE TRÁFEGO PAGO                      */
+  /* ================================================================== */
+  {
+    perfil: "agencia_marketing",
+    tipoServico: "gestao_trafego_pago",
+    nome: "Gestão de Tráfego Pago",
+    descricao:
+      "Gestão de mídia paga com verba separada da remuneração, contas no nome do cliente, relatório nativo como fonte da verdade, ausência de garantia de resultado e regras de bloqueio de conta.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_SERVICO_CONTINUO,
+      ...CAMPOS_TRAFEGO,
+      { tag: "OBJETIVOS_DE_CAMPANHA", label: "Objetivos de campanha", tipo: "textarea", exemplo: "geração de leads qualificados e vendas no e-commerce" },
+      { tag: "INDICADORES_ACOMPANHADOS", label: "Indicadores acompanhados", tipo: "textarea", exemplo: "custo por lead, custo por aquisição, ROAS e taxa de conversão" },
+      { tag: "RESPONSAVEL_CRIATIVOS", label: "Quem produz os criativos", tipo: "texto", exemplo: "a contratante" },
+      { tag: "RESPONSAVEL_PAGINAS", label: "Quem mantém páginas e formulários", tipo: "texto", exemplo: "a contratante" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO CONTINUADA DE SERVIÇOS DE GESTÃO DE MÍDIA PAGA
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADA: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADA;
+
+têm entre si justo e contratado o presente instrumento de prestação de serviços de trato sucessivo, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 13.709/2018.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Gestão de campanha é o serviço — criativo e página são outra coisa.",
+        texto: `Constitui objeto deste contrato a gestão de campanhas de mídia paga da CONTRATANTE nas plataformas [PLATAFORMAS_DE_MIDIA], com os objetivos [OBJETIVOS_DE_CAMPANHA].
+
+Parágrafo primeiro. O serviço compreende: planejamento de estrutura de campanhas; configuração de públicos, segmentações e orçamentos; subida e gestão de anúncios; acompanhamento e otimização; testes de variações; e relatório [PERIODICIDADE_RELATORIO] com os indicadores [INDICADORES_ACOMPANHADOS].
+
+Parágrafo segundo. A produção dos criativos é de responsabilidade de [RESPONSAVEL_CRIATIVOS]; a manutenção de páginas de destino, formulários, checkout e integrações é de responsabilidade de [RESPONSAVEL_PAGINAS].
+
+Parágrafo terceiro. NÃO integram o objeto, salvo contratação apartada: verba de mídia; criação de peças e redação; desenvolvimento e correção de páginas; implementação de pixels, tags e eventos em ambiente da CONTRATANTE, cabendo à CONTRATADA apenas orientar tecnicamente; CRM e automação; atendimento e qualificação dos leads gerados; e vendas.
+
+Parágrafo quarto. A remuneração da CONTRATADA é o valor mensal de [VALOR_MENSAL] e/ou o percentual de [PERCENTUAL_SOBRE_VERBA]% sobre a verba investida, conforme a cláusula Da Verba, e NÃO se confunde com a verba de mídia.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      CLAUSULA_VERBA_DE_MIDIA,
+      CLAUSULA_ACESSOS_E_CONTAS,
+      CLAUSULA_PLATAFORMAS_TERCEIROS,
+      {
+        id: "dados_e_mensuracao",
+        titulo: "Da Mensuração, dos Dados e da Fonte da Verdade",
+        essencial: true,
+        protege: "Define de onde vem o número — e evita a discussão de painel contra planilha.",
+        texto: `Os relatórios nativos das plataformas de mídia e as ferramentas de análise da CONTRATANTE constituem a FONTE DA VERDADE para apuração de investimento, alcance, cliques, conversões e demais indicadores, prevalecendo sobre qualquer planilha, apresentação ou estimativa.
+
+Parágrafo primeiro. As partes reconhecem que plataformas distintas medem de formas distintas, com janelas de atribuição, modelos e critérios próprios, e que divergências entre elas — bem como entre elas e o sistema interno da CONTRATANTE — são inerentes à mensuração digital e não constituem erro da CONTRATADA.
+
+Parágrafo segundo. A qualidade da mensuração depende de implementação correta de pixels, eventos, parâmetros e consentimento de cookies no ambiente da CONTRATANTE. Falhas, bloqueios de navegador, restrições de privacidade e alterações de política que degradem a mensuração são alheias ao controle da CONTRATADA.
+
+Parágrafo terceiro. A CONTRATANTE manterá a CONTRATADA informada sobre o resultado comercial efetivo — vendas fechadas, leads qualificados, ticket médio e devoluções —, sem o que a otimização opera às cegas e a CONTRATADA não responde pela eficiência do investimento.
+
+Parágrafo quarto. A CONTRATADA terá acesso de leitura permanente aos relatórios, e a CONTRATANTE poderá auditá-los a qualquer tempo diretamente na plataforma.
+
+Parágrafo quinto. O tratamento de dados de usuários observará a cláusula Da Proteção de Dados, atuando a CONTRATANTE como controladora.`,
+      },
+      {
+        id: "bloqueio_de_conta",
+        titulo: "Do Bloqueio de Conta e da Reprovação de Anúncios",
+        essencial: true,
+        protege: "Conta bloqueada é fato das plataformas — o contrato diz o que cada um faz nessa hora.",
+        texto: `As plataformas podem reprovar anúncios, restringir, suspender ou banir contas e perfis por decisão unilateral, com base em políticas próprias, muitas vezes sem indicação precisa do motivo e sem canal efetivo de revisão.
+
+Parágrafo primeiro. Ocorrendo bloqueio, a CONTRATADA envidará seus melhores esforços para: identificar a causa provável, protocolar os recursos disponíveis, adequar as peças e, sendo possível, restabelecer a veiculação por estrutura alternativa regular. NÃO garante, contudo, o desbloqueio, que é ato exclusivo da plataforma.
+
+Parágrafo segundo. A CONTRATADA não responde pela verba retida em conta bloqueada, pela perda de histórico de aprendizado das campanhas, pela queda de resultado no período nem por qualquer prejuízo comercial decorrente.
+
+Parágrafo terceiro. Bloqueios decorrentes de irregularidade cadastral, fiscal ou documental da CONTRATANTE, de histórico anterior da conta, do produto anunciado ou do conteúdo por ela aprovado são de sua exclusiva responsabilidade.
+
+Parágrafo quarto. É VEDADA à CONTRATADA a utilização de contas de terceiros, perfis falsos, estruturas irregulares ou qualquer artifício para contornar bloqueio, prática que exporia a CONTRATANTE a risco maior; a solicitação da CONTRATANTE nesse sentido será recusada.
+
+Parágrafo quinto. Persistindo o bloqueio por mais de 30 (trinta) dias sem alternativa regular, qualquer das partes poderá suspender a execução, com a correspondente suspensão da mensalidade, ou rescindir sem multa.`,
+      },
+      ...CLAUSULAS_DE_ROTINA,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 7 — AGÊNCIA · 3. COPRODUÇÃO (LANÇAMENTOS)                    */
+  /* ================================================================== */
+  {
+    perfil: "agencia_marketing",
+    tipoServico: "coproducao_lancamentos",
+    nome: "Coprodução (Lançamentos)",
+    descricao:
+      "Parceria com participação no faturamento: define quem entra com o quê, como se apura o resultado, quem paga a verba, o que acontece com reembolso e chargeback, e que isso não é sociedade.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_SERVICO_CONTINUO,
+      ...CAMPOS_TRAFEGO,
+      { tag: "NOME_DO_PRODUTO", label: "Produto lançado", tipo: "texto" },
+      { tag: "APORTE_DO_PRODUTOR", label: "O que o produtor entrega", tipo: "textarea", exemplo: "produto, aulas, autoridade, atendimento e estrutura de entrega" },
+      { tag: "APORTE_DA_COPRODUTORA", label: "O que a coprodutora entrega", tipo: "textarea", exemplo: "estratégia, gestão de tráfego, criativos, copy, páginas e operação do lançamento" },
+      { tag: "PERCENTUAL_COPRODUCAO", label: "% da coprodutora sobre o faturamento líquido", tipo: "percentual", exemplo: "30" },
+      { tag: "RESPONSAVEL_VERBA_MIDIA", label: "Quem aporta a verba de mídia", tipo: "texto", exemplo: "a contratante, integralmente" },
+      { tag: "PRAZO_REPASSE", label: "Prazo de repasse da participação", tipo: "texto", exemplo: "até o dia 10 do mês seguinte à liberação pela plataforma" },
+      { tag: "PRAZO_GARANTIA_PRODUTO", label: "Prazo de garantia do produto ao comprador", tipo: "texto", exemplo: "7 dias" },
+      { tag: "PLATAFORMA_DE_HOSPEDAGEM", label: "Plataforma de vendas", tipo: "texto", exemplo: "Hotmart" },
+      { tag: "PRAZO_DA_PARCERIA", label: "Prazo da parceria", tipo: "texto", exemplo: "12 meses, abrangendo os lançamentos realizados no período" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE COPRODUÇÃO DE PRODUTO DIGITAL
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE (PRODUTORA): [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], titular do produto e responsável pela sua entrega;
+
+CONTRATADA (COPRODUTORA): [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO];
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto e da Natureza da Parceria",
+        essencial: true,
+        protege: "Coprodução não é sociedade — e essa distinção evita passivo que ninguém quer.",
+        texto: `Constitui objeto deste contrato a parceria entre as partes para a exploração comercial do produto digital [NOME_DO_PRODUTO], mediante participação da COPRODUTORA no resultado, pelo prazo de [PRAZO_DA_PARCERIA].
+
+Parágrafo primeiro. Cabe à PRODUTORA aportar: [APORTE_DO_PRODUTOR]. Cabe à COPRODUTORA aportar: [APORTE_DA_COPRODUTORA].
+
+Parágrafo segundo. Este contrato NÃO constitui sociedade, sociedade em conta de participação, consórcio, joint venture, franquia ou vínculo empregatício entre as partes. Cada parte mantém personalidade, patrimônio, clientela e responsabilidade tributária próprios, e responde exclusivamente pelos encargos da sua própria atividade e equipe.
+
+Parágrafo terceiro. A PRODUTORA é a titular do produto e a fornecedora perante o consumidor, respondendo integralmente pela entrega, pelo suporte, pela garantia e pelas obrigações do Código de Defesa do Consumidor. A COPRODUTORA não é fornecedora do produto e não responde perante o comprador pelo seu conteúdo ou pela sua entrega.
+
+Parágrafo quarto. Nenhuma das partes poderá obrigar a outra perante terceiros, assumir dívida em seu nome ou representá-la sem procuração escrita e específica.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "apuracao_e_repasse",
+        titulo: "Da Apuração do Resultado, da Participação e do Repasse",
+        essencial: true,
+        protege: "Diz exatamente o que entra e o que sai da conta — é onde a parceria costuma azedar.",
+        texto: `A COPRODUTORA fará jus a [PERCENTUAL_COPRODUCAO]% do FATURAMENTO LÍQUIDO do produto, apurado na plataforma [PLATAFORMA_DE_HOSPEDAGEM].
+
+Parágrafo primeiro. Entende-se por faturamento líquido o valor efetivamente recebido pela PRODUTORA, deduzidos EXCLUSIVAMENTE: reembolsos concedidos dentro do prazo de garantia; chargebacks e estornos; taxas da plataforma e do meio de pagamento; e comissões de afiliados.
+
+Parágrafo segundo. NÃO se deduzem da base de cálculo: verba de mídia; custos de equipe, ferramentas e estrutura de qualquer das partes; tributos incidentes sobre a receita da PRODUTORA; despesas administrativas; investimentos em produto; e pró-labore.
+
+Parágrafo terceiro. Sempre que a plataforma permitir, a participação será configurada como SPLIT AUTOMÁTICO de pagamento em favor da COPRODUTORA, forma preferencial de repasse. Não sendo possível, o repasse ocorrerá [PRAZO_REPASSE], acompanhado do relatório de apuração.
+
+Parágrafo quarto. A COPRODUTORA terá acesso de leitura permanente aos relatórios da plataforma, e poderá auditar a apuração a qualquer tempo. A PRODUTORA obriga-se a não desviar vendas para meio de pagamento paralelo, cupom externo, link não rastreável ou pessoa jurídica diversa com o fim de reduzir a base de cálculo, sob pena de a participação ser apurada por arbitramento e de configurar-se justa causa para rescisão.
+
+Parágrafo quinto. Reembolsos e chargebacks ocorridos APÓS o repasse serão compensados no repasse seguinte; não havendo repasse seguinte, serão restituídos pela COPRODUTORA em 15 (quinze) dias, limitada a devolução ao valor efetivamente recebido por ela em relação àquelas vendas.
+
+Parágrafo sexto. O prazo de garantia ao comprador é de [PRAZO_GARANTIA_PRODUTO], e a apuração definitiva de cada ciclo ocorrerá após o seu decurso.`,
+      },
+      {
+        id: "verba_e_risco",
+        titulo: "Da Verba de Mídia e da Divisão de Riscos",
+        essencial: true,
+        protege: "Quem paga a mídia e o que acontece se o lançamento não pagar a conta.",
+        texto: `A verba de mídia será aportada por [RESPONSAVEL_VERBA_MIDIA], não integra a remuneração de nenhuma das partes e observa, no que couber, a cláusula Da Verba de Mídia.
+
+Parágrafo primeiro. Havendo aporte pela COPRODUTORA, ainda que parcial, o respectivo valor será reembolsado com PRIORIDADE sobre a distribuição de resultado, antes do cálculo da participação, mediante comprovação.
+
+Parágrafo segundo. As partes reconhecem expressamente que lançamento digital envolve RISCO, e que o resultado pode ser inferior ao investimento. Não havendo faturamento, ou sendo ele insuficiente, a COPRODUTORA não fará jus a remuneração mínima, e a PRODUTORA não terá direito a ressarcimento da verba investida — cada parte suporta o custo do próprio aporte, salvo o previsto no parágrafo primeiro.
+
+Parágrafo terceiro. Nenhuma das partes garante à outra faturamento, número de vendas, retorno sobre investimento ou qualquer resultado, aplicando-se integralmente a cláusula Das Plataformas de Terceiros.
+
+Parágrafo quarto. Decisões que impactem materialmente o resultado — alteração de preço, de oferta, de data, de política de garantia ou de comissionamento de afiliados — serão tomadas de comum acordo e por escrito; a alteração unilateral pela PRODUTORA que reduza o faturamento não reduz a base de cálculo da participação já apurada.
+
+Parágrafo quinto. A PRODUTORA declara que o produto existe, que será entregue conforme anunciado e que dispõe de estrutura de atendimento; a COPRODUTORA declara que não veiculará promessa ilícita, prova social forjada ou informação enganosa, na forma da cláusula Da Conduta.`,
+      },
+      {
+        id: "encerramento_coproducao",
+        titulo: "Do Encerramento da Parceria e dos Efeitos Residuais",
+        essencial: true,
+        protege: "Depois da saída ainda entra dinheiro — o contrato diz até quando e de quanto.",
+        texto: `Encerrada a parceria, por decurso do prazo ou por rescisão, a COPRODUTORA fará jus à participação sobre as vendas realizadas ATÉ a data do encerramento, ainda que o pagamento pela plataforma ocorra depois, inclusive nas vendas parceladas e recorrentes já contratadas.
+
+Parágrafo primeiro. A COPRODUTORA NÃO fará jus a participação sobre vendas realizadas após o encerramento, nem sobre lançamentos futuros, salvo pactuação expressa em contrário.
+
+Parágrafo segundo. Encerrada a parceria, a COPRODUTORA devolverá acessos e cessará o uso das marcas e dos materiais da PRODUTORA; a PRODUTORA, por sua vez, poderá continuar utilizando as peças produzidas e já remuneradas pela participação, na forma da cláusula Dos Direitos Autorais.
+
+Parágrafo terceiro. Estruturas de campanha, públicos, criativos e ativos publicitários criados pela COPRODUTORA em contas da PRODUTORA permanecem nestas; metodologias, processos e ferramentas próprias da COPRODUTORA não são transferidos.
+
+Parágrafo quarto. A base de leads e de compradores é da PRODUTORA, controladora dos dados na forma da cláusula Da Proteção de Dados, obrigando-se a COPRODUTORA a eliminar as cópias em seu poder ao término, ressalvada a guarda legalmente exigida.
+
+Parágrafo quinto. Sobrevivem ao encerramento, pelos prazos nelas previstos, as obrigações de confidencialidade, de proteção de dados, de não aliciamento e de apuração e repasse do resultado residual.`,
+      },
+      CLAUSULA_ACESSOS_E_CONTAS,
+      CLAUSULA_PLATAFORMAS_TERCEIROS,
+      CLAUSULA_ROTINA_E_ATENDIMENTO,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 7 — AGÊNCIA · 4. ENTRADA / LEADS B2B                         */
+  /* ================================================================== */
+  {
+    perfil: "agencia_marketing",
+    tipoServico: "entrada_leads_b2b",
+    nome: "Entrada / Leads B2B",
+    descricao:
+      "Prospecção e geração de reuniões B2B, com definição escrita do que é lead qualificado, meta como estimativa e não promessa, regras de LGPD na prospecção fria e obrigação do cliente de atender rápido.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_SERVICO_CONTINUO,
+      ...CAMPOS_TRAFEGO,
+      { tag: "PERFIL_CLIENTE_IDEAL", label: "Perfil de cliente ideal (ICP)", tipo: "textarea", exemplo: "indústrias de 50 a 300 funcionários no Sudeste, decisor: diretor industrial" },
+      { tag: "DEFINICAO_LEAD_QUALIFICADO", label: "Definição de lead qualificado", tipo: "textarea", exemplo: "empresa dentro do ICP, com dor identificada, orçamento declarado e decisor presente na reunião" },
+      { tag: "CANAIS_DE_PROSPECCAO", label: "Canais de prospecção", tipo: "textarea", exemplo: "e-mail, LinkedIn, telefone e anúncios segmentados" },
+      { tag: "META_MENSAL_REUNIOES", label: "Meta mensal estimada de reuniões", tipo: "numero", exemplo: "12" },
+      { tag: "PRAZO_ATENDIMENTO_LEAD", label: "Prazo do cliente para atender o lead", tipo: "texto", exemplo: "1 dia útil" },
+      { tag: "FERRAMENTAS_UTILIZADAS", label: "Ferramentas e por conta de quem", tipo: "textarea", exemplo: "CRM e ferramenta de cadência, licenciados em nome da contratante" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO CONTINUADA DE SERVIÇOS DE GERAÇÃO DE OPORTUNIDADES COMERCIAIS
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADA: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADA;
+
+têm entre si justo e contratado o presente instrumento de prestação de serviços de trato sucessivo, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 13.709/2018.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "O serviço é gerar oportunidade — quem fecha a venda é o time comercial do cliente.",
+        texto: `Constitui objeto deste contrato a prospecção e a geração de oportunidades comerciais para a CONTRATANTE, junto ao perfil de cliente ideal: [PERFIL_CLIENTE_IDEAL], pelos canais [CANAIS_DE_PROSPECCAO].
+
+Parágrafo primeiro. O serviço compreende: construção e higienização de listas; elaboração de cadências e abordagens; execução da prospecção; qualificação inicial; agendamento de reuniões na agenda da CONTRATANTE; registro no CRM; e relatório [PERIODICIDADE_RELATORIO].
+
+Parágrafo segundo. NÃO integram o objeto: a realização das reuniões comerciais; a elaboração de proposta e de precificação; a negociação e o fechamento; o pós-venda; e a cobrança. A VENDA É DA CONTRATANTE.
+
+Parágrafo terceiro. As ferramentas utilizadas são [FERRAMENTAS_UTILIZADAS]; as licenças correm por conta de quem ali indicado, e os dados nelas contidos são de titularidade da CONTRATANTE.
+
+Parágrafo quarto. O valor mensal de [VALOR_MENSAL] remunera a operação de prospecção — a estrutura, o tempo e o método —, e não o número de reuniões efetivamente realizadas.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "lead_qualificado",
+        titulo: "Do Conceito de Lead Qualificado e da Meta",
+        essencial: true,
+        protege: "Sem definição escrita do que é lead bom, toda entrega vira discussão.",
+        texto: `Considera-se LEAD QUALIFICADO, para todos os efeitos deste contrato: [DEFINICAO_LEAD_QUALIFICADO].
+
+Parágrafo primeiro. A meta mensal ESTIMADA é de [META_MENSAL_REUNIOES] reuniões qualificadas. A meta constitui projeção de planejamento, e NÃO obrigação de resultado: o volume depende de mercado, sazonalidade, reputação da marca, atratividade da oferta, preço e capacidade de resposta da própria CONTRATANTE.
+
+Parágrafo segundo. A CONTRATANTE poderá recusar lead que não atenda à definição do caput, mediante justificativa objetiva apresentada em até 3 (três) dias úteis do agendamento; leads recusados sem justificativa, ou fora do prazo, computam-se como entregues.
+
+Parágrafo terceiro. Não comparecimento do prospect à reunião agendada (no-show) não é imputável à CONTRATADA, que promoverá uma tentativa de reagendamento; o lead computa-se como entregue.
+
+Parágrafo quarto. Divergências reiteradas sobre qualificação ensejarão revisão conjunta e escrita da definição do caput, com efeitos para o período seguinte, e não retroativos.
+
+Parágrafo quinto. Não há remuneração variável por lead, salvo pactuação expressa; havendo, a apuração observará o registro no CRM e a definição desta cláusula.`,
+      },
+      {
+        id: "prospeccao_e_lgpd",
+        titulo: "Da Prospecção Fria, do Consentimento e da Legislação Aplicável",
+        essencial: true,
+        protege: "Prospectar B2B tem regra — e fazer errado dá multa e queima o domínio do cliente.",
+        texto: `A prospecção observará a Lei nº 13.709/2018 e as políticas dos canais utilizados, sendo a CONTRATANTE a CONTROLADORA dos dados tratados e a CONTRATADA a OPERADORA.
+
+Parágrafo primeiro. A prospecção de contatos profissionais fundada em legítimo interesse observará: pertinência do contato ao exercício da atividade profissional do titular; identificação clara do remetente e da finalidade; canal simples e efetivo de descadastramento em toda comunicação; e atendimento imediato aos pedidos de oposição, que serão registrados em lista de supressão permanente.
+
+Parágrafo segundo. É VEDADO à CONTRATADA: adquirir bases de dados de origem ilícita ou não comprovada; utilizar dados pessoais sensíveis; extrair dados em violação aos termos de uso das plataformas; disparar mensagens sem mecanismo de opt-out; e utilizar identidade falsa ou remetente enganoso.
+
+Parágrafo terceiro. A CONTRATANTE responde pela licitude das bases que fornecer e pela conformidade da sua política de privacidade, e obriga-se a honrar os pedidos de descadastramento em todos os seus canais.
+
+Parágrafo quarto. Danos à reputação de domínio, bloqueios de e-mail, restrições de conta em redes profissionais e sanções decorrentes de instrução expressa da CONTRATANTE contrária a esta cláusula são de responsabilidade dela; decorrentes de conduta própria da CONTRATADA, dela.
+
+Parágrafo quinto. Havendo incidente de segurança ou reclamação de titular, as partes observarão os prazos e os deveres da cláusula Da Proteção de Dados.`,
+      },
+      {
+        id: "atendimento_do_lead",
+        titulo: "Da Obrigação da Contratante de Atender o Lead",
+        essencial: true,
+        protege: "Lead esfria em horas — se o comercial do cliente não atende, o resultado não é da agência.",
+        texto: `A CONTRATANTE obriga-se a atender cada oportunidade gerada no prazo de [PRAZO_ATENDIMENTO_LEAD], mantendo equipe comercial disponível, agenda aberta para agendamentos e CRM atualizado.
+
+Parágrafo primeiro. As partes reconhecem que a taxa de conversão em B2B cai acentuadamente com o tempo de resposta, e que a demora no atendimento inutiliza o trabalho de prospecção já executado e remunerado.
+
+Parágrafo segundo. A CONTRATANTE registrará no CRM o desfecho de cada oportunidade, com motivo de perda quando for o caso, insumo indispensável à calibragem da prospecção. A ausência desse registro afasta qualquer alegação de baixa qualidade dos leads.
+
+Parágrafo terceiro. Reuniões perdidas por indisponibilidade, atraso ou cancelamento da CONTRATANTE computam-se como entregues.
+
+Parágrafo quarto. A CONTRATADA não responde por vendas não realizadas, por desempenho comercial, por preço, por proposta, por capacidade de entrega da CONTRATANTE nem por qualquer resultado além da geração das oportunidades contratadas, obrigação de meio na forma da cláusula Da Limitação de Responsabilidade.
+
+Parágrafo quinto. A CONTRATANTE fornecerá à CONTRATADA material comercial atualizado, faixa de preço, diferenciais e objeções frequentes, sem o que a qualificação opera com informação incompleta.`,
+      },
+      ...CLAUSULAS_DE_ROTINA,
+      CLAUSULA_ACESSOS_E_CONTAS,
+      CLAUSULA_VERBA_DE_MIDIA,
+      CLAUSULA_PLATAFORMAS_TERCEIROS,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      comoOpcional(CLAUSULA_PORTFOLIO, true),
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 7 — AGÊNCIA · 5. TERCEIRIZAÇÃO B2B (WHITE LABEL)             */
+  /* ================================================================== */
+  {
+    perfil: "agencia_marketing",
+    tipoServico: "white_label_b2b",
+    nome: "Terceirização B2B (White Label)",
+    descricao:
+      "Execução em nome de outra agência: anonimato do executor, proibição de contato com o cliente final, não aliciamento reforçado, prazos em cascata e portfólio bloqueado por padrão.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_SERVICO_CONTINUO,
+      { tag: "SERVICOS_TERCEIRIZADOS", label: "Serviços terceirizados", tipo: "textarea", exemplo: "gestão de tráfego e produção de criativos para a carteira da contratante" },
+      { tag: "NUMERO_DE_CONTAS", label: "Nº de contas atendidas", tipo: "numero", exemplo: "5" },
+      { tag: "VALOR_POR_CONTA", label: "Valor por conta atendida", tipo: "moeda" },
+      { tag: "PRAZO_INTERNO_ENTREGA", label: "Prazo interno de entrega à contratante", tipo: "texto", exemplo: "2 dias úteis antes do prazo prometido ao cliente final" },
+      { tag: "PRAZO_NAO_ALICIAMENTO", label: "Prazo de não aliciamento", tipo: "texto", exemplo: "24 meses" },
+      { tag: "MULTA_ALICIAMENTO", label: "Multa por aliciamento/desvio de cliente", tipo: "moeda" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS EM REGIME DE TERCEIRIZAÇÃO (WHITE LABEL)
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], agência responsável perante os clientes finais, doravante simplesmente CONTRATANTE;
+
+CONTRATADA: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], executora dos serviços, doravante simplesmente CONTRATADA;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto e do Regime White Label",
+        essencial: true,
+        protege: "Deixa claro que a relação é entre as duas empresas — o cliente final é da contratante.",
+        texto: `Constitui objeto deste contrato a execução, pela CONTRATADA, dos seguintes serviços em nome e sob a marca da CONTRATANTE: [SERVICOS_TERCEIRIZADOS], para até [NUMERO_DE_CONTAS] contas da carteira desta.
+
+Parágrafo primeiro. A remuneração é de [VALOR_POR_CONTA] por conta atendida, totalizando [VALOR_MENSAL] mensais, devidos independentemente do recebimento da CONTRATANTE junto ao cliente final — a inadimplência do cliente final NÃO é oponível à CONTRATADA.
+
+Parágrafo segundo. A relação jurídica existe EXCLUSIVAMENTE entre CONTRATANTE e CONTRATADA. O cliente final é cliente da CONTRATANTE, que perante ele responde integralmente pela prestação, pelo prazo, pela qualidade e pelas obrigações contratuais e consumeristas.
+
+Parágrafo terceiro. A CONTRATADA executa sem identificação própria: as entregas, os relatórios e os materiais serão produzidos sem marca, assinatura ou menção à CONTRATADA, e em modelo fornecido pela CONTRATANTE quando houver.
+
+Parágrafo quarto. NÃO integram o objeto: atendimento ao cliente final; reuniões com o cliente final; comercial, proposta e cobrança; e decisões estratégicas que caibam à CONTRATANTE.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "anonimato_e_contato",
+        titulo: "Do Anonimato, da Vedação de Contato Direto e do Sigilo da Carteira",
+        essencial: true,
+        protege: "A carteira é da contratante — o executor não aparece nem se aproxima do cliente dela.",
+        texto: `A CONTRATADA obriga-se a manter absoluto anonimato perante o cliente final e terceiros quanto à sua participação na execução.
+
+Parágrafo primeiro. É VEDADO à CONTRATADA, salvo autorização escrita e específica da CONTRATANTE: contatar o cliente final por qualquer meio; participar de reuniões sem a presença da CONTRATANTE; identificar-se como executora; enviar materiais com sua marca; e divulgar a existência da relação com aquele cliente.
+
+Parágrafo segundo. Havendo necessidade de participação técnica em reunião, a CONTRATADA poderá ser apresentada como integrante da equipe da CONTRATANTE, sem revelar a terceirização, desde que previamente autorizado.
+
+Parágrafo terceiro. A identidade dos clientes finais, os valores por eles pagos à CONTRATANTE, os contratos e a composição da carteira são informação confidencial da CONTRATANTE, protegida pela cláusula Da Confidencialidade.
+
+Parágrafo quarto. A CONTRATADA obriga-se a não prospectar, abordar, contratar ou atender, direta ou indiretamente, por si ou por interposta pessoa, qualquer cliente final da carteira da CONTRATANTE ao qual tenha tido acesso em razão deste contrato, durante a sua vigência e por [PRAZO_NAO_ALICIAMENTO] após o término.
+
+Parágrafo quinto. A violação do parágrafo anterior sujeita a CONTRATADA à multa não compensatória de [MULTA_ALICIAMENTO] por cliente desviado, sem prejuízo das perdas e danos que a excederem, e constitui justa causa para rescisão imediata.
+
+Parágrafo sexto. A vedação não alcança cliente com quem a CONTRATADA já mantinha relação comercial comprovada e anterior a este contrato, nem quem a procure espontaneamente sem qualquer iniciativa sua — hipótese em que a CONTRATADA comunicará previamente a CONTRATANTE por escrito.`,
+      },
+      {
+        id: "prazos_em_cascata",
+        titulo: "Dos Prazos em Cascata e da Responsabilidade pela Cadeia",
+        essencial: true,
+        protege: "A agência precisa de folga entre receber e entregar — e o executor precisa de briefing a tempo.",
+        texto: `Os prazos deste contrato são INTERNOS, e correm em cascata: a CONTRATADA entregará à CONTRATANTE em [PRAZO_INTERNO_ENTREGA], reservando a esta o tempo necessário à revisão e à entrega ao cliente final.
+
+Parágrafo primeiro. A CONTRATANTE repassará à CONTRATADA os briefings, insumos, acessos e aprovações do cliente final com antecedência compatível com o prazo interno pactuado. Repasse tardio desloca o prazo interno na mesma medida, sem que isso configure atraso da CONTRATADA, ainda que gere atraso da CONTRATANTE perante o seu cliente.
+
+Parágrafo segundo. A CONTRATADA NÃO responde perante a CONTRATANTE por multa, desconto, perda de contrato ou dano de imagem que esta venha a sofrer perante o cliente final, salvo quando decorrente de atraso ou vício exclusivamente imputável à CONTRATADA, hipótese em que a responsabilidade observa o limite da cláusula Da Limitação de Responsabilidade.
+
+Parágrafo terceiro. A CONTRATANTE é responsável pela revisão final e pela aprovação do material antes da entrega ao cliente final; entregue o material ao cliente final, considera-se aceito pela CONTRATANTE para os efeitos deste contrato.
+
+Parágrafo quarto. Demandas de urgência do cliente final não se transferem automaticamente à CONTRATADA: dependem de aceite desta e observam o acréscimo da cláusula Das Alterações de Escopo.
+
+Parágrafo quinto. O encerramento de contrato entre a CONTRATANTE e cliente final reduz proporcionalmente o número de contas e o valor mensal, mediante aviso de 30 (trinta) dias, observada a cláusula Da Vigência quanto ao mínimo contratado.`,
+      },
+      ...CLAUSULAS_DE_ROTINA,
+      CLAUSULA_ACESSOS_E_CONTAS,
+      CLAUSULA_PLATAFORMAS_TERCEIROS,
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      comoOpcional(CLAUSULA_PORTFOLIO, true),
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
   },
 ];

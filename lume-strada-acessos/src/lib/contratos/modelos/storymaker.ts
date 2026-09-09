@@ -1,4 +1,34 @@
 import { CAMPOS_COMUNS_CONTRATO, type ModeloContratoServico } from "./tipos";
+import {
+  CAMPOS_OPERACIONAIS_COMUNS,
+  CAMPOS_VIAGEM,
+  CLAUSULAS_DE_FECHAMENTO,
+  CLAUSULA_ALIMENTACAO,
+  CLAUSULA_ALTERACOES_DE_ESCOPO,
+  CLAUSULA_APROVACAO_E_REFACOES,
+  CLAUSULA_BACKUP,
+  CLAUSULA_CONDICOES_CLIMATICAS,
+  CLAUSULA_DESLOCAMENTO,
+  CLAUSULA_DIREITOS_AUTORAIS,
+  CLAUSULA_DIREITO_DE_IMAGEM,
+  CLAUSULA_ENTREGA,
+  CLAUSULA_EQUIPAMENTO_E_SEGURO,
+  CLAUSULA_JORNADA,
+  CLAUSULA_OBRIGACOES_DAS_PARTES,
+  CLAUSULA_PORTFOLIO,
+  CLAUSULA_PRAZOS_E_INSUMOS,
+  CLAUSULA_VIAGEM,
+  comoOpcional,
+} from "./clausulas-comuns";
+import {
+  CAMPOS_SERVICO_CONTINUO,
+  CLAUSULAS_DE_ROTINA,
+  CLAUSULA_ACESSOS_E_CONTAS,
+  CLAUSULA_PLATAFORMAS_TERCEIROS,
+  CLAUSULA_ROTINA_E_ATENDIMENTO,
+  CLAUSULA_VIGENCIA_E_RENOVACAO,
+} from "./clausulas-continuas";
+
 
 /**
  * Banco de modelos de contrato do perfil STORYMAKER — v2, 6 tipos de serviço
@@ -157,81 +187,6 @@ CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliad
 
 13. DO FORO
 13.1. Foro: [FORO_COMARCA].
-
-Local e data: [DATA_ASSINATURA].`,
-  },
-  {
-    perfil: "storymaker",
-    tipoServico: "cobertura_eventos_stories",
-    nome: "Cobertura de Eventos em Stories",
-    descricao: "Cobertura em tempo real de eventos em formato de stories, com tabela de retenção por cancelamento e quitação prévia obrigatória.",
-    camposDinamicos: [
-      ...CAMPOS_COMUNS_CONTRATO,
-      { tag: "QUALIFICACAO_CLIENTE", label: "Qualificação do cliente", tipo: "texto" },
-      { tag: "NOME_DO_EVENTO", label: "Nome do evento", tipo: "texto" },
-      { tag: "DATA_DO_EVENTO", label: "Data do evento", tipo: "data" },
-      { tag: "LOCAL_DO_EVENTO", label: "Local do evento", tipo: "texto" },
-      { tag: "HORARIO_DE_INICIO", label: "Horário de início", tipo: "texto" },
-      { tag: "HORARIO_DE_TERMINO", label: "Horário de término", tipo: "texto" },
-      { tag: "MOMENTOS_COBERTOS", label: "Momentos cobertos", tipo: "textarea" },
-      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea" },
-      { tag: "PRAZO_ENTREGA_CONTEUDO_RAPIDO", label: "Prazo de entrega do resumo pós-evento", tipo: "texto", exemplo: "48 horas" },
-      { tag: "PRAZO_QUITACAO_ANTES_EVENTO", label: "Prazo de quitação antes do evento", tipo: "texto", exemplo: "7 dias" },
-      { tag: "PRAZO_MINIMO_GUARDA_BACKUP", label: "Prazo mínimo de guarda de backup", tipo: "texto", exemplo: "30 dias" },
-      { tag: "VALOR_TAXA_REENVIO", label: "Valor da taxa de reenvio", tipo: "moeda" },
-      { tag: "PERCENTUAL_RETENCAO_30_DIAS", label: "% retido — mais de 15 dias antes", tipo: "percentual", exemplo: "20" },
-      { tag: "PERCENTUAL_RETENCAO_3_MESES", label: "% retido — entre 15 e 5 dias antes", tipo: "percentual", exemplo: "50" },
-    ],
-    texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE COBERTURA DE EVENTO EM STORIES
-
-CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], CPF/CNPJ nº [CPF_CNPJ_CLIENTE], sede em [ENDERECO_CLIENTE].
-CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliado(a) em [ENDERECO_CONTRATADO].
-
-1. DO OBJETO
-1.1. Cobertura em tempo real, em formato de stories com narrativa sequencial, do evento [NOME_DO_EVENTO], em [DATA_DO_EVENTO], no local [LOCAL_DO_EVENTO].
-
-2. DO ESCOPO
-2.1. Cobertura de [HORARIO_DE_INICIO] a [HORARIO_DE_TERMINO]: [MOMENTOS_COBERTOS]. Entregáveis: [DESCRICAO_DOS_ENTREGAVEIS].
-2.2. Publicação em tempo real dispensa aprovação prévia de cada sequência, ressalvadas diretrizes específicas combinadas previamente.
-2.3. Cabe à CONTRATANTE viabilizar acesso à internet/conexão no local; indisponibilidade que impeça a publicação em tempo real não gera responsabilidade ao(à) CONTRATADO(A).
-
-3. DO PRAZO
-3.1. Resumo/compilado pós-evento (quando incluso) entregue em até [PRAZO_ENTREGA_CONTEUDO_RAPIDO] após o evento.
-
-4. DAS REVISÕES
-4.1. Não há revisão sobre conteúdo já publicado em tempo real, dada sua natureza efêmera.
-
-5. DO VALOR E DAS CONDIÇÕES DE PAGAMENTO
-5.1. Valor total: [VALOR_DO_SERVIÇO]. Pagamento: [CONDICOES_DE_PAGAMENTO]. Quitação integral até [PRAZO_QUITACAO_ANTES_EVENTO] antes do evento, sob pena de não comparecimento sem ônus ao(à) CONTRATADO(A), aplicando-se a retenção da cláusula 7ª.
-
-6. DO ARMAZENAMENTO PÓS-ENTREGA
-6.1. Após a entrega do resumo, guarda do material bruto passa à CONTRATANTE; backup por liberalidade até [PRAZO_MINIMO_GUARDA_BACKUP], reenvio cobrado a [VALOR_TAXA_REENVIO].
-
-7. DA RESCISÃO E TABELA DE RETENÇÃO
-7.1. Mais de 15 dias — retenção de [PERCENTUAL_RETENCAO_30_DIAS]%; entre 15 e 5 dias — retenção de [PERCENTUAL_RETENCAO_3_MESES]%; menos de 5 dias/no-show — 100%.
-
-8. DOS DIREITOS DE USO E IMAGEM
-8.1. Conteúdo publicado no perfil da CONTRATANTE já nasce sob sua titularidade. O(a) CONTRATADO(A) pode usar bastidores em portfólio, salvo vedação por escrito. Imagem de participantes é de responsabilidade da CONTRATANTE.
-
-9. DA CONFIDENCIALIDADE
-9.1. Sigilo sobre informações do evento não divulgadas pelo prazo de [PRAZO_CONFIDENCIALIDADE].
-
-10. DA PROTEÇÃO DE DADOS PESSOAIS (LGPD)
-10.1. Conforme Lei nº 13.709/2018.
-
-11. DO CASO FORTUITO E FORÇA MAIOR
-11.1. Termos gerais; substituto de nível equivalente ou devolução integral.
-
-12. DA LIMITAÇÃO DE RESPONSABILIDADE E DA INDENIZAÇÃO
-12.1. Limitada ao valor total pago, excluídos lucros cessantes/danos indiretos.
-12.2. A CONTRATANTE indeniza por: (i) ausência de conexão/estrutura no local; (ii) ausência de autorização de imagem de participantes; (iii) instrução de conteúdo que gere reclamação de terceiros.
-12.3. Avaliações negativas de má-fé sujeitas a notificação extrajudicial.
-
-13. DISPOSIÇÕES GERAIS
-13.1. Sem vínculo empregatício/societário.
-
-14. DO FORO
-14.1. Foro: [FORO_COMARCA].
 
 Local e data: [DATA_ASSINATURA].`,
   },
@@ -450,5 +405,539 @@ CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliad
 12.1. Foro: [FORO_COMARCA].
 
 Local e data: [DATA_ASSINATURA].`,
+  },
+  /* ================================================================== */
+  /* GRUPO 4 — CRIADOR DE HISTÓRIAS · 1. LANÇAMENTO DE VAREJO           */
+  /* ================================================================== */
+  {
+    perfil: "storymaker",
+    tipoServico: "lancamento_de_varejo",
+    nome: "Lançamento de Varejo",
+    descricao:
+      "Narrativa em stories para lançamento de coleção, promoção ou inauguração: janela curta e intensa, presença no ponto de venda, publicação em tempo real e responsabilidade do lojista pela oferta anunciada.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      { tag: "NOME_DA_LOJA", label: "Nome do comércio", tipo: "texto" },
+      { tag: "NOME_DA_ACAO", label: "Nome da ação/lançamento", tipo: "texto", exemplo: "lançamento coleção verão" },
+      { tag: "PERIODO_DA_ACAO", label: "Período da ação", tipo: "texto", exemplo: "de 05/01 a 12/01" },
+      { tag: "DIAS_DE_PRESENCA", label: "Dias de presença no ponto", tipo: "numero", exemplo: "3" },
+      { tag: "HORAS_POR_DIA", label: "Horas por dia no ponto", tipo: "numero", exemplo: "5" },
+      { tag: "QUANTIDADE_STORIES_DIA", label: "Stories por dia", tipo: "numero", exemplo: "20" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea", exemplo: "20 stories por dia, 2 reels por dia, 1 destaque organizado ao fim da ação" },
+      { tag: "PERFIS_GERENCIADOS", label: "Perfis em que será publicado", tipo: "textarea" },
+      { tag: "VALOR_DIA_EXTRA", label: "Valor do dia extra", tipo: "moeda" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE NARRATIVA EM STORIES PARA AÇÃO DE VAREJO
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a criação e a veiculação de narrativa em stories para a ação "[NOME_DA_ACAO]" do estabelecimento [NOME_DA_LOJA], no período de [PERIODO_DA_ACAO], nos perfis [PERFIS_GERENCIADOS].
+
+Parágrafo primeiro. O serviço compreende [DIAS_DE_PRESENCA] dias de presença no ponto de venda, de [HORAS_POR_DIA] horas cada, com produção e publicação de [QUANTIDADE_STORIES_DIA] stories por dia de presença.
+
+Parágrafo segundo. Os entregáveis compreendem: [DESCRICAO_DOS_ENTREGAVEIS].
+
+Parágrafo terceiro. NÃO integram o objeto, salvo contratação apartada: mídia paga e impulsionamento; atendimento a mensagens e comentários; produção de peças de feed fora do descrito; fotografia profissional de produto em estúdio; identidade visual da campanha; e presença em dias além dos contratados, que serão orçados a [VALOR_DIA_EXTRA] cada.
+
+Parágrafo quarto. A natureza do serviço é a NARRATIVA EM TEMPO REAL: o material é captado, editado e publicado no próprio dia, com a estética e a espontaneidade próprias do formato, o que a CONTRATANTE reconhece e aceita como característica, e não como limitação.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "tempo_real_e_aprovacao",
+        titulo: "Da Publicação em Tempo Real e da Aprovação Simplificada",
+        essencial: true,
+        protege: "Story tem hora — aprovação lenta mata o formato, e isso precisa estar combinado.",
+        texto: `As partes reconhecem que a publicação em stories é imediata por natureza, e que submeter cada peça a aprovação prévia inviabilizaria o formato contratado.
+
+Parágrafo primeiro. A CONTRATANTE aprova PREVIAMENTE, na assinatura deste contrato, a linha narrativa, o tom de voz, os temas e os elementos de identidade a serem utilizados, autorizando o CONTRATADO a publicar em tempo real dentro desses limites, sem aprovação peça a peça.
+
+Parágrafo segundo. A CONTRATANTE poderá, a qualquer momento, solicitar a remoção de story já publicado, o que será atendido em até 30 (trinta) minutos dentro da janela de trabalho. A remoção não gera reposição da peça nem abatimento.
+
+Parágrafo terceiro. Preferindo a CONTRATANTE a aprovação peça a peça, deverá manter pessoa disponível com resposta em até 10 (dez) minutos durante toda a janela de trabalho; a demora superior autoriza a publicação, considerando-se aprovada a peça, sob pena de a narrativa perder a sequência e o contexto.
+
+Parágrafo quarto. Erro de informação em story publicado será corrigido de imediato mediante nova peça, sem custo, quando decorrente de falha do CONTRATADO na reprodução de dado fornecido por escrito.
+
+Parágrafo quinto. Não se aplica a este contrato o regime de rodadas de refação previsto para peças editadas, salvo quanto aos entregáveis pós-ação — reels compilados, destaques e material de arquivo.`,
+      },
+      {
+        id: "oferta_varejo_stories",
+        titulo: "Da Oferta Anunciada e da Responsabilidade do Estabelecimento",
+        essencial: true,
+        protege: "Preço, estoque e promessa ao consumidor são de quem vende, não de quem narra.",
+        texto: `Preços, promoções, condições, prazos de validade da oferta e disponibilidade de estoque serão fornecidos pela CONTRATANTE e veiculados conforme informados.
+
+Parágrafo primeiro. A CONTRATANTE é a única responsável pela veracidade e pelo cumprimento das ofertas divulgadas, na forma do Código de Defesa do Consumidor, respondendo perante consumidores e órgãos de fiscalização.
+
+Parágrafo segundo. A CONTRATANTE comunicará imediatamente o esgotamento de estoque ou o encerramento antecipado da promoção, para retirada ou correção das peças em veiculação.
+
+Parágrafo terceiro. O CONTRATADO não responde por venda não realizada, por movimento aquém do esperado na loja, nem por resultado comercial da ação, obrigação de meio na forma da cláusula Da Limitação de Responsabilidade.
+
+Parágrafo quarto. Clientes, funcionários e demais pessoas registradas nos stories deverão ter sua imagem autorizada pela CONTRATANTE, na forma da cláusula Do Direito de Imagem; cabe a ela sinalizar no ponto de venda a existência de captação em curso.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_CONDICOES_CLIMATICAS,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ACESSOS_E_CONTAS,
+      CLAUSULA_PLATAFORMAS_TERCEIROS,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 4 — CRIADOR DE HISTÓRIAS · 2. ROTINA DE CLÍNICAS             */
+  /* ================================================================== */
+  {
+    perfil: "storymaker",
+    tipoServico: "rotina_clinicas_profissionais",
+    nome: "Rotina de Clínicas e Profissionais",
+    descricao:
+      "Bastidores de clínica ou consultório, onde a regra não é só de imagem: sigilo profissional, dados de saúde, publicidade regulada por conselho e o que jamais pode ser filmado.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_SERVICO_CONTINUO,
+      { tag: "NOME_DA_CLINICA", label: "Nome da clínica/consultório", tipo: "texto" },
+      { tag: "ESPECIALIDADE", label: "Especialidade", tipo: "texto", exemplo: "odontologia estética" },
+      { tag: "CONSELHO_PROFISSIONAL", label: "Conselho profissional", tipo: "texto", exemplo: "CRO" },
+      { tag: "NUMERO_REGISTRO_PROFISSIONAL", label: "Nº de registro do responsável técnico", tipo: "texto" },
+      { tag: "FREQUENCIA_CAPTACAO", label: "Frequência de visitas", tipo: "texto", exemplo: "1 visita semanal de 3 horas" },
+      { tag: "AMBIENTES_AUTORIZADOS", label: "Ambientes autorizados para captação", tipo: "textarea", exemplo: "recepção, sala de espera e uma sala clínica previamente higienizada e sem pacientes" },
+      { tag: "AMBIENTES_VEDADOS", label: "Ambientes vedados", tipo: "textarea", exemplo: "prontuários, recepção durante atendimento, sala de procedimentos em uso" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO CONTINUADA DE SERVIÇOS DE CONTEÚDO PARA ESTABELECIMENTO DE SAÚDE
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento de prestação de serviços de trato sucessivo, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002, pela Lei nº 9.610/1998 e pela Lei nº 13.709/2018.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a prestação continuada de serviços de produção de conteúdo em formato de bastidores e rotina para [NOME_DA_CLINICA], estabelecimento de [ESPECIALIDADE].
+
+Parágrafo primeiro. O serviço compreende visitas com frequência de [FREQUENCIA_CAPTACAO], produção de [VOLUME_MENSAL_CONTRATADO], publicação e relatório [PERIODICIDADE_RELATORIO].
+
+Parágrafo segundo. A captação ocorrerá exclusivamente nos ambientes autorizados: [AMBIENTES_AUTORIZADOS]. São ambientes e situações EXPRESSAMENTE VEDADOS: [AMBIENTES_VEDADOS].
+
+Parágrafo terceiro. NÃO integram o objeto: mídia paga; atendimento a mensagens e agendamento de pacientes; produção de material científico; consultoria de marketing médico; e adequação do estabelecimento às normas sanitárias e do conselho.
+
+Parágrafo quarto. O valor mensal de [VALOR_MENSAL] remunera a disponibilidade e o volume contratado.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "sigilo_paciente",
+        titulo: "Do Sigilo Profissional, do Paciente e dos Dados de Saúde",
+        essencial: true,
+        protege: "Dado de saúde é dado sensível — e imagem de paciente sem termo é risco grave para os dois.",
+        texto: `As partes reconhecem que a atividade da CONTRATANTE é submetida a sigilo profissional e que dados de saúde constituem DADOS PESSOAIS SENSÍVEIS, na forma do art. 5º, inciso II, da Lei nº 13.709/2018.
+
+Parágrafo primeiro. É ABSOLUTAMENTE VEDADA a captação, ainda que acidental, de: prontuários, fichas, exames, telas de sistema, agendas com nomes, receituários, etiquetas de identificação e quaisquer documentos de pacientes; rostos, tatuagens, marcas ou características identificáveis de pacientes; conversas de atendimento; e procedimentos em curso.
+
+Parágrafo segundo. A imagem de paciente somente poderá ser veiculada mediante TERMO ESPECÍFICO E ESCRITO de autorização, obtido pela CONTRATANTE, com indicação expressa da finalidade publicitária, das mídias e do prazo, e com a possibilidade de revogação a qualquer tempo. O termo genérico de atendimento não supre essa exigência.
+
+Parágrafo terceiro. Havendo revogação da autorização por paciente, a CONTRATANTE comunicará imediatamente o CONTRATADO, que promoverá a retirada do conteúdo em até 24 (vinte e quatro) horas, sem custo para a CONTRATANTE e sem que a retirada configure inadimplemento.
+
+Parágrafo quarto. O CONTRATADO obriga-se a: não armazenar material que contenha dado sensível fora do estritamente necessário; eliminar imediatamente captação acidental de conteúdo vedado; não utilizar tal material em portfólio, ainda que anonimizado, salvo autorização escrita e específica; e observar as demais obrigações da cláusula Da Proteção de Dados na condição de OPERADOR.
+
+Parágrafo quinto. A CONTRATANTE, na condição de CONTROLADORA, responde pela base legal do tratamento, pela obtenção dos termos, pelo atendimento aos titulares e pela comunicação de incidentes às autoridades.
+
+Parágrafo sexto. A violação desta cláusula por qualquer das partes constitui justa causa para rescisão imediata, sem prejuízo das responsabilidades civis, administrativas e criminais cabíveis.`,
+      },
+      {
+        id: "publicidade_regulada",
+        titulo: "Da Publicidade Regulada pelo Conselho Profissional",
+        essencial: true,
+        protege: "O que pode ser dito é definido pelo conselho — e quem responde por isso é o profissional.",
+        texto: `A CONTRATANTE declara que sua atividade é regulada pelo [CONSELHO_PROFISSIONAL], sob a responsabilidade técnica do profissional inscrito sob o nº [NUMERO_REGISTRO_PROFISSIONAL], e que a publicidade do estabelecimento se submete às normas éticas e publicitárias daquele órgão.
+
+Parágrafo primeiro. Compete EXCLUSIVAMENTE à CONTRATANTE, por meio do seu responsável técnico, validar previamente todo conteúdo quanto à conformidade com as normas do conselho, notadamente quanto a: divulgação de antes e depois; promessa ou garantia de resultado; sensacionalismo; concurso, sorteio e promoção de procedimentos; autopromoção vedada; divulgação de preços e condições; e menção a técnicas não reconhecidas.
+
+Parágrafo segundo. O CONTRATADO produz o conteúdo a partir das informações e da validação fornecidas, NÃO lhe cabendo conhecer, interpretar ou aplicar as normas do conselho, e não respondendo por processo ético-disciplinar, sanção administrativa ou notificação decorrente do conteúdo aprovado pela CONTRATANTE.
+
+Parágrafo terceiro. Toda peça será submetida à validação do responsável técnico antes da publicação, na forma da cláusula Da Pauta, e a sua aprovação escrita — ou a aprovação tácita nela prevista — vale como declaração de conformidade ética.
+
+Parágrafo quarto. O CONTRATADO poderá recusar a produção de conteúdo que repute manifestamente contrário à saúde pública, que incentive automedicação ou que faça promessa de cura, sem que a recusa configure inadimplemento.
+
+Parágrafo quinto. A CONTRATANTE manterá o CONTRATADO indene de qualquer sanção, condenação ou despesa decorrente de inobservância das normas do seu conselho profissional.`,
+      },
+      ...CLAUSULAS_DE_ROTINA,
+      CLAUSULA_ACESSOS_E_CONTAS,
+      CLAUSULA_PLATAFORMAS_TERCEIROS,
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      comoOpcional(CLAUSULA_PORTFOLIO, true),
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 4 — CRIADOR DE HISTÓRIAS · 3. EVENTOS EM TEMPO REAL          */
+  /* ================================================================== */
+  {
+    perfil: "storymaker",
+    tipoServico: "cobertura_eventos_stories",
+    nome: "Eventos em Tempo Real",
+    descricao:
+      "Cobertura de evento publicando ao vivo: janela de trabalho, dependência de internet no local, autorização prévia da linha narrativa e retenção progressiva se a data cair.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      { tag: "NOME_DO_EVENTO", label: "Nome do evento", tipo: "texto" },
+      { tag: "DATA_DO_EVENTO", label: "Data do evento", tipo: "data" },
+      { tag: "LOCAL_DO_EVENTO", label: "Local do evento", tipo: "texto" },
+      { tag: "HORARIO_DE_INICIO", label: "Início da cobertura", tipo: "texto" },
+      { tag: "HORARIO_DE_TERMINO", label: "Término da cobertura", tipo: "texto" },
+      { tag: "PERFIS_GERENCIADOS", label: "Perfis em que será publicado", tipo: "textarea" },
+      { tag: "QUANTIDADE_STORIES_DIA", label: "Stories previstos", tipo: "numero", exemplo: "40" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea", exemplo: "cobertura ao vivo, 3 reels no dia seguinte, destaque organizado e pasta com o material bruto selecionado" },
+      { tag: "PRAZO_QUITACAO_ANTES_EVENTO", label: "Prazo de quitação antes do evento", tipo: "texto", exemplo: "5 dias" },
+      { tag: "PERCENTUAL_RETENCAO_30_DIAS", label: "% retido — mais de 30 dias antes", tipo: "percentual", exemplo: "30" },
+      { tag: "PERCENTUAL_RETENCAO_15_DIAS", label: "% retido — entre 30 e 15 dias", tipo: "percentual", exemplo: "50" },
+      { tag: "PERCENTUAL_RETENCAO_7_DIAS", label: "% retido — entre 15 e 7 dias", tipo: "percentual", exemplo: "80" },
+      { tag: "PERCENTUAL_RETENCAO_VESPERA", label: "% retido — menos de 7 dias", tipo: "percentual", exemplo: "100" },
+      { tag: "PRAZO_AVISO_REMARCACAO", label: "Antecedência p/ remarcar sem multa", tipo: "texto", exemplo: "20 dias" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE COBERTURA DE EVENTO EM TEMPO REAL
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a cobertura narrativa em tempo real do evento "[NOME_DO_EVENTO]", em [DATA_DO_EVENTO], no local [LOCAL_DO_EVENTO], das [HORARIO_DE_INICIO] às [HORARIO_DE_TERMINO], com publicação nos perfis [PERFIS_GERENCIADOS].
+
+Parágrafo primeiro. Estão previstos aproximadamente [QUANTIDADE_STORIES_DIA] stories ao longo da janela contratada, número estimado e não vinculante, dado que o volume real depende do que acontece no evento.
+
+Parágrafo segundo. Os entregáveis compreendem: [DESCRICAO_DOS_ENTREGAVEIS].
+
+Parágrafo terceiro. NÃO integram o objeto: transmissão ao vivo em vídeo contínuo; fotografia profissional dedicada; vídeo institucional ou aftermovie de alta produção; atendimento a mensagens durante o evento; e cobertura de ambientes simultâneos que exijam profissional adicional.
+
+Parágrafo quarto. Evento é acontecimento irrepetível: o CONTRATADO empregará sua melhor técnica para narrar os momentos combinados, mas não se obriga a registrar a integralidade dos fatos, pessoas ou falas, especialmente os simultâneos ou inacessíveis.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "ao_vivo_e_internet",
+        titulo: "Da Publicação ao Vivo e da Dependência de Conectividade",
+        essencial: true,
+        protege: "Sem internet no salão não há tempo real — e isso é do local, não do profissional.",
+        texto: `A publicação em tempo real depende de conexão de internet estável no local do evento, cuja disponibilidade é de responsabilidade da CONTRATANTE ou da casa que sedia o evento.
+
+Parágrafo primeiro. A CONTRATANTE providenciará acesso a rede sem fio com senha, ou confirmará previamente a existência de sinal de dados móveis compatível com o envio de vídeo no local.
+
+Parágrafo segundo. Havendo ausência, instabilidade ou saturação de conexão — situação comum em locais com grande concentração de pessoas —, o CONTRATADO seguirá captando e publicará o material assim que a conexão permitir, ou, não sendo possível, no primeiro momento seguinte ao evento. A publicação diferida por essa causa NÃO configura descumprimento, não gera abatimento e não autoriza recusa do material.
+
+Parágrafo terceiro. A CONTRATANTE aprova previamente, na assinatura, a linha narrativa e o tom da cobertura, autorizando a publicação em tempo real sem aprovação peça a peça, aplicando-se, no que couber, o regime de remoção imediata mediante solicitação.
+
+Parágrafo quarto. O acesso ao perfil se dará por permissão delegada, na forma da cláusula Dos Acessos, e será revogado pela CONTRATANTE ao término da cobertura.
+
+Parágrafo quinto. Bateria, armazenamento e equipamento reserva são responsabilidade do CONTRATADO; ponto de energia acessível na janela de trabalho é responsabilidade da CONTRATANTE.`,
+      },
+      {
+        id: "cancelamento_evento_stories",
+        titulo: "Do Cancelamento e da Remarcação",
+        essencial: true,
+        protege: "Quanto mais perto da data, mais caro desistir — a agenda já foi perdida.",
+        texto: `O saldo do preço deverá estar quitado até [PRAZO_QUITACAO_ANTES_EVENTO] antes da data, e o cancelamento por iniciativa da CONTRATANTE sujeita-a à retenção dos seguintes percentuais do valor total:
+
+(i) com mais de 30 (trinta) dias de antecedência: [PERCENTUAL_RETENCAO_30_DIAS]%;
+(ii) entre 30 e 15 dias: [PERCENTUAL_RETENCAO_15_DIAS]%;
+(iii) entre 15 e 7 dias: [PERCENTUAL_RETENCAO_7_DIAS]%;
+(iv) com menos de 7 (sete) dias: [PERCENTUAL_RETENCAO_VESPERA]%.
+
+Parágrafo primeiro. Somam-se à retenção as despesas incorridas e não reembolsáveis.
+
+Parágrafo segundo. A remarcação com antecedência mínima de [PRAZO_AVISO_REMARCACAO], havendo disponibilidade de agenda, não sofrerá retenção, admitida uma única vez.
+
+Parágrafo terceiro. O adiamento por caso fortuito ou força maior preserva crédito por 12 (doze) meses, sujeito à agenda e ao ressarcimento de despesas.
+
+Parágrafo quarto. O impedimento de acesso da equipe ao evento equivale a cancelamento com menos de 7 (sete) dias.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_VIAGEM,
+      CLAUSULA_CONDICOES_CLIMATICAS,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ACESSOS_E_CONTAS,
+      CLAUSULA_PLATAFORMAS_TERCEIROS,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 4 — CRIADOR DE HISTÓRIAS · 4. BASTIDORES DE INFOPRODUTOS     */
+  /* ================================================================== */
+  {
+    perfil: "storymaker",
+    tipoServico: "bastidores_infoprodutos",
+    nome: "Bastidores de Infoprodutos",
+    descricao:
+      "Narrativa de bastidores para aquecer audiência de lançamento: acompanhamento do produtor, sigilo reforçado sobre a operação, promessa publicitária sob responsabilidade de quem vende e janela intensiva de carrinho.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_SERVICO_CONTINUO,
+      { tag: "NOME_DO_PRODUTO", label: "Produto lançado", tipo: "texto" },
+      { tag: "NOME_DA_PESSOA_PUBLICA", label: "Pessoa acompanhada", tipo: "texto" },
+      { tag: "PERIODO_DA_ACAO", label: "Período da operação", tipo: "texto", exemplo: "de 10/03 a 05/04" },
+      { tag: "DATA_ABERTURA_CARRINHO", label: "Abertura do carrinho", tipo: "data" },
+      { tag: "DATA_FECHAMENTO_CARRINHO", label: "Fechamento do carrinho", tipo: "data" },
+      { tag: "DIAS_DE_PRESENCA", label: "Dias de acompanhamento presencial", tipo: "numero", exemplo: "6" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea", exemplo: "narrativa diária em stories, 3 reels por semana e 1 compilado de bastidores ao fim" },
+      { tag: "VALOR_DIA_EXTRA", label: "Valor do dia extra de acompanhamento", tipo: "moeda" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE NARRATIVA DE BASTIDORES PARA LANÇAMENTO DIGITAL
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a produção de narrativa de bastidores do lançamento do produto [NOME_DO_PRODUTO], acompanhando [NOME_DA_PESSOA_PUBLICA] no período de [PERIODO_DA_ACAO], com abertura de carrinho em [DATA_ABERTURA_CARRINHO] e fechamento em [DATA_FECHAMENTO_CARRINHO].
+
+Parágrafo primeiro. O serviço compreende [DIAS_DE_PRESENCA] dias de acompanhamento presencial e os seguintes entregáveis: [DESCRICAO_DOS_ENTREGAVEIS]. Dias adicionais serão orçados a [VALOR_DIA_EXTRA] cada.
+
+Parágrafo segundo. NÃO integram o objeto: verba e gestão de mídia paga; produção das aulas e do produto vendido; páginas, plataforma e integrações; e-mail marketing; atendimento a leads e compradores; e criação da oferta.
+
+Parágrafo terceiro. A CONTRATANTE reconhece que a narrativa de bastidores exige ACESSO REAL à rotina, às reuniões e aos momentos de preparação, e obriga-se a franqueá-lo nos dias contratados.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "sigilo_da_operacao",
+        titulo: "Do Sigilo Reforçado sobre a Operação",
+        essencial: true,
+        protege: "Quem entra nos bastidores vê número, estratégia e oferta antes do mercado.",
+        texto: `Em razão do acesso privilegiado à operação, o CONTRATADO assume dever de sigilo REFORÇADO sobre tudo o que presenciar, em complemento à cláusula Da Confidencialidade.
+
+Parágrafo primeiro. São confidenciais, ainda que presenciados de forma incidental: faturamento, número de leads e de vendas, taxas de conversão, custo por lead, verba investida, margem, estrutura de comissionamento, dados de afiliados, estratégia de oferta e de precificação, bônus não anunciados, calendário de lançamento não divulgado, e conteúdo do produto ainda não lançado.
+
+Parágrafo segundo. O CONTRATADO não publicará, sem aprovação escrita e específica, nenhum número, print de painel, tela de plataforma ou dado de resultado, ainda que a pedido verbal feito no calor do lançamento.
+
+Parágrafo terceiro. O dever de sigilo desta cláusula vigora pelo prazo de [PRAZO_CONFIDENCIALIDADE] contados do encerramento, e a sua violação sujeita o infrator à multa da cláusula Da Confidencialidade.
+
+Parágrafo quarto. O uso em portfólio observará o disposto na cláusula Do Uso em Portfólio, restrito ao material publicamente veiculado e sem revelação de dados da operação.
+
+Parágrafo quinto. A CONTRATANTE, por sua vez, não divulgará valores, condições comerciais ou métodos do CONTRATADO sem igual autorização.`,
+      },
+      {
+        id: "promessa_do_produto",
+        titulo: "Da Promessa Publicitária e da Responsabilidade do Produtor",
+        essencial: true,
+        protege: "O bastidor narra; quem promete resultado é quem vende — e responde por isso.",
+        texto: `A definição da oferta, do preço, da garantia e das promessas de resultado é de competência e responsabilidade exclusivas da CONTRATANTE.
+
+Parágrafo primeiro. O CONTRATADO NÃO produzirá nem veiculará conteúdo que contenha promessa de ganho garantido, prova social forjada, escassez inverídica, depoimento fabricado ou omissão de informação essencial ao consumidor, ainda que instruído nesse sentido; a insistência caracteriza justa causa para rescisão com direito ao valor integral.
+
+Parágrafo segundo. A CONTRATANTE declara que o produto existe, será entregue conforme anunciado, e que dispõe de estrutura de atendimento aos compradores.
+
+Parágrafo terceiro. Depoimentos e casos de resultado exibidos nos bastidores serão fornecidos pela CONTRATANTE, que responde por sua veracidade e pelas autorizações de imagem correspondentes.
+
+Parágrafo quarto. Reprovação de anúncio, restrição de conta ou remoção de conteúdo pelas plataformas em razão da oferta observam a cláusula Das Plataformas de Terceiros.
+
+Parágrafo quinto. O CONTRATADO não responde por faturamento, número de vendas, conversão ou qualquer resultado do lançamento, obrigação de meio na forma da cláusula Da Limitação de Responsabilidade.`,
+      },
+      CLAUSULA_ROTINA_E_ATENDIMENTO,
+      CLAUSULA_ACESSOS_E_CONTAS,
+      CLAUSULA_PLATAFORMAS_TERCEIROS,
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_VIAGEM,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 4 — CRIADOR DE HISTÓRIAS · 5. DIÁRIAS DE VIAGEM              */
+  /* ================================================================== */
+  {
+    perfil: "storymaker",
+    tipoServico: "diarias_de_viagem",
+    nome: "Diárias de Viagem",
+    descricao:
+      "Acompanhamento em viagem, onde o contrato precisa tratar do que ninguém lembra: dia de deslocamento, hospedagem, seguro, bagagem de equipamento, jornada em fuso diferente e o que acontece se o roteiro mudar no aeroporto.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_VIAGEM,
+      { tag: "DESTINO_DA_VIAGEM", label: "Destino", tipo: "texto" },
+      { tag: "PERIODO_DA_VIAGEM", label: "Período da viagem", tipo: "texto", exemplo: "de 10/07 a 17/07" },
+      { tag: "NUMERO_DIARIAS_TRABALHO", label: "Diárias de trabalho", tipo: "numero", exemplo: "6" },
+      { tag: "NUMERO_DIARIAS_DESLOCAMENTO", label: "Diárias de deslocamento", tipo: "numero", exemplo: "2" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea", exemplo: "narrativa diária em stories, 1 reels por dia e 1 filme-resumo de 3 min ao fim" },
+      { tag: "VALOR_DIARIA_TRABALHO", label: "Valor da diária de trabalho", tipo: "moeda" },
+      { tag: "SEGURO_VIAGEM_RESPONSAVEL", label: "Quem contrata o seguro viagem", tipo: "texto", exemplo: "a contratante, incluindo cobertura médica e de bagagem" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE COBERTURA AUDIOVISUAL EM VIAGEM
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Separa dia de trabalho de dia de avião — os dois existem e os dois se pagam.",
+        texto: `Constitui objeto deste contrato a cobertura audiovisual da viagem a [DESTINO_DA_VIAGEM], no período de [PERIODO_DA_VIAGEM], compreendendo [NUMERO_DIARIAS_TRABALHO] diárias de trabalho e [NUMERO_DIARIAS_DESLOCAMENTO] diárias de deslocamento.
+
+Parágrafo primeiro. Os entregáveis compreendem: [DESCRICAO_DOS_ENTREGAVEIS].
+
+Parágrafo segundo. A diária de trabalho é remunerada a [VALOR_DIARIA_TRABALHO] e observa a jornada da cláusula Da Jornada. A diária de deslocamento, ainda que sem captação, é remunerada a 50% (cinquenta por cento) desse valor, dado que o dia fica integralmente indisponível para outro trabalho.
+
+Parágrafo terceiro. NÃO integram o objeto: produção de roteiro de viagem; reservas, ingressos e passeios; tradução e intérprete; taxas de filmagem em atrativos, parques, museus e áreas protegidas; e autorizações de captação exigidas por autoridade local.
+
+Parágrafo quarto. O CONTRATADO não é acompanhante, assistente pessoal ou guia: sua atuação limita-se à cobertura audiovisual contratada.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "logistica_da_viagem",
+        titulo: "Da Logística, do Seguro e do Equipamento em Viagem",
+        essencial: true,
+        protege: "Passagem, hotel, seguro e bagagem de equipamento por conta de quem contratou a viagem.",
+        texto: `Correrão por conta exclusiva da CONTRATANTE: transporte de ida e volta, hospedagem, alimentação, translados locais, taxas de embarque e turismo, e vistos ou autorizações de entrada, para toda a equipe do CONTRATADO, observados os padrões [PADRAO_TRANSPORTE_AEREO] e [PADRAO_HOSPEDAGEM].
+
+Parágrafo primeiro. O seguro viagem, com cobertura médica, de repatriação e de bagagem, será contratado por [SEGURO_VIAGEM_RESPONSAVEL], com antecedência mínima de 7 (sete) dias do embarque, e a apólice será enviada ao CONTRATADO.
+
+Parágrafo segundo. O transporte de equipamento técnico será feito como bagagem de mão sempre que possível; a CONTRATANTE arcará com bagagem adicional, excesso de peso e, quando necessário, com o seguro específico do equipamento. Extravio, avaria ou retenção alfandegária de equipamento durante o transporte custeado pela CONTRATANTE será por esta ressarcido, na forma da cláusula Do Equipamento, ressalvado o que for coberto pelo seguro.
+
+Parágrafo terceiro. Documentação pessoal válida — passaporte, visto, certificados sanitários exigidos pelo destino — é responsabilidade de cada profissional, e a sua ausência autoriza a substituição do integrante por outro de qualificação equivalente.
+
+Parágrafo quarto. Alterações de itinerário, remarcações e cancelamentos determinados pela CONTRATANTE correm por sua conta, incluindo multas e diferenças tarifárias, além das diárias bloqueadas e não aproveitadas.
+
+Parágrafo quinto. Havendo destino sob alerta oficial de segurança, epidemia, conflito ou desastre natural, o CONTRATADO poderá recusar o embarque sem penalidade, restituindo os valores de diárias não realizadas, retidas as despesas incorridas.`,
+      },
+      {
+        id: "jornada_em_viagem",
+        titulo: "Da Jornada em Viagem, do Descanso e do Roteiro",
+        essencial: true,
+        protege: "Estar hospedado junto não é estar trabalhando 24 horas — e roteiro muda, mas tem custo.",
+        texto: `A permanência do CONTRATADO no mesmo destino ou hospedagem da CONTRATANTE NÃO significa disponibilidade integral: a jornada diária contratada é a da cláusula Da Jornada, e o tempo excedente observa o regime de horas extras.
+
+Parágrafo primeiro. É assegurado descanso mínimo de [INTERVALO_ENTRE_DIARIAS] entre jornadas, e ao menos 1 (um) período de folga a cada 6 (seis) dias consecutivos de trabalho em viagem, no qual não haverá captação nem publicação.
+
+Parágrafo segundo. Fusos horários e horários locais não ampliam a jornada: a diária é contada pelo tempo efetivo de trabalho no destino.
+
+Parágrafo terceiro. O roteiro previsto poderá ser ajustado no curso da viagem por conveniência da CONTRATANTE, desde que preservados a jornada, o descanso e o número de diárias contratadas. Alterações que aumentem dias, deslocamentos internos, cidades ou atividades constituem alteração de escopo e serão remuneradas como diária adicional.
+
+Parágrafo quarto. A publicação em tempo real depende de conectividade no destino; a sua ausência difere a publicação sem configurar descumprimento, aplicando-se, no que couber, a cláusula Da Publicação ao Vivo.
+
+Parágrafo quinto. Condições climáticas, restrições locais, fechamento de atrativos e determinações de autoridade estrangeira observam as cláusulas Das Condições Climáticas e Do Caso Fortuito, sem direito a abatimento.`,
+      },
+      CLAUSULA_VIAGEM,
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_CONDICOES_CLIMATICAS,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ACESSOS_E_CONTAS,
+      CLAUSULA_PLATAFORMAS_TERCEIROS,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
   },
 ];

@@ -560,24 +560,6 @@ CPF/CNPJ [CPF_CNPJ_CONTRATADO]
 CONTRATADO`,
 };
 
-/**
- * O bloco de fechamento que praticamente todo contrato repete, na ordem em
- * que costuma fazer sentido ler. Cada modelo espalha isto no fim da sua lista
- * de cláusulas e acrescenta ou retira o que o serviço pedir.
- */
-export const CLAUSULAS_DE_FECHAMENTO: ClausulaModelo[] = [
-  CLAUSULA_CONFIDENCIALIDADE,
-  CLAUSULA_LGPD,
-  CLAUSULA_PAGAMENTO,
-  CLAUSULA_RESCISAO,
-  CLAUSULA_LIMITACAO_RESPONSABILIDADE,
-  CLAUSULA_FORCA_MAIOR,
-  CLAUSULA_EQUIPE_E_SUBCONTRATACAO,
-  CLAUSULA_NAO_ALICIAMENTO,
-  CLAUSULA_COMUNICACOES,
-  CLAUSULA_DISPOSICOES_FINAIS,
-];
-
 /** Muda o id de uma cláusula reaproveitada, quando o modelo precisa de duas variações dela. */
 export function comId(clausula: ClausulaModelo, id: string): ClausulaModelo {
   return { ...clausula, id };
@@ -587,3 +569,118 @@ export function comId(clausula: ClausulaModelo, id: string): ClausulaModelo {
 export function comoOpcional(clausula: ClausulaModelo, opcional = true): ClausulaModelo {
   return { ...clausula, opcional };
 }
+
+/* ==================================================================== */
+/* EQUILÍBRIO: O QUE O CLIENTE TAMBÉM LEVA                               */
+/* ==================================================================== */
+
+/**
+ * Um contrato que só protege um lado não é forte — é frágil.
+ *
+ * O cliente que lê trinta cláusulas de proteção do prestador e nenhuma
+ * obrigação dele em troca desconfia, negocia tudo, ou assina de má vontade e
+ * cria caso na primeira divergência. As cláusulas desta seção existem para
+ * que o documento diga, com a mesma clareza, o que CADA UM deve — e é isso
+ * que faz o cliente assinar rápido.
+ */
+export const CLAUSULA_OBRIGACOES_DAS_PARTES: ClausulaModelo = {
+  id: "obrigacoes_das_partes",
+  titulo: "Das Obrigações das Partes",
+  essencial: true,
+  protege: "Diz por escrito o que cada lado deve — é o que faz o cliente assinar sem desconfiar.",
+  texto: `São obrigações do CONTRATADO, além das demais previstas neste instrumento:
+
+(i) executar os serviços com zelo, diligência e padrão técnico compatível com o praticado por profissionais qualificados do seu mercado, empregando equipamento adequado e mantido em condições de uso;
+(ii) cumprir os prazos pactuados, ressalvadas as hipóteses de suspensão previstas neste contrato, e comunicar imediatamente à CONTRATANTE qualquer fato que possa comprometê-los;
+(iii) manter a CONTRATANTE informada sobre o andamento da execução, respondendo às comunicações nos prazos da cláusula Das Comunicações;
+(iv) submeter o material à aprovação nas etapas pactuadas e realizar as refações inclusas sem custo adicional;
+(v) corrigir, às suas expensas, os vícios e defeitos que lhe sejam imputáveis, na forma da cláusula Da Garantia;
+(vi) guardar sigilo sobre as informações da CONTRATANTE, nos termos da cláusula Da Confidencialidade;
+(vii) responder pelos encargos trabalhistas, previdenciários, fiscais e securitários da sua própria equipe;
+(viii) portar-se, e fazer com que sua equipe se porte, com urbanidade e discrição nos ambientes da CONTRATANTE, observando as normas internas que lhe forem previamente comunicadas.
+
+São obrigações da CONTRATANTE, além das demais previstas neste instrumento:
+
+(i) efetuar os pagamentos nas datas e formas pactuadas;
+(ii) fornecer tempestivamente os insumos, acessos, informações, autorizações e aprovações necessários à execução, na forma da cláusula Dos Prazos;
+(iii) indicar e manter um responsável com poderes de aprovação, consolidando por meio dele os apontamentos de toda a sua estrutura;
+(iv) garantir as condições de acesso, segurança e trabalho no local de execução;
+(v) responder pela veracidade das informações, pela licitude do conteúdo que fornecer e pela obtenção das autorizações de terceiros, na forma da cláusula Do Direito de Imagem;
+(vi) utilizar a obra nos limites licenciados;
+(vii) tratar o CONTRATADO e sua equipe com respeito, sendo vedada qualquer conduta discriminatória, assediadora ou intimidatória.
+
+Parágrafo único. O descumprimento reiterado de qualquer das obrigações acima, não sanado em 10 (dez) dias contados de notificação escrita, caracteriza justa causa para a rescisão pela parte prejudicada, na forma da cláusula Da Rescisão.`,
+};
+
+export const CLAUSULA_GARANTIA: ClausulaModelo = {
+  id: "garantia",
+  titulo: "Da Garantia e da Correção de Vícios",
+  protege: "Dá segurança real ao cliente e, ao mesmo tempo, fecha a porta do conserto eterno e de graça.",
+  texto: `O CONTRATADO garante que o material entregue estará livre de vícios técnicos que lhe sejam imputáveis, comprometendo-se a corrigi-los sem qualquer custo adicional para a CONTRATANTE.
+
+Parágrafo primeiro. Consideram-se vícios técnicos, exemplificativamente: arquivo corrompido ou ilegível; formato, resolução ou proporção diversos dos contratados; erro de exportação, de sincronismo de áudio ou de codificação; ausência de entregável expressamente descrito na cláusula Do Objeto; e erro de grafia em texto fornecido por escrito pela CONTRATANTE e reproduzido incorretamente pelo CONTRATADO.
+
+Parágrafo segundo. A garantia vigora por 30 (trinta) dias corridos contados da entrega, devendo o vício ser comunicado por escrito, com a descrição objetiva do problema, dentro desse prazo. A correção será realizada em prazo proporcional à sua extensão, não superior ao prazo original da etapa correspondente.
+
+Parágrafo terceiro. NÃO constituem vício, e portanto não são objeto de garantia: mudança de gosto, de conceito, de estratégia ou de preferência estética; alteração de premissa já aprovada; desempenho comercial do material; incompatibilidade com especificação técnica não informada previamente por escrito; alteração posterior de requisitos de plataformas de terceiros; e dano decorrente de manipulação, reexportação, compressão ou edição do arquivo por terceiros após a entrega.
+
+Parágrafo quarto. Impossibilitada a correção por causa não imputável ao CONTRATADO — notadamente quando dependa de nova captação de evento não repetível —, a responsabilidade observará o limite da cláusula Da Limitação de Responsabilidade.
+
+Parágrafo quinto. A correção de vício não reabre o ciclo de refações nem transfere para o CONTRATADO o ônus de novas rodadas de ajuste estético.`,
+};
+
+export const CLAUSULA_CONDUTA_E_ANTICORRUPCAO: ClausulaModelo = {
+  id: "conduta_anticorrupcao",
+  titulo: "Da Conduta, da Integridade e do Ambiente de Trabalho",
+  protege: "Compromisso dos dois lados: nada de propina, trabalho irregular ou assédio no set.",
+  texto: `As partes declaram conhecer e obrigam-se a observar a Lei nº 12.846/2013 e demais normas aplicáveis ao combate à corrupção, abstendo-se de oferecer, prometer, dar ou aceitar vantagem indevida a agente público ou privado, direta ou indiretamente, em razão deste contrato.
+
+Parágrafo primeiro. As partes declaram não utilizar, em suas cadeias produtivas, trabalho infantil, trabalho análogo ao de escravo, ou qualquer forma de exploração degradante, obrigando-se a comunicar imediatamente à outra qualquer indício em contrário de que tomem conhecimento.
+
+Parágrafo segundo. As partes repudiam qualquer forma de discriminação por raça, cor, etnia, origem, gênero, identidade de gênero, orientação sexual, religião, idade, deficiência ou condição social, bem como qualquer forma de assédio moral ou sexual, comprometendo-se a assegurar ambiente de trabalho respeitoso a todos os envolvidos na execução.
+
+Parágrafo terceiro. A ocorrência de assédio, discriminação ou violência praticada por qualquer das partes, seus prepostos ou convidados contra integrante da outra constitui JUSTA CAUSA para rescisão imediata, sem prejuízo das medidas cíveis e criminais cabíveis e da multa rescisória prevista na cláusula Da Rescisão.
+
+Parágrafo quarto. A parte que tomar conhecimento de conduta vedada por esta cláusula comunicará a outra por escrito, assegurada a apuração de boa-fé e a preservação de quem comunicar.`,
+};
+
+export const CLAUSULA_SOLUCAO_DE_CONFLITOS: ClausulaModelo = {
+  id: "solucao_de_conflitos",
+  titulo: "Da Solução Amigável de Controvérsias",
+  opcional: true,
+  protege: "Obriga a uma conversa antes do processo — resolve barato o que viraria caro.",
+  texto: `Surgindo divergência quanto à interpretação ou à execução deste contrato, as partes obrigam-se a, antes de qualquer medida judicial, buscar a solução amigável por meio de tratativa direta e documentada.
+
+Parágrafo primeiro. A parte que se considerar prejudicada notificará a outra por escrito, expondo objetivamente o fato, o fundamento e a solução pretendida. A parte notificada responderá no prazo de 10 (dez) dias.
+
+Parágrafo segundo. Não havendo composição em 30 (trinta) dias contados da notificação inicial, as partes poderão, de comum acordo, submeter a controvérsia a mediação perante câmara especializada, rateando-se as custas em partes iguais.
+
+Parágrafo terceiro. O disposto nesta cláusula não impede a adoção imediata de medidas urgentes destinadas a evitar dano irreparável, nem a cobrança de valores incontroversos vencidos e não pagos.
+
+Parágrafo quarto. A tentativa de solução amigável suspende os prazos contratuais de execução relativos ao ponto controvertido, mas não os prazos de pagamento de parcelas incontroversas.`,
+};
+
+/**
+ * O bloco de fechamento que praticamente todo contrato repete, na ordem em
+ * que costuma fazer sentido ler: primeiro o que o cliente ganha (garantia),
+ * depois sigilo e dados, então dinheiro, saída, limites, e o fecho.
+ *
+ * Fica no FIM do arquivo de propósito: é um array que referencia as
+ * constantes acima, e um array declarado antes delas quebraria na
+ * inicialização do módulo.
+ */
+export const CLAUSULAS_DE_FECHAMENTO: ClausulaModelo[] = [
+  CLAUSULA_GARANTIA,
+  CLAUSULA_CONFIDENCIALIDADE,
+  CLAUSULA_LGPD,
+  CLAUSULA_PAGAMENTO,
+  CLAUSULA_RESCISAO,
+  CLAUSULA_LIMITACAO_RESPONSABILIDADE,
+  CLAUSULA_FORCA_MAIOR,
+  CLAUSULA_EQUIPE_E_SUBCONTRATACAO,
+  CLAUSULA_NAO_ALICIAMENTO,
+  CLAUSULA_CONDUTA_E_ANTICORRUPCAO,
+  CLAUSULA_SOLUCAO_DE_CONFLITOS,
+  CLAUSULA_COMUNICACOES,
+  CLAUSULA_DISPOSICOES_FINAIS,
+];

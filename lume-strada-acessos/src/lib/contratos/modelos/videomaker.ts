@@ -1,4 +1,35 @@
 import { CAMPOS_COMUNS_CONTRATO, type ModeloContratoServico } from "./tipos";
+import {
+  CAMPOS_SERVICO_CONTINUO,
+  CLAUSULA_ROTINA_E_ATENDIMENTO,
+  CLAUSULA_VIGENCIA_E_RENOVACAO,
+  CLAUSULA_VOLUME_E_EXCEDENTE,
+} from "./clausulas-continuas";
+
+import {
+  CAMPOS_DRONE,
+  CAMPOS_OPERACIONAIS_COMUNS,
+  CAMPOS_VIAGEM,
+  CLAUSULAS_DE_FECHAMENTO,
+  CLAUSULA_ALIMENTACAO,
+  CLAUSULA_ALTERACOES_DE_ESCOPO,
+  CLAUSULA_APROVACAO_E_REFACOES,
+  CLAUSULA_BACKUP,
+  CLAUSULA_CONDICOES_CLIMATICAS,
+  CLAUSULA_DESLOCAMENTO,
+  CLAUSULA_DIREITOS_AUTORAIS,
+  CLAUSULA_DIREITO_DE_IMAGEM,
+  CLAUSULA_DRONE,
+  CLAUSULA_ENTREGA,
+  CLAUSULA_EQUIPAMENTO_E_SEGURO,
+  CLAUSULA_JORNADA,
+  CLAUSULA_OBRIGACOES_DAS_PARTES,
+  CLAUSULA_PORTFOLIO,
+  CLAUSULA_PRAZOS_E_INSUMOS,
+  CLAUSULA_VIAGEM,
+  comoOpcional,
+} from "./clausulas-comuns";
+
 
 /**
  * Banco de modelos de contrato do perfil VIDEOMAKER — v2, 8 tipos de serviço.
@@ -644,5 +675,506 @@ CONTRATADO(A): [NOME_CONTRATADO], CPF/CNPJ nº [CPF_CNPJ_CONTRATADO], domiciliad
 14.1. Foro: [FORO_COMARCA].
 
 Local e data: [DATA_ASSINATURA].`,
+  },
+  /* ================================================================== */
+  /* GRUPO 2 — CINEGRAFISTA · 1. VAREJO / COMÉRCIO                      */
+  /* ================================================================== */
+  {
+    perfil: "videomaker",
+    tipoServico: "varejo_comercio",
+    nome: "Varejo / Comércio",
+    descricao:
+      "Vídeos de oferta, vitrine e campanha para lojas e comércio, com ciclo curto de aprovação, responsabilidade do lojista pelo preço anunciado e regras de validade da peça promocional.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_DRONE,
+      { tag: "NOME_DA_LOJA", label: "Nome da loja/comércio", tipo: "texto" },
+      { tag: "ENDERECO_DA_LOJA", label: "Endereço da captação", tipo: "texto" },
+      { tag: "QUANTIDADE_PECAS", label: "Quantidade de peças", tipo: "numero", exemplo: "6" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea", exemplo: "6 vídeos de 20s em 9:16 e 1:1, com legenda queimada e selo de preço" },
+      { tag: "QUANTIDADE_DIARIAS", label: "Diárias de captação", tipo: "numero", exemplo: "1" },
+      { tag: "PRODUTOS_A_FILMAR", label: "Produtos a filmar", tipo: "textarea" },
+      { tag: "PERIODO_DE_VEICULACAO", label: "Período de veiculação da campanha", tipo: "texto", exemplo: "de 01/12 a 24/12" },
+      { tag: "VALOR_PECA_EXCEDENTE", label: "Valor da peça excedente", tipo: "moeda" },
+      { tag: "VALOR_DIARIA_EXTRA", label: "Valor da diária extra", tipo: "moeda" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE PRODUÇÃO DE VÍDEO PARA VAREJO
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a produção, pelo CONTRATADO, de [QUANTIDADE_PECAS] peças audiovisuais destinadas à divulgação comercial de [NOME_DA_LOJA], com captação em [ENDERECO_DA_LOJA].
+
+Parágrafo primeiro. Os entregáveis compreendem: [DESCRICAO_DOS_ENTREGAVEIS], produzidos a partir de [QUANTIDADE_DIARIAS] diária(s) de captação, tendo por objeto os produtos [PRODUTOS_A_FILMAR].
+
+Parágrafo segundo. Peças excedentes ao volume contratado serão orçadas a [VALOR_PECA_EXCEDENTE] cada; diárias adicionais, a [VALOR_DIARIA_EXTRA].
+
+Parágrafo terceiro. NÃO integram o objeto, salvo contratação apartada: modelos, atores, figurantes e respectivos cachês; direção de arte, montagem de vitrine, cenografia e adereços; locução profissional; licenciamento de trilha; tradução e legendagem em outro idioma; impulsionamento, mídia paga e gestão de campanha; e publicação nos perfis da CONTRATANTE.
+
+Parágrafo quarto. A organização do ponto de venda, a limpeza, a arrumação de prateleiras e a disponibilidade dos produtos em condições de filmagem são de responsabilidade da CONTRATANTE, e deverão estar prontas no horário de início da diária.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "oferta_e_preco",
+        titulo: "Da Oferta Anunciada e da Responsabilidade pelo Conteúdo Comercial",
+        essencial: true,
+        protege: "Preço errado, estoque acabado e promessa de venda são responsabilidade de quem vende.",
+        texto: `Preços, condições de pagamento, percentuais de desconto, prazos de validade da oferta, disponibilidade de estoque, especificações técnicas e quaisquer informações comerciais que constem das peças serão fornecidos pela CONTRATANTE, por escrito, e reproduzidos pelo CONTRATADO exatamente como informados.
+
+Parágrafo primeiro. A CONTRATANTE é a única responsável pela veracidade, atualidade, legalidade e exequibilidade das informações comerciais divulgadas, respondendo perante consumidores, órgãos de defesa do consumidor, PROCON, CONAR e autoridades pelo cumprimento da oferta veiculada, na forma do Código de Defesa do Consumidor.
+
+Parágrafo segundo. O CONTRATADO não responde por publicidade enganosa, oferta não honrada, ruptura de estoque, divergência de preço praticado no caixa, ausência de indicação de condições de financiamento ou omissão de informação obrigatória, salvo se houver reproduzido incorretamente dado fornecido por escrito — hipótese que constitui vício, sujeito à cláusula Da Garantia.
+
+Parágrafo terceiro. A CONTRATANTE conferirá as informações comerciais na etapa de aprovação, e a sua aprovação escrita, ou a aprovação tácita, valem como conferência final do conteúdo comercial.
+
+Parágrafo quarto. Alterações de preço ou de oferta após a aprovação exigem nova versão da peça, tratada como peça excedente ou rodada adicional, conforme o caso.
+
+Parágrafo quinto. A veiculação de peça promocional após o [PERIODO_DE_VEICULACAO] é de exclusiva responsabilidade da CONTRATANTE, obrigando-se esta a retirá-la de circulação ao término da vigência da oferta.`,
+      },
+      {
+        id: "ritmo_de_varejo",
+        titulo: "Do Ritmo do Varejo e dos Prazos Curtos",
+        protege: "Ajusta a expectativa do prazo relâmpago sem transformar urgência em regra grátis.",
+        texto: `As partes reconhecem que a comunicação de varejo opera em ciclos curtos, e por isso ajustam prazos e ritos compatíveis com essa realidade.
+
+Parágrafo primeiro. As peças serão entregues em [PRAZO_DE_ENTREGA] dias úteis contados da captação, e a CONTRATANTE se manifestará em [PRAZO_APROVACAO_CLIENTE], sob pena de aprovação tácita na forma da cláusula Da Aprovação.
+
+Parágrafo segundo. Demandas de execução em regime de urgência — entrega em prazo inferior ao pactuado, captação com menos de 48 (quarenta e oito) horas de aviso, ou trabalho em fim de semana e feriado — dependem de aceite do CONTRATADO e, quando aceitas, importam acréscimo de urgência na forma da cláusula Das Alterações de Escopo.
+
+Parágrafo terceiro. Campanhas sazonais de grande volume — datas comemorativas, liquidações e aniversários de loja — deverão ser comunicadas com antecedência mínima de 20 (vinte) dias para reserva de agenda, sem o que o CONTRATADO não se obriga a atendê-las.
+
+Parágrafo quarto. A CONTRATANTE indicará uma única pessoa com poderes de aprovação, sendo vedado submeter a peça a apreciação sucessiva de sócios, gerentes e vendedores após a aprovação formal.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_DRONE,
+      CLAUSULA_CONDICOES_CLIMATICAS,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 2 — CINEGRAFISTA · 2. AULAS / INFOPRODUTOS                   */
+  /* ================================================================== */
+  {
+    perfil: "videomaker",
+    tipoServico: "aulas_infoprodutos",
+    nome: "Aulas / Infoprodutos",
+    descricao:
+      "Gravação e edição de curso online, com módulos e aulas contados um a um, regras de regravação por erro do apresentador, teleprompter, e o conteúdo pedagógico sob responsabilidade de quem ensina.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      { tag: "NOME_DO_CURSO", label: "Nome do curso/infoproduto", tipo: "texto" },
+      { tag: "NUMERO_MODULOS", label: "Nº de módulos", tipo: "numero", exemplo: "6" },
+      { tag: "NUMERO_AULAS", label: "Nº total de aulas", tipo: "numero", exemplo: "40" },
+      { tag: "DURACAO_TOTAL_ESTIMADA", label: "Duração total estimada", tipo: "texto", exemplo: "8 horas de vídeo final" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea", exemplo: "40 aulas editadas em 1080p com vinheta, lower thirds, cortes secos e correção de cor" },
+      { tag: "QUANTIDADE_DIARIAS", label: "Diárias de gravação", tipo: "numero", exemplo: "4" },
+      { tag: "LOCAL_DA_GRAVACAO", label: "Local da gravação", tipo: "texto", exemplo: "estúdio do contratado" },
+      { tag: "NOME_DO_APRESENTADOR", label: "Nome do apresentador/professor", tipo: "texto" },
+      { tag: "VALOR_AULA_EXCEDENTE", label: "Valor da aula excedente", tipo: "moeda" },
+      { tag: "VALOR_REGRAVACAO", label: "Valor da regravação por erro do apresentador", tipo: "moeda" },
+      { tag: "PLATAFORMA_DE_HOSPEDAGEM", label: "Plataforma onde o curso será hospedado", tipo: "texto", exemplo: "Hotmart" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE PRODUÇÃO AUDIOVISUAL DE CURSO ONLINE
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Conta módulo, aula e hora — é o que impede o curso de dobrar de tamanho no meio.",
+        texto: `Constitui objeto deste contrato a gravação e a edição das videoaulas do curso "[NOME_DO_CURSO]", compreendendo [NUMERO_MODULOS] módulos e [NUMERO_AULAS] aulas, com duração total estimada de [DURACAO_TOTAL_ESTIMADA].
+
+Parágrafo primeiro. Os entregáveis compreendem: [DESCRICAO_DOS_ENTREGAVEIS], produzidos em [QUANTIDADE_DIARIAS] diária(s) de gravação, realizadas em [LOCAL_DA_GRAVACAO], tendo como apresentador [NOME_DO_APRESENTADOR].
+
+Parágrafo segundo. A UNIDADE DE MEDIÇÃO deste contrato é a aula finalizada. Aulas excedentes serão orçadas a [VALOR_AULA_EXCEDENTE] cada, e a duração média por aula será a resultante da divisão da duração total estimada pelo número de aulas contratado, admitida variação de até 20% (vinte por cento) para mais ou para menos no conjunto da obra.
+
+Parágrafo terceiro. NÃO integram o objeto, salvo contratação apartada: roteiro e estruturação pedagógica do conteúdo; slides, apostilas, planilhas e materiais de apoio; animações, infográficos e motion design além de vinheta e legendas de identificação; locução por terceiro; legendagem, transcrição e tradução; upload, configuração, montagem de área de membros e integração com [PLATAFORMA_DE_HOSPEDAGEM]; e produção de peças de lançamento e de vendas.
+
+Parágrafo quarto. O CONTRATADO fornecerá orientação técnica de enquadramento, luz e áudio, não se obrigando a treinar o apresentador em oratória, dicção ou desenvoltura de câmera.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "gravacao_e_regravacao",
+        titulo: "Da Gravação, do Apresentador e das Regravações",
+        essencial: true,
+        protege: "Erro de quem fala na frente da câmera não é refação de graça de quem está atrás.",
+        texto: `A CONTRATANTE responsabiliza-se pela presença pontual do apresentador, pelo domínio do conteúdo a ser gravado e pela sua condição de apresentação, incluindo vestuário adequado, preparação prévia e descanso.
+
+Parágrafo primeiro. O roteiro ou o script de cada aula deverá ser entregue ao CONTRATADO com antecedência mínima de 3 (três) dias úteis da gravação. Quando contratado o uso de teleprompter, o texto deverá estar consolidado e revisado, não cabendo ao CONTRATADO redigi-lo, revisá-lo ou corrigi-lo.
+
+Parágrafo segundo. Erros de fala, hesitações, repetições e trocas de palavra ocorridos durante a gravação são tratados na própria diária, mediante repetição da tomada, sem custo adicional.
+
+Parágrafo terceiro. Constitui REGRAVAÇÃO, e não refação, a necessidade de gravar novamente aula já captada e entregue, por qualquer das seguintes causas: mudança do conteúdo pelo apresentador; informação desatualizada; erro conceitual; desistência da abordagem; insatisfação do apresentador com a própria performance; ou alteração de identidade visual do curso. A regravação será cobrada a [VALOR_REGRAVACAO] por aula, acrescida das despesas de diária, estúdio e equipe.
+
+Parágrafo quarto. O atraso do apresentador superior a 1 (uma) hora, a sua ausência ou a impossibilidade de gravação por condição sua caracterizam diária perdida por culpa da CONTRATANTE, devida integralmente.
+
+Parágrafo quinto. O CONTRATADO poderá interromper a gravação quando as condições técnicas do local — ruído, iluminação, interferência, circulação de pessoas — comprometerem irremediavelmente a qualidade, comunicando o fato e propondo alternativa; não sendo possível saná-las por causa imputável à CONTRATANTE, aplica-se o parágrafo anterior.`,
+      },
+      {
+        id: "conteudo_pedagogico",
+        titulo: "Do Conteúdo Pedagógico e da Responsabilidade pelo Ensinado",
+        essencial: true,
+        protege: "Quem ensina responde pelo que ensina — o vídeo é a forma, não o conteúdo.",
+        texto: `O conteúdo pedagógico, técnico, científico, jurídico, financeiro, terapêutico ou de qualquer outra natureza veiculado nas aulas é de autoria e de responsabilidade exclusivas da CONTRATANTE e do apresentador por ela indicado.
+
+Parágrafo primeiro. O CONTRATADO atua exclusivamente na produção audiovisual, não revisando, validando, auditando nem endossando o conteúdo, e não respondendo por sua correção, atualidade, adequação regulatória, promessa de resultado ao aluno, ou por dano que a sua aplicação venha a causar a terceiros.
+
+Parágrafo segundo. A CONTRATANTE declara deter os direitos sobre todo o material de apoio exibido nas aulas — textos, imagens, gráficos, marcas, obras de terceiros, trechos de livros e softwares —, respondendo regressivamente perante o CONTRATADO por qualquer pretensão de titular.
+
+Parágrafo terceiro. A CONTRATANTE declara ainda que o curso, sua publicidade e sua forma de comercialização observam a legislação aplicável, inclusive o Código de Defesa do Consumidor e as normas dos conselhos profissionais eventualmente incidentes sobre a matéria ensinada.
+
+Parágrafo quarto. Constatando o CONTRATADO que o conteúdo é manifestamente ilícito, incita a prática de crime, ou promove risco à saúde ou à segurança de terceiros, poderá recusar a produção e rescindir o contrato por justa causa, com direito à remuneração das etapas executadas.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 2 — CINEGRAFISTA · 3. EVENTOS (SOCIAIS / CORPORATIVOS)       */
+  /* ================================================================== */
+  {
+    perfil: "videomaker",
+    tipoServico: "eventos_sociais_corporativos",
+    nome: "Eventos (Sociais e Corporativos)",
+    descricao:
+      "Cobertura de evento com data certa — confraternização, congresso, formatura, inauguração —, com quitação prévia, tabela progressiva de retenção, regras de palco e som, e limites do que é possível registrar num evento ao vivo.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_DRONE,
+      { tag: "NOME_DO_EVENTO", label: "Nome do evento", tipo: "texto" },
+      { tag: "DATA_DO_EVENTO", label: "Data do evento", tipo: "data" },
+      { tag: "LOCAL_DO_EVENTO", label: "Local do evento", tipo: "texto" },
+      { tag: "HORARIO_DE_INICIO", label: "Início da cobertura", tipo: "texto", exemplo: "18h" },
+      { tag: "HORARIO_DE_TERMINO", label: "Término da cobertura", tipo: "texto", exemplo: "1h" },
+      { tag: "MOMENTOS_COBERTOS", label: "Momentos a cobrir", tipo: "textarea", exemplo: "credenciamento, abertura, palestras do auditório principal, coquetel, premiação" },
+      { tag: "COMPOSICAO_DA_EQUIPE", label: "Composição da equipe", tipo: "textarea" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea", exemplo: "aftermovie de 3 min, 5 cortes de 60s para redes e 1 vídeo de depoimentos" },
+      { tag: "PRAZO_QUITACAO_ANTES_EVENTO", label: "Prazo de quitação antes do evento", tipo: "texto", exemplo: "7 dias" },
+      { tag: "PERCENTUAL_RETENCAO_30_DIAS", label: "% retido — mais de 30 dias antes", tipo: "percentual", exemplo: "30" },
+      { tag: "PERCENTUAL_RETENCAO_15_DIAS", label: "% retido — entre 30 e 15 dias", tipo: "percentual", exemplo: "50" },
+      { tag: "PERCENTUAL_RETENCAO_7_DIAS", label: "% retido — entre 15 e 7 dias", tipo: "percentual", exemplo: "80" },
+      { tag: "PERCENTUAL_RETENCAO_VESPERA", label: "% retido — menos de 7 dias", tipo: "percentual", exemplo: "100" },
+      { tag: "PRAZO_AVISO_REMARCACAO", label: "Antecedência p/ remarcar sem multa", tipo: "texto", exemplo: "20 dias" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE COBERTURA AUDIOVISUAL DE EVENTO
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Delimita exatamente o que está incluso — e, por consequência, o que não está.",
+        texto: `Constitui objeto deste contrato a cobertura audiovisual do evento "[NOME_DO_EVENTO]", a realizar-se em [DATA_DO_EVENTO], no local [LOCAL_DO_EVENTO], das [HORARIO_DE_INICIO] às [HORARIO_DE_TERMINO].
+
+Parágrafo primeiro. A cobertura compreende os seguintes momentos: [MOMENTOS_COBERTOS], executada pela equipe [COMPOSICAO_DA_EQUIPE].
+
+Parágrafo segundo. Os entregáveis compreendem: [DESCRICAO_DOS_ENTREGAVEIS].
+
+Parágrafo terceiro. NÃO integram o objeto, salvo contratação apartada: transmissão ao vivo e streaming; telão, projeção e operação de mídia do evento; captação e mixagem de áudio da mesa de som, que dependerá de disponibilização de sinal pela produção; registro fotográfico dedicado; entrega no mesmo dia; iluminação cênica do ambiente; e cobertura de ambientes simultâneos que exijam equipe adicional.
+
+Parágrafo quarto. Evento é acontecimento único e irrepetível. O CONTRATADO obriga-se a empregar sua melhor técnica para registrar os momentos contratados, mas NÃO se obriga a registrar a integralidade dos fatos, das pessoas ou das falas ocorridos simultaneamente em locais distintos, nem aqueles que não puder alcançar em razão de posicionamento, de restrição da organização, de bloqueio por convidados ou de deslocamento entre ambientes.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "quitacao_e_reserva",
+        titulo: "Da Reserva de Data e da Quitação Prévia",
+        essencial: true,
+        protege: "A data fica bloqueada porque foi paga — e a cobrança não vai para depois da festa.",
+        texto: `A assinatura deste contrato e o pagamento do sinal implicam o bloqueio da agenda do CONTRATADO para a data contratada, com a consequente recusa de outras propostas para o mesmo dia.
+
+Parágrafo primeiro. O saldo do preço deverá estar integralmente quitado até [PRAZO_QUITACAO_ANTES_EVENTO] antes da data do evento. A cobrança de saldo depois do evento é notoriamente frágil, e a antecipação da quitação é condição do preço praticado.
+
+Parágrafo segundo. Não verificada a quitação no prazo, o CONTRATADO poderá, mediante comunicação escrita, liberar a agenda e não comparecer, retendo os valores já pagos na forma da cláusula Do Cancelamento, sem que isso configure inadimplemento de sua parte.
+
+Parágrafo terceiro. Havendo prorrogação do evento além do horário contratado, as horas excedentes observarão a cláusula Da Jornada, e o seu pagamento poderá ser exigido antes da entrega do material.
+
+Parágrafo quarto. A reserva é personalíssima quanto à data e não pode ser transferida a terceiro ou convertida em crédito sem anuência escrita do CONTRATADO.`,
+      },
+      {
+        id: "condicoes_do_evento",
+        titulo: "Das Condições do Evento, do Palco e do Som",
+        protege: "Luz baixa, som ruim e palco proibido são limites do evento, não defeito do vídeo.",
+        texto: `A CONTRATANTE providenciará, às suas expensas, as condições necessárias à cobertura: acesso da equipe ao local com antecedência mínima de 1 (uma) hora do início, credenciamento, ponto de energia elétrica, posição de trabalho com visada do palco, e autorização junto à casa, à produção e aos demais fornecedores.
+
+Parágrafo primeiro. A qualidade do registro de falas, apresentações e shows depende do sinal de áudio disponibilizado pela mesa de som do evento. Não havendo disponibilização de sinal, a captação será feita por microfone ambiente, com a limitação técnica inerente, o que a CONTRATANTE desde já reconhece e aceita.
+
+Parágrafo segundo. A iluminação do ambiente é definida pela produção do evento. Ambientes de baixa luminosidade, luz colorida, estroboscópio, fumaça cênica e contraluz produzem resultado esteticamente distinto do obtido em ambiente controlado, o que não constitui vício do serviço.
+
+Parágrafo terceiro. Restrições impostas pela organização, pela casa, por artista ou por patrocinador — vedação de filmagem em determinado bloco, limitação de posições, proibição de luz auxiliar — reduzem proporcionalmente a expectativa de material, sem redução do preço.
+
+Parágrafo quarto. A CONTRATANTE informará ao CONTRATADO, com antecedência mínima de 5 (cinco) dias, o roteiro do evento, os momentos essenciais e as pessoas que devem obrigatoriamente ser registradas; a ausência dessa informação transfere a ela o risco da não captação de momento específico.
+
+Parágrafo quinto. Aplicam-se à execução as cláusulas Das Condições Climáticas e, quando houver aglomeração, as cautelas de segurança nelas previstas.`,
+      },
+      {
+        id: "cancelamento_evento",
+        titulo: "Do Cancelamento e da Remarcação",
+        essencial: true,
+        protege: "Quanto mais perto da data, mais caro desistir — a agenda já foi perdida.",
+        texto: `O cancelamento por iniciativa da CONTRATANTE sujeita-a à retenção dos seguintes percentuais do valor total do contrato:
+
+(i) com mais de 30 (trinta) dias de antecedência: [PERCENTUAL_RETENCAO_30_DIAS]%;
+(ii) entre 30 e 15 dias: [PERCENTUAL_RETENCAO_15_DIAS]%;
+(iii) entre 15 e 7 dias: [PERCENTUAL_RETENCAO_7_DIAS]%;
+(iv) com menos de 7 (sete) dias: [PERCENTUAL_RETENCAO_VESPERA]%.
+
+Parágrafo primeiro. Somam-se à retenção as despesas já incorridas e não reembolsáveis, notadamente passagens, hospedagem, locação de equipamento e contratação de equipe de apoio.
+
+Parágrafo segundo. A remarcação para nova data, solicitada com antecedência mínima de [PRAZO_AVISO_REMARCACAO] e havendo disponibilidade na agenda do CONTRATADO, não sofrerá retenção, admitida UMA única remarcação por contrato. Não havendo disponibilidade, a solicitação equivale a cancelamento.
+
+Parágrafo terceiro. O adiamento do evento por determinação de autoridade, caso fortuito ou força maior observará a cláusula correspondente, preservando-se o crédito da CONTRATANTE para nova data dentro de 12 (doze) meses, sujeito à disponibilidade de agenda e ao ressarcimento das despesas não reembolsáveis.
+
+Parágrafo quarto. O não comparecimento da CONTRATANTE, a não realização do evento por causa a ela imputável ou o impedimento de acesso da equipe equivalem a cancelamento com menos de 7 (sete) dias.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_VIAGEM,
+      CLAUSULA_DRONE,
+      CLAUSULA_CONDICOES_CLIMATICAS,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 2 — CINEGRAFISTA · 4. EDIÇÃO CONTÍNUA                        */
+  /* ================================================================== */
+  {
+    perfil: "videomaker",
+    tipoServico: "edicao_continua",
+    nome: "Edição Contínua (Mensal)",
+    descricao:
+      "Pacote mensal de edição sobre material captado por terceiros, com volume fechado, prazo de resposta, regras claras sobre material bruto de má qualidade e vigência com renovação automática.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_SERVICO_CONTINUO,
+      { tag: "FORMATO_DE_ENTREGA_BRUTOS", label: "Como o bruto será entregue", tipo: "texto", exemplo: "link de nuvem, arquivos originais de câmera, sem compactação" },
+      { tag: "PRAZO_ENVIO_BRUTOS", label: "Prazo para o cliente enviar o bruto", tipo: "texto", exemplo: "até o dia 5 de cada mês" },
+      { tag: "PRAZO_ENTREGA_POR_PECA", label: "Prazo de entrega por peça", tipo: "texto", exemplo: "3 dias úteis" },
+      { tag: "PADRAO_DE_EDICAO", label: "Padrão de edição acordado", tipo: "textarea", exemplo: "cortes dinâmicos, legenda queimada, trilha de biblioteca licenciada, correção de cor básica" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO CONTINUADA DE SERVIÇOS DE EDIÇÃO AUDIOVISUAL
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento de prestação de serviços de trato sucessivo, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Deixa claro que o serviço é edição — captação é outro contrato.",
+        texto: `Constitui objeto deste contrato a prestação continuada de serviços de EDIÇÃO e finalização de material audiovisual captado pela CONTRATANTE ou por terceiro por ela indicado, no volume mensal de [VOLUME_MENSAL_CONTRATADO].
+
+Parágrafo primeiro. A edição observará o padrão acordado: [PADRAO_DE_EDICAO], e o prazo de entrega será de [PRAZO_ENTREGA_POR_PECA] por peça, contado do recebimento do material bruto em condições de uso e do respectivo roteiro ou orientação.
+
+Parágrafo segundo. A CAPTAÇÃO NÃO INTEGRA O OBJETO. Também não integram, salvo contratação apartada: roteiro; locução; motion design, animação e computação gráfica; legendagem em outro idioma; licenciamento de trilha fora da biblioteca utilizada pelo CONTRATADO; publicação nos canais da CONTRATANTE; e gestão de campanhas.
+
+Parágrafo terceiro. O valor mensal de [VALOR_MENSAL] remunera a disponibilidade da agenda de edição e o volume contratado, observada a cláusula Do Volume Mensal.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "material_bruto",
+        titulo: "Do Material Bruto, da Sua Qualidade e do Seu Envio",
+        essencial: true,
+        protege: "Não se conserta na edição o que foi filmado errado — e isso precisa estar escrito.",
+        texto: `A CONTRATANTE entregará o material bruto por meio de [FORMATO_DE_ENTREGA_BRUTOS], [PRAZO_ENVIO_BRUTOS], acompanhado da orientação do que se pretende em cada peça.
+
+Parágrafo primeiro. O prazo de entrega de cada peça só começa a correr com o recebimento do material bruto COMPLETO e em condições de uso. Envio parcial, em formato inadequado, com arquivos corrompidos, sem áudio, sem os trechos essenciais ou sem orientação suspende o prazo, na forma da cláusula Dos Prazos.
+
+Parágrafo segundo. A edição trabalha sobre o que foi captado, e não cria o que não existe. NÃO constituem obrigação do CONTRATADO, e não configuram vício quando não alcançados: recuperar imagem desfocada, tremida, subexposta, superexposta ou fora de enquadramento; remover ruído de áudio que inviabilize a inteligibilidade; reconstituir trecho não captado; substituir pessoa, produto ou cenário; ou eliminar elemento indesejado presente na cena, salvo quando contratada expressamente a limpeza digital como escopo adicional.
+
+Parágrafo terceiro. Sendo o material bruto manifestamente inadequado ao resultado pretendido, o CONTRATADO comunicará o fato por escrito antes de iniciar a edição, cabendo à CONTRATANTE optar por nova captação ou por prosseguir com a limitação apontada — hipótese em que a peça será considerada entregue conforme contratado.
+
+Parágrafo quarto. A guarda do material bruto é da CONTRATANTE. O CONTRATADO manterá cópia de trabalho apenas enquanto durar a edição e pelo prazo da cláusula Do Backup, findo o qual poderá eliminá-la.
+
+Parágrafo quinto. Peças cujo material bruto não for enviado dentro do mês de referência não se acumulam para o mês seguinte, na forma da cláusula Do Volume Mensal.`,
+      },
+      CLAUSULA_VOLUME_E_EXCEDENTE,
+      CLAUSULA_ROTINA_E_ATENDIMENTO,
+      CLAUSULA_VIGENCIA_E_RENOVACAO,
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
+  },
+  /* ================================================================== */
+  /* GRUPO 2 — CINEGRAFISTA · 5. EXPRESSO INSTITUCIONAL                 */
+  /* ================================================================== */
+  {
+    perfil: "videomaker",
+    tipoServico: "expresso_institucional",
+    nome: "Expresso Institucional",
+    descricao:
+      "Vídeo institucional em formato enxuto e prazo curto: uma diária, escopo fechado, uma rodada de ajuste e nada de negociação de conceito — o preço baixo existe porque o processo é curto.",
+    camposDinamicos: [
+      ...CAMPOS_COMUNS_CONTRATO,
+      ...CAMPOS_OPERACIONAIS_COMUNS,
+      ...CAMPOS_DRONE,
+      { tag: "DURACAO_APROXIMADA", label: "Duração do vídeo final", tipo: "texto", exemplo: "até 2 minutos" },
+      { tag: "DESCRICAO_DOS_ENTREGAVEIS", label: "Entregáveis", tipo: "textarea", exemplo: "1 vídeo institucional de até 2 min em 16:9 e 1 corte vertical de 30s" },
+      { tag: "LOCAL_DA_CAPTACAO", label: "Local da captação", tipo: "texto" },
+      { tag: "HORARIO_DE_INICIO", label: "Início da diária", tipo: "texto", exemplo: "9h" },
+      { tag: "HORARIO_DE_TERMINO", label: "Término da diária", tipo: "texto", exemplo: "15h" },
+      { tag: "NUMERO_ENTREVISTAS", label: "Nº de depoimentos", tipo: "numero", exemplo: "3" },
+      { tag: "VALOR_DIARIA_EXTRA", label: "Valor da diária extra", tipo: "moeda" },
+    ],
+    clausulas: [
+      {
+        id: "preambulo",
+        titulo: "Qualificação das partes",
+        essencial: true,
+        protege: "Identifica quem se obriga — sem isso não há a quem cobrar.",
+        texto: `CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE PRODUÇÃO DE VÍDEO INSTITUCIONAL — FORMATO EXPRESSO
+
+Pelo presente instrumento particular, as partes abaixo qualificadas:
+
+CONTRATANTE: [NOME_DO_CLIENTE], [QUALIFICACAO_CLIENTE], inscrita no CPF/CNPJ sob o nº [CPF_CNPJ_CLIENTE], com sede/domicílio em [ENDERECO_CLIENTE], doravante simplesmente CONTRATANTE;
+
+CONTRATADO: [NOME_CONTRATADO], [QUALIFICACAO_CONTRATADO], inscrito no CPF/CNPJ sob o nº [CPF_CNPJ_CONTRATADO], com sede/domicílio em [ENDERECO_CONTRATADO], doravante simplesmente CONTRATADO;
+
+têm entre si justo e contratado o presente instrumento, que se regerá pelas cláusulas a seguir e, no que for omisso, pela Lei nº 10.406/2002 e pela Lei nº 9.610/1998.`,
+      },
+      {
+        id: "objeto",
+        titulo: "Do Objeto",
+        essencial: true,
+        protege: "Escopo fechado é o que sustenta o preço — mexer nele muda o produto.",
+        texto: `Constitui objeto deste contrato a produção de vídeo institucional em FORMATO EXPRESSO, com duração de [DURACAO_APROXIMADA], compreendendo uma única diária de captação em [LOCAL_DA_CAPTACAO], das [HORARIO_DE_INICIO] às [HORARIO_DE_TERMINO], com até [NUMERO_ENTREVISTAS] depoimentos.
+
+Parágrafo primeiro. Os entregáveis compreendem: [DESCRICAO_DOS_ENTREGAVEIS].
+
+Parágrafo segundo. O formato expresso é um produto de escopo fechado, e o seu preço decorre justamente disso: captação em um único dia e local, estrutura enxuta, montagem a partir de estrutura narrativa pré-definida pelo CONTRATADO e ciclo curto de aprovação. A ampliação de qualquer desses elementos descaracteriza o formato e implica reorçamento integral do projeto, e não simples acréscimo.
+
+Parágrafo terceiro. NÃO integram o objeto: roteiro autoral desenvolvido sob medida; pré-produção com apresentação de tratamento; direção de arte, cenografia e figurino; elenco e locução profissional; captação em mais de um local ou dia; motion design e computação gráfica; licenciamento de trilha fora da biblioteca do CONTRATADO; legendagem em outro idioma; e versionamento além do descrito.
+
+Parágrafo quarto. Diárias adicionais, quando aceitas, serão remuneradas a [VALOR_DIARIA_EXTRA] cada, com as despesas das cláusulas Do Deslocamento e Da Alimentação.`,
+      },
+      CLAUSULA_OBRIGACOES_DAS_PARTES,
+      {
+        id: "processo_expresso",
+        titulo: "Do Processo Expresso e do Ciclo Único de Aprovação",
+        essencial: true,
+        protege: "Uma rodada de ajuste. Quem quiser mais, contrata o formato completo.",
+        texto: `O formato expresso observa ciclo único de aprovação: entregue o corte, a CONTRATANTE apresentará, de uma só vez, a totalidade dos ajustes pretendidos, no prazo de [PRAZO_APROVACAO_CLIENTE].
+
+Parágrafo primeiro. Está inclusa 1 (uma) rodada de refação, limitada a ajustes pontuais de corte, ordem de trechos, texto de tela e correção de informação. Rodadas adicionais serão cobradas a [VALOR_RODADA_ADICIONAL] cada.
+
+Parágrafo segundo. NÃO cabem no formato expresso, e serão tratados como reorçamento do projeto: mudança de estrutura narrativa, substituição de depoimentos, regravação, mudança de trilha após aprovação, inclusão de material de arquivo não previsto e alteração de identidade visual.
+
+Parágrafo terceiro. A CONTRATANTE indicará, antes da captação, uma única pessoa com poderes de aprovação, e reconhece que a submissão do material a apreciação sucessiva de diretoria, sócios ou comitês é incompatível com o formato contratado.
+
+Parágrafo quarto. Decorrido o prazo de [PRAZO_INERCIA_APROVACAO] sem manifestação, o material reputa-se aprovado, encerrando-se o contrato quanto à obrigação de entrega.
+
+Parágrafo quinto. A CONTRATANTE poderá, a qualquer tempo antes do início da edição, migrar para o formato completo, aproveitando-se integralmente os valores já pagos como crédito no novo orçamento.`,
+      },
+      CLAUSULA_APROVACAO_E_REFACOES,
+      CLAUSULA_ALTERACOES_DE_ESCOPO,
+      CLAUSULA_PRAZOS_E_INSUMOS,
+      CLAUSULA_DESLOCAMENTO,
+      CLAUSULA_ALIMENTACAO,
+      CLAUSULA_JORNADA,
+      CLAUSULA_DRONE,
+      CLAUSULA_CONDICOES_CLIMATICAS,
+      CLAUSULA_EQUIPAMENTO_E_SEGURO,
+      CLAUSULA_ENTREGA,
+      CLAUSULA_BACKUP,
+      CLAUSULA_DIREITOS_AUTORAIS,
+      CLAUSULA_DIREITO_DE_IMAGEM,
+      CLAUSULA_PORTFOLIO,
+      ...CLAUSULAS_DE_FECHAMENTO,
+    ],
   },
 ];
