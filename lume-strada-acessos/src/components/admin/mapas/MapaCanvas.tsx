@@ -221,6 +221,47 @@ export function MapaCanvas({
     encaixar();
   }, [desenho, encaixar]);
 
+  // ---------------------------------------------------------------------
+  // Pendências, aviso de saída e tela cheia
+  // ---------------------------------------------------------------------
+  const temPendencias = editando !== null || emVoo > 0;
+
+  useEffect(() => {
+    aoMudarPendencias?.(temPendencias);
+  }, [temPendencias, aoMudarPendencias]);
+
+  // Fechar a aba com uma edição aberta perderia o que está no campo — o
+  // navegador só deixa avisar, não impedir, e é o suficiente.
+  useEffect(() => {
+    if (!temPendencias) return;
+    function avisar(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", avisar);
+    return () => window.removeEventListener("beforeunload", avisar);
+  }, [temPendencias]);
+
+  const raizRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function mudou() {
+      setTelaCheia(document.fullscreenElement === raizRef.current);
+    }
+    document.addEventListener("fullscreenchange", mudou);
+    return () => document.removeEventListener("fullscreenchange", mudou);
+  }, []);
+
+  async function alternarTelaCheia() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await raizRef.current?.requestFullscreen();
+    } catch {
+      // Navegador ou permissão sem tela cheia: o mapa continua funcionando
+      // do mesmo jeito, então não vale interromper com um erro.
+    }
+  }
+
   function comecarEdicao(noId: string) {
     if (!podeEditar) return;
     setSelecionado(noId);
