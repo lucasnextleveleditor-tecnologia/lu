@@ -81,3 +81,29 @@ export function buildBrandingCssVars(cores: { primaryColor: string; accentColor:
     "--color-accent-2": hexToRgbTriplet(accentHex) ?? "232 189 114",
   };
 }
+
+/**
+ * Variáveis CSS de destaque pra UMA proposta específica (Orçamentos) — cor
+ * única escolhida livremente por proposta (`orcamentos.cor_destaque`),
+ * diferente do branding global (que tem primária+acento separados). Como
+ * `--color-accent`/`--color-accent-2` já cascateiam por CSS normal, aplicar
+ * isso como `style` no `<div>` raiz de `OrcamentoPropostaPreview` sobrepõe
+ * a cor só DENTRO daquele componente (preview do construtor ou página
+ * pública), sem tocar no resto do painel admin. `undefined`/hex inválido
+ * devolve `null` — quem chama simplesmente não aplica nenhum `style` extra,
+ * herdando a cor de marca padrão do app.
+ */
+export function buildPropostaAccentVars(corDestaque: string | null | undefined): Record<string, string> | null {
+  if (!corDestaque || !isValidHex(corDestaque)) return null;
+  const triplet = hexToRgbTriplet(corDestaque);
+  if (!triplet) return null;
+  const clara = lightenHex(corDestaque, 0.28);
+  return {
+    "--color-accent": triplet,
+    "--color-accent-strong": hexToRgbTriplet(lightenHex(corDestaque, 0.16)) ?? triplet,
+    "--color-accent-2": hexToRgbTriplet(clara) ?? triplet,
+  };
+}
+
+/** Paleta rápida de cores de destaque sugeridas no seletor da proposta — livre pro usuário digitar qualquer hex, isso é só atalho de um clique. */
+export const CORES_DESTAQUE_SUGERIDAS = ["#d946ef", "#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#ec4899"];

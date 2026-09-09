@@ -175,6 +175,18 @@ export interface ItemInput {
   selecionado: boolean;
 }
 
+/** Uma linha da tabela "Itens de Entrega" (deliverables) — o quê + prazo, sem preço (ver `orc_itens_entrega`). */
+export interface ItemEntregaInput {
+  item: string;
+  prazo: string | null;
+}
+
+/** Uma coluna descritiva de "Investimento" (ex: "Equipe & Equipamento") — título + lista solta de itens, uma por linha (ver `orc_colunas_investimento`). */
+export interface ColunaInvestimentoInput {
+  titulo: string;
+  itens: string | null;
+}
+
 export interface OrcamentoHeaderInput {
   titulo: string;
   clienteId: string | null;
@@ -194,6 +206,53 @@ export interface OrcamentoHeaderInput {
   tipoPerfil: PerfilOrcamento | null;
   /** Slug do tipo de serviço dentro do perfil (ver `ModeloContratoServico.tipoServico`, `src/lib/contratos/modelos/`) — opcional, independente do modelo de itens padrão de `orc_tipos_orcamento`. */
   tipoServico: string | null;
+  /** Proposta Comercial Web v2 — capa, cor de destaque e resumo do projeto (ver `supabase/orcamentos-proposta-completa.sql`). Todos opcionais/omitidos. */
+  corDestaque?: string | null;
+  capaPath?: string | null;
+  capaSubtitulo?: string | null;
+  escalaTextoCapa?: number;
+  quantidadeDiarias?: string | null;
+  equipeEscalada?: string | null;
+}
+
+function normalizarItensEntrega(itens: ItemEntregaInput[]) {
+  return itens
+    .filter((i) => i.item.trim().length > 0)
+    .map((i, index) => ({ item: i.item.trim(), prazo: i.prazo?.trim() || null, ordem: index }));
+}
+
+function normalizarColunasInvestimento(colunas: ColunaInvestimentoInput[]) {
+  return colunas
+    .filter((c) => c.titulo.trim().length > 0)
+    .map((c, index) => ({ titulo: c.titulo.trim(), itens: c.itens?.trim() || null, ordem: index }));
+}
+
+/** Substitui por completo os Itens de Entrega e as Colunas de Investimento de um orçamento — mesmo princípio de `normalizarItens`/substituição total já usado pra `orc_itens` (nenhuma das duas tabelas carrega histórico próprio que precisasse sobreviver a uma edição). */
+async function salvarConteudoPropostaV2(
+  supabase: Awaited<ReturnType<typeof requireModulo>>["supabase"],
+  orcamentoId: string,
+  itensEntrega: ItemEntregaInput[],
+  colunasInvestimento: ColunaInvestimentoInput[]
+): Promise<ActionResult> {
+  const { error: erroLimparEntrega } = await supabase.from("orc_itens_entrega").delete().eq("orcamento_id", orcamentoId);
+  if (erroLimparEntrega) return { ok: false, error: erroLimparEntrega.message };
+
+  const entregaNormalizada = normalizarItensEntrega(itensEntrega);
+  if (entregaNormalizada.length > 0) {
+    const { error } = await supabase.from("orc_itens_entrega").insert(entregaNormalizada.map((i) => ({ ...i, orcamento_id: orcamentoId })));
+    if (error) return { ok: false, error: error.message };
+  }
+
+  const { error: erroLimparColunas } = await supabase.from("orc_colunas_investimento").delete().eq("orcamento_id", orcamentoId);
+  if (erroLimparColunas) return { ok: false, error: erroLimparColunas.message };
+
+  const colunasNormalizadas = normalizarColunasInvestimento(colunasInvestimento);
+  if (colunasNormalizadas.length > 0) {
+    const { error } = await supabase.from("orc_colunas_investimento").insert(colunasNormalizadas.map((c) => ({ ...c, orcamento_id: orcamentoId })));
+    if (error) return { ok: false, error: error.message };
+  }
+
+  return { ok: true };
 }
 
 function normalizarItens(itens: ItemInput[]) {
@@ -210,7 +269,12 @@ function normalizarItens(itens: ItemInput[]) {
   }));
 }
 
-export async function criarOrcamentoCompleto(header: OrcamentoHeaderInput, itens: ItemInput[]): Promise<ActionResultId> {
+export async function criarOrcamentoCompleto(
+  header: OrcamentoHeaderInput,
+  itens: ItemInput[],
+  itensEntrega: ItemEntregaInput[] = [],
+  colunasInvestimento: ColunaInvestimentoInput[] = []
+): Promise<ActionResultId> {
   try {
     const { supabase, user } = await requireModulo("orcamentos");
     if (!header.titulo.trim()) return { ok: false, error: "Informe um título pro orçamento." };
@@ -235,6 +299,12 @@ export async function criarOrcamentoCompleto(header: OrcamentoHeaderInput, itens
         objetivos: header.objetivos?.trim() || null,
         tipo_perfil: header.tipoPerfil,
         tipo_servico: header.tipoServico,
+        cor_destaque: header.corDestaque?.trim() || null,
+        capa_path: header.capaPath?.trim() || null,
+        capa_subtitulo: header.capaSubtitulo?.trim() || null,
+        escala_texto_capa: header.escalaTextoCapa ?? 1,
+        quantidade_diarias: header.quantidadeDiarias?.trim() || null,
+        equipe_escalada: header.equipeEscalada?.trim() || null,
         criado_por: user.id,
       })
       .select("id")
@@ -246,6 +316,9 @@ export async function criarOrcamentoCompleto(header: OrcamentoHeaderInput, itens
       .insert(normalizarItens(itens).map((item) => ({ ...item, orcamento_id: orcamento.id })));
     if (erroItens) return { ok: false, error: erroItens.message };
 
+    const resultV2 = await salvarConteudoPropostaV2(supabase, orcamento.id, itensEntrega, colunasInvestimento);
+    if (!resultV2.ok) return resultV2;
+
     revalidatePath(PATH);
     return { ok: true, id: orcamento.id };
   } catch (err) {
@@ -253,7 +326,13 @@ export async function criarOrcamentoCompleto(header: OrcamentoHeaderInput, itens
   }
 }
 
-export async function atualizarOrcamentoCompleto(id: string, header: OrcamentoHeaderInput, itens: ItemInput[]): Promise<ActionResult> {
+export async function atualizarOrcamentoCompleto(
+  id: string,
+  header: OrcamentoHeaderInput,
+  itens: ItemInput[],
+  itensEntrega: ItemEntregaInput[] = [],
+  colunasInvestimento: ColunaInvestimentoInput[] = []
+): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("orcamentos");
     if (!header.titulo.trim()) return { ok: false, error: "Informe um título pro orçamento." };
@@ -278,6 +357,12 @@ export async function atualizarOrcamentoCompleto(id: string, header: OrcamentoHe
         objetivos: header.objetivos?.trim() || null,
         tipo_perfil: header.tipoPerfil,
         tipo_servico: header.tipoServico,
+        cor_destaque: header.corDestaque?.trim() || null,
+        capa_path: header.capaPath?.trim() || null,
+        capa_subtitulo: header.capaSubtitulo?.trim() || null,
+        escala_texto_capa: header.escalaTextoCapa ?? 1,
+        quantidade_diarias: header.quantidadeDiarias?.trim() || null,
+        equipe_escalada: header.equipeEscalada?.trim() || null,
       })
       .eq("id", id);
     if (erroOrcamento) return { ok: false, error: erroOrcamento.message };
@@ -290,6 +375,9 @@ export async function atualizarOrcamentoCompleto(id: string, header: OrcamentoHe
 
     const { error: erroItens } = await supabase.from("orc_itens").insert(normalizarItens(itens).map((item) => ({ ...item, orcamento_id: id })));
     if (erroItens) return { ok: false, error: erroItens.message };
+
+    const resultV2 = await salvarConteudoPropostaV2(supabase, id, itensEntrega, colunasInvestimento);
+    if (!resultV2.ok) return resultV2;
 
     revalidatePath(PATH);
     revalidatePath(`${PATH}/${id}`);
@@ -323,6 +411,11 @@ export async function duplicarOrcamento(id: string): Promise<ActionResultId> {
     const { data: itensOriginais, error: erroItensOriginais } = await supabase.from("orc_itens").select("*").eq("orcamento_id", id).order("ordem");
     if (erroItensOriginais) return { ok: false, error: erroItensOriginais.message };
 
+    const [{ data: entregaOriginal }, { data: colunasOriginais }] = await Promise.all([
+      supabase.from("orc_itens_entrega").select("*").eq("orcamento_id", id).order("ordem"),
+      supabase.from("orc_colunas_investimento").select("*").eq("orcamento_id", id).order("ordem"),
+    ]);
+
     const { data: copia, error: erroCopia } = await supabase
       .from("orcamentos")
       .insert({
@@ -340,11 +433,24 @@ export async function duplicarOrcamento(id: string): Promise<ActionResultId> {
         texto_proposta: original.texto_proposta,
         objetivos: original.objetivos,
         tipo_perfil: original.tipo_perfil,
+        cor_destaque: original.cor_destaque,
+        capa_path: original.capa_path,
+        capa_subtitulo: original.capa_subtitulo,
+        escala_texto_capa: original.escala_texto_capa,
+        quantidade_diarias: original.quantidade_diarias,
+        equipe_escalada: original.equipe_escalada,
         criado_por: user.id,
       })
       .select("id")
       .single();
     if (erroCopia) return { ok: false, error: erroCopia.message };
+
+    if (entregaOriginal && entregaOriginal.length > 0) {
+      await supabase.from("orc_itens_entrega").insert(entregaOriginal.map((i) => ({ orcamento_id: copia.id, item: i.item, prazo: i.prazo, ordem: i.ordem })));
+    }
+    if (colunasOriginais && colunasOriginais.length > 0) {
+      await supabase.from("orc_colunas_investimento").insert(colunasOriginais.map((c) => ({ orcamento_id: copia.id, titulo: c.titulo, itens: c.itens, ordem: c.ordem })));
+    }
 
     if (itensOriginais && itensOriginais.length > 0) {
       const { error: erroItens } = await supabase.from("orc_itens").insert(

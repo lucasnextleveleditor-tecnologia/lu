@@ -1,7 +1,15 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { calcularStatusExibicao, calcularTotalOrcamento } from "@/lib/types/orcamentos";
-import type { OrcamentoRow, OrcItemRow, PortfolioItemRow, PortfolioItemComUrl, DadosInstitucionaisOrcamento } from "@/lib/types/orcamentos";
+import type {
+  OrcamentoRow,
+  OrcItemRow,
+  PortfolioItemRow,
+  PortfolioItemComUrl,
+  DadosInstitucionaisOrcamento,
+  OrcItemEntregaRow,
+  OrcColunaInvestimentoRow,
+} from "@/lib/types/orcamentos";
 
 const BUCKET_ORCAMENTOS_MIDIA = "orcamentos-midia";
 
@@ -16,6 +24,10 @@ interface EmpresaPublicaRow {
   orc_texto_institucional: string | null;
   orc_clientes_atendidos: string | null;
   orc_texto_encerramento: string | null;
+  orc_clientes_logos_paths: (string | null)[] | null;
+  orc_logos_tamanho_px: number | null;
+  orc_email_comercial: string | null;
+  orc_site_comercial: string | null;
 }
 
 /**
@@ -31,6 +43,14 @@ function montarInstitucional(admin: ReturnType<typeof createAdminClient>, empres
     .map((linha) => linha.trim())
     .filter((linha) => linha.length > 0);
 
+  const clientesLogosUrls: (string | null)[] = Array.from(
+    { length: 6 },
+    (_, i) => {
+      const path = empresa?.orc_clientes_logos_paths?.[i];
+      return path ? admin.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(path).data.publicUrl : null;
+    }
+  );
+
   return {
     nomeMarca: empresa?.nome_app?.trim() || empresa?.nome?.trim() || "",
     nomeLegal: empresa?.nome?.trim() || null,
@@ -42,6 +62,10 @@ function montarInstitucional(admin: ReturnType<typeof createAdminClient>, empres
     textoInstitucional: empresa?.orc_texto_institucional || null,
     clientesAtendidos,
     textoEncerramento: empresa?.orc_texto_encerramento || null,
+    clientesLogosUrls,
+    logosTamanhoPx: empresa?.orc_logos_tamanho_px || 60,
+    emailComercial: empresa?.orc_email_comercial || null,
+    siteComercial: empresa?.orc_site_comercial || null,
   };
 }
 
@@ -66,7 +90,7 @@ export async function buscarOrcamentoPublicoPorToken(token: string) {
   const { data: orcamento } = await admin
     .from("orcamentos")
     .select(
-      "*, companies(nome, nome_app, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_rodape_path, orc_texto_institucional, orc_clientes_atendidos, orc_texto_encerramento)"
+      "*, companies(nome, nome_app, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_rodape_path, orc_texto_institucional, orc_clientes_atendidos, orc_texto_encerramento, orc_clientes_logos_paths, orc_logos_tamanho_px, orc_email_comercial, orc_site_comercial)"
     )
     .eq("token", token)
     .single<OrcamentoRow & { companies: EmpresaPublicaRow | null }>();
@@ -78,6 +102,11 @@ export async function buscarOrcamentoPublicoPorToken(token: string) {
     .eq("orcamento_id", orcamento.id)
     .order("ordem")
     .overrideTypes<OrcItemRow[], { merge: false }>();
+
+  const [{ data: itensEntrega }, { data: colunasInvestimento }] = await Promise.all([
+    admin.from("orc_itens_entrega").select("*").eq("orcamento_id", orcamento.id).order("ordem").overrideTypes<OrcItemEntregaRow[], { merge: false }>(),
+    admin.from("orc_colunas_investimento").select("*").eq("orcamento_id", orcamento.id).order("ordem").overrideTypes<OrcColunaInvestimentoRow[], { merge: false }>(),
+  ]);
 
   const statusExibicao = calcularStatusExibicao(orcamento);
   const podeInteragir = statusExibicao === "enviado" || statusExibicao === "visualizado";
@@ -117,7 +146,10 @@ export async function buscarOrcamentoPublicoPorToken(token: string) {
     ...orcamento,
     empresaNome: orcamento.companies?.nome ?? null,
     institucional: montarInstitucional(admin, orcamento.companies),
+    capaUrl: orcamento.capa_path ? admin.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(orcamento.capa_path).data.publicUrl : null,
     itens: itens ?? [],
+    itensEntrega: itensEntrega ?? [],
+    colunasInvestimento: colunasInvestimento ?? [],
     subtotal,
     desconto,
     total,

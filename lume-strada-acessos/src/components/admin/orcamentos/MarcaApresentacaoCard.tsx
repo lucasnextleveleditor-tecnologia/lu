@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { MarcaOrcamentoUploadField } from "@/components/admin/orcamentos/MarcaOrcamentoUploadField";
+import { LogoClienteUploadField } from "@/components/admin/orcamentos/LogoClienteUploadField";
+import { Input } from "@/components/ui/Input";
 import { IconBuilding, IconChevronDown, IconCheckCircle } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils/cn";
@@ -34,6 +36,9 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
   const [textoInstitucional, setTextoInstitucional] = useState(institucional.textoInstitucional ?? "");
   const [clientesAtendidos, setClientesAtendidos] = useState(institucional.clientesAtendidos.join("\n"));
   const [textoEncerramento, setTextoEncerramento] = useState(institucional.textoEncerramento ?? "");
+  const [emailComercial, setEmailComercial] = useState(institucional.emailComercial ?? "");
+  const [siteComercial, setSiteComercial] = useState(institucional.siteComercial ?? "");
+  const [logosTamanho, setLogosTamanho] = useState(institucional.logosTamanhoPx || 60);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
@@ -42,7 +47,7 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
     setError(null);
     setSalvo(false);
     startTransition(async () => {
-      const result = await salvarInstitucionalOrcamento({ textoInstitucional, clientesAtendidos, textoEncerramento });
+      const result = await salvarInstitucionalOrcamento({ textoInstitucional, clientesAtendidos, textoEncerramento, emailComercial, siteComercial, logosTamanho });
       if (!result.ok) {
         setError(result.error);
         return;
@@ -54,10 +59,20 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
           .map((linha) => linha.trim())
           .filter((linha) => linha.length > 0),
         textoEncerramento: textoEncerramento.trim() || null,
+        emailComercial: emailComercial.trim() || null,
+        siteComercial: siteComercial.trim() || null,
+        logosTamanhoPx: logosTamanho,
       });
       setSalvo(true);
       setTimeout(() => setSalvo(false), 2000);
     });
+  }
+
+  function handleLogoClienteChange(slot: number, url: string | null) {
+    const novoArray = [...institucional.clientesLogosUrls];
+    while (novoArray.length < 6) novoArray.push(null);
+    novoArray[slot] = url;
+    onChange({ clientesLogosUrls: novoArray });
   }
 
   return (
@@ -139,6 +154,43 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
                 <Textarea rows={2} value={textoEncerramento} onChange={(e) => setTextoEncerramento(e.target.value)} placeholder={dict.orcamentos.institucionalEncerramentoPlaceholder} />
                 <p className="mt-1 text-[11px] text-ink-muted">{dict.orcamentos.institucionalEncerramentoHint}</p>
               </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.emailComercialLabel}</label>
+                  <Input type="email" value={emailComercial} onChange={(e) => setEmailComercial(e.target.value)} placeholder="comercial@suaempresa.com" />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.siteComercialLabel}</label>
+                  <Input value={siteComercial} onChange={(e) => setSiteComercial(e.target.value)} placeholder="www.suaempresa.com" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-base-800 pt-4">
+            <h3 className="text-sm font-semibold text-ink-primary">{dict.orcamentos.logosClientesTitulo}</h3>
+            <p className="mt-0.5 text-xs text-ink-muted">{dict.orcamentos.logosClientesSubtitulo}</p>
+            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
+              {Array.from({ length: 6 }, (_, slot) => (
+                <LogoClienteUploadField key={slot} slot={slot} url={institucional.clientesLogosUrls[slot] ?? null} onChange={(url) => handleLogoClienteChange(slot, url)} />
+              ))}
+            </div>
+            <div className="mt-4 max-w-xs">
+              <label className="mb-1.5 flex items-center justify-between text-xs font-medium text-ink-secondary">
+                <span>{dict.orcamentos.logosTamanhoLabel}</span>
+                <span className="text-ink-muted">{logosTamanho}px</span>
+              </label>
+              <input
+                type="range"
+                min={40}
+                max={120}
+                step={4}
+                value={logosTamanho}
+                onChange={(e) => setLogosTamanho(Number(e.target.value))}
+                onMouseUp={handleSalvarTextos}
+                onTouchEnd={handleSalvarTextos}
+                className="w-full accent-[rgb(var(--color-accent))]"
+              />
             </div>
 
             {error && <p className="mt-3 text-xs text-danger">{error}</p>}

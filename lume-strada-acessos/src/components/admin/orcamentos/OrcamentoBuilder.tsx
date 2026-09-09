@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { OrcCategoriaRow, ServicoComCategoria, DescontoTipo, PerfilOrcamento, TipoOrcamentoComItens, PortfolioItemComUrl, DadosInstitucionaisOrcamento } from "@/lib/types/orcamentos";
 import { calcularTotalOrcamento } from "@/lib/types/orcamentos";
-import { criarOrcamentoCompleto, atualizarOrcamentoCompleto, enviarOrcamento, type ItemInput } from "@/app/admin/orcamentos/actions";
+import { criarOrcamentoCompleto, atualizarOrcamentoCompleto, enviarOrcamento, type ItemInput, type ItemEntregaInput, type ColunaInvestimentoInput } from "@/app/admin/orcamentos/actions";
 import { salvarPortfolioDoOrcamento } from "@/app/admin/orcamentos/portfolio-actions";
 import type { buscarOrcamentoPorId } from "@/app/admin/orcamentos/data";
 import { CATEGORIAS_PORTFOLIO, CALCULADORA_HANDOFF_KEY, type ItemHandoffCalculadora } from "@/lib/utils/orcamentos";
 import { listarModelosPorPerfil } from "@/lib/contratos/modelos/mapeamento";
-import { OrcamentoPropostaPreview, type ItemPreview } from "@/components/cliente/OrcamentoPropostaPreview";
+import { OrcamentoPropostaPreview, type ItemPreview, type ItemEntregaPreview, type ColunaInvestimentoPreview } from "@/components/cliente/OrcamentoPropostaPreview";
 import { MarcaApresentacaoCard } from "@/components/admin/orcamentos/MarcaApresentacaoCard";
+import { CapaOrcamentoUploadField } from "@/components/admin/orcamentos/CapaOrcamentoUploadField";
+import { CorDestaqueField } from "@/components/admin/orcamentos/CorDestaqueField";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -42,12 +44,32 @@ interface ItemLocal {
   selecionado: boolean;
 }
 
+interface ItemEntregaLocal {
+  key: string;
+  item: string;
+  prazo: string;
+}
+
+interface ColunaInvestimentoLocal {
+  key: string;
+  titulo: string;
+  itens: string;
+}
+
 function novaChave(): string {
   return typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `item-${Date.now()}-${Math.random()}`;
 }
 
 function paraItemPreview(item: ItemLocal): ItemPreview {
   return { id: item.key, nome: item.nome, descricao: item.descricao, quantidade: item.quantidade, valorUnitario: item.valorUnitario, opcional: item.opcional, selecionado: item.selecionado };
+}
+
+function paraItemEntregaPreview(item: ItemEntregaLocal): ItemEntregaPreview {
+  return { id: item.key, item: item.item, prazo: item.prazo || null };
+}
+
+function paraColunaPreview(coluna: ColunaInvestimentoLocal): ColunaInvestimentoPreview {
+  return { id: coluna.key, titulo: coluna.titulo, itens: coluna.itens || null };
 }
 
 interface OrcamentoBuilderProps {
@@ -81,6 +103,43 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
   const [tipoServico, setTipoServico] = useState<string | null>(orcamentoParaEditar?.tipo_servico ?? null);
   const modelosDoTipoServico = useMemo(() => listarModelosPorPerfil(tipoPerfil), [tipoPerfil]);
   const [portfolioSelecionado, setPortfolioSelecionado] = useState<string[]>(orcamentoParaEditar?.portfolio.map((p) => p.id) ?? []);
+
+  // Proposta Comercial Web v2 — capa, cor de destaque e resumo do projeto
+  // (ver `supabase/orcamentos-proposta-completa.sql`). Tudo opcional: some
+  // do preview e nunca bloqueia salvar quando vazio.
+  const [corDestaque, setCorDestaque] = useState(orcamentoParaEditar?.cor_destaque ?? "");
+  const [capaPath, setCapaPath] = useState<string | null>(orcamentoParaEditar?.capa_path ?? null);
+  const [capaUrl, setCapaUrl] = useState<string | null>(orcamentoParaEditar?.capaUrl ?? null);
+  const [capaSubtitulo, setCapaSubtitulo] = useState(orcamentoParaEditar?.capa_subtitulo ?? "");
+  const [escalaTextoCapa, setEscalaTextoCapa] = useState(orcamentoParaEditar?.escala_texto_capa ?? 1);
+  const [quantidadeDiarias, setQuantidadeDiarias] = useState(orcamentoParaEditar?.quantidade_diarias ?? "");
+  const [equipeEscalada, setEquipeEscalada] = useState(orcamentoParaEditar?.equipe_escalada ?? "");
+  const [itensEntrega, setItensEntrega] = useState<ItemEntregaLocal[]>(() =>
+    (orcamentoParaEditar?.itensEntrega ?? []).map((i) => ({ key: novaChave(), item: i.item, prazo: i.prazo ?? "" }))
+  );
+  const [colunasInvestimento, setColunasInvestimento] = useState<ColunaInvestimentoLocal[]>(() =>
+    (orcamentoParaEditar?.colunasInvestimento ?? []).map((c) => ({ key: novaChave(), titulo: c.titulo, itens: c.itens ?? "" }))
+  );
+
+  function adicionarItemEntrega() {
+    setItensEntrega((prev) => [...prev, { key: novaChave(), item: "", prazo: "" }]);
+  }
+  function atualizarItemEntrega(key: string, patch: Partial<ItemEntregaLocal>) {
+    setItensEntrega((prev) => prev.map((i) => (i.key === key ? { ...i, ...patch } : i)));
+  }
+  function removerItemEntrega(key: string) {
+    setItensEntrega((prev) => prev.filter((i) => i.key !== key));
+  }
+
+  function adicionarColunaInvestimento() {
+    setColunasInvestimento((prev) => [...prev, { key: novaChave(), titulo: "", itens: "" }]);
+  }
+  function atualizarColunaInvestimento(key: string, patch: Partial<ColunaInvestimentoLocal>) {
+    setColunasInvestimento((prev) => prev.map((c) => (c.key === key ? { ...c, ...patch } : c)));
+  }
+  function removerColunaInvestimento(key: string) {
+    setColunasInvestimento((prev) => prev.filter((c) => c.key !== key));
+  }
 
   // Marca/apresentação (logo, banner, rodapé, textos institucionais) — dado
   // da EMPRESA, não deste orçamento (ver `MarcaApresentacaoCard`), mas
@@ -170,6 +229,8 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
   const itensObrigatoriosPreview = useMemo(() => itens.filter((i) => !i.opcional).map(paraItemPreview), [itens]);
   const itensOpcionaisPreview = useMemo(() => itens.filter((i) => i.opcional).map(paraItemPreview), [itens]);
   const portfolioSelecionadoItens = useMemo(() => portfolioItens.filter((p) => portfolioSelecionado.includes(p.id)), [portfolioItens, portfolioSelecionado]);
+  const itensEntregaPreview = useMemo(() => itensEntrega.filter((i) => i.item.trim()).map(paraItemEntregaPreview), [itensEntrega]);
+  const colunasInvestimentoPreview = useMemo(() => colunasInvestimento.filter((c) => c.titulo.trim()).map(paraColunaPreview), [colunasInvestimento]);
 
   function handleSelecionarCliente(id: string) {
     setClienteId(id);
@@ -288,6 +349,12 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
       objetivos: objetivos || null,
       tipoPerfil,
       tipoServico,
+      corDestaque: corDestaque || null,
+      capaPath,
+      capaSubtitulo: capaSubtitulo || null,
+      escalaTextoCapa,
+      quantidadeDiarias: quantidadeDiarias || null,
+      equipeEscalada: equipeEscalada || null,
     };
     const itensInput: ItemInput[] = itens.map((i) => ({
       servicoId: i.servicoId,
@@ -298,18 +365,20 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
       opcional: i.opcional,
       selecionado: i.selecionado,
     }));
+    const itensEntregaInput: ItemEntregaInput[] = itensEntrega.filter((i) => i.item.trim()).map((i) => ({ item: i.item, prazo: i.prazo || null }));
+    const colunasInput: ColunaInvestimentoInput[] = colunasInvestimento.filter((c) => c.titulo.trim()).map((c) => ({ titulo: c.titulo, itens: c.itens || null }));
 
     startTransition(async () => {
       let id: string;
       if (editando) {
-        const result = await atualizarOrcamentoCompleto(orcamentoParaEditar.id, header, itensInput);
+        const result = await atualizarOrcamentoCompleto(orcamentoParaEditar.id, header, itensInput, itensEntregaInput, colunasInput);
         if (!result.ok) {
           setError(result.error);
           return;
         }
         id = orcamentoParaEditar.id;
       } else {
-        const result = await criarOrcamentoCompleto(header, itensInput);
+        const result = await criarOrcamentoCompleto(header, itensInput, itensEntregaInput, colunasInput);
         if (!result.ok) {
           setError(result.error);
           return;
@@ -339,6 +408,38 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
       {/* Coluna do formulário — rola normalmente com a página */}
       <div className="space-y-4">
         <MarcaApresentacaoCard institucional={institucionalState} onChange={handleInstitucionalChange} />
+
+        <Card>
+          <h2 className="mb-1 text-sm font-semibold">{dict.orcamentos.capaTitulo}</h2>
+          <p className="mb-3 text-xs text-ink-muted">{dict.orcamentos.capaSubtitulo}</p>
+          <div className="space-y-4">
+            <CapaOrcamentoUploadField path={capaPath} url={capaUrl} onChange={(v) => { setCapaPath(v.path); setCapaUrl(v.url); }} />
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.capaSubtituloLabel}</label>
+              <Input value={capaSubtitulo} onChange={(e) => setCapaSubtitulo(e.target.value)} placeholder={dict.orcamentos.propostaComercialTitulo} />
+            </div>
+            <div>
+              <label className="mb-1.5 flex items-center justify-between text-xs font-medium text-ink-secondary">
+                <span>{dict.orcamentos.escalaTextoCapaLabel}</span>
+                <span className="text-ink-muted">{escalaTextoCapa.toFixed(2)}×</span>
+              </label>
+              <input
+                type="range"
+                min={0.8}
+                max={1.2}
+                step={0.05}
+                value={escalaTextoCapa}
+                onChange={(e) => setEscalaTextoCapa(Number(e.target.value))}
+                className="w-full accent-[rgb(var(--color-accent))]"
+              />
+              <div className="mt-1 flex justify-between text-[10px] text-ink-muted">
+                <span>{dict.orcamentos.escalaTextoCapaMenor}</span>
+                <span>{dict.orcamentos.escalaTextoCapaPadrao}</span>
+                <span>{dict.orcamentos.escalaTextoCapaMaior}</span>
+              </div>
+            </div>
+          </div>
+        </Card>
 
         <Card>
           <h2 className="mb-4 text-sm font-semibold">{dict.orcamentos.dadosDoOrcamentoTitulo}</h2>
@@ -460,12 +561,56 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
           <p className="mb-3 text-xs text-ink-muted">{dict.orcamentos.propostaSubtitulo}</p>
           <div className="space-y-4">
             <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.objetivosLabel}</label>
+              <Textarea rows={3} value={objetivos} onChange={(e) => setObjetivos(e.target.value)} placeholder={dict.orcamentos.placeholderObjetivos} />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.quantidadeDiariasLabel}</label>
+                <Input value={quantidadeDiarias} onChange={(e) => setQuantidadeDiarias(e.target.value)} placeholder={dict.orcamentos.placeholderQuantidadeDiarias} />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.equipeEscaladaLabel}</label>
+                <Input value={equipeEscalada} onChange={(e) => setEquipeEscalada(e.target.value)} placeholder={dict.orcamentos.placeholderEquipeEscalada} />
+              </div>
+            </div>
+            <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.textoPropostaLabel}</label>
               <Textarea rows={4} value={textoProposta} onChange={(e) => setTextoProposta(e.target.value)} placeholder={dict.orcamentos.placeholderTextoProposta} />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.objetivosLabel}</label>
-              <Textarea rows={3} value={objetivos} onChange={(e) => setObjetivos(e.target.value)} placeholder={dict.orcamentos.placeholderObjetivos} />
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="text-xs font-medium text-ink-secondary">{dict.orcamentos.itensEntregaTitulo}</label>
+                <Button variant="ghost" className="gap-1 px-2 py-1 text-xs" onClick={adicionarItemEntrega}>
+                  <IconPlus className="h-3.5 w-3.5" />
+                  {dict.orcamentos.adicionarItemBtn}
+                </Button>
+              </div>
+              {itensEntrega.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-base-700 p-3 text-center text-xs text-ink-muted">{dict.orcamentos.itensEntregaVazio}</p>
+              ) : (
+                <div className="space-y-2">
+                  {itensEntrega.map((item) => (
+                    <div key={item.key} className="flex items-center gap-2">
+                      <Input
+                        value={item.item}
+                        onChange={(e) => atualizarItemEntrega(item.key, { item: e.target.value })}
+                        placeholder={dict.orcamentos.itensEntregaColItem}
+                        className="flex-1"
+                      />
+                      <Input
+                        value={item.prazo}
+                        onChange={(e) => atualizarItemEntrega(item.key, { prazo: e.target.value })}
+                        placeholder={dict.orcamentos.itensEntregaColPrazo}
+                        className="w-28 shrink-0"
+                      />
+                      <button onClick={() => removerItemEntrega(item.key)} className="shrink-0 rounded p-1.5 text-ink-muted hover:text-danger" aria-label={dict.orcamentos.removerItemBtn}>
+                        <IconTrash className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </Card>
@@ -594,6 +739,52 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
           )}
         </Card>
 
+        <Card>
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold">{dict.orcamentos.colunasInvestimentoTitulo}</h2>
+              <p className="text-xs text-ink-muted">{dict.orcamentos.colunasInvestimentoHint}</p>
+            </div>
+            <Button variant="ghost" className="shrink-0 gap-1 px-2.5 py-1.5 text-xs" onClick={adicionarColunaInvestimento}>
+              <IconPlus className="h-3.5 w-3.5" />
+              {dict.orcamentos.colunasInvestimentoAdicionarBtn}
+            </Button>
+          </div>
+          {colunasInvestimento.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-base-700 p-4 text-center text-xs text-ink-muted">{dict.orcamentos.colunasInvestimentoVazio}</p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {colunasInvestimento.map((coluna) => (
+                <div key={coluna.key} className="space-y-2 rounded-lg border border-base-800 p-3">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={coluna.titulo}
+                      onChange={(e) => atualizarColunaInvestimento(coluna.key, { titulo: e.target.value })}
+                      placeholder={dict.orcamentos.colunasInvestimentoTituloPlaceholder}
+                      className="flex-1"
+                    />
+                    <button onClick={() => removerColunaInvestimento(coluna.key)} className="shrink-0 rounded p-1.5 text-ink-muted hover:text-danger" aria-label={dict.orcamentos.removerItemBtn}>
+                      <IconTrash className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <Textarea
+                    rows={3}
+                    value={coluna.itens}
+                    onChange={(e) => atualizarColunaInvestimento(coluna.key, { itens: e.target.value })}
+                    placeholder={dict.orcamentos.colunasInvestimentoItensPlaceholder}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <Card>
+          <h2 className="mb-1 text-sm font-semibold">{dict.orcamentos.corDestaqueTitulo}</h2>
+          <p className="mb-3 text-xs text-ink-muted">{dict.orcamentos.corDestaqueSubtitulo}</p>
+          <CorDestaqueField value={corDestaque} onChange={setCorDestaque} />
+        </Card>
+
         {portfolioItens.length > 0 && (
           <Card>
             <div className="mb-3 flex items-start justify-between gap-3">
@@ -663,6 +854,14 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
             portfolio={portfolioSelecionadoItens}
             institucional={institucionalState}
             empresaNome={institucionalState.nomeMarca || null}
+            corDestaque={corDestaque || null}
+            capaUrl={capaUrl}
+            capaSubtitulo={capaSubtitulo || null}
+            escalaTextoCapa={escalaTextoCapa}
+            quantidadeDiarias={quantidadeDiarias || null}
+            equipeEscalada={equipeEscalada || null}
+            itensEntrega={itensEntregaPreview}
+            colunasInvestimento={colunasInvestimentoPreview}
           />
         </div>
 

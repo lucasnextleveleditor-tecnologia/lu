@@ -182,6 +182,14 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
         portfolio={orcamento.portfolio}
         institucional={orcamento.institucional}
         empresaNome={orcamento.empresaNome}
+        corDestaque={orcamento.cor_destaque}
+        capaUrl={orcamento.capaUrl}
+        capaSubtitulo={orcamento.capa_subtitulo}
+        escalaTextoCapa={orcamento.escala_texto_capa}
+        quantidadeDiarias={orcamento.quantidade_diarias}
+        equipeEscalada={orcamento.equipe_escalada}
+        itensEntrega={orcamento.itensEntrega}
+        colunasInvestimento={orcamento.colunasInvestimento}
       />
 
       {podeInteragir && (

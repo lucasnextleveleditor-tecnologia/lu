@@ -311,6 +311,46 @@ export interface OrcamentosDict {
   calcAvisoImpostoMargemLimite: string;
   calcDicaFreelancer: string;
   calcSemServicosParaCriar: string;
+
+  // Proposta Comercial Web v2 — capa (imagem de fundo + badge + escala),
+  // resumo do projeto (diárias/equipe/itens de entrega), investimento em
+  // colunas descritivas, cor de destaque por proposta, e logos de clientes +
+  // contato comercial (empresa) — ver `supabase/orcamentos-proposta-completa.sql`.
+  capaTitulo: string;
+  capaSubtitulo: string;
+  capaImagemLabel: string;
+  capaImagemHint: string;
+  capaSubtituloLabel: string;
+  escalaTextoCapaLabel: string;
+  escalaTextoCapaMenor: string;
+  escalaTextoCapaPadrao: string;
+  escalaTextoCapaMaior: string;
+  quantidadeDiariasLabel: string;
+  placeholderQuantidadeDiarias: string;
+  equipeEscaladaLabel: string;
+  placeholderEquipeEscalada: string;
+  itensEntregaTitulo: string;
+  itensEntregaVazio: string;
+  itensEntregaColItem: string;
+  itensEntregaColPrazo: string;
+  colunasInvestimentoTitulo: string;
+  colunasInvestimentoHint: string;
+  colunasInvestimentoAdicionarBtn: string;
+  colunasInvestimentoVazio: string;
+  colunasInvestimentoTituloPlaceholder: string;
+  colunasInvestimentoItensPlaceholder: string;
+  corDestaqueTitulo: string;
+  corDestaqueSubtitulo: string;
+  corDestaqueLabel: string;
+  corDestaqueLimparBtn: string;
+  corDestaqueHint: string;
+  corDestaquePaletaLabel: string;
+  emailComercialLabel: string;
+  siteComercialLabel: string;
+  logosClientesTitulo: string;
+  logosClientesSubtitulo: string;
+  logoClienteSlotLabel: string;
+  logosTamanhoLabel: string;
 }
 
 export const orcamentos: OrcamentosDict = {
@@ -435,12 +475,12 @@ export const orcamentos: OrcamentosDict = {
   descontoTipoPercentual: "Percentual (%)",
   descontoTipoFixo: "Valor fixo (R$)",
 
-  propostaTitulo: "Proposta",
-  propostaSubtitulo: "Opcional — texto de proposta e objetivos específicos deste orçamento, exibidos na página de proposta do PDF.",
-  textoPropostaLabel: "Texto da proposta de trabalho",
-  placeholderTextoProposta: "Descreva a proposta de trabalho pra esse projeto — aparece na página de proposta do PDF.",
-  objetivosLabel: "Objetivos",
-  placeholderObjetivos: "Quais objetivos serão alcançados com esse projeto?",
+  propostaTitulo: "Resumo do Projeto",
+  propostaSubtitulo: "Opcional — objetivo, escopo, diárias, equipe e itens de entrega deste orçamento, exibidos na proposta.",
+  textoPropostaLabel: "Descrição do escopo",
+  placeholderTextoProposta: "O que será realizado neste projeto? Aparece na proposta e na página do PDF.",
+  objetivosLabel: "Objetivo da Produção/Projeto",
+  placeholderObjetivos: "Descreva aqui o objetivo desta produção — o que buscamos entregar com este projeto.",
 
   escolhaCategoriaTitulo: "Escolha o tipo de serviço",
   buscarServicoPlaceholder: "Buscar serviço no catálogo...",
@@ -477,8 +517,8 @@ export const orcamentos: OrcamentosDict = {
   condicoesDePagamentoTitulo: "Condições de Pagamento",
   observacoesTitulo: "Observações",
   nossosTrabalhosTitulo: "Nossos Trabalhos",
-  propostaSecaoTitulo: "Proposta de Trabalho",
-  objetivosSecaoTitulo: "Objetivos",
+  propostaSecaoTitulo: "Descrição do Escopo",
+  objetivosSecaoTitulo: "Objetivo do Projeto",
   quemSomosTitulo: "Quem Somos",
   empresasAtendidasTitulo: "Empresas que já atendemos",
   ctaDecisaoTitulo: "Vamos começar?",
@@ -601,4 +641,40 @@ export const orcamentos: OrcamentosDict = {
   calcAvisoImpostoMargemLimite: "Imposto + margem não pode passar de 99% — ajuste os valores pra calcular um preço válido.",
   calcDicaFreelancer: "Trabalha sozinho(a)? Lembre-se de incluir seu próprio tempo como um custo de serviço aqui — o Lucro Estimado é o que sobra pra reinvestir no negócio, não o seu salário.",
   calcSemServicosParaCriar: "Adicione pelo menos um serviço pra poder criar um orçamento a partir dessa simulação.",
+
+  capaTitulo: "Capa da Proposta",
+  capaSubtitulo: "Imagem de fundo, badge e escala de texto exibidos na capa desta proposta específica.",
+  capaImagemLabel: "Imagem de fundo (tela inteira)",
+  capaImagemHint: "Paisagem, alta resolução — vira o fundo da capa da proposta web.",
+  capaSubtituloLabel: "Subtítulo / Badge da capa",
+  escalaTextoCapaLabel: "Ajuste de escala do texto",
+  escalaTextoCapaMenor: "0.8× menor",
+  escalaTextoCapaPadrao: "1.0 padrão",
+  escalaTextoCapaMaior: "1.2× maior",
+  quantidadeDiariasLabel: "Quantidade de diárias",
+  placeholderQuantidadeDiarias: "Ex: 3 diárias",
+  equipeEscaladaLabel: "Equipe escalada (separada por vírgula)",
+  placeholderEquipeEscalada: "Ex: 01x Diretor, 02x Câmeras, 01x Drone",
+  itensEntregaTitulo: "Itens de Entrega",
+  itensEntregaVazio: "Nenhum item de entrega ainda — adicione o que será entregue e o prazo de cada um.",
+  itensEntregaColItem: "Item de entrega",
+  itensEntregaColPrazo: "Prazo",
+  colunasInvestimentoTitulo: "Investimento — Colunas Descritivas",
+  colunasInvestimentoHint: "Blocos como \"Equipe & Equipamento\" ou \"Pós-Produção\" — descritivos, exibidos ao lado do valor total já calculado nos itens acima.",
+  colunasInvestimentoAdicionarBtn: "Adicionar Coluna",
+  colunasInvestimentoVazio: "Nenhuma coluna ainda — opcional, use pra detalhar o que está incluso sem repetir os itens com preço.",
+  colunasInvestimentoTituloPlaceholder: "Ex: Equipe & Equipamento",
+  colunasInvestimentoItensPlaceholder: "Um item por linha...",
+  corDestaqueTitulo: "Cor de Destaque",
+  corDestaqueSubtitulo: "Aplicada em títulos, bordas e detalhes desta proposta web — não muda o resto do painel.",
+  corDestaqueLabel: "Cor de destaque",
+  corDestaqueLimparBtn: "Limpar",
+  corDestaqueHint: "Deixe em branco pra usar a cor padrão do sistema.",
+  corDestaquePaletaLabel: "Paleta rápida",
+  emailComercialLabel: "E-mail comercial",
+  siteComercialLabel: "Site",
+  logosClientesTitulo: "Logos de Clientes",
+  logosClientesSubtitulo: "Até 6 logos de marcas/clientes já atendidos — exibidos junto do \"Quem Somos\" na proposta.",
+  logoClienteSlotLabel: "Logo {n}",
+  logosTamanhoLabel: "Tamanho dos logos",
 };

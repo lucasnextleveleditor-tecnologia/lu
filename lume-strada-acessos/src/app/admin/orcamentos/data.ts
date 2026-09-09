@@ -13,6 +13,8 @@ import type {
   PortfolioItemRow,
   PortfolioItemComUrl,
   DadosInstitucionaisOrcamento,
+  OrcItemEntregaRow,
+  OrcColunaInvestimentoRow,
 } from "@/lib/types/orcamentos";
 import { calcularStatusExibicao, calcularTotalOrcamento } from "@/lib/types/orcamentos";
 import { CATEGORIAS_PORTFOLIO } from "@/lib/utils/orcamentos";
@@ -217,10 +219,18 @@ export async function buscarOrcamentoPorId(id: string) {
     .filter((item): item is PortfolioItemRow => !!item)
     .map((item) => ({ ...item, url: supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl }));
 
+  const [{ data: itensEntrega }, { data: colunasInvestimento }] = await Promise.all([
+    supabase.from("orc_itens_entrega").select("*").eq("orcamento_id", id).order("ordem").overrideTypes<OrcItemEntregaRow[], { merge: false }>(),
+    supabase.from("orc_colunas_investimento").select("*").eq("orcamento_id", id).order("ordem").overrideTypes<OrcColunaInvestimentoRow[], { merge: false }>(),
+  ]);
+
   return {
     ...orcamento,
     cliente_nome: orcamento.clientes?.nome ?? null,
+    capaUrl: orcamento.capa_path ? supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(orcamento.capa_path).data.publicUrl : null,
     itens: itens ?? [],
+    itensEntrega: itensEntrega ?? [],
+    colunasInvestimento: colunasInvestimento ?? [],
     subtotal,
     desconto,
     total,
@@ -245,7 +255,9 @@ export async function buscarDadosInstitucionaisEmpresa(): Promise<DadosInstituci
   const [{ data: empresa }, nomeMarca] = await Promise.all([
     supabase
       .from("companies")
-      .select("nome, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_rodape_path, orc_texto_institucional, orc_clientes_atendidos, orc_texto_encerramento")
+      .select(
+        "nome, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_rodape_path, orc_texto_institucional, orc_clientes_atendidos, orc_texto_encerramento, orc_clientes_logos_paths, orc_logos_tamanho_px, orc_email_comercial, orc_site_comercial"
+      )
       .maybeSingle<{
         nome: string | null;
         cpf_cnpj: string | null;
@@ -256,6 +268,10 @@ export async function buscarDadosInstitucionaisEmpresa(): Promise<DadosInstituci
         orc_texto_institucional: string | null;
         orc_clientes_atendidos: string | null;
         orc_texto_encerramento: string | null;
+        orc_clientes_logos_paths: (string | null)[] | null;
+        orc_logos_tamanho_px: number | null;
+        orc_email_comercial: string | null;
+        orc_site_comercial: string | null;
       }>(),
     getNomeApp(),
   ]);
@@ -264,6 +280,14 @@ export async function buscarDadosInstitucionaisEmpresa(): Promise<DadosInstituci
     .split("\n")
     .map((linha) => linha.trim())
     .filter((linha) => linha.length > 0);
+
+  const clientesLogosUrls: (string | null)[] = Array.from(
+    { length: 6 },
+    (_, i) => {
+      const path = empresa?.orc_clientes_logos_paths?.[i];
+      return path ? supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(path).data.publicUrl : null;
+    }
+  );
 
   return {
     nomeMarca,
@@ -276,5 +300,9 @@ export async function buscarDadosInstitucionaisEmpresa(): Promise<DadosInstituci
     textoInstitucional: empresa?.orc_texto_institucional || null,
     clientesAtendidos,
     textoEncerramento: empresa?.orc_texto_encerramento || null,
+    clientesLogosUrls,
+    logosTamanhoPx: empresa?.orc_logos_tamanho_px || 60,
+    emailComercial: empresa?.orc_email_comercial || null,
+    siteComercial: empresa?.orc_site_comercial || null,
   };
 }

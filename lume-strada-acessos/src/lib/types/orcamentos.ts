@@ -59,6 +59,18 @@ export interface OrcamentoRow {
   texto_proposta: string | null;
   /** Objetivos alcançados com este projeto/orçamento específico — mesma origem/uso de `texto_proposta`. Null = seção omitida. */
   objetivos: string | null;
+  /** Cor de destaque (hex) desta proposta específica — ver `supabase/orcamentos-proposta-completa.sql`. Null = usa a cor padrão do app. */
+  cor_destaque: string | null;
+  /** Path no bucket orcamentos-midia da imagem de fundo da capa desta proposta. Null = usa o banner da agência ou o degradê padrão. */
+  capa_path: string | null;
+  /** Subtítulo/badge da capa (ex: "Proposta Premium"). Null = usa o rótulo padrão. */
+  capa_subtitulo: string | null;
+  /** Fator de escala do texto da capa (0.80 a 1.20). */
+  escala_texto_capa: number;
+  /** Quantidade de diárias/dias previstos, texto livre. Null = seção omitida. */
+  quantidade_diarias: string | null;
+  /** Equipe escalada, separada por vírgula. Null = seção omitida. */
+  equipe_escalada: string | null;
   token: string;
   enviado_em: string | null;
   visualizado_em: string | null;
@@ -87,6 +99,30 @@ export interface OrcItemRow {
 }
 
 export type OrcamentoComRelacoes = OrcamentoRow & { cliente_nome: string | null; itens: OrcItemRow[] };
+
+// ----------------------------------------------------------------------------
+// Proposta Comercial Web v2 — Itens de Entrega (deliverables: o quê + prazo,
+// diferente de `OrcItemRow` que é linha de PREÇO) e Colunas de Investimento
+// (blocos descritivos ao lado do total, ver `supabase/orcamentos-proposta-completa.sql`).
+// ----------------------------------------------------------------------------
+export interface OrcItemEntregaRow {
+  id: string;
+  orcamento_id: string;
+  item: string;
+  prazo: string | null;
+  ordem: number;
+  created_at: string;
+}
+
+export interface OrcColunaInvestimentoRow {
+  id: string;
+  orcamento_id: string;
+  titulo: string;
+  /** Uma linha por item, texto puro (mesmo padrão de `clientesAtendidos`). */
+  itens: string | null;
+  ordem: number;
+  created_at: string;
+}
 
 /**
  * Total de um orçamento — soma só os itens SELECIONADOS (obrigatórios
@@ -191,4 +227,12 @@ export interface DadosInstitucionaisOrcamento {
   clientesAtendidos: string[];
   /** `companies.orc_texto_encerramento` — mensagem de agradecimento/encerramento exibida no fim da proposta (depois do `rodapeUrl`), ex: "Foi um prazer te atender, esperamos ter sucesso juntos!". Padrão pra todos os orçamentos. Null = seção omitida. */
   textoEncerramento: string | null;
+  /** `companies.orc_clientes_logos_paths` já resolvidos pra URL pública — sempre 6 posições, slot vazio = `null` (preserva a posição, ver `LogoClienteUploadField`). Complementa `clientesAtendidos` (texto) com imagens de fato; pra exibição (preview público), filtre os `null` antes de mapear. */
+  clientesLogosUrls: (string | null)[];
+  /** `companies.orc_logos_tamanho_px` — altura em pixels de exibição dos logos acima. */
+  logosTamanhoPx: number;
+  /** `companies.orc_email_comercial` — exibido no encerramento da proposta. Null = omitido. */
+  emailComercial: string | null;
+  /** `companies.orc_site_comercial` — exibido no encerramento da proposta. Null = omitido. */
+  siteComercial: string | null;
 }
