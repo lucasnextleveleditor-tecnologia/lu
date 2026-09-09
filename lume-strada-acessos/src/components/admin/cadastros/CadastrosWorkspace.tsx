@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ClienteRow, EquipeMembroRow } from "@/lib/types/cadastros";
+import type { CargoRow, ClienteRow, DepartamentoRow, EquipeMembroRow } from "@/lib/types/cadastros";
 import type { ProfileRow } from "@/lib/types/database";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -13,6 +13,8 @@ interface CadastrosWorkspaceProps {
   clientes: ClienteRow[];
   equipeMembros: EquipeMembroRow[];
   profilesPorId: Record<string, ProfileRow>;
+  departamentos: DepartamentoRow[];
+  cargos: CargoRow[];
   souAdmin: boolean;
 }
 
@@ -26,7 +28,7 @@ type Aba = "clientes" | "equipe";
  * gerenciar QUEM tem acesso ao quê nunca é delegável (ver
  * `lib/auth/requireAdmin.ts`).
  */
-export function CadastrosWorkspace({ clientes, equipeMembros, profilesPorId, souAdmin }: CadastrosWorkspaceProps) {
+export function CadastrosWorkspace({ clientes, equipeMembros, profilesPorId, departamentos, cargos, souAdmin }: CadastrosWorkspaceProps) {
   const [aba, setAba] = useState<Aba>("clientes");
   const { dict } = useLocale();
 
@@ -63,7 +65,7 @@ export function CadastrosWorkspace({ clientes, equipeMembros, profilesPorId, sou
       {aba === "clientes" || !souAdmin ? (
         <ClientesManager clientes={clientes} profilesPorId={profilesPorId} souAdmin={souAdmin} />
       ) : (
-        <EquipeManager equipeMembros={equipeMembros} profilesPorId={profilesPorId} />
+        <EquipeManager equipeMembros={equipeMembros} profilesPorId={profilesPorId} departamentos={departamentos} cargos={cargos} />
       )}
     </div>
   );

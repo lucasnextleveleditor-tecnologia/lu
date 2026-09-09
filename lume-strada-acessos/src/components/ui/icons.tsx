@@ -745,3 +745,15 @@ export function IconFlag(props: IconProps) {
     </svg>
   );
 }
+
+/** Estrutura hierárquica (Organograma da Equipe, ver `OrganogramaView.tsx`). */
+export function IconSitemap(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="9" y="3" width="6" height="4" rx="1" />
+      <rect x="3" y="17" width="6" height="4" rx="1" />
+      <rect x="15" y="17" width="6" height="4" rx="1" />
+      <path d="M12 7v4M6 17v-3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v3M12 11v2" />
+    </svg>
+  );
+}

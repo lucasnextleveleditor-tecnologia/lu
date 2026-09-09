@@ -33,6 +33,42 @@ export interface EquipeMembroRow {
   updated_at: string;
 }
 
+/**
+ * Departamento do Organograma (sub-aba dentro de Cadastros → Equipe, ver
+ * `OrganogramaView.tsx`) — uma coluna colorida agrupando cargos. A cor é
+ * hex livre; a UI sugere por padrão a mesma paleta categórica de Financeiro
+ * (`PALETA_CATEGORIAS`) em vez de uma paleta nova só pra isso.
+ */
+export interface DepartamentoRow {
+  id: string;
+  nome: string;
+  cor: string;
+  ordem: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Cargo dentro de um departamento do Organograma. Três estados possíveis:
+ * "Vago" (`funcionario_id` e `nome_livre` ambos null), vinculado a um
+ * membro real da equipe (`funcionario_id -> equipe_membros.id`) ou
+ * preenchido com um nome livre pra freelancer/parceiro externo sem
+ * cadastro completo (`nome_livre`, `funcionario_id` null).
+ */
+export interface CargoRow {
+  id: string;
+  departamento_id: string;
+  titulo: string;
+  funcionario_id: string | null;
+  nome_livre: string | null;
+  ordem: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Cargo enriquecido com o nome do membro vinculado (join em memória), quando houver. */
+export type CargoComRelacoes = CargoRow & { funcionario_nome: string | null };
+
 export type TipoAtividadeCliente = "tarefa" | "nota";
 
 /**

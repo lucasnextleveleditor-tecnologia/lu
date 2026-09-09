@@ -27,6 +27,7 @@ export interface ProducaoDict {
   visaoKanban: string;
   visaoLista: string;
   visaoCalendario: string;
+  visaoPorFuncionario: string;
   configuracaoBotaoTitle: string;
   novaTarefa: string;
 
@@ -34,6 +35,11 @@ export interface ProducaoDict {
   kanbanLayoutLinha: string;
   kanbanLayoutGrade: string;
   nenhumaTarefaColuna: string;
+
+  // Visão "Por Funcionário" (`ProducaoPorFuncionario.tsx`) — mesmas tarefas
+  // do board, agrupadas em uma coluna por responsável.
+  semResponsavelColuna: string;
+  totalTarefasSufixo: string;
 
   // Rótulos de status da tarefa (ordem de `STATUS_TAREFA_ORDEM`).
   statusBacklog: string;
@@ -171,12 +177,16 @@ export const producao: ProducaoDict = {
   visaoKanban: "Kanban",
   visaoLista: "Lista",
   visaoCalendario: "Calendário",
+  visaoPorFuncionario: "Por Funcionário",
   configuracaoBotaoTitle: "Funcionários e Tipos de Serviço",
   novaTarefa: "Nova Tarefa",
 
   kanbanLayoutLinha: "Colunas em linha (rola pro lado)",
   kanbanLayoutGrade: "Colunas em grade (sem rolar pro lado)",
   nenhumaTarefaColuna: "Nenhuma tarefa aqui",
+
+  semResponsavelColuna: "Sem Responsável",
+  totalTarefasSufixo: "tarefas",
 
   statusBacklog: "Backlog",
   statusAFazer: "A Fazer",

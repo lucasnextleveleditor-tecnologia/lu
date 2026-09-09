@@ -120,6 +120,39 @@ export interface CadastrosDict {
   cardsDashboardAjuda: string;
   informeEmailErro: string;
   alteracoesSalvas: string;
+
+  // Organograma (sub-aba dentro de Equipe, `OrganogramaView.tsx`)
+  abaListaEquipe: string;
+  abaOrganograma: string;
+  novoDepartamentoBotao: string;
+  departamentoModalTituloNovo: string;
+  departamentoModalTituloEditar: string;
+  nomeDepartamentoLabel: string;
+  nomeDepartamentoPlaceholder: string;
+  criarDepartamentoBtn: string;
+  corDepartamentoLabel: string;
+  corPersonalizadaLabel: string;
+  excluirDepartamentoAria: string;
+  confirmarExclusaoDepartamento: string;
+  organogramaVazio: string;
+  novoCargoBotao: string;
+  cargoModalTituloNovo: string;
+  cargoModalTituloEditar: string;
+  tituloCargoLabel: string;
+  tituloCargoPlaceholder: string;
+  criarCargoBtn: string;
+  vinculoCargoLabel: string;
+  vinculoVago: string;
+  vinculoMembroEquipe: string;
+  vinculoNomeLivre: string;
+  membroEquipeSelectLabel: string;
+  selecioneUmMembro: string;
+  nomeLivreLabel: string;
+  nomeLivrePlaceholder: string;
+  cargoVagoBadge: string;
+  nenhumCargoNoDepartamento: string;
+  excluirCargoAria: string;
+  confirmarExclusaoCargo: string;
 }
 
 export const cadastros: CadastrosDict = {
@@ -231,4 +264,36 @@ export const cadastros: CadastrosDict = {
     "Escolha o que aparece na Visão Geral desse funcionário — os cards de módulo (Financeiro/Inventário/Tráfego/WhatsApp) só aparecem se o módulo acima também estiver liberado.",
   informeEmailErro: "Informe um e-mail para o acesso.",
   alteracoesSalvas: "Alterações salvas.",
+
+  abaListaEquipe: "Lista",
+  abaOrganograma: "Organograma",
+  novoDepartamentoBotao: "+ Departamento",
+  departamentoModalTituloNovo: "Novo Departamento",
+  departamentoModalTituloEditar: "Editar Departamento",
+  nomeDepartamentoLabel: "Nome do Departamento *",
+  nomeDepartamentoPlaceholder: "Ex: Criação, Comercial, Atendimento",
+  criarDepartamentoBtn: "Criar Departamento",
+  corDepartamentoLabel: "Cor de destaque",
+  corPersonalizadaLabel: "Cor personalizada",
+  excluirDepartamentoAria: "Excluir departamento",
+  confirmarExclusaoDepartamento: "Excluir este departamento e todos os cargos dentro dele?",
+  organogramaVazio: "Nenhum departamento criado ainda — comece adicionando o primeiro.",
+  novoCargoBotao: "+ Cargo",
+  cargoModalTituloNovo: "Novo Cargo",
+  cargoModalTituloEditar: "Editar Cargo",
+  tituloCargoLabel: "Título do Cargo *",
+  tituloCargoPlaceholder: "Ex: Editor de Vídeo, Social Media",
+  criarCargoBtn: "Criar Cargo",
+  vinculoCargoLabel: "Vínculo",
+  vinculoVago: "Vago",
+  vinculoMembroEquipe: "Membro da Equipe",
+  vinculoNomeLivre: "Nome Livre (freelancer)",
+  membroEquipeSelectLabel: "Selecione o membro",
+  selecioneUmMembro: "Selecione...",
+  nomeLivreLabel: "Nome",
+  nomeLivrePlaceholder: "Ex: João (freelancer)",
+  cargoVagoBadge: "Vago",
+  nenhumCargoNoDepartamento: "Nenhum cargo neste departamento ainda.",
+  excluirCargoAria: "Excluir cargo",
+  confirmarExclusaoCargo: "Excluir este cargo?",
 };

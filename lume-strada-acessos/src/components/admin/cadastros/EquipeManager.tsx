@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import type { EquipeMembroRow } from "@/lib/types/cadastros";
+import type { CargoRow, DepartamentoRow, EquipeMembroRow } from "@/lib/types/cadastros";
 import type { ProfileRow } from "@/lib/types/database";
 import { removerMembroEquipe } from "@/app/admin/actions";
 import { calcularStatus } from "@/lib/utils/status";
@@ -14,16 +14,29 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Badge } from "@/components/ui/Badge";
 import { MembroEquipeModal } from "@/components/admin/cadastros/MembroEquipeModal";
 import { AcessoFuncionarioModal } from "@/components/admin/cadastros/AcessoFuncionarioModal";
-import { IconBriefcase, IconShieldCheck, IconPauseCircle } from "@/components/ui/icons";
+import { OrganogramaView } from "@/components/admin/cadastros/organograma/OrganogramaView";
+import { IconBriefcase, IconShieldCheck, IconPauseCircle, IconList, IconSitemap } from "@/components/ui/icons";
+import { cn } from "@/lib/utils/cn";
 
 interface EquipeManagerProps {
   equipeMembros: EquipeMembroRow[];
   profilesPorId: Record<string, ProfileRow>;
+  departamentos: DepartamentoRow[];
+  cargos: CargoRow[];
 }
 
-/** Aba Equipe — inteira admin-only (chamada só quando `souAdmin`, ver `CadastrosWorkspace`); RLS de `equipe_membros` reforça isso de novo no banco. */
-export function EquipeManager({ equipeMembros, profilesPorId }: EquipeManagerProps) {
+type SubAba = "lista" | "organograma";
+
+/**
+ * Aba Equipe — inteira admin-only (chamada só quando `souAdmin`, ver
+ * `CadastrosWorkspace`); RLS de `equipe_membros` reforça isso de novo no
+ * banco. Tem um segundo alternador aqui dentro (Lista/Organograma) — mesmo
+ * espírito do alternador de layout do Kanban de Produção — pra caber o
+ * Organograma sem precisar de um item de menu novo.
+ */
+export function EquipeManager({ equipeMembros, profilesPorId, departamentos, cargos }: EquipeManagerProps) {
   const { dict } = useLocale();
+  const [subAba, setSubAba] = useState<SubAba>("lista");
   const [busca, setBusca] = useState("");
   const [modalCriacaoAberto, setModalCriacaoAberto] = useState(false);
   const [membroEditando, setMembroEditando] = useState<EquipeMembroRow | null>(null);
@@ -56,6 +69,35 @@ export function EquipeManager({ equipeMembros, profilesPorId }: EquipeManagerPro
 
   return (
     <div>
+      <div className="mb-5 flex justify-end">
+        <div className="inline-flex rounded-xl border border-base-700/70 bg-gradient-to-b from-base-900 to-base-950 p-1 shadow-[inset_0_1px_0_0_rgb(var(--glow-rgb) / 0.05)]">
+          <button
+            onClick={() => setSubAba("lista")}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200",
+              subAba === "lista" ? "bg-accent text-base-950" : "text-ink-muted hover:text-ink-primary"
+            )}
+          >
+            <IconList className="h-3.5 w-3.5" />
+            {dict.cadastros.abaListaEquipe}
+          </button>
+          <button
+            onClick={() => setSubAba("organograma")}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200",
+              subAba === "organograma" ? "bg-accent text-base-950" : "text-ink-muted hover:text-ink-primary"
+            )}
+          >
+            <IconSitemap className="h-3.5 w-3.5" />
+            {dict.cadastros.abaOrganograma}
+          </button>
+        </div>
+      </div>
+
+      {subAba === "organograma" ? (
+        <OrganogramaView departamentos={departamentos} cargos={cargos} equipeMembros={equipeMembros} />
+      ) : (
+        <>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 sm:max-w-xs">
           <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={dict.cadastros.buscarEquipePlaceholder} />
@@ -164,6 +206,8 @@ export function EquipeManager({ equipeMembros, profilesPorId }: EquipeManagerPro
           </table>
         )}
       </Card>
+        </>
+      )}
 
       {modalCriacaoAberto && <MembroEquipeModal onClose={() => setModalCriacaoAberto(false)} />}
       {membroEditando && <MembroEquipeModal membro={membroEditando} onClose={() => setMembroEditando(null)} />}

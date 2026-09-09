@@ -4,18 +4,19 @@ import { useState, type ComponentType } from "react";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { EntregaComVersoes, FuncionarioRow, SubtarefaRow, TarefaComRelacoes, TipoServicoRow } from "@/lib/types/producao";
 import type { CompromissoResumo } from "@/lib/types/agenda";
-import { IconCalendar, IconColumns, IconList, IconPlus, IconSettings } from "@/components/ui/icons";
+import { IconCalendar, IconColumns, IconList, IconPlus, IconSettings, IconUsers } from "@/components/ui/icons";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { KanbanBoard } from "@/components/admin/producao/KanbanBoard";
 import { ListaTarefas } from "@/components/admin/producao/ListaTarefas";
 import { CalendarioTarefas } from "@/components/admin/producao/CalendarioTarefas";
+import { ProducaoPorFuncionario } from "@/components/admin/producao/ProducaoPorFuncionario";
 import { TarefaModal } from "@/components/admin/producao/TarefaModal";
 import { TarefaDetalheModal } from "@/components/admin/producao/TarefaDetalheModal";
 import { ConfiguracaoProducaoModal } from "@/components/admin/producao/ConfiguracaoProducaoModal";
 
-type Visao = "kanban" | "lista" | "calendario";
+type Visao = "kanban" | "lista" | "calendario" | "por_funcionario";
 
 interface ProducaoWorkspaceProps {
   tarefas: TarefaComRelacoes[];
@@ -56,6 +57,7 @@ export function ProducaoWorkspace({
     { value: "kanban", label: dict.producao.visaoKanban, icon: IconColumns },
     { value: "lista", label: dict.producao.visaoLista, icon: IconList },
     { value: "calendario", label: dict.producao.visaoCalendario, icon: IconCalendar },
+    { value: "por_funcionario", label: dict.producao.visaoPorFuncionario, icon: IconUsers },
   ];
   const [visao, setVisao] = useState<Visao>("kanban");
   const [modalNovaAberto, setModalNovaAberto] = useState(false);
@@ -103,6 +105,9 @@ export function ProducaoWorkspace({
 
       {visao === "kanban" && <KanbanBoard tarefas={tarefas} onAbrirTarefa={setTarefaDetalheId} />}
       {visao === "lista" && <ListaTarefas tarefas={tarefas} onAbrirTarefa={setTarefaDetalheId} />}
+      {visao === "por_funcionario" && (
+        <ProducaoPorFuncionario tarefas={tarefas} funcionarios={funcionarios} onAbrirTarefa={setTarefaDetalheId} />
+      )}
       {visao === "calendario" && (
         <CalendarioTarefas
           tarefas={tarefas}

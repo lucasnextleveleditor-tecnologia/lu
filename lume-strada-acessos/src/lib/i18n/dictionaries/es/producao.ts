@@ -14,12 +14,16 @@ export const producao: ProducaoDict = {
   visaoKanban: "Kanban",
   visaoLista: "Lista",
   visaoCalendario: "Calendario",
+  visaoPorFuncionario: "Por Empleado",
   configuracaoBotaoTitle: "Personal y Tipos de Servicio",
   novaTarefa: "Nueva Tarea",
 
   kanbanLayoutLinha: "Columnas en fila (se desplaza al costado)",
   kanbanLayoutGrade: "Columnas en cuadrícula (sin desplazamiento horizontal)",
   nenhumaTarefaColuna: "Ninguna tarea aquí",
+
+  semResponsavelColuna: "Sin Responsable",
+  totalTarefasSufixo: "tareas",
 
   statusBacklog: "Backlog",
   statusAFazer: "Por Hacer",
