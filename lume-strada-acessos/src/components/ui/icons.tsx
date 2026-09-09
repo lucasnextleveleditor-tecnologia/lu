@@ -735,3 +735,13 @@ export function IconSun(props: IconProps) {
     </svg>
   );
 }
+
+/** Bandeirinha de chegada — item de menu "Objetivos" (meta de faturamento). */
+export function IconFlag(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M5 21V4" />
+      <path d="M5 4.5c2-1.2 4-1.2 6 0s4 1.2 6 0v7.5c-2 1.2-4 1.2-6 0s-4-1.2-6 0z" />
+    </svg>
+  );
+}

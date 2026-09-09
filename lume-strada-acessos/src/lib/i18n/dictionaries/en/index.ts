@@ -17,6 +17,7 @@ import { aparencia } from "./aparencia";
 import { dashboard } from "./dashboard";
 import { cliente } from "./cliente";
 import { agenda } from "./agenda";
+import { objetivos } from "./objetivos";
 
 export const en: Dictionary = {
   common,
@@ -37,4 +38,5 @@ export const en: Dictionary = {
   dashboard,
   cliente,
   agenda,
+  objetivos,
 };

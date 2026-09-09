@@ -25,6 +25,7 @@ import {
   IconLayoutGrid,
   IconBarChart2,
   IconCalendar,
+  IconFlag,
 } from "@/components/ui/icons";
 
 // Menu separado em grupos — "Visão Geral" (o Dashboard, que junta Produção +
@@ -103,7 +104,14 @@ const NAV_GRUPOS = [
   // explícito pra destacar Financeiro do resto da operação no menu.
   {
     tituloKey: "grupoFinanceiro",
-    itens: [{ href: "/admin/financeiro", labelKey: "financeiro", icon: IconWallet, chave: "financeiro" }],
+    itens: [
+      { href: "/admin/financeiro", labelKey: "financeiro", icon: IconWallet, chave: "financeiro" },
+      // Meta de faturamento do mês/ano — reaproveita os mesmos números de
+      // `fin_transacoes` já usados no Financeiro, então reaproveita a mesma
+      // permissão em vez de criar uma `ModuloChave` nova só pra isso (ver
+      // `src/app/admin/objetivos/data.ts`).
+      { href: "/admin/objetivos", labelKey: "objetivos", icon: IconFlag, chave: "financeiro" },
+    ],
   },
 ] as const satisfies ReadonlyArray<{
   tituloKey: keyof NavDict;

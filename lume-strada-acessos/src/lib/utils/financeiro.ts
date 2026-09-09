@@ -37,6 +37,14 @@ export function limitesDoMes(referencia: Date): { inicio: string; fim: string } 
   return { inicio, fim };
 }
 
+/** Primeiro e último dia (ISO) do ano de um `Date` — mesmo espírito de `limitesDoMes`, usado pra agregar o faturamento anual do módulo Objetivos. */
+export function limitesDoAno(referencia: Date): { inicio: string; fim: string } {
+  const ano = referencia.getFullYear();
+  const inicio = new Date(Date.UTC(ano, 0, 1)).toISOString().slice(0, 10);
+  const fim = new Date(Date.UTC(ano, 11, 31)).toISOString().slice(0, 10);
+  return { inicio, fim };
+}
+
 export function fmtMesAno(referencia: Date): string {
   // `timeZone: "UTC"` é obrigatório aqui — ver comentário equivalente em
   // `lib/utils/producao.ts`. Sem isso, num fuso atrás de UTC (Brasil,

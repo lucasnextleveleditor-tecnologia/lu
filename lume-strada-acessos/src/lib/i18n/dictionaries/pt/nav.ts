@@ -15,6 +15,7 @@ export interface NavDict {
   whatsapp: string;
   cadastros: string;
   financeiro: string;
+  objetivos: string;
   producaoTarefas: string;
   trafegoMetas: string;
   inventarioPatrimonio: string;
@@ -38,6 +39,7 @@ export const nav: NavDict = {
   whatsapp: "WhatsApp",
   cadastros: "Cadastros",
   financeiro: "Financeiro",
+  objetivos: "Objetivos",
   producaoTarefas: "Produção & Tarefas",
   trafegoMetas: "Tráfego & Metas",
   inventarioPatrimonio: "Inventário & Patrimônio",
