@@ -16,6 +16,7 @@ import {
   removerNo,
   renomearMapa,
   reorganizarMapa,
+  restaurarNos,
   salvarNo,
 } from "@/app/admin/mapas/actions";
 
@@ -31,6 +32,7 @@ export function EditorDoMapa({ dados, meuNome }: { dados: MapaCompleto; meuNome:
   const t = dict.mapaMental;
   const router = useRouter();
   const [titulo, setTitulo] = useState(dados.mapa.titulo);
+
   // Guardado numa ref e não no estado: o valor só é lido no clique de sair,
   // e mantê-lo no estado faria a tela inteira redesenhar a cada tecla.
   const pendencias = useRef(false);
@@ -39,25 +41,6 @@ export function EditorDoMapa({ dados, meuNome }: { dados: MapaCompleto; meuNome:
   }, []);
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Sair com uma edição aberta perderia o que está no campo — daí a
-          pergunta. Fora esse caso não há o que perguntar: o mapa salva a cada
-          alteração, e um "deseja salvar?" a toa só ensinaria a pessoa a
-          clicar em OK sem ler. */}
-      <Link
-        href="/admin/mapas"
-        onClick={(e) => {
-          if (!pendencias.current) return;
-          e.preventDefault();
-          if (window.confirm(t.confirmarSair)) router.push("/admin/mapas");
-        }}
-        className="mb-3 inline-flex w-fit items-center gap-1.5 text-xs text-ink-muted transition hover:text-ink-secondary"
-      >
-        <IconChevronLeft className="h-3.5 w-3.5" />
-        {t.voltar}
-      </Link>
-
-      <div className="min-h-0 flex-1">
     <MapaCanvas
       mapaId={dados.mapa.id}
       nosIniciais={dados.nos}
@@ -65,8 +48,30 @@ export function EditorDoMapa({ dados, meuNome }: { dados: MapaCompleto; meuNome:
       meuNome={meuNome}
       podeEditar
       podeComentar
+      aoMudarPendencias={aoMudarPendencias}
       cabecalho={
-        <div className="flex min-w-0 items-center gap-3">
+        // A seta de voltar mora DENTRO do cabeçalho do canvas, colada no
+        // título: uma linha inteira só para ela custava dois centímetros de
+        // altura do mapa, que é o espaço que se quer para desenhar.
+        <div className="flex min-w-0 items-center gap-2">
+          <Link
+            href="/admin/mapas"
+            // Sair com uma edição aberta perderia o que está no campo — daí a
+            // pergunta. Fora esse caso não há o que perguntar: o mapa salva a
+            // cada alteração, e um "deseja salvar?" à toa só ensinaria a
+            // pessoa a clicar em OK sem ler.
+            onClick={(e) => {
+              if (!pendencias.current) return;
+              e.preventDefault();
+              if (window.confirm(t.confirmarSair)) router.push("/admin/mapas");
+            }}
+            aria-label={t.voltar}
+            title={t.voltar}
+            className="shrink-0 rounded-lg p-1.5 text-ink-muted transition hover:bg-base-800/60 hover:text-ink-secondary"
+          >
+            <IconChevronLeft className="h-4 w-4" />
+          </Link>
+
           <input
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
@@ -75,17 +80,18 @@ export function EditorDoMapa({ dados, meuNome }: { dados: MapaCompleto; meuNome:
             }}
             placeholder={t.tituloExemplo}
             aria-label={t.tituloPagina}
-            className="min-w-0 max-w-md rounded-lg border border-transparent bg-transparent px-2 py-1 text-lg font-semibold tracking-tight text-ink-primary outline-none transition hover:border-base-700 focus:border-accent placeholder:font-normal placeholder:italic placeholder:text-ink-muted/45"
+            className="min-w-0 max-w-md rounded-lg border border-transparent bg-transparent px-2 py-1 text-lg font-semibold tracking-tight text-ink-primary outline-none transition placeholder:font-normal placeholder:italic placeholder:text-ink-muted/45 hover:border-base-700 focus:border-accent"
           />
+
           <CompartilharMapa mapaId={dados.mapa.id} token={dados.mapa.token} acessoInicial={dados.mapa.acesso_publico} />
         </div>
       }
-      aoMudarPendencias={aoMudarPendencias}
       api={{
         adicionar: (paiId, valores) => adicionarNo(dados.mapa.id, paiId, valores),
         salvar: (noId, valores) => salvarNo(dados.mapa.id, noId, valores),
         remover: (noId) => removerNo(dados.mapa.id, noId),
         reorganizar: () => reorganizarMapa(dados.mapa.id),
+        restaurar: (nos) => restaurarNos(dados.mapa.id, nos as unknown as Record<string, unknown>[]),
         comentar: (noId, autor, texto) => comentarNo(dados.mapa.id, noId, autor, texto),
         // O arquivo NÃO passa pela Server Action: ela só assina o caminho
         // (com o id da empresa vindo do servidor) e o navegador envia direto
@@ -104,7 +110,5 @@ export function EditorDoMapa({ dados, meuNome }: { dados: MapaCompleto; meuNome:
         },
       }}
     />
-      </div>
-    </div>
   );
 }

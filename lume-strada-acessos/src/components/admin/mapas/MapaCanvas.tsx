@@ -44,9 +44,27 @@ export interface ApiDoMapa {
   remover: (noId: string) => Promise<Resultado>;
   reorganizar: () => Promise<Resultado>;
   comentar: (noId: string, autor: string, texto: string) => Promise<Resultado>;
+  /** Devolve balões apagados com os MESMOS ids — é o que o desfazer usa. */
+  restaurar: (nos: MapaNoRow[]) => Promise<Resultado>;
   /** Só existe no painel: quem edita pelo link público não envia arquivo. */
   enviarImagem?: (arquivo: File) => Promise<{ ok: true; caminho: string } | { ok: false; error: string }>;
 }
+
+/**
+ * Um passo do histórico, guardado como o PAR de operações que o desfaz e o
+ * refaz.
+ *
+ * Guardar o par (e não uma cópia do mapa inteiro a cada tecla) é o que deixa
+ * o histórico barato o bastante para existir: um mapa de duzentos balões
+ * copiado cinquenta vezes seriam megabytes na memória do navegador, e ainda
+ * assim atropelaria o que um colega editou no meio do caminho — porque
+ * voltar o mapa inteiro desfaria o trabalho dele junto com o seu. Passo a
+ * passo, o desfazer toca só o que ESTA pessoa mexeu.
+ */
+type PassoHistorico =
+  | { tipo: "criar"; no: MapaNoRow }
+  | { tipo: "apagar"; nos: MapaNoRow[] }
+  | { tipo: "editar"; noId: string; antes: Partial<MapaNoRow>; depois: Partial<MapaNoRow> };
 
 interface Props {
   mapaId: string;
@@ -94,6 +112,32 @@ export function MapaCanvas({
   // alteração — este contador existe para a pessoa VER isso acontecendo, em
   // vez de ter de acreditar.
   const [emVoo, setEmVoo] = useState(0);
+
+  // Histórico local. Em refs e não em estado porque empilhar um passo não
+  // muda nada na tela — só os dois contadores abaixo precisam redesenhar os
+  // botões.
+  const feitos = useRef<PassoHistorico[]>([]);
+  const desfeitos = useRef<PassoHistorico[]>([]);
+  const [podeDesfazer, setPodeDesfazer] = useState(false);
+  const [podeRefazer, setPodeRefazer] = useState(false);
+
+  const atualizarContadores = useCallback(() => {
+    setPodeDesfazer(feitos.current.length > 0);
+    setPodeRefazer(desfeitos.current.length > 0);
+  }, []);
+
+  /** Empilha um passo novo. Qualquer ação nova invalida o caminho de refazer. */
+  const registrar = useCallback(
+    (passo: PassoHistorico) => {
+      feitos.current.push(passo);
+      // Cinquenta passos: mais do que isso ninguém volta na prática, e o
+      // limite evita a memória crescer sem fim numa sessão longa.
+      if (feitos.current.length > 50) feitos.current.shift();
+      desfeitos.current = [];
+      atualizarContadores();
+    },
+    [atualizarContadores]
+  );
   const [espacoPressionado, setEspacoPressionado] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -125,8 +169,16 @@ export function MapaCanvas({
   const nosPorId = useMemo(() => new Map(nos.map((n) => [n.id, n])), [nos]);
 
   const mudarNo = useCallback(
-    (noId: string, valores: Partial<MapaNoRow>) => {
+    (noId: string, valores: Partial<MapaNoRow>, semHistorico = false) => {
       const base = nosPorId.get(noId);
+      if (base && !semHistorico) {
+        // Guarda só os campos que mudaram — o passo inverso não precisa do
+        // balão inteiro.
+        const antes = Object.fromEntries(
+          Object.keys(valores).map((chave) => [chave, base[chave as keyof MapaNoRow]])
+        ) as Partial<MapaNoRow>;
+        registrar({ tipo: "editar", noId, antes, depois: valores });
+      }
       setNos((atual) => atual.map((n) => (n.id === noId ? { ...n, ...valores } : n)));
       setEmVoo((n) => n + 1);
       void api
@@ -137,7 +189,7 @@ export function MapaCanvas({
         .finally(() => setEmVoo((n) => n - 1));
       if (base) avisar({ tipo: "no", no: { ...base, ...valores } });
     },
-    [api, avisar, nosPorId]
+    [api, avisar, nosPorId, registrar]
   );
 
   const desenho = useMemo(() => desenharMapa(nos, corDoRamo), [nos]);
@@ -267,6 +319,7 @@ export function MapaCanvas({
     }
     setNos((atual) => [...atual, r.no]);
     avisar({ tipo: "no", no: r.no });
+    registrar({ tipo: "criar", no: r.no });
     setSelecionado(r.no.id);
     setEditando(r.no.id);
     setRascunho("");
@@ -285,6 +338,11 @@ export function MapaCanvas({
       for (const n of nos) if (n.pai_id === atual) fila.push(n.id);
     }
 
+    // O ramo inteiro vai para o histórico ANTES de sumir — é o que permite
+    // devolvê-lo com os mesmos ids depois.
+    const ramo = paraApagar.map((id) => nosPorId.get(id)).filter((n): n is MapaNoRow => Boolean(n));
+    registrar({ tipo: "apagar", nos: ramo });
+
     setNos((atual) => atual.filter((n) => !paraApagar.includes(n.id)));
     setSelecionado(no.pai_id);
     avisar({ tipo: "remover", ids: paraApagar });
@@ -293,8 +351,83 @@ export function MapaCanvas({
     });
   }
 
+  // ---------------------------------------------------------------------
+  // Desfazer e refazer
+  // ---------------------------------------------------------------------
+  /** Aplica um passo e devolve o passo que o reverte — é o mesmo código nos dois sentidos. */
+  const aplicar = useCallback(
+    (passo: PassoHistorico, invertido: boolean): PassoHistorico => {
+      if (passo.tipo === "editar") {
+        const valores = invertido ? passo.antes : passo.depois;
+        mudarNo(passo.noId, valores, true);
+        return passo;
+      }
+
+      // Criar desfeito vira apagar, e vice-versa: um par só, lido nos dois
+      // sentidos, em vez de quatro caminhos que teriam de concordar entre si.
+      const criando = (passo.tipo === "criar") !== invertido;
+      const nos = passo.tipo === "criar" ? [passo.no] : passo.nos;
+
+      if (criando) {
+        setNos((atual) => [...atual, ...nos.filter((n) => !atual.some((a) => a.id === n.id))]);
+        for (const no of nos) avisar({ tipo: "no", no });
+        setEmVoo((n) => n + 1);
+        void api
+          .restaurar(nos)
+          .then((r) => {
+            if (!r.ok) setErro(r.error);
+          })
+          .finally(() => setEmVoo((n) => n - 1));
+      } else {
+        const ids = nos.map((n) => n.id);
+        setNos((atual) => atual.filter((n) => !ids.includes(n.id)));
+        avisar({ tipo: "remover", ids });
+        // Apaga só a raiz do ramo: o banco leva os filhos por cascata.
+        setEmVoo((n) => n + 1);
+        void api
+          .remover(nos[0]?.id ?? "")
+          .then((r) => {
+            if (!r.ok) setErro(r.error);
+          })
+          .finally(() => setEmVoo((n) => n - 1));
+      }
+      return passo;
+    },
+    [api, avisar, mudarNo]
+  );
+
+  const desfazer = useCallback(() => {
+    const passo = feitos.current.pop();
+    if (!passo) return;
+    aplicar(passo, true);
+    desfeitos.current.push(passo);
+    atualizarContadores();
+  }, [aplicar, atualizarContadores]);
+
+  const refazer = useCallback(() => {
+    const passo = desfeitos.current.pop();
+    if (!passo) return;
+    aplicar(passo, false);
+    feitos.current.push(passo);
+    atualizarContadores();
+  }, [aplicar, atualizarContadores]);
+
   function aoTeclar(e: React.KeyboardEvent) {
     if (!podeEditar) return;
+
+    // Ctrl/Cmd+Z e Ctrl+Shift+Z valem inclusive durante a edição de um texto:
+    // é onde mais se erra, e é onde todo mundo tenta primeiro.
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+      e.preventDefault();
+      if (e.shiftKey) refazer();
+      else desfazer();
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+      e.preventDefault();
+      refazer();
+      return;
+    }
 
     if (editando) {
       if (e.key === "Escape") {
@@ -485,32 +618,6 @@ export function MapaCanvas({
             </div>
           )}
 
-          <div className="flex items-center gap-1 rounded-lg border border-base-700 bg-base-900/70 px-1 py-0.5 text-xs text-ink-secondary">
-            <button type="button" className="px-1.5 py-1 hover:text-ink-primary" onClick={() => setZoom((z) => Math.max(ZOOM_MIN, z / 1.2))} aria-label={t.afastar}>
-              −
-            </button>
-            <span className="w-10 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
-            <button type="button" className="px-1.5 py-1 hover:text-ink-primary" onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z * 1.2))} aria-label={t.aproximar}>
-              +
-            </button>
-          </div>
-
-          {podeEditar && (
-            // O mapa já salva sozinho a cada alteração. Este botão fecha a
-            // edição aberta e confirma que não sobrou nada em voo — é a
-            // tranquilidade de "está salvo", não um segundo jeito de salvar,
-            // e por isso ele diz "Tudo salvo" quando não há o que fazer.
-            <Button
-              variant="ghost"
-              className="px-2.5 py-1 text-xs"
-              onClick={confirmarEdicao}
-              disabled={!temPendencias}
-              title={t.salvar}
-            >
-              {emVoo > 0 ? <IconLoader className="h-3.5 w-3.5 animate-spin" /> : <IconCheck className="h-3.5 w-3.5 text-status-good" />}
-              {emVoo > 0 ? t.salvandoLabel : temPendencias ? t.salvar : t.tudoSalvo}
-            </Button>
-          )}
         </div>
       </div>
 
@@ -703,6 +810,69 @@ export function MapaCanvas({
 
           <PaletaFerramentas grupos={gruposDaPaleta} />
 
+          {/* ---------------------------------------------------------- */}
+          {/* BARRA FLUTUANTE — zoom e salvamento, no rodapé do mapa       */}
+          {/* ---------------------------------------------------------- */}
+          {/* No canto de cima da página estes controles ficavam longe do
+              olho de quem está desenhando. Aqui embaixo, centralizados,
+              estão a meio caminho de qualquer ponto do mapa — e o estado de
+              salvamento aparece exatamente onde a pessoa já está olhando. */}
+          <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-xl border border-base-700 bg-base-900/90 p-1 shadow-lg backdrop-blur-sm">
+            <div className="pointer-events-auto flex items-center">
+              <BotaoBarra rotulo={t.afastar} onClick={() => setZoom((z) => Math.max(ZOOM_MIN, z / 1.2))}>
+                <span className="text-base leading-none">−</span>
+              </BotaoBarra>
+              <button
+                type="button"
+                onClick={encaixar}
+                title={t.encaixar}
+                className="min-w-[3.25rem] rounded-lg px-1 py-1.5 text-xs tabular-nums text-ink-secondary transition hover:bg-base-800/70 hover:text-ink-primary"
+              >
+                {Math.round(zoom * 100)}%
+              </button>
+              <BotaoBarra rotulo={t.aproximar} onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z * 1.2))}>
+                <span className="text-base leading-none">+</span>
+              </BotaoBarra>
+            </div>
+
+            {podeEditar && (
+              <>
+                <span className="mx-0.5 h-5 w-px bg-base-700" aria-hidden />
+                <div className="pointer-events-auto flex items-center">
+                  <BotaoBarra rotulo={t.desfazer} onClick={desfazer} desativado={!podeDesfazer}>
+                    <IconDesfazer />
+                  </BotaoBarra>
+                  <BotaoBarra rotulo={t.refazer} onClick={refazer} desativado={!podeRefazer}>
+                    <IconDesfazer espelhado />
+                  </BotaoBarra>
+                </div>
+
+                <span className="mx-0.5 h-5 w-px bg-base-700" aria-hidden />
+                {/* O mapa já salva sozinho a cada alteração. Este botão fecha
+                    a edição aberta e confirma que não sobrou nada em voo — é a
+                    tranquilidade de "está salvo", não um segundo jeito de
+                    salvar, e por isso diz "Tudo salvo" quando não há o que
+                    fazer. */}
+                <button
+                  type="button"
+                  onClick={confirmarEdicao}
+                  disabled={!temPendencias}
+                  className={cn(
+                    "pointer-events-auto flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition",
+                    temPendencias ? "text-ink-primary hover:bg-base-800/70" : "text-ink-muted"
+                  )}
+                >
+                  {emVoo > 0 ? (
+                    <IconLoader className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <IconCheck className={cn("h-3.5 w-3.5", !temPendencias && "text-status-good")} />
+                  )}
+                  {emVoo > 0 ? t.salvandoLabel : temPendencias ? t.salvar : t.tudoSalvo}
+                </button>
+              </>
+            )}
+          </div>
+
           {/* A legenda de atalhos, escrita na página. */}
           {podeEditar && <PainelAtalhos />}
         </div>
@@ -834,6 +1004,54 @@ function estiloDoTexto(no: MapaNoRow, ehRaiz: boolean): React.CSSProperties {
     fontWeight: no.negrito || ehRaiz ? 600 : 500,
     fontStyle: no.italico ? "italic" : "normal",
   };
+}
+
+function BotaoBarra({
+  rotulo,
+  onClick,
+  desativado,
+  children,
+}: {
+  rotulo: string;
+  onClick: () => void;
+  desativado?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={desativado}
+      title={rotulo}
+      aria-label={rotulo}
+      className={cn(
+        "flex h-8 w-8 items-center justify-center rounded-lg transition",
+        desativado ? "text-ink-muted/40" : "text-ink-secondary hover:bg-base-800/70 hover:text-ink-primary"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Seta curva de desfazer — espelhada, vira refazer. */
+function IconDesfazer({ espelhado }: { espelhado?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={espelhado ? { transform: "scaleX(-1)" } : undefined}
+      aria-hidden
+    >
+      <path d="M3 8h11a5 5 0 0 1 0 10H8" />
+      <path d="M7 4 3 8l4 4" />
+    </svg>
+  );
 }
 
 /** A seta do cursor, para o botão parecer o que ele faz. */

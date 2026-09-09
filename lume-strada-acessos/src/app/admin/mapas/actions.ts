@@ -10,7 +10,22 @@ export type ResultadoNo = { ok: true; no: MapaNoRow } | { ok: false; error: stri
 const ROTA = "/admin/mapas";
 
 /** Campos que um balão aceita receber do navegador. Nada fora desta lista é gravado. */
-const CAMPOS_NO = ["texto", "cor", "colapsado", "desloc_x", "desloc_y", "lado", "ordem", "pai_id", "link", "imagem_path", "fonte", "tamanho", "negrito", "italico"] as const;
+const CAMPOS_NO = [
+  "texto",
+  "cor",
+  "colapsado",
+  "desloc_x",
+  "desloc_y",
+  "lado",
+  "ordem",
+  "pai_id",
+  "link",
+  "imagem_path",
+  "fonte",
+  "tamanho",
+  "negrito",
+  "italico",
+] as const;
 
 function apenasPermitidos(valores: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(valores).filter(([chave]) => (CAMPOS_NO as readonly string[]).includes(chave)));
@@ -145,6 +160,43 @@ export async function reorganizarMapa(mapaId: string): Promise<Resultado> {
       .update({ desloc_x: null, desloc_y: null, lado: null })
       .eq("mapa_id", mapaId);
     if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Devolve balões apagados ao mapa, COM OS MESMOS IDS.
+ *
+ * O id igual é o ponto todo: um ramo apagado tem filhos que apontam para o
+ * pai por id, e recriar com ids novos devolveria uma penca de balões soltos
+ * em vez do ramo que existia. Por isso o desfazer restaura, e não recria.
+ *
+ * A lista tem de vir com os pais ANTES dos filhos — é a ordem em que a tela
+ * já coleta o ramo ao apagar. Inserimos um a um por isso: um `insert` em
+ * lote não garante a ordem, e a chave estrangeira de `pai_id` reprovaria o
+ * filho que chegasse primeiro.
+ */
+export async function restaurarNos(mapaId: string, nos: Record<string, unknown>[]): Promise<Resultado> {
+  try {
+    const { supabase, companyId } = await requireEquipe();
+    if (nos.length === 0) return { ok: true };
+
+    for (const no of nos) {
+      const permitidos = apenasPermitidos(no);
+      const { error } = await supabase.from("mapa_nos").insert({
+        id: no.id,
+        mapa_id: mapaId,
+        company_id: companyId,
+        pai_id: no.pai_id ?? null,
+        ...permitidos,
+      });
+      // Já existe (dois desfazeres seguidos, ou o colega restaurou antes):
+      // não é erro, o mapa já está como deveria.
+      if (error && error.code !== "23505") return { ok: false, error: error.message };
+    }
+
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

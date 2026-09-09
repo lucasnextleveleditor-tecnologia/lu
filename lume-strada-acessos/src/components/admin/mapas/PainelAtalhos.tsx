@@ -29,12 +29,15 @@ export function PainelAtalhos() {
   ];
 
   return (
-    <div className="absolute bottom-3 left-3 z-10 max-w-[min(20rem,calc(100%-1.5rem))]">
+    // Translúcido em repouso e opaco quando o olho vai até ele: a legenda
+    // precisa estar à mão sem tapar o canto do mapa. `backdrop-blur` é o que
+    // mantém o texto legível mesmo com o desenho passando por trás.
+    <div className="group/atalhos absolute bottom-3 left-3 z-10 max-w-[min(20rem,calc(100%-1.5rem))] opacity-55 transition-opacity duration-200 hover:opacity-100 focus-within:opacity-100">
       <button
         type="button"
         onClick={() => setAberto((a) => !a)}
         className={cn(
-          "flex w-full items-center gap-2 rounded-lg border border-base-700 bg-base-900/90 px-2.5 py-1.5 text-[10px] uppercase tracking-[0.14em] text-ink-muted backdrop-blur-sm transition hover:text-ink-secondary",
+          "flex w-full items-center gap-2 rounded-lg border border-base-700 bg-base-900/60 px-2.5 py-1.5 text-[10px] uppercase tracking-[0.14em] text-ink-muted backdrop-blur-md transition hover:text-ink-secondary",
           aberto && "rounded-b-none border-b-0"
         )}
       >
@@ -43,7 +46,7 @@ export function PainelAtalhos() {
       </button>
 
       {aberto && (
-        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2.5 gap-y-1.5 rounded-b-lg border border-base-700 bg-base-900/90 px-2.5 py-2 backdrop-blur-sm">
+        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2.5 gap-y-1.5 rounded-b-lg border border-base-700 bg-base-900/60 px-2.5 py-2 backdrop-blur-md">
           {linhas.map((linha) => (
             <div key={linha.oQueFaz} className="contents">
               <dt className="flex items-center gap-1 whitespace-nowrap">

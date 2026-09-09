@@ -95,6 +95,9 @@ export interface MapaMentalDict {
   negrito: string;
   italico: string;
 
+  desfazer: string;
+  refazer: string;
+
   // Página pública
   linkInvalidoTitulo: string;
   linkInvalidoDescricao: string;
@@ -186,6 +189,9 @@ export const mapaMental: MapaMentalDict = {
   tamanho: "Tamanho",
   negrito: "Negrito",
   italico: "Itálico",
+
+  desfazer: "Desfazer",
+  refazer: "Refazer",
 
   linkInvalidoTitulo: "Mapa não encontrado",
   linkInvalidoDescricao: "Este link não existe mais ou o compartilhamento foi desligado. Peça um novo a quem enviou.",

@@ -8,6 +8,7 @@ import {
   comentarPublico,
   removerNoPublico,
   reorganizarMapaPublico,
+  restaurarNosPublico,
   salvarNoPublico,
 } from "@/app/mapa/actions";
 
@@ -58,6 +59,7 @@ export function MapaPublicoView({
         salvar: (noId, valores) => salvarNoPublico(token, noId, valores),
         remover: (noId) => removerNoPublico(token, noId),
         reorganizar: () => reorganizarMapaPublico(token),
+        restaurar: (nos) => restaurarNosPublico(token, nos as unknown as Record<string, unknown>[]),
         comentar: (noId, autor, texto) => comentarPublico(token, noId, autor, texto),
       }}
     />

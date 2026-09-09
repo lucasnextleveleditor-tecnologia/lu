@@ -14,9 +14,11 @@ export default async function MapaPage({ params }: { params: Promise<{ id: strin
 
   return (
     // Altura fixa e não a da página: um canvas que cresce com o conteúdo
-    // faria a página inteira rolar por baixo do mapa. Aqui o mapa tem o
-    // tamanho da janela e a rolagem acontece dentro dele, com zoom e arrasto.
-    <div className="flex h-[calc(100vh-8rem)] flex-col">
+    // faria a página inteira rolar por baixo do mapa. Aqui o mapa ocupa quase
+    // toda a janela — as margens laterais do painel são anuladas com margem
+    // negativa, porque num quadro de ideias cada centímetro de tela vale, e a
+    // rolagem acontece DENTRO do mapa, com zoom e arrasto.
+    <div className="-mx-3 -mb-4 -mt-2 flex h-[calc(100vh-6rem)] flex-col sm:-mx-5">
       <EditorDoMapa dados={dados} meuNome={nome} />
     </div>
   );

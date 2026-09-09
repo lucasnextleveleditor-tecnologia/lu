@@ -129,3 +129,26 @@ export async function comentarPublico(token: string, noId: string, autor: string
   if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
+
+/** Desfazer também vale para quem edita pelo link — mesmas regras, mesmo cuidado com o `mapa_id`. */
+export async function restaurarNosPublico(token: string, nos: Record<string, unknown>[]): Promise<Resultado> {
+  const aberto = await abrir(token, "editar");
+  if (!aberto) return { ok: false, error: "Este link não permite editar o mapa." };
+  const { admin, mapa } = aberto;
+  if (nos.length === 0) return { ok: true };
+
+  for (const no of nos) {
+    const permitidos = Object.fromEntries(
+      Object.entries(no).filter(([chave]) => (CAMPOS_NO as readonly string[]).includes(chave))
+    );
+    const { error } = await admin.from("mapa_nos").insert({
+      id: no.id,
+      mapa_id: mapa.id,
+      company_id: mapa.company_id,
+      pai_id: no.pai_id ?? null,
+      ...permitidos,
+    });
+    if (error && error.code !== "23505") return { ok: false, error: error.message };
+  }
+  return { ok: true };
+}

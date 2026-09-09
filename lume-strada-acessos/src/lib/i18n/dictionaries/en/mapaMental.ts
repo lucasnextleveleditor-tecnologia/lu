@@ -84,6 +84,9 @@ export const mapaMental: MapaMentalDict = {
   negrito: "Bold",
   italico: "Italic",
 
+  desfazer: "Undo",
+  refazer: "Redo",
+
   linkInvalidoTitulo: "Map not found",
   linkInvalidoDescricao: "This link no longer exists or sharing was turned off. Ask the sender for a new one.",
   somenteLeitura: "You're viewing this map through the link — you can navigate, but not edit.",
