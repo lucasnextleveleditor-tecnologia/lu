@@ -62,6 +62,65 @@ export function calcularProgressoSubtarefas(subtarefas: Pick<SubtarefaRow, "conc
   return { concluidas, total, pct: total > 0 ? concluidas / total : 0 };
 }
 
+export type TipoPreviewLink = "iframe" | "imagem" | "video";
+
+/**
+ * Resolve um link de entrega (`prod_entrega_versoes.link_url`) pra uma URL de
+ * PREVIEW embutível, quando possível — pra `EntregasSection.tsx` mostrar o
+ * material sem precisar clicar/abrir em outra aba. O link original sempre
+ * continua visível ao lado, como fallback (ver pedido do usuário: "o link
+ * fica ali caso aconteça algum erro") — essa função só decide SE dá pra
+ * embutir e COM QUE URL, nunca decide se o iframe efetivamente carrega (um
+ * arquivo do Drive fora de "Qualquer pessoa com o link" ainda mostra a tela
+ * de permissão do Google dentro do iframe, o que é esperado).
+ *
+ * Suporta: Google Drive (arquivo avulso e pasta), Google Docs/Sheets/Slides,
+ * e qualquer URL que aponte direto pra uma imagem/vídeo (inclusive Dropbox
+ * com `?dl=`, trocado por `?raw=1`). Fora isso, devolve `null` — nesse caso
+ * a UI mostra só o link, sem tentar embutir domínio arbitrário.
+ */
+export function resolverPreviewLink(url: string): { tipo: TipoPreviewLink; src: string } | null {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return null;
+  }
+  const host = u.hostname.replace(/^www\./, "");
+
+  if (host === "drive.google.com") {
+    const arquivo = u.pathname.match(/\/file\/d\/([^/]+)/);
+    if (arquivo) return { tipo: "iframe", src: `https://drive.google.com/file/d/${arquivo[1]}/preview` };
+    const pasta = u.pathname.match(/\/drive\/folders\/([^/?]+)/);
+    if (pasta) return { tipo: "iframe", src: `https://drive.google.com/embeddedfolderview?id=${pasta[1]}#list` };
+    const id = u.searchParams.get("id");
+    if (id) return { tipo: "iframe", src: `https://drive.google.com/file/d/${id}/preview` };
+    return null;
+  }
+
+  if (host === "docs.google.com") {
+    const m = u.pathname.match(/\/(document|spreadsheets|presentation)\/d\/([^/]+)/);
+    if (m) {
+      const [, tipoDoc, id] = m;
+      const sufixo = tipoDoc === "presentation" ? "embed" : "preview";
+      return { tipo: "iframe", src: `https://docs.google.com/${tipoDoc}/d/${id}/${sufixo}` };
+    }
+    return null;
+  }
+
+  if (host === "dropbox.com" && /\.(png|jpe?g|gif|webp)$/i.test(u.pathname)) {
+    const raw = new URL(url);
+    raw.searchParams.delete("dl");
+    raw.searchParams.set("raw", "1");
+    return { tipo: "imagem", src: raw.toString() };
+  }
+
+  if (/\.(png|jpe?g|gif|webp|svg)$/i.test(u.pathname)) return { tipo: "imagem", src: url };
+  if (/\.(mp4|webm|mov)$/i.test(u.pathname)) return { tipo: "video", src: url };
+
+  return null;
+}
+
 /** "1.2 MB" / "340 KB" / "820 B" — tamanho de arquivo legível, usado nos cards de versão de entrega. */
 export function fmtTamanhoArquivo(bytes: number | null): string {
   if (bytes == null) return "—";

@@ -87,6 +87,10 @@ export interface TarefaInput {
   prioridade: PrioridadeTarefa;
   dataCaptacao: string | null;
   dataEntrega: string | null;
+  dataEntregaV1: string | null;
+  objetivoMaterial: string | null;
+  referenciasEstilo: string | null;
+  formatosExportacao: string | null;
 }
 
 /**
@@ -128,6 +132,10 @@ export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
         prioridade: input.prioridade,
         data_captacao: input.dataCaptacao || null,
         data_entrega: input.dataEntrega || null,
+        data_entrega_v1: input.dataEntregaV1 || null,
+        objetivo_material: input.objetivoMaterial?.trim() || null,
+        referencias_estilo: input.referenciasEstilo?.trim() || null,
+        formatos_exportacao: input.formatosExportacao?.trim() || null,
       })
       .select("id")
       .single();
@@ -158,6 +166,10 @@ export async function atualizarTarefa(id: string, input: TarefaInput): Promise<A
         prioridade: input.prioridade,
         data_captacao: input.dataCaptacao || null,
         data_entrega: input.dataEntrega || null,
+        data_entrega_v1: input.dataEntregaV1 || null,
+        objetivo_material: input.objetivoMaterial?.trim() || null,
+        referencias_estilo: input.referenciasEstilo?.trim() || null,
+        formatos_exportacao: input.formatosExportacao?.trim() || null,
       })
       .eq("id", id);
 

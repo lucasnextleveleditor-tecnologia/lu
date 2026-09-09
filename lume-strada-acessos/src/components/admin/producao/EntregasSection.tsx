@@ -12,7 +12,7 @@ import {
   removerEntrega,
   solicitarAlteracaoVersao,
 } from "@/app/admin/producao/actions";
-import { ENTREGA_TAMANHO_MAX_BYTES, STATUS_APROVACAO_META, fmtTamanhoArquivo } from "@/lib/utils/producao";
+import { ENTREGA_TAMANHO_MAX_BYTES, STATUS_APROVACAO_META, fmtTamanhoArquivo, resolverPreviewLink } from "@/lib/utils/producao";
 import { fmtDataHora } from "@/lib/utils/status";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/Badge";
@@ -69,6 +69,7 @@ export function EntregasSection({ tarefaId, entregas }: EntregasSectionProps) {
 }
 
 function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: EntregaComVersoes }) {
+  const { dict } = useLocale();
   const [modoEnvio, setModoEnvio] = useState<"nenhum" | "arquivo" | "link">("nenhum");
   const [linkUrl, setLinkUrl] = useState("");
   const [linkRotulo, setLinkRotulo] = useState("");
@@ -80,6 +81,10 @@ function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: Entrega
 
   const versaoAtual = entrega.versoes[0] ?? null; // já vem ordenado por versão desc (ver page.tsx)
   const historico = entrega.versoes.slice(1);
+  // Link de Drive/Docs/imagem/vídeo direto -> embute um preview logo abaixo
+  // do link (que continua clicável — fallback pedido pelo usuário caso a
+  // prévia não carregue, ex: arquivo do Drive sem "Qualquer pessoa com o link").
+  const preview = versaoAtual?.tipo === "link" && versaoAtual.link_url ? resolverPreviewLink(versaoAtual.link_url) : null;
 
   function handleArquivoSelecionado(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -88,7 +93,7 @@ function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: Entrega
     setError(null);
 
     if (file.size > ENTREGA_TAMANHO_MAX_BYTES) {
-      setError("Arquivo muito grande (máximo 50MB).");
+      setError(dict.producao.arquivoMuitoGrande);
       return;
     }
 
@@ -183,7 +188,13 @@ function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: Entrega
     <div className="rounded-lg border border-base-700 bg-base-950/40 p-3.5">
       <div className="mb-2.5 flex items-start justify-between gap-2">
         <p className="text-sm font-medium text-ink-primary">{entrega.nome}</p>
-        <button onClick={handleRemoverEntrega} disabled={pending} className="shrink-0 text-ink-muted transition hover:text-danger" aria-label="Excluir entrega" title="Excluir entrega (todas as versões)">
+        <button
+          onClick={handleRemoverEntrega}
+          disabled={pending}
+          className="shrink-0 text-ink-muted transition hover:text-danger"
+          aria-label={dict.producao.excluirEntregaAria}
+          title={dict.producao.excluirEntregaTitle}
+        >
           ×
         </button>
       </div>
@@ -209,8 +220,37 @@ function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: Entrega
           </div>
           <p className="text-[11px] text-ink-muted">
             {versaoAtual.tipo === "arquivo" && `${fmtTamanhoArquivo(versaoAtual.tamanho_bytes)} · `}
-            Enviado em {fmtDataHora(versaoAtual.created_at)}
+            {dict.producao.enviadoEmPrefixo}
+            {fmtDataHora(versaoAtual.created_at)}
           </p>
+
+          {preview && (
+            <div className="mt-2">
+              {preview.tipo === "iframe" && (
+                <iframe
+                  src={preview.src}
+                  className="h-48 w-full rounded-md border border-base-700 bg-base-950"
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                  referrerPolicy="no-referrer"
+                  loading="lazy"
+                  title={versaoAtual.nome_arquivo}
+                />
+              )}
+              {preview.tipo === "imagem" && (
+                // eslint-disable-next-line @next/next/no-img-element -- domínio arbitrário do usuário, sem allowlist fixa pro next/image
+                <img
+                  src={preview.src}
+                  alt={versaoAtual.nome_arquivo}
+                  className="max-h-48 w-full rounded-md border border-base-700 bg-base-950 object-contain"
+                />
+              )}
+              {preview.tipo === "video" && (
+                <video src={preview.src} controls className="max-h-48 w-full rounded-md border border-base-700 bg-base-950" />
+              )}
+              <p className="mt-1 text-[10px] text-ink-muted">{dict.producao.entregaPreviewFallbackAjuda}</p>
+            </div>
+          )}
+
           {versaoAtual.observacao_aprovacao && (
             <p className="mt-1.5 rounded bg-status-critical/10 px-2 py-1 text-[11px] text-ink-secondary">
               &quot;{versaoAtual.observacao_aprovacao}&quot;
@@ -222,31 +262,31 @@ function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: Entrega
               <div className="flex gap-2">
                 <Button variant="ghost" onClick={handleAprovar} disabled={pending} className="flex-1 px-2.5 py-1.5 text-xs">
                   <IconCheck className="h-3.5 w-3.5" />
-                  Aprovar
+                  {dict.producao.aprovar}
                 </Button>
               </div>
               <form onSubmit={handleSolicitarAlteracao} className="flex gap-1.5">
                 <Input
                   value={observacao}
                   onChange={(e) => setObservacao(e.target.value)}
-                  placeholder="O que precisa mudar?"
+                  placeholder={dict.producao.motivoAlteracaoPlaceholder}
                   className="flex-1 py-1.5 text-xs"
                 />
                 <Button type="submit" variant="danger" disabled={pending} className="shrink-0 px-2.5 py-1.5 text-xs">
                   <IconRotateCcw className="h-3.5 w-3.5" />
-                  Solicitar Alteração
+                  {dict.producao.solicitarAlteracao}
                 </Button>
               </form>
             </div>
           )}
         </div>
       ) : (
-        <p className="mb-2.5 text-xs text-ink-muted">Nenhum arquivo/link enviado ainda.</p>
+        <p className="mb-2.5 text-xs text-ink-muted">{dict.producao.nenhumArquivoEnviado}</p>
       )}
 
       {historico.length > 0 && (
         <button onClick={() => setMostrarHistorico((v) => !v)} className="mb-2 text-[11px] text-ink-muted hover:text-ink-primary">
-          {mostrarHistorico ? "Ocultar" : "Ver"} histórico de versões ({historico.length})
+          {mostrarHistorico ? dict.producao.ocultarHistorico : dict.producao.verHistorico} {dict.producao.historicoVersoesSufixo} ({historico.length})
         </button>
       )}
       {mostrarHistorico && (
@@ -265,34 +305,34 @@ function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: Entrega
       {modoEnvio === "nenhum" && (
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => setModoEnvio("arquivo")} className="flex-1 px-2.5 py-1.5 text-xs">
-            + Enviar Arquivo
+            {dict.producao.enviarArquivoBotao}
           </Button>
           <Button variant="ghost" onClick={() => setModoEnvio("link")} className="flex-1 px-2.5 py-1.5 text-xs">
-            + Enviar Link
+            {dict.producao.enviarLinkBotao}
           </Button>
         </div>
       )}
       {modoEnvio === "arquivo" && (
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => inputRef.current?.click()} disabled={pending} className="flex-1 px-2.5 py-1.5 text-xs">
-            {pending ? "Enviando..." : "Escolher arquivo"}
+            {pending ? dict.producao.enviando : dict.producao.escolherArquivo}
           </Button>
           <Button variant="ghost" onClick={() => setModoEnvio("nenhum")} className="px-2.5 py-1.5 text-xs">
-            Cancelar
+            {dict.common.cancelar}
           </Button>
           <input ref={inputRef} type="file" className="hidden" onChange={handleArquivoSelecionado} />
         </div>
       )}
       {modoEnvio === "link" && (
         <form onSubmit={handleEnviarLink} className="space-y-1.5">
-          <Input value={linkRotulo} onChange={(e) => setLinkRotulo(e.target.value)} placeholder="Rótulo (ex: Preview Vimeo)" className="text-xs" />
+          <Input value={linkRotulo} onChange={(e) => setLinkRotulo(e.target.value)} placeholder={dict.producao.linkRotuloPlaceholder} className="text-xs" />
           <div className="flex gap-1.5">
             <Input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://..." className="flex-1 text-xs" />
             <Button type="submit" disabled={pending} className="shrink-0 px-2.5 py-1.5 text-xs">
-              Enviar
+              {dict.producao.enviarBotao}
             </Button>
             <Button type="button" variant="ghost" onClick={() => setModoEnvio("nenhum")} className="px-2.5 py-1.5 text-xs">
-              Cancelar
+              {dict.common.cancelar}
             </Button>
           </div>
         </form>

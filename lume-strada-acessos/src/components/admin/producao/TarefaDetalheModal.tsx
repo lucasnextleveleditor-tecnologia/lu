@@ -11,6 +11,8 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
+import { ObjetivoMaterialField, FormatosExportacaoField } from "@/components/admin/producao/BriefingCamposAvancados";
+import { Textarea } from "@/components/ui/Textarea";
 import { SubtarefasChecklist } from "@/components/admin/producao/SubtarefasChecklist";
 import { EntregasSection } from "@/components/admin/producao/EntregasSection";
 import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
@@ -55,6 +57,10 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
   const [prioridade, setPrioridade] = useState<PrioridadeTarefa>(tarefa.prioridade);
   const [dataCaptacao, setDataCaptacao] = useState(tarefa.data_captacao ?? "");
   const [dataEntrega, setDataEntrega] = useState(tarefa.data_entrega ?? "");
+  const [dataEntregaV1, setDataEntregaV1] = useState(tarefa.data_entrega_v1 ?? "");
+  const [objetivoMaterial, setObjetivoMaterial] = useState(tarefa.objetivo_material ?? "");
+  const [referenciasEstilo, setReferenciasEstilo] = useState(tarefa.referencias_estilo ?? "");
+  const [formatosExportacao, setFormatosExportacao] = useState(tarefa.formatos_exportacao ?? "");
   const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +90,10 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
         prioridade,
         dataCaptacao: dataCaptacao || null,
         dataEntrega: dataEntrega || null,
+        dataEntregaV1: dataEntregaV1 || null,
+        objetivoMaterial: objetivoMaterial || null,
+        referenciasEstilo: referenciasEstilo || null,
+        formatosExportacao: formatosExportacao || null,
       });
       if (!result.ok) setError(result.error);
       else {
@@ -154,6 +164,8 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
         </div>
 
         <form onSubmit={handleSalvar} className="mb-6 space-y-4 border-b border-base-800 pb-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.producao.briefingInformacoesBasicasTitulo}</p>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="mb-1.5 flex items-center justify-between gap-2">
@@ -219,17 +231,38 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <ObjetivoMaterialField value={objetivoMaterial} onChange={setObjetivoMaterial} />
+
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.referenciasEstiloLabel}</label>
+            <Textarea
+              rows={2}
+              value={referenciasEstilo}
+              onChange={(e) => setReferenciasEstilo(e.target.value)}
+              placeholder={dict.producao.referenciasEstiloPlaceholder}
+            />
+            <p className="mt-1 text-[11px] text-ink-muted">{dict.producao.referenciasEstiloAjuda}</p>
+          </div>
+
+          <p className="pt-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.producao.briefingEntregaveisPrazosTitulo}</p>
+
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.dataCaptacaoLabel}</label>
               <DatePicker value={dataCaptacao} onChange={setDataCaptacao} required />
               <p className="mt-1 text-[11px] text-ink-muted">{dict.producao.dataCaptacaoAjuda}</p>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.prazoEntregaLabel}</label>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.dataEntregaV1Label}</label>
+              <DatePicker value={dataEntregaV1} onChange={setDataEntregaV1} />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.dataEntregaFinalLabel}</label>
               <DatePicker value={dataEntrega} onChange={setDataEntrega} required />
             </div>
           </div>
+
+          <FormatosExportacaoField value={formatosExportacao} onChange={setFormatosExportacao} />
 
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.prioridadeLabel}</label>

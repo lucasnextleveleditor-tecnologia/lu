@@ -101,11 +101,40 @@ export interface ProducaoDict {
   responsavelSemVinculo: string;
   dataCaptacaoLabel: string;
   dataCaptacaoAjuda: string;
-  prazoEntregaLabel: string;
+  dataEntregaFinalLabel: string;
+  dataEntregaV1Label: string;
   briefingLabel: string;
   briefingPlaceholder: string;
   criando: string;
   criarTarefa: string;
+
+  // Seções do formulário reorganizado (`BriefingCamposAvancados.tsx`).
+  briefingInformacoesBasicasTitulo: string;
+  briefingEntregaveisPrazosTitulo: string;
+  objetivoMaterialLabel: string;
+  objetivoOpcaoConversaoAnuncio: string;
+  objetivoOpcaoEngajamentoOrganico: string;
+  objetivoOpcaoCoberturaEvento: string;
+  objetivoOpcaoReels: string;
+  objetivoOpcaoTiktok: string;
+  objetivoOpcaoYoutube: string;
+  objetivoOpcaoCriativoVenda: string;
+  objetivoOpcaoPortfolio: string;
+  objetivoOpcaoEditorial: string;
+  objetivoOpcaoInstitucional: string;
+  objetivoOutroPlaceholder: string;
+  referenciasEstiloLabel: string;
+  referenciasEstiloAjuda: string;
+  referenciasEstiloPlaceholder: string;
+  formatosExportacaoLabel: string;
+  formatosExportacaoPlaceholder: string;
+  formatoChip916: string;
+  formatoChip11: string;
+  formatoChip169: string;
+  formatoChipComLegenda: string;
+  formatoChipSemLegenda: string;
+  formatoChipAltaResolucao: string;
+  entregaPreviewFallbackAjuda: string;
 
   // Modal de detalhe (`TarefaDetalheModal.tsx`).
   confirmarExclusaoTarefa: string;
@@ -240,11 +269,39 @@ export const producao: ProducaoDict = {
   responsavelSemVinculo: "Sem responsável",
   dataCaptacaoLabel: "Data de Captação",
   dataCaptacaoAjuda: "Dia da gravação/filmagem.",
-  prazoEntregaLabel: "Prazo de Entrega",
+  dataEntregaFinalLabel: "Data de Entrega Final",
+  dataEntregaV1Label: "Data de Entrega do V1 (Primeiro Corte)",
   briefingLabel: "Briefing",
   briefingPlaceholder: "Detalhes completos da tarefa...",
   criando: "Criando...",
   criarTarefa: "Criar Tarefa",
+
+  briefingInformacoesBasicasTitulo: "Informações Básicas",
+  briefingEntregaveisPrazosTitulo: "Entregáveis e Prazos",
+  objetivoMaterialLabel: "Objetivo do Material",
+  objetivoOpcaoConversaoAnuncio: "Conversão em Anúncio",
+  objetivoOpcaoEngajamentoOrganico: "Engajamento Orgânico",
+  objetivoOpcaoCoberturaEvento: "Cobertura de Evento",
+  objetivoOpcaoReels: "Reels",
+  objetivoOpcaoTiktok: "TikTok",
+  objetivoOpcaoYoutube: "YouTube",
+  objetivoOpcaoCriativoVenda: "Criativo de Venda",
+  objetivoOpcaoPortfolio: "Portfólio",
+  objetivoOpcaoEditorial: "Editorial",
+  objetivoOpcaoInstitucional: "Institucional",
+  objetivoOutroPlaceholder: "+ Outro — digite e pressione Enter",
+  referenciasEstiloLabel: "Referências de Estilo",
+  referenciasEstiloAjuda: "1 ou 2 links que mostram o mood/estilo desejado (Reels, TikTok, Pinterest, portfólio de terceiros...).",
+  referenciasEstiloPlaceholder: "Um link por linha...",
+  formatosExportacaoLabel: "Formatos para Exportação",
+  formatosExportacaoPlaceholder: "Ex: 1 Reel 9:16 de até 60s + 1 versão sem legenda",
+  formatoChip916: "9:16",
+  formatoChip11: "1:1",
+  formatoChip169: "16:9",
+  formatoChipComLegenda: "Com legenda",
+  formatoChipSemLegenda: "Sem legenda",
+  formatoChipAltaResolucao: "Alta resolução",
+  entregaPreviewFallbackAjuda: "Se a prévia não carregar, use o link acima.",
 
   confirmarExclusaoTarefa: "Excluir esta tarefa?",
   simExcluir: "Sim, excluir",
