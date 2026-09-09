@@ -168,8 +168,8 @@ export const orcamentos: OrcamentosDict = {
   objetivosSecaoTitulo: "Project Objective",
   quemSomosTitulo: "Who We Are",
   empresasAtendidasTitulo: "Companies we've worked with",
-  ctaDecisaoTitulo: "Shall we begin?",
-  ctaDecisaoDescricao: "Review the details above and choose how you'd like to move forward with the proposal.",
+  ctaDecisaoTitulo: "So, shall we?",
+  ctaDecisaoDescricao: "Take a look at the details above and let us know how you'd like to move forward.",
 
   aprovarOrcamentoBtn: "Approve Quote",
   recusarOrcamentoBtn: "Decline",
@@ -334,7 +334,7 @@ export const orcamentos: OrcamentosDict = {
   emailComercialPlaceholder: "sales@yourcompany.com",
   siteComercialPlaceholder: "www.yourcompany.com",
   termosCondicoesTitulo: "Terms & Conditions",
-  encerramentoTituloPadrao: "Let's create together?",
+  encerramentoTituloPadrao: "This proposal already looks like you",
   qrCompartilharTitulo: "Continue on your phone",
   qrCompartilharHint: "Point your camera to open this proposal on your phone.",
   exemplo: {
@@ -347,7 +347,7 @@ export const orcamentos: OrcamentosDict = {
     observacoes: "Prices valid for the scope described — any changes are quoted separately.",
     textoInstitucional: "We're a team that's passionate about turning ideas into results — every project gets the same care as our first.",
     clientesAtendidos: ["Company Alpha", "Company Beta", "Company Gamma"],
-    textoEncerramento: "We'd love the chance to work together — reach out anytime with questions.",
+    textoEncerramento: "Every detail here was shaped around you — reach out and let's talk next steps.",
     itensEntrega: [
       { item: "Planning and aligned briefing", prazo: "3 business days" },
       { item: "First delivery for approval", prazo: "10 business days" },
