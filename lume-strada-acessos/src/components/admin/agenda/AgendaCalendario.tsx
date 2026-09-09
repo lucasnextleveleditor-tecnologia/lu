@@ -3,39 +3,32 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd";
-import type { Compromisso, AgendaItem, TipoCompromisso } from "@/lib/types/agenda";
+import type { Compromisso, AgendaItem } from "@/lib/types/agenda";
 import type { TarefaAgendaItem, LeadAgendaItem } from "@/lib/types/dashboard";
+import type { ClienteRow } from "@/lib/types/cadastros";
 import { leadEstaAberto } from "@/lib/utils/comercial";
-import { addMeses, fmtHora, fmtMesAno, gradeDoMes, hojeISO, TIPO_COMPROMISSO_META, TIPO_COMPROMISSO_ORDEM } from "@/lib/utils/agenda";
+import { addMeses, fmtHora, fmtMesAno, gradeDoMes, hojeISO, TIPO_COMPROMISSO_META } from "@/lib/utils/agenda";
 import { moverCompromisso } from "@/app/admin/agenda/actions";
-import { useTheme } from "@/lib/theme/ThemeProvider";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { IconCalendar, IconChevronLeft, IconChevronRight, IconExternalLink, IconPlus } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
 import { NovoCompromissoModal } from "@/components/admin/agenda/NovoCompromissoModal";
-import type { AgendaDict } from "@/lib/i18n/dictionaries/pt/agenda";
 
 interface AgendaCalendarioProps {
   compromissos: Compromisso[];
   tarefasAgenda: TarefaAgendaItem[];
   leadsAgenda: LeadAgendaItem[];
+  clientes: ClienteRow[];
   /** Total já calculado no servidor (`data.ts`) — mostrado de novo aqui, compacto, ao lado do filtro (mesmo layout do concorrente: stat card colada nos filtros). */
   eventosNoMes: number;
 }
 
 const MAX_VISIVEIS_POR_DIA = 4;
 
-function labelDoTipo(dict: AgendaDict, tipo: TipoCompromisso): string {
-  const porTipo: Record<TipoCompromisso, string> = {
-    captacao: dict.tipoCaptacao,
-    reuniao: dict.tipoReuniao,
-    entrega: dict.tipoEntrega,
-    pagamento: dict.tipoPagamento,
-  };
-  return porTipo[tipo];
-}
+/** Chave sentinela pro balde "Sem Cliente" no filtro/`Set` de visibilidade — nenhum `clientes.id` de verdade colide com essa string. */
+const SEM_CLIENTE_KEY = "__sem_cliente__";
 
 /**
  * Calendário mensal da Agenda — junta compromissos MANUAIS (tabela
@@ -48,19 +41,39 @@ function labelDoTipo(dict: AgendaDict, tipo: TipoCompromisso): string {
  * — os itens auto não têm índice de arrasto (não pertencem a `compromissos`,
  * arrastar não faria nada).
  */
-export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eventosNoMes }: AgendaCalendarioProps) {
+export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, clientes: clientesIniciais, eventosNoMes }: AgendaCalendarioProps) {
   const { dict } = useLocale();
-  const { theme } = useTheme();
   const [, startTransition] = useTransition();
 
   const [compromissosLocais, setCompromissosLocais] = useState(compromissos);
   useEffect(() => setCompromissosLocais(compromissos), [compromissos]);
 
+  // Estado local (não só a prop) pra um cliente criado "na hora" pelo "+
+  // Novo Cliente" dentro do modal de compromisso aparecer no filtro e no
+  // dropdown imediatamente — mesmo padrão de `ProducaoWorkspace.tsx`.
+  const [clientes, setClientes] = useState(clientesIniciais);
+
   const [referencia, setReferencia] = useState(() => {
     const hoje = new Date();
     return new Date(Date.UTC(hoje.getFullYear(), hoje.getMonth(), 1));
   });
-  const [tiposVisiveis, setTiposVisiveis] = useState<Set<TipoCompromisso>>(() => new Set(TIPO_COMPROMISSO_ORDEM));
+  // Filtro/legenda por CLIENTE (não mais por tipo) — cada compromisso/item
+  // pinta com a MESMA cor do cadastro do cliente (`clientes.cor`), igual já
+  // acontece no Calendário de Produção; quem não tem cliente vinculado cai
+  // no balde "Sem Cliente" (`SEM_CLIENTE_KEY`). Tudo visível por padrão.
+  const [clientesVisiveis, setClientesVisiveis] = useState<Set<string>>(
+    () => new Set([...clientesIniciais.map((c) => c.id), SEM_CLIENTE_KEY])
+  );
+
+  function handleClienteCriado(novo: Pick<ClienteRow, "id" | "nome" | "cor">) {
+    setClientes((atual) =>
+      [...atual, { ...novo, documento: null, email: null, telefone: null, nome_responsavel: null, endereco: null, profile_id: null, portal_token: "", created_at: "", updated_at: "" }].sort((a, b) =>
+        a.nome.localeCompare(b.nome)
+      )
+    );
+    setClientesVisiveis((atual) => new Set(atual).add(novo.id));
+  }
+
   const [modalAberto, setModalAberto] = useState(false);
   const [dataPreenchida, setDataPreenchida] = useState<string | undefined>(undefined);
   const [compromissoEmEdicao, setCompromissoEmEdicao] = useState<Compromisso | null>(null);
@@ -68,6 +81,7 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
   const hojeIso = hojeISO();
   const semanas = gradeDoMes(referencia);
   const leadsAbertos = useMemo(() => leadsAgenda.filter(leadEstaAberto), [leadsAgenda]);
+  const clientesPorId = useMemo(() => new Map(clientes.map((c) => [c.id, c])), [clientes]);
 
   const itensPorDia = useMemo(() => {
     const mapa = new Map<string, AgendaItem[]>();
@@ -77,6 +91,7 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
     }
 
     for (const c of compromissosLocais) {
+      const clienteVinculado = c.cliente_cadastro_id ? clientesPorId.get(c.cliente_cadastro_id) : undefined;
       add(c.data, {
         id: c.id,
         origem: "manual",
@@ -84,7 +99,9 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
         titulo: c.titulo,
         data: c.data,
         hora: c.hora,
-        clienteNome: c.cliente_nome,
+        clienteNome: clienteVinculado?.nome ?? c.cliente_nome,
+        clienteId: c.cliente_cadastro_id,
+        clienteCor: clienteVinculado?.cor ?? null,
         compromissoId: c.id,
       });
     }
@@ -98,6 +115,8 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
           data: t.data_captacao,
           hora: null,
           clienteNome: t.cliente_nome,
+          clienteId: t.cliente_id ?? null,
+          clienteCor: t.cliente_cor ?? null,
           href: "/admin/producao",
         });
       }
@@ -110,6 +129,8 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
           data: t.data_entrega,
           hora: null,
           clienteNome: t.cliente_nome,
+          clienteId: t.cliente_id ?? null,
+          clienteCor: t.cliente_cor ?? null,
           href: "/admin/producao",
         });
       }
@@ -124,18 +145,20 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
           data: l.proximo_contato_em,
           hora: null,
           clienteNome: null,
+          clienteId: null,
+          clienteCor: null,
           href: "/admin/comercial",
         });
       }
     }
     return mapa;
-  }, [compromissosLocais, tarefasAgenda, leadsAbertos]);
+  }, [compromissosLocais, tarefasAgenda, leadsAbertos, clientesPorId]);
 
-  function alternarTipo(tipo: TipoCompromisso) {
-    setTiposVisiveis((atual) => {
+  function alternarCliente(chave: string) {
+    setClientesVisiveis((atual) => {
       const proximo = new Set(atual);
-      if (proximo.has(tipo)) proximo.delete(tipo);
-      else proximo.add(tipo);
+      if (proximo.has(chave)) proximo.delete(chave);
+      else proximo.add(chave);
       return proximo;
     });
   }
@@ -168,38 +191,43 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
     });
   }
 
-  function corDoTipo(tipo: TipoCompromisso): string {
-    const meta = TIPO_COMPROMISSO_META[tipo];
-    return theme === "dark" ? meta.corDark : meta.corLight;
-  }
-
   return (
     <div className="space-y-5">
-      {/* Linha de cima: filtro por tipo + stat compacto + placeholder do Google
-          Agenda lado a lado — pedido explícito pra NÃO ocupar espaço vertical
-          do calendário (antes ficavam numa coluna estreita ao lado dele). O
-          calendário abaixo agora usa a largura inteira da tela. */}
+      {/* Linha de cima: filtro por cliente + stat compacto + placeholder do
+          Google Agenda lado a lado — pedido explícito pra NÃO ocupar espaço
+          vertical do calendário (antes ficavam numa coluna estreita ao lado
+          dele). O calendário abaixo agora usa a largura inteira da tela. */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr_1fr]">
         <Card className="p-4 sm:p-5">
-          <p className="mb-3 text-sm font-semibold text-ink-primary">{dict.agenda.filtrarPorTipo}</p>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
-            {TIPO_COMPROMISSO_ORDEM.map((tipo) => {
-              const Icon = TIPO_COMPROMISSO_META[tipo].icon;
-              return (
-                <label key={tipo} className="flex cursor-pointer items-center gap-2 text-sm">
+          <p className="mb-3 text-sm font-semibold text-ink-primary">{dict.agenda.filtrarPorCliente}</p>
+          {clientes.length === 0 ? (
+            <p className="text-xs text-ink-muted">{dict.agenda.semClientesCadastradosAjuda}</p>
+          ) : (
+            <div className="flex max-h-28 flex-wrap gap-x-5 gap-y-2 overflow-y-auto">
+              {clientes.map((cliente) => (
+                <label key={cliente.id} className="flex cursor-pointer items-center gap-2 text-sm">
                   <input
                     type="checkbox"
-                    checked={tiposVisiveis.has(tipo)}
-                    onChange={() => alternarTipo(tipo)}
+                    checked={clientesVisiveis.has(cliente.id)}
+                    onChange={() => alternarCliente(cliente.id)}
                     className="h-4 w-4 shrink-0 rounded border-base-600 bg-base-900 accent-accent"
                   />
-                  <Icon className="h-4 w-4 shrink-0 text-ink-muted" />
-                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: corDoTipo(tipo) }} />
-                  <span className="text-ink-primary">{labelDoTipo(dict.agenda, tipo)}</span>
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: cliente.cor ?? undefined }} />
+                  <span className="text-ink-primary">{cliente.nome}</span>
                 </label>
-              );
-            })}
-          </div>
+              ))}
+              <label className="flex cursor-pointer items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={clientesVisiveis.has(SEM_CLIENTE_KEY)}
+                  onChange={() => alternarCliente(SEM_CLIENTE_KEY)}
+                  className="h-4 w-4 shrink-0 rounded border-base-600 bg-base-900 accent-accent"
+                />
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full border border-dashed border-ink-muted" />
+                <span className="text-ink-secondary">{dict.agenda.semClienteFiltro}</span>
+              </label>
+            </div>
+          )}
         </Card>
 
         <Card className="flex items-center p-4 sm:p-5">
@@ -288,7 +316,9 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
               <div key={i} className="grid grid-cols-7 gap-1.5">
                 {semana.map((dia, j) => {
                   if (!dia) return <div key={j} className="min-h-[132px] rounded-lg" />;
-                  const itensDoDia = (itensPorDia.get(dia) ?? []).filter((item) => tiposVisiveis.has(item.tipo));
+                  const itensDoDia = (itensPorDia.get(dia) ?? []).filter((item) =>
+                    clientesVisiveis.has(item.clienteId ?? SEM_CLIENTE_KEY)
+                  );
                   const visiveis = itensDoDia.slice(0, MAX_VISIVEIS_POR_DIA);
                   const restantes = itensDoDia.length - visiveis.length;
                   const isHoje = dia === hojeIso;
@@ -324,7 +354,12 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
                           </p>
                           <div className="space-y-1">
                             {visiveis.map((item) => {
-                              const cor = corDoTipo(item.tipo);
+                              // Cor = CLIENTE (mesma do cadastro em Cadastros → Clientes), não mais
+                              // o tipo do compromisso — igual ao Calendário de Produção. Sem cliente
+                              // vinculado cai num cinza neutro (classe, não hex, pra acompanhar o
+                              // tema automaticamente). O TIPO continua identificável pelo ícone —
+                              // cor nunca é a única pista de significado.
+                              const TipoIcon = TIPO_COMPROMISSO_META[item.tipo].icon;
                               if (item.origem === "manual") {
                                 const index = indiceArrastavel++;
                                 return (
@@ -340,12 +375,14 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
                                           abrirEdicao(item);
                                         }}
                                         className={cn(
-                                          "flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-[11px] font-medium text-white transition hover:opacity-90",
+                                          "flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-[11px] font-medium transition hover:opacity-90",
+                                          item.clienteCor ? "text-white" : "bg-base-700 text-ink-primary",
                                           snapshotDrag.isDragging && "rotate-1 scale-[1.02] drop-shadow-[0_16px_28px_rgba(0,0,0,0.6)]"
                                         )}
-                                        style={{ backgroundColor: cor }}
+                                        style={item.clienteCor ? { backgroundColor: item.clienteCor } : undefined}
                                         title={item.clienteNome ? `${item.titulo} — ${item.clienteNome}` : item.titulo}
                                       >
+                                        <TipoIcon className="h-3 w-3 shrink-0 opacity-90" />
                                         {item.hora && <span className="shrink-0 opacity-80">{fmtHora(item.hora)}</span>}
                                         <span className="truncate">{item.titulo}</span>
                                       </button>
@@ -362,11 +399,18 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
                                   key={item.id}
                                   href={item.href ?? "/admin/dashboard"}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="flex w-full items-center gap-1 rounded border border-dashed bg-base-900/60 px-1.5 py-1 text-left text-[11px] font-medium text-ink-primary transition hover:bg-base-800/60"
-                                  style={{ borderColor: cor }}
-                                  title={`${item.titulo} — ${dict.agenda.origemAutoDica}`}
+                                  className={cn(
+                                    "flex w-full items-center gap-1 rounded border border-dashed bg-base-900/60 px-1.5 py-1 text-left text-[11px] font-medium text-ink-primary transition hover:bg-base-800/60",
+                                    !item.clienteCor && "border-base-600"
+                                  )}
+                                  style={item.clienteCor ? { borderColor: item.clienteCor } : undefined}
+                                  title={`${item.titulo}${item.clienteNome ? ` — ${item.clienteNome}` : ""} (${dict.agenda.origemAutoDica})`}
                                 >
-                                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
+                                  <TipoIcon className="h-3 w-3 shrink-0 opacity-80" />
+                                  <span
+                                    className={cn("h-1.5 w-1.5 shrink-0 rounded-full", !item.clienteCor && "bg-base-600")}
+                                    style={item.clienteCor ? { backgroundColor: item.clienteCor } : undefined}
+                                  />
                                   <span className="min-w-0 flex-1 truncate">{item.titulo}</span>
                                   <IconExternalLink className="h-3 w-3 shrink-0 opacity-60" />
                                 </Link>
@@ -393,7 +437,15 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, eve
         </div>
       </Card>
 
-      {modalAberto && <NovoCompromissoModal compromisso={compromissoEmEdicao} dataInicial={dataPreenchida} onClose={() => setModalAberto(false)} />}
+      {modalAberto && (
+        <NovoCompromissoModal
+          compromisso={compromissoEmEdicao}
+          dataInicial={dataPreenchida}
+          clientes={clientes}
+          onClienteCriado={handleClienteCriado}
+          onClose={() => setModalAberto(false)}
+        />
+      )}
     </div>
   );
 }

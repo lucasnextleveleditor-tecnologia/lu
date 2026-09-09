@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Compromisso, CompromissoInput, TipoCompromisso } from "@/lib/types/agenda";
+import type { ClienteRow } from "@/lib/types/cadastros";
 import { TIPO_COMPROMISSO_META, TIPO_COMPROMISSO_ORDEM } from "@/lib/utils/agenda";
 import { atualizarCompromisso, criarCompromisso, removerCompromisso } from "@/app/admin/agenda/actions";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -11,12 +12,16 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Textarea } from "@/components/ui/Textarea";
+import { ClienteModal } from "@/components/admin/cadastros/ClienteModal";
 
 interface NovoCompromissoModalProps {
   /** Presente = edição (título/botões mudam, ganha "Excluir"); ausente/null = criação. */
   compromisso?: Compromisso | null;
   /** Só usado na criação, quando o modal abre a partir do clique numa célula vazia do grid (ver `onNovaTarefa`-like em `CalendarioTarefas.tsx`). */
   dataInicial?: string;
+  clientes: ClienteRow[];
+  /** Repassa o cliente recém-criado pelo "+ Novo Cliente" pro estado do calendário (ver `AgendaCalendario.tsx`), sem precisar recarregar a página — mesmo padrão de `TarefaModal.tsx`. */
+  onClienteCriado: (cliente: Pick<ClienteRow, "id" | "nome" | "cor">) => void;
   onClose: () => void;
 }
 
@@ -26,8 +31,13 @@ interface NovoCompromissoModalProps {
  * `rounded-2xl border border-base-700 bg-base-900`, clique fora fecha).
  * Sem "Hora" nativa própria no design system — `<input type="time">` puro,
  * mesmo visual de `Input`/`Select` aplicado via classe.
+ *
+ * Campo Cliente escolhe um cadastro de verdade (`clientes`, com "+ Novo
+ * Cliente" inline — mesmo padrão de `TarefaModal.tsx`), não mais texto
+ * livre: é o vínculo (`cliente_cadastro_id`) que dá a cor consistente no
+ * calendário e habilita o filtro por cliente.
  */
-export function NovoCompromissoModal({ compromisso, dataInicial, onClose }: NovoCompromissoModalProps) {
+export function NovoCompromissoModal({ compromisso, dataInicial, clientes, onClienteCriado, onClose }: NovoCompromissoModalProps) {
   const { dict } = useLocale();
   const { theme } = useTheme();
   const editando = Boolean(compromisso);
@@ -36,11 +46,17 @@ export function NovoCompromissoModal({ compromisso, dataInicial, onClose }: Novo
   const [tipo, setTipo] = useState<TipoCompromisso>(compromisso?.tipo ?? "captacao");
   const [data, setData] = useState(compromisso?.data ?? dataInicial ?? "");
   const [hora, setHora] = useState(compromisso?.hora ? compromisso.hora.slice(0, 5) : "");
-  const [clienteNome, setClienteNome] = useState(compromisso?.cliente_nome ?? "");
+  const [clienteCadastroId, setClienteCadastroId] = useState(compromisso?.cliente_cadastro_id ?? "");
   const [notas, setNotas] = useState(compromisso?.notas ?? "");
   const [loading, setLoading] = useState(false);
   const [excluindo, setExcluindo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [novoClienteAberto, setNovoClienteAberto] = useState(false);
+
+  function handleClienteCriado(cliente: Pick<ClienteRow, "id" | "nome" | "cor">) {
+    onClienteCriado(cliente);
+    setClienteCadastroId(cliente.id);
+  }
 
   const labelPorTipo: Record<TipoCompromisso, string> = {
     captacao: dict.agenda.tipoCaptacao,
@@ -62,12 +78,18 @@ export function NovoCompromissoModal({ compromisso, dataInicial, onClose }: Novo
 
     setLoading(true);
     setError(null);
+    const clienteSelecionado = clienteCadastroId ? clientes.find((c) => c.id === clienteCadastroId) : undefined;
     const input: CompromissoInput = {
       titulo,
       tipo,
       data,
       hora: hora || null,
-      clienteNome: clienteNome || null,
+      clienteCadastroId: clienteCadastroId || null,
+      // Denormalizado de propósito — `CompromissoResumo` (usado pelo
+      // Calendário de Produção pra mostrar este compromisso, ver
+      // `lib/types/agenda.ts`) continua lendo só texto, sem precisar de um
+      // segundo join só pra isso.
+      clienteNome: clienteSelecionado?.nome ?? null,
       notas: notas || null,
     };
     const result = editando && compromisso ? await atualizarCompromisso(compromisso.id, input) : await criarCompromisso(input);
@@ -143,8 +165,20 @@ export function NovoCompromissoModal({ compromisso, dataInicial, onClose }: Novo
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.agenda.campoCliente}</label>
-            <Input value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} placeholder={dict.agenda.placeholderCliente} />
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="block text-xs font-medium text-ink-secondary">{dict.agenda.campoCliente}</label>
+              <button type="button" onClick={() => setNovoClienteAberto(true)} className="text-xs font-medium text-accent hover:underline">
+                + {dict.agenda.novoClienteInline}
+              </button>
+            </div>
+            <Select value={clienteCadastroId} onChange={(e) => setClienteCadastroId(e.target.value)}>
+              <option value="">{dict.agenda.clienteSemVinculoOpcao}</option>
+              {clientes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nome}
+                </option>
+              ))}
+            </Select>
           </div>
 
           <div>
@@ -173,6 +207,8 @@ export function NovoCompromissoModal({ compromisso, dataInicial, onClose }: Novo
           </div>
         </div>
       </div>
+
+      {novoClienteAberto && <ClienteModal onCreated={handleClienteCriado} onClose={() => setNovoClienteAberto(false)} />}
     </div>
   );
 }

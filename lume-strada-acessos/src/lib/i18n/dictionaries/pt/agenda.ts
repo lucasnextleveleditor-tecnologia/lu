@@ -9,7 +9,9 @@ export interface AgendaDict {
   tituloPagina: string;
   subtituloPagina: string;
   novoCompromissoBtn: string;
-  filtrarPorTipo: string;
+  filtrarPorCliente: string;
+  semClienteFiltro: string;
+  semClientesCadastradosAjuda: string;
   tipoCaptacao: string;
   tipoReuniao: string;
   tipoEntrega: string;
@@ -39,7 +41,8 @@ export interface AgendaDict {
   campoData: string;
   campoHora: string;
   campoCliente: string;
-  placeholderCliente: string;
+  clienteSemVinculoOpcao: string;
+  novoClienteInline: string;
   campoNotas: string;
   placeholderNotas: string;
   salvarBtn: string;
@@ -57,7 +60,9 @@ export const agenda: AgendaDict = {
   tituloPagina: "Agenda",
   subtituloPagina: "Compromissos manuais e datas de Produção/Comercial, tudo num calendário só.",
   novoCompromissoBtn: "Novo Compromisso",
-  filtrarPorTipo: "Filtrar por Tipo",
+  filtrarPorCliente: "Filtrar por Cliente",
+  semClienteFiltro: "Sem Cliente",
+  semClientesCadastradosAjuda: "Cadastre clientes em Cadastros → Clientes pra colori-los aqui.",
   tipoCaptacao: "Captação",
   tipoReuniao: "Reunião",
   tipoEntrega: "Entrega",
@@ -87,7 +92,8 @@ export const agenda: AgendaDict = {
   campoData: "Data",
   campoHora: "Hora (opcional)",
   campoCliente: "Cliente (opcional)",
-  placeholderCliente: "Nome do cliente",
+  clienteSemVinculoOpcao: "Sem cliente vinculado",
+  novoClienteInline: "Novo Cliente",
   campoNotas: "Notas (opcional)",
   placeholderNotas: "Detalhes adicionais...",
   salvarBtn: "Salvar Compromisso",

@@ -15,6 +15,7 @@ function normalizarInput(input: CompromissoInput) {
     tipo: input.tipo,
     data: input.data,
     hora: input.hora || null,
+    cliente_cadastro_id: input.clienteCadastroId || null,
     cliente_nome: input.clienteNome?.trim() || null,
     notas: input.notas?.trim() || null,
   };

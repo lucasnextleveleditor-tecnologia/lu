@@ -8,6 +8,9 @@ export interface Compromisso {
   tipo: TipoCompromisso;
   data: string; // ISO yyyy-mm-dd
   hora: string | null; // "HH:MM:SS" (formato `time` do Postgres) ou null
+  /** Vínculo com o cadastro de clientes (`clientes.id`) — quando preenchido, dá a cor mostrada no calendário e habilita o filtro por cliente (ver `supabase/agenda-compromissos-cliente-cadastro.sql`). */
+  cliente_cadastro_id: string | null;
+  /** Nome livre, sem FK — mantido por compatibilidade (compromissos antigos) e como rótulo de exibição; quando `cliente_cadastro_id` está preenchido, a UI mostra o nome ATUAL do cadastro em vez deste texto. */
   cliente_nome: string | null;
   notas: string | null;
   created_at: string;
@@ -34,6 +37,9 @@ export interface AgendaItem {
   data: string; // ISO yyyy-mm-dd
   hora: string | null;
   clienteNome: string | null;
+  /** Id do cliente cadastrado (`clientes.id`) e sua cor — fonte da cor da pill no calendário e da chave usada pelo filtro "Filtrar por Cliente" (null = cai no balde "Sem Cliente"). */
+  clienteId: string | null;
+  clienteCor: string | null;
   /** Só definido pra `origem === "manual"` — id real em `compromissos`, usado pra abrir o modal de edição/exclusão. */
   compromissoId?: string;
   /** Só definido pra `origem !== "manual"` — pra onde o clique navega (`/admin/producao` ou `/admin/comercial`). */
@@ -46,6 +52,8 @@ export interface CompromissoInput {
   tipo: TipoCompromisso;
   data: string; // ISO yyyy-mm-dd
   hora: string | null;
+  /** Cliente cadastrado escolhido no dropdown (ver `NovoCompromissoModal.tsx`) — null = "Sem cliente vinculado". */
+  clienteCadastroId: string | null;
   clienteNome: string | null;
   notas: string | null;
 }

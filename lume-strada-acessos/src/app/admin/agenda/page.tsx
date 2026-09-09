@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function AgendaPage() {
   const { dict } = await getDictionary();
-  const { compromissos, tarefasAgenda, leadsAgenda, eventosNoMes, compromissosManuaisNoMes, autoNoMes } = await buscarDadosAgenda();
+  const { compromissos, tarefasAgenda, leadsAgenda, clientes, eventosNoMes, compromissosManuaisNoMes, autoNoMes } = await buscarDadosAgenda();
 
   return (
     <div className="space-y-6">
@@ -44,7 +44,7 @@ export default async function AgendaPage() {
         <StatTile icon={IconLayers} label={dict.agenda.statAutoLabel} value={autoNoMes} hint={dict.agenda.hintAuto} />
       </div>
 
-      <AgendaCalendario compromissos={compromissos} tarefasAgenda={tarefasAgenda} leadsAgenda={leadsAgenda} eventosNoMes={eventosNoMes} />
+      <AgendaCalendario compromissos={compromissos} tarefasAgenda={tarefasAgenda} leadsAgenda={leadsAgenda} clientes={clientes} eventosNoMes={eventosNoMes} />
     </div>
   );
 }

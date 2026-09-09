@@ -10,6 +10,17 @@ export interface TarefaAgendaItem {
   id: string;
   titulo: string;
   cliente_nome: string | null;
+  /**
+   * Id do cliente cadastrado (`clientes.id`) e sua cor — OPCIONAIS de
+   * propósito: só `app/admin/agenda/data.ts` os preenche hoje (pra colorir
+   * os itens auto-surfados de Produção no calendário da Agenda por
+   * cliente, mesmo espírito de `TarefaComRelacoes.cliente_cor`). Os outros
+   * lugares que montam `TarefaAgendaItem` (Dashboard/Calendário Geral)
+   * continuam sem preencher — undefined é tratado como "sem cor" por quem
+   * consome.
+   */
+  cliente_id?: string | null;
+  cliente_cor?: string | null;
   status: StatusTarefa;
   data_captacao: string | null;
   data_entrega: string | null;
