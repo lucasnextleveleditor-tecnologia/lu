@@ -6,7 +6,7 @@ import type { PerfilOrcamento } from "@/lib/types/orcamentos";
 import type { StatusContrato } from "@/lib/types/contratos";
 import { listarPlaceholdersPendentes } from "@/lib/contratos/modelos/tipos";
 
-const PATH = "/admin/contratos";
+const PATH = "/admin/contratos/lista";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };

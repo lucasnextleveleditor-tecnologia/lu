@@ -148,7 +148,7 @@ export default async function ComercialHubPage({ searchParams }: { searchParams:
         {podeOrcamentos && (
           <div className="flex flex-wrap items-center gap-3">
             <ConfiguracoesOrcamentoMenu />
-            <Link href="/admin/contratos">
+            <Link href="/admin/contratos/lista">
               <Button variant="ghost" className="gap-1.5">
                 <IconShieldCheck className="h-4 w-4" />
                 {dict.orcamentos.contratosBtn}

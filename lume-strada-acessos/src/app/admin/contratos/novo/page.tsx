@@ -25,7 +25,7 @@ export default async function NovoContratoPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/admin/contratos" className="mb-3 inline-flex items-center gap-1 text-xs font-medium text-ink-muted transition hover:text-ink-primary">
+        <Link href="/admin/contratos/lista" className="mb-3 inline-flex items-center gap-1 text-xs font-medium text-ink-muted transition hover:text-ink-primary">
           <IconChevronLeft className="h-3.5 w-3.5" />
           {dict.contratos.voltarParaContratos}
         </Link>

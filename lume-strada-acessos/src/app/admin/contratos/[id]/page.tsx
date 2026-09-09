@@ -18,7 +18,7 @@ export default async function ContratoDetalhePage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <Link href="/admin/contratos" className="inline-flex items-center gap-1 text-xs font-medium text-ink-muted transition hover:text-ink-primary">
+      <Link href="/admin/contratos/lista" className="inline-flex items-center gap-1 text-xs font-medium text-ink-muted transition hover:text-ink-primary">
         <IconChevronLeft className="h-3.5 w-3.5" />
         {dict.contratos.voltarParaContratos}
       </Link>

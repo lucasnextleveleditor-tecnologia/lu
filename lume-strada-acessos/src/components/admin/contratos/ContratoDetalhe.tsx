@@ -57,7 +57,7 @@ export function ContratoDetalhe({ contrato }: { contrato: ContratoComRelacoes & 
     startTransition(async () => {
       const result = await removerContrato(contrato.id);
       if (!result.ok) setError(result.error);
-      else router.push("/admin/contratos");
+      else router.push("/admin/contratos/lista");
     });
   }
 

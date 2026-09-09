@@ -96,7 +96,17 @@ const NAV_GRUPOS = [
       // pelo nome, nao um passo escondido dentro do funil comercial. Segue
       // dentro do hub para quem chega por la, mas quem quer ir direto agora
       // tem por onde.
-      { href: "/admin/contratos", labelKey: "contratos", icon: IconFileText, chave: "orcamentos" },
+      // `/admin/assinaturas` entra nos prefixos porque, desde que Contratos
+      // passou a abrir com a escolha "criar ou assinar", o editor de
+      // assinatura de PDF virou destino de dentro deste menu — sem isso a
+      // sidebar apagaria justo quando a pessoa esta no meio do caminho.
+      {
+        href: "/admin/contratos",
+        labelKey: "contratos",
+        icon: IconFileText,
+        chave: "orcamentos",
+        matchPrefixes: ["/admin/contratos", "/admin/assinaturas"],
+      },
       { href: "/admin", labelKey: "cadastros", icon: IconUsers, chave: "clientes" },
     ],
   },

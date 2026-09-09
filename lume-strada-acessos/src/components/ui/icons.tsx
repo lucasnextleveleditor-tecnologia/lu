@@ -767,3 +767,24 @@ export function IconType(props: IconProps) {
     </svg>
   );
 }
+
+/** Folha com um "+" — criar um documento novo, e não abrir um que já existe. */
+export function IconFilePlus(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M7 3.5h7l4 4v12.2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z" />
+      <path d="M14 3.5V8h4.5" />
+      <path d="M12 11.3v5.4M9.3 14h5.4" />
+    </svg>
+  );
+}
+
+/** Traço de caneta sobre a linha — assinar. */
+export function IconSignature(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M3.5 16.2c1.6 0 2.4-1.1 3.3-3.6.9-2.5 1.5-5.4 2.6-5.4 1 0 1 1.6 1 3.2 0 1.7.2 3.3 1.3 3.3 1.4 0 1.8-2.6 3-2.6.9 0 1.1 1.3 2 1.3.7 0 1.2-.5 1.7-1.2" />
+      <path d="M3.5 20h17" />
+    </svg>
+  );
+}
