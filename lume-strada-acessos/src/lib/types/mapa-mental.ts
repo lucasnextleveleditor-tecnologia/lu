@@ -35,7 +35,60 @@ export interface MapaNoRow {
   desloc_y: number | null;
   /** -1 esquerda, 1 direita, `null` = o layout equilibra sozinho. */
   lado: number | null;
+  /** URL solta que a pessoa colou. `""` = sem link. */
+  link: string;
+  /** Caminho no bucket `mapas`. A URL pública é montada na leitura, nunca gravada. */
+  imagem_path: string | null;
+  /** Chave da fonte — nunca uma família CSS crua (ver `FONTES_MAPA`). */
+  fonte: string;
+  /** Tamanho em px. `0` = herda o padrão do nível do balão. */
+  tamanho: number;
+  negrito: boolean;
+  italico: boolean;
 }
+
+/**
+ * As quatro fontes.
+ *
+ * Todas são pilhas do próprio sistema operacional, de propósito: baixar mais
+ * quatro fontes da web só para o mapa mental somaria centenas de kB ao app
+ * inteiro e deixaria o balão trocar de largura no meio do desenho quando a
+ * fonte terminasse de carregar — e o desenho é calculado, então isso
+ * empurraria os vizinhos. Estas quatro já estão na máquina de quem abre, e
+ * são visualmente bem diferentes entre si, que é o que a escolha precisa
+ * entregar.
+ *
+ * `larguraChar` é o quanto cada uma ocupa por caractere, usado pelo cálculo
+ * de posição — uma monoespaçada é bem mais larga que uma sem serifa.
+ */
+export const FONTES_MAPA = {
+  // `larguraChar` é medida GENEROSA de propósito: subestimar faz o texto
+  // estourar a caixa que o layout reservou, e aí ou ele é cortado ou quebra
+  // uma linha que o cálculo não previu — e o balão cresce por baixo,
+  // encostando no vizinho. Sobrar alguns pixels à direita não custa nada;
+  // faltar arruína o desenho.
+  padrao: { rotulo: "Padrão", css: "var(--font-sans), system-ui, sans-serif", larguraChar: 7.9 },
+  sistema: { rotulo: "Sistema", css: "system-ui, -apple-system, 'Segoe UI', sans-serif", larguraChar: 7.8 },
+  serifada: { rotulo: "Serifada", css: "Georgia, 'Times New Roman', serif", larguraChar: 7.6 },
+  maquina: { rotulo: "Máquina", css: "ui-monospace, 'SF Mono', Menlo, Consolas, monospace", larguraChar: 8.7 },
+} as const;
+
+export type FonteMapa = keyof typeof FONTES_MAPA;
+export const ORDEM_FONTES = Object.keys(FONTES_MAPA) as FonteMapa[];
+
+/** Quatro degraus de tamanho. Mais que isso vira régua de milímetro num quadro de ideias. */
+export const TAMANHOS_MAPA = [12, 14, 17, 21] as const;
+
+export function fonteCss(chave: string): string {
+  return (FONTES_MAPA[chave as FonteMapa] ?? FONTES_MAPA.padrao).css;
+}
+
+export function larguraCharDaFonte(chave: string): number {
+  return (FONTES_MAPA[chave as FonteMapa] ?? FONTES_MAPA.padrao).larguraChar;
+}
+
+/** Altura reservada para a miniatura dentro do balão. */
+export const ALTURA_IMAGEM = 96;
 
 export interface MapaComentarioRow {
   id: string;

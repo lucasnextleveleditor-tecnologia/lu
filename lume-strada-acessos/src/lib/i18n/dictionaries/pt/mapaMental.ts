@@ -57,6 +57,44 @@ export interface MapaMentalDict {
   linkCopiado: string;
   privado: string;
 
+  // Ferramentas e anexos
+  ferramentaSelecionar: string;
+  ferramentaSelecionarHint: string;
+  ferramentaMao: string;
+  ferramentaMaoHint: string;
+  atalhos: string;
+  atalhoRamo: string;
+  atalhoVizinho: string;
+  atalhoEditar: string;
+  atalhoApagar: string;
+  atalhoSair: string;
+  atalhoZoom: string;
+  atalhoArrastar: string;
+  anexos: string;
+  link: string;
+  linkExemplo: string;
+  abrirLink: string;
+  imagem: string;
+  enviarImagem: string;
+  enviandoImagem: string;
+  removerImagem: string;
+  imagemGrande: string;
+
+  fundoClaro: string;
+  fundoEscuro: string;
+  telaCheia: string;
+  sairTelaCheia: string;
+  salvar: string;
+  tudoSalvo: string;
+  salvandoLabel: string;
+  confirmarSair: string;
+
+  texto: string;
+  fonte: string;
+  tamanho: string;
+  negrito: string;
+  italico: string;
+
   // Página pública
   linkInvalidoTitulo: string;
   linkInvalidoDescricao: string;
@@ -111,6 +149,43 @@ export const mapaMental: MapaMentalDict = {
   copiarLink: "Copiar link",
   linkCopiado: "Link copiado",
   privado: "Privado",
+
+  ferramentaSelecionar: "Selecionar",
+  ferramentaSelecionarHint: "Clique para editar e arraste o balão de lugar",
+  ferramentaMao: "Mover",
+  ferramentaMaoHint: "Arraste para navegar pelo mapa (ou segure espaço)",
+  atalhos: "Atalhos",
+  atalhoRamo: "cria um ramo",
+  atalhoVizinho: "cria um vizinho",
+  atalhoEditar: "edita o texto",
+  atalhoApagar: "apaga o ramo",
+  atalhoSair: "sai da edição",
+  atalhoZoom: "dá zoom",
+  atalhoArrastar: "arrasta a tela",
+  anexos: "Anexos",
+  link: "Link",
+  linkExemplo: "https://...",
+  abrirLink: "Abrir",
+  imagem: "Imagem",
+  enviarImagem: "Enviar imagem",
+  enviandoImagem: "Enviando...",
+  removerImagem: "Remover imagem",
+  imagemGrande: "A imagem passa de 5 MB.",
+
+  fundoClaro: "Fundo claro",
+  fundoEscuro: "Fundo escuro",
+  telaCheia: "Tela cheia",
+  sairTelaCheia: "Sair da tela cheia",
+  salvar: "Salvar",
+  tudoSalvo: "Tudo salvo",
+  salvandoLabel: "Salvando...",
+  confirmarSair: "Você tem uma edição aberta que ainda não foi salva. Sair mesmo assim?",
+
+  texto: "Texto",
+  fonte: "Fonte",
+  tamanho: "Tamanho",
+  negrito: "Negrito",
+  italico: "Itálico",
 
   linkInvalidoTitulo: "Mapa não encontrado",
   linkInvalidoDescricao: "Este link não existe mais ou o compartilhamento foi desligado. Peça um novo a quem enviou.",

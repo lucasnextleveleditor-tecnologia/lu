@@ -10,7 +10,7 @@ export type ResultadoNo = { ok: true; no: MapaNoRow } | { ok: false; error: stri
 const ROTA = "/admin/mapas";
 
 /** Campos que um balão aceita receber do navegador. Nada fora desta lista é gravado. */
-const CAMPOS_NO = ["texto", "cor", "colapsado", "desloc_x", "desloc_y", "lado", "ordem", "pai_id"] as const;
+const CAMPOS_NO = ["texto", "cor", "colapsado", "desloc_x", "desloc_y", "lado", "ordem", "pai_id", "link", "imagem_path", "fonte", "tamanho", "negrito", "italico"] as const;
 
 function apenasPermitidos(valores: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(valores).filter(([chave]) => (CAMPOS_NO as readonly string[]).includes(chave)));
@@ -164,6 +164,38 @@ export async function comentarNo(mapaId: string, noId: string, autor: string, te
     });
     if (error) return { ok: false, error: error.message };
     return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Prepara o envio de uma imagem para um balão.
+ *
+ * O arquivo NÃO passa por aqui: devolvemos uma URL assinada e o navegador
+ * envia direto para o Storage. É o mesmo desenho de Produção e Financeiro —
+ * um anexo de 5 MB atravessando a Server Action gastaria o dobro da banda e
+ * esbarraria no limite de corpo da requisição.
+ *
+ * O caminho começa SEMPRE com o id da empresa vindo do servidor. Se viesse
+ * do navegador, bastaria trocar o prefixo para escrever na pasta de outra
+ * empresa — a política do bucket confere exatamente esse primeiro segmento.
+ */
+export async function prepararEnvioImagem(
+  mapaId: string,
+  nomeArquivo: string
+): Promise<{ ok: true; caminho: string; token: string } | { ok: false; error: string }> {
+  try {
+    const { supabase, companyId } = await requireEquipe();
+    if (!companyId) return { ok: false, error: "Sua conta não está ligada a uma empresa." };
+
+    const extensao = (nomeArquivo.split(".").pop() ?? "png").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "png";
+    const caminho = `${companyId}/${mapaId}/${crypto.randomUUID()}.${extensao}`;
+
+    const { data, error } = await supabase.storage.from("mapas").createSignedUploadUrl(caminho);
+    if (error || !data) return { ok: false, error: error?.message ?? "Não foi possível preparar o envio." };
+
+    return { ok: true, caminho, token: data.token };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }

@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { MapaCompleto } from "@/lib/types/mapa-mental";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { MapaCanvas } from "./MapaCanvas";
 import { CompartilharMapa } from "./CompartilharMapa";
+import { IconChevronLeft } from "@/components/ui/icons";
+import { createClient } from "@/lib/supabase/client";
 import {
   adicionarNo,
   comentarNo,
+  prepararEnvioImagem,
   removerNo,
   renomearMapa,
   reorganizarMapa,
@@ -24,9 +29,35 @@ import {
 export function EditorDoMapa({ dados, meuNome }: { dados: MapaCompleto; meuNome: string }) {
   const { dict } = useLocale();
   const t = dict.mapaMental;
+  const router = useRouter();
   const [titulo, setTitulo] = useState(dados.mapa.titulo);
+  // Guardado numa ref e não no estado: o valor só é lido no clique de sair,
+  // e mantê-lo no estado faria a tela inteira redesenhar a cada tecla.
+  const pendencias = useRef(false);
+  const aoMudarPendencias = useCallback((tem: boolean) => {
+    pendencias.current = tem;
+  }, []);
 
   return (
+    <div className="flex h-full flex-col">
+      {/* Sair com uma edição aberta perderia o que está no campo — daí a
+          pergunta. Fora esse caso não há o que perguntar: o mapa salva a cada
+          alteração, e um "deseja salvar?" a toa só ensinaria a pessoa a
+          clicar em OK sem ler. */}
+      <Link
+        href="/admin/mapas"
+        onClick={(e) => {
+          if (!pendencias.current) return;
+          e.preventDefault();
+          if (window.confirm(t.confirmarSair)) router.push("/admin/mapas");
+        }}
+        className="mb-3 inline-flex w-fit items-center gap-1.5 text-xs text-ink-muted transition hover:text-ink-secondary"
+      >
+        <IconChevronLeft className="h-3.5 w-3.5" />
+        {t.voltar}
+      </Link>
+
+      <div className="min-h-0 flex-1">
     <MapaCanvas
       mapaId={dados.mapa.id}
       nosIniciais={dados.nos}
@@ -49,13 +80,31 @@ export function EditorDoMapa({ dados, meuNome }: { dados: MapaCompleto; meuNome:
           <CompartilharMapa mapaId={dados.mapa.id} token={dados.mapa.token} acessoInicial={dados.mapa.acesso_publico} />
         </div>
       }
+      aoMudarPendencias={aoMudarPendencias}
       api={{
         adicionar: (paiId, valores) => adicionarNo(dados.mapa.id, paiId, valores),
         salvar: (noId, valores) => salvarNo(dados.mapa.id, noId, valores),
         remover: (noId) => removerNo(dados.mapa.id, noId),
         reorganizar: () => reorganizarMapa(dados.mapa.id),
         comentar: (noId, autor, texto) => comentarNo(dados.mapa.id, noId, autor, texto),
+        // O arquivo NÃO passa pela Server Action: ela só assina o caminho
+        // (com o id da empresa vindo do servidor) e o navegador envia direto
+        // para o Storage. Mesmo desenho dos anexos de Produção e Financeiro.
+        enviarImagem: async (arquivo) => {
+          const preparo = await prepararEnvioImagem(dados.mapa.id, arquivo.name);
+          if (!preparo.ok) return preparo;
+
+          const supabase = createClient();
+          const { error } = await supabase.storage
+            .from("mapas")
+            .uploadToSignedUrl(preparo.caminho, preparo.token, arquivo, { contentType: arquivo.type });
+          if (error) return { ok: false as const, error: error.message };
+
+          return { ok: true as const, caminho: preparo.caminho };
+        },
       }}
     />
+      </div>
+    </div>
   );
 }

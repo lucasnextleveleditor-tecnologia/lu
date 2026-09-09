@@ -1,14 +1,39 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import type { MapaComentarioRow, MapaNoRow } from "@/lib/types/mapa-mental";
-import { CORES_MAPA, ORDEM_CORES, corDoRamo } from "@/lib/types/mapa-mental";
+import {
+  ALTURA_IMAGEM,
+  CORES_MAPA,
+  ORDEM_CORES,
+  corDoRamo,
+  fonteCss,
+  type MapaComentarioRow,
+  type MapaNoRow,
+} from "@/lib/types/mapa-mental";
 import { caminhoLigacao, desenharMapa } from "@/lib/mapa-mental/layout";
+import { urlImagemMapa } from "@/lib/mapa-mental/imagem";
 import { useMapaAoVivo } from "@/lib/mapa-mental/aoVivo";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/Button";
-import { IconPlus, IconTrash, IconMessageCircle, IconRotateCcw, IconTarget, IconPalette, IconSend } from "@/components/ui/icons";
+import {
+  IconPlus,
+  IconTrash,
+  IconMessageCircle,
+  IconRotateCcw,
+  IconTarget,
+  IconPalette,
+  IconSend,
+  IconExternalLink,
+  IconLoader,
+  IconSun,
+  IconMoon,
+  IconCheck,
+} from "@/components/ui/icons";
+import { PainelAtalhos } from "./PainelAtalhos";
+import { AnexosDoBalao } from "./AnexosDoBalao";
+import { FormatoDoTexto } from "./FormatoDoTexto";
+import { PaletaFerramentas, type ItemPaleta } from "./PaletaFerramentas";
 
 type Resultado = { ok: true } | { ok: false; error: string };
 type ResultadoNo = { ok: true; no: MapaNoRow } | { ok: false; error: string };
@@ -19,6 +44,8 @@ export interface ApiDoMapa {
   remover: (noId: string) => Promise<Resultado>;
   reorganizar: () => Promise<Resultado>;
   comentar: (noId: string, autor: string, texto: string) => Promise<Resultado>;
+  /** Só existe no painel: quem edita pelo link público não envia arquivo. */
+  enviarImagem?: (arquivo: File) => Promise<{ ok: true; caminho: string } | { ok: false; error: string }>;
 }
 
 interface Props {
@@ -29,9 +56,12 @@ interface Props {
   podeEditar: boolean;
   podeComentar: boolean;
   api: ApiDoMapa;
-  /** Barra de cima da tela — muda entre o painel e o link público. */
   cabecalho?: ReactNode;
+  /** Avisa o pai quando há edição aberta ou gravação em voo — quem tem o botão "voltar" usa isto para perguntar antes de sair. */
+  aoMudarPendencias?: (temPendencias: boolean) => void;
 }
+
+type Ferramenta = "selecionar" | "mao";
 
 const ZOOM_MIN = 0.25;
 const ZOOM_MAX = 2.5;
@@ -45,6 +75,7 @@ export function MapaCanvas({
   podeComentar,
   api,
   cabecalho,
+  aoMudarPendencias,
 }: Props) {
   const { dict } = useLocale();
   const t = dict.mapaMental;
@@ -55,20 +86,25 @@ export function MapaCanvas({
   const [editando, setEditando] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState("");
   const [erro, setErro] = useState<string | null>(null);
-  const [painelComentarios, setPainelComentarios] = useState(false);
 
+  const [ferramenta, setFerramenta] = useState<Ferramenta>("selecionar");
+  const [fundoClaro, setFundoClaro] = useState(false);
+  const [telaCheia, setTelaCheia] = useState(false);
+  // Quantas gravações estão em voo agora. O mapa salva sozinho a cada
+  // alteração — este contador existe para a pessoa VER isso acontecendo, em
+  // vez de ter de acreditar.
+  const [emVoo, setEmVoo] = useState(0);
+  const [espacoPressionado, setEspacoPressionado] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const areaRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // ---------------------------------------------------------------------
-  // Tempo real
-  // ---------------------------------------------------------------------
-  // Cada mudança vira duas coisas: a gravação no banco (a verdade) e um aviso
-  // no canal (a rapidez). Quem recebe o aviso aplica só aquele balão — nunca
-  // recarrega o mapa —, então quem está digitando no outro ramo não perde o
-  // cursor nem o texto pela metade.
+  // A ferramenta em uso agora: o espaço vira mãozinha temporária, que é como
+  // todo editor de canvas funciona — sem isso, quem está no modo de editar
+  // teria de trocar de ferramenta só para deslizar dois centímetros.
+  const modoMao = ferramenta === "mao" || espacoPressionado;
+
   const { pessoas, avisar } = useMapaAoVivo({
     mapaId,
     meuNome,
@@ -88,26 +124,18 @@ export function MapaCanvas({
 
   const nosPorId = useMemo(() => new Map(nos.map((n) => [n.id, n])), [nos]);
 
-  /** Aplica localmente, grava e avisa — nesta ordem, para a tela nunca esperar a rede. */
   const mudarNo = useCallback(
     (noId: string, valores: Partial<MapaNoRow>) => {
-      let atualizado: MapaNoRow | undefined;
-      setNos((atual) =>
-        atual.map((n) => {
-          if (n.id !== noId) return n;
-          atualizado = { ...n, ...valores };
-          return atualizado;
+      const base = nosPorId.get(noId);
+      setNos((atual) => atual.map((n) => (n.id === noId ? { ...n, ...valores } : n)));
+      setEmVoo((n) => n + 1);
+      void api
+        .salvar(noId, valores as Record<string, unknown>)
+        .then((r) => {
+          if (!r.ok) setErro(r.error);
         })
-      );
-      void api.salvar(noId, valores as Record<string, unknown>).then((r) => {
-        if (!r.ok) setErro(r.error);
-      });
-      // `setNos` é assíncrono, mas o objeto já foi montado acima.
-      if (atualizado) avisar({ tipo: "no", no: atualizado });
-      else {
-        const base = nosPorId.get(noId);
-        if (base) avisar({ tipo: "no", no: { ...base, ...valores } });
-      }
+        .finally(() => setEmVoo((n) => n - 1));
+      if (base) avisar({ tipo: "no", no: { ...base, ...valores } });
     },
     [api, avisar, nosPorId]
   );
@@ -125,28 +153,23 @@ export function MapaCanvas({
     return mapa;
   }, [comentarios]);
 
-  // ---------------------------------------------------------------------
-  // Encaixar na tela
-  // ---------------------------------------------------------------------
   const encaixar = useCallback(() => {
     const area = areaRef.current;
     if (!area || desenho.baloes.length === 0) return;
     const { minX, minY, maxX, maxY } = desenho.limites;
-    const largura = maxX - minX;
-    const altura = maxY - minY;
     const caixa = area.getBoundingClientRect();
-    const margem = 64;
+    const margem = 72;
     const escala = Math.max(
       ZOOM_MIN,
-      Math.min(ZOOM_MAX, Math.min((caixa.width - margem) / Math.max(largura, 1), (caixa.height - margem) / Math.max(altura, 1)))
+      Math.min(
+        ZOOM_MAX,
+        Math.min((caixa.width - margem) / Math.max(maxX - minX, 1), (caixa.height - margem) / Math.max(maxY - minY, 1))
+      )
     );
     setZoom(escala);
-    // O centro do desenho vai para o centro da área visível.
     setPan({ x: -((minX + maxX) / 2) * escala, y: -((minY + maxY) / 2) * escala });
   }, [desenho]);
 
-  // Encaixa uma vez, quando o mapa abre — depois disso a pessoa é dona do
-  // enquadramento e não seria nada legal a tela pular sozinha a cada balão.
   const jaEncaixou = useRef(false);
   useEffect(() => {
     if (jaEncaixou.current || desenho.baloes.length === 0) return;
@@ -154,9 +177,69 @@ export function MapaCanvas({
     encaixar();
   }, [desenho, encaixar]);
 
+  // Espaço = mãozinha temporária. Fica no `window` porque a tecla precisa
+  // valer mesmo quando o foco está num campo do painel lateral.
+  useEffect(() => {
+    function desceu(e: KeyboardEvent) {
+      const alvo = e.target as HTMLElement | null;
+      const digitando = alvo && (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA");
+      if (e.code === "Space" && !digitando) {
+        e.preventDefault();
+        setEspacoPressionado(true);
+      }
+    }
+    function subiu(e: KeyboardEvent) {
+      if (e.code === "Space") setEspacoPressionado(false);
+    }
+    window.addEventListener("keydown", desceu);
+    window.addEventListener("keyup", subiu);
+    return () => {
+      window.removeEventListener("keydown", desceu);
+      window.removeEventListener("keyup", subiu);
+    };
+  }, []);
+
   // ---------------------------------------------------------------------
-  // Editar texto
+  // Pendências, aviso de saída e tela cheia
   // ---------------------------------------------------------------------
+  const temPendencias = editando !== null || emVoo > 0;
+
+  useEffect(() => {
+    aoMudarPendencias?.(temPendencias);
+  }, [temPendencias, aoMudarPendencias]);
+
+  // Fechar a aba com uma edição aberta perderia o que está no campo — o
+  // navegador só deixa avisar, não impedir, e é o suficiente.
+  useEffect(() => {
+    if (!temPendencias) return;
+    function avisar(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", avisar);
+    return () => window.removeEventListener("beforeunload", avisar);
+  }, [temPendencias]);
+
+  const raizRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function mudou() {
+      setTelaCheia(document.fullscreenElement === raizRef.current);
+    }
+    document.addEventListener("fullscreenchange", mudou);
+    return () => document.removeEventListener("fullscreenchange", mudou);
+  }, []);
+
+  async function alternarTelaCheia() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await raizRef.current?.requestFullscreen();
+    } catch {
+      // Navegador ou permissão sem tela cheia: o mapa continua funcionando
+      // do mesmo jeito, então não vale interromper com um erro.
+    }
+  }
+
   function comecarEdicao(noId: string) {
     if (!podeEditar) return;
     setSelecionado(noId);
@@ -175,7 +258,7 @@ export function MapaCanvas({
     if (editando) textareaRef.current?.focus();
   }, [editando]);
 
-  async function criarBalao(paiId: string, depoisDe?: string) {
+  async function criarBalao(paiId: string) {
     if (!podeEditar) return;
     const r = await api.adicionar(paiId, {});
     if (!r.ok) {
@@ -187,17 +270,13 @@ export function MapaCanvas({
     setSelecionado(r.no.id);
     setEditando(r.no.id);
     setRascunho("");
-    void depoisDe;
   }
 
   function apagarBalao(noId: string) {
     if (!podeEditar) return;
     const no = nosPorId.get(noId);
-    if (!no || no.pai_id === null) return; // o balão do meio não se apaga
+    if (!no || no.pai_id === null) return;
 
-    // Descobre o ramo inteiro para tirar da tela de uma vez — o banco já
-    // apaga em cascata, mas quem está olhando não deveria ver os filhos
-    // sobrarem soltos por um segundo.
     const paraApagar: string[] = [];
     const fila = [noId];
     while (fila.length) {
@@ -214,20 +293,14 @@ export function MapaCanvas({
     });
   }
 
-  // ---------------------------------------------------------------------
-  // Teclado — é o que faz um mapa mental ser rápido de montar
-  // ---------------------------------------------------------------------
   function aoTeclar(e: React.KeyboardEvent) {
     if (!podeEditar) return;
-    const alvo = selecionado;
 
     if (editando) {
       if (e.key === "Escape") {
         e.preventDefault();
         confirmarEdicao();
       } else if (e.key === "Enter" && !e.shiftKey) {
-        // Enter fecha e abre um irmão; Shift+Enter quebra a linha dentro do
-        // balão — a mesma convenção de qualquer editor de mapa mental.
         e.preventDefault();
         const no = nosPorId.get(editando);
         confirmarEdicao();
@@ -241,12 +314,12 @@ export function MapaCanvas({
       return;
     }
 
+    const alvo = selecionado;
     if (!alvo) return;
     if (e.key === "Enter") {
       e.preventDefault();
       const no = nosPorId.get(alvo);
-      if (no?.pai_id) void criarBalao(no.pai_id);
-      else void criarBalao(alvo);
+      void criarBalao(no?.pai_id ?? alvo);
     } else if (e.key === "Tab") {
       e.preventDefault();
       void criarBalao(alvo);
@@ -259,16 +332,11 @@ export function MapaCanvas({
     }
   }
 
-  // ---------------------------------------------------------------------
-  // Navegar pelo canvas: roda dá zoom, arrastar o fundo move
-  // ---------------------------------------------------------------------
   function aoRolar(e: React.WheelEvent) {
     e.preventDefault();
     const area = areaRef.current;
     if (!area) return;
     const caixa = area.getBoundingClientRect();
-    // O ponto sob o cursor tem de continuar sob o cursor depois do zoom —
-    // sem isso, aproximar joga o mapa para fora da tela.
     const cx = e.clientX - caixa.left - caixa.width / 2;
     const cy = e.clientY - caixa.top - caixa.height / 2;
     const novo = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
@@ -278,14 +346,19 @@ export function MapaCanvas({
   }
 
   const arrastandoFundo = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
-  const arrastandoNo = useRef<{ id: string; x: number; y: number; baseX: number; baseY: number } | null>(null);
+  const arrastandoNo = useRef<{ id: string; x: number; y: number; baseX: number; baseY: number; moveu: boolean } | null>(null);
 
   function fundoPressionado(e: React.PointerEvent) {
-    if (e.button !== 0) return;
-    arrastandoFundo.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    // Botão do meio sempre navega, seja qual for a ferramenta — é o gesto que
+    // todo mundo já traz de outros programas.
+    const navegar = modoMao || e.button === 1;
+    if (e.button !== 0 && e.button !== 1) return;
+    if (navegar) {
+      arrastandoFundo.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
+      e.currentTarget.setPointerCapture(e.pointerId);
+      return;
+    }
     setSelecionado(null);
-    setPainelComentarios(false);
   }
 
   function ponteiroMoveu(e: React.PointerEvent) {
@@ -294,16 +367,16 @@ export function MapaCanvas({
       setPan({ x: d.panX + (e.clientX - d.x), y: d.panY + (e.clientY - d.y) });
       return;
     }
-    if (arrastandoNo.current) {
-      const d = arrastandoNo.current;
-      // Divide pelo zoom: arrastar 10px na tela com zoom 2 tem de deslocar
-      // 5px no mapa, senão o balão foge do cursor.
+    const d = arrastandoNo.current;
+    if (d) {
+      const dx = e.clientX - d.x;
+      const dy = e.clientY - d.y;
+      // Só vira arraste depois de 3px: sem essa folga, todo clique para
+      // selecionar deixaria o balão um fio de cabelo fora do lugar.
+      if (!d.moveu && Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
+      d.moveu = true;
       setNos((atual) =>
-        atual.map((n) =>
-          n.id === d.id
-            ? { ...n, desloc_x: d.baseX + (e.clientX - d.x) / zoom, desloc_y: d.baseY + (e.clientY - d.y) / zoom }
-            : n
-        )
+        atual.map((n) => (n.id === d.id ? { ...n, desloc_x: d.baseX + dx / zoom, desloc_y: d.baseY + dy / zoom } : n))
       );
     }
   }
@@ -311,14 +384,10 @@ export function MapaCanvas({
   function ponteiroSoltou() {
     arrastandoFundo.current = null;
     const d = arrastandoNo.current;
-    if (d) {
-      arrastandoNo.current = null;
+    arrastandoNo.current = null;
+    if (d?.moveu) {
       const no = nosPorId.get(d.id);
-      // Só grava se de fato saiu do lugar — um clique simples não deveria
-      // virar um ajuste manual permanente.
-      if (no && (no.desloc_x !== null || no.desloc_y !== null)) {
-        mudarNo(d.id, { desloc_x: no.desloc_x, desloc_y: no.desloc_y });
-      }
+      if (no) mudarNo(d.id, { desloc_x: no.desloc_x, desloc_y: no.desloc_y });
     }
   }
 
@@ -330,22 +399,74 @@ export function MapaCanvas({
     });
   }
 
+  // A paleta: como se aponta, como se enxerga, como a tela se comporta.
+  const gruposDaPaleta: ItemPaleta[][] = [
+    [
+      {
+        chave: "selecionar",
+        rotulo: t.ferramentaSelecionar,
+        dica: t.ferramentaSelecionarHint,
+        icone: <IconSeta />,
+        ativo: ferramenta === "selecionar" && !espacoPressionado,
+        aoClicar: () => setFerramenta("selecionar"),
+      },
+      {
+        chave: "mao",
+        rotulo: t.ferramentaMao,
+        dica: t.ferramentaMaoHint,
+        icone: <IconMao />,
+        ativo: modoMao,
+        aoClicar: () => setFerramenta("mao"),
+      },
+    ],
+    [
+      { chave: "encaixar", rotulo: t.encaixar, icone: <IconTarget className="h-4 w-4" />, aoClicar: encaixar },
+      ...(podeEditar
+        ? [
+            {
+              chave: "reorganizar",
+              rotulo: t.reorganizar,
+              dica: t.reorganizarHint,
+              icone: <IconRotateCcw className="h-4 w-4" />,
+              aoClicar: reorganizar,
+            },
+          ]
+        : []),
+    ],
+    [
+      {
+        chave: "fundo",
+        rotulo: fundoClaro ? t.fundoEscuro : t.fundoClaro,
+        icone: fundoClaro ? <IconMoon className="h-4 w-4" /> : <IconSun className="h-4 w-4" />,
+        aoClicar: () => setFundoClaro((c) => !c),
+      },
+      {
+        chave: "telaCheia",
+        rotulo: telaCheia ? t.sairTelaCheia : t.telaCheia,
+        icone: <IconTelaCheia saindo={telaCheia} />,
+        ativo: telaCheia,
+        aoClicar: () => void alternarTelaCheia(),
+      },
+    ],
+  ];
+
   const noSelecionado = selecionado ? nosPorId.get(selecionado) : null;
   const comentariosDoSelecionado = selecionado ? (comentariosPorNo.get(selecionado) ?? []) : [];
 
   return (
-    <div className="flex h-full flex-col">
-      {/* ---------------------------------------------------------------- */}
-      {/* Barra de cima                                                     */}
-      {/* ---------------------------------------------------------------- */}
+    // A classe de fundo envolve TUDO (barra e painel juntos, não só a tela do
+    // mapa): meia interface clara e meia escura seria pior do que qualquer
+    // uma das duas.
+    <div ref={raizRef} className={cn("mapa-area flex h-full flex-col", fundoClaro ? "mapa-claro" : "mapa-escuro")}>
+      {/* ================================================================ */}
+      {/* BARRA DE FERRAMENTAS                                              */}
+      {/* ================================================================ */}
       <div className="mb-3 flex flex-wrap items-center gap-3">
         {cabecalho}
 
-        <div className="ml-auto flex items-center gap-3">
-          {/* Quem está aqui agora. Mostrar isso é o que faz a edição junta
-              parecer edição junta, e não um arquivo mudando sozinho. */}
+        <div className="ml-auto flex flex-wrap items-center gap-2">
           {pessoas.length > 0 && (
-            <div className="flex items-center -space-x-2" title={pessoas.map((p) => p.nome).join(", ")}>
+            <div className="mr-1 flex items-center -space-x-2" title={pessoas.map((p) => p.nome).join(", ")}>
               {pessoas.slice(0, 5).map((p) => (
                 <span
                   key={p.id}
@@ -364,23 +485,30 @@ export function MapaCanvas({
             </div>
           )}
 
-          <div className="flex items-center gap-1 rounded-lg border border-base-700 px-1 py-0.5 text-xs text-ink-secondary">
-            <button type="button" className="px-1.5 py-0.5 hover:text-ink-primary" onClick={() => setZoom((z) => Math.max(ZOOM_MIN, z / 1.2))} aria-label={t.afastar}>
+          <div className="flex items-center gap-1 rounded-lg border border-base-700 bg-base-900/70 px-1 py-0.5 text-xs text-ink-secondary">
+            <button type="button" className="px-1.5 py-1 hover:text-ink-primary" onClick={() => setZoom((z) => Math.max(ZOOM_MIN, z / 1.2))} aria-label={t.afastar}>
               −
             </button>
             <span className="w-10 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
-            <button type="button" className="px-1.5 py-0.5 hover:text-ink-primary" onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z * 1.2))} aria-label={t.aproximar}>
+            <button type="button" className="px-1.5 py-1 hover:text-ink-primary" onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z * 1.2))} aria-label={t.aproximar}>
               +
             </button>
           </div>
 
-          <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={encaixar} title={t.encaixar}>
-            <IconTarget className="h-3.5 w-3.5" /> {t.encaixar}
-          </Button>
-
           {podeEditar && (
-            <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={reorganizar} title={t.reorganizarHint}>
-              <IconRotateCcw className="h-3.5 w-3.5" /> {t.reorganizar}
+            // O mapa já salva sozinho a cada alteração. Este botão fecha a
+            // edição aberta e confirma que não sobrou nada em voo — é a
+            // tranquilidade de "está salvo", não um segundo jeito de salvar,
+            // e por isso ele diz "Tudo salvo" quando não há o que fazer.
+            <Button
+              variant="ghost"
+              className="px-2.5 py-1 text-xs"
+              onClick={confirmarEdicao}
+              disabled={!temPendencias}
+              title={t.salvar}
+            >
+              {emVoo > 0 ? <IconLoader className="h-3.5 w-3.5 animate-spin" /> : <IconCheck className="h-3.5 w-3.5 text-status-good" />}
+              {emVoo > 0 ? t.salvandoLabel : temPendencias ? t.salvar : t.tudoSalvo}
             </Button>
           )}
         </div>
@@ -389,9 +517,9 @@ export function MapaCanvas({
       {erro && <p className="mb-2 text-xs text-danger">{erro}</p>}
 
       <div className="flex min-h-0 flex-1 gap-4">
-        {/* -------------------------------------------------------------- */}
+        {/* ============================================================== */}
         {/* O CANVAS                                                        */}
-        {/* -------------------------------------------------------------- */}
+        {/* ============================================================== */}
         <div
           ref={areaRef}
           tabIndex={0}
@@ -401,11 +529,12 @@ export function MapaCanvas({
           onPointerMove={ponteiroMoveu}
           onPointerUp={ponteiroSoltou}
           onPointerCancel={ponteiroSoltou}
-          className="relative min-h-0 flex-1 cursor-grab overflow-hidden rounded-2xl border border-base-700 bg-base-950/60 outline-none focus:border-base-600 active:cursor-grabbing"
+          className={cn(
+            "relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-base-700 bg-base-950/60 outline-none transition-colors focus:border-base-600",
+            modoMao ? "cursor-grab active:cursor-grabbing" : "cursor-default"
+          )}
           style={{
-            // Grade de pontos: dá noção de movimento ao arrastar. Sem ela o
-            // fundo é liso e o mapa parece pular em vez de deslizar.
-            backgroundImage: "radial-gradient(circle at 1px 1px, rgb(var(--glow-rgb) / 0.06) 1px, transparent 0)",
+            backgroundImage: "radial-gradient(circle at 1px 1px, rgb(var(--glow-rgb) / 0.055) 1px, transparent 0)",
             backgroundSize: `${26 * zoom}px ${26 * zoom}px`,
             backgroundPosition: `${pan.x}px ${pan.y}px`,
           }}
@@ -414,9 +543,6 @@ export function MapaCanvas({
             className="absolute left-1/2 top-1/2"
             style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "0 0" }}
           >
-            {/* As ligações. `overflow-visible` num svg de 1×1 é o que permite
-                desenhar em coordenadas negativas sem inventar um viewBox
-                gigante que teria de crescer junto com o mapa. */}
             <svg className="pointer-events-none absolute left-0 top-0 overflow-visible" width="1" height="1" aria-hidden>
               {desenho.ligacoes.map((l) => {
                 const pai = porId.get(l.de);
@@ -430,7 +556,7 @@ export function MapaCanvas({
                     stroke={l.cor}
                     strokeWidth={filho.profundidade <= 1 ? 2.5 : 1.75}
                     strokeLinecap="round"
-                    opacity={0.85}
+                    opacity={0.9}
                   />
                 );
               })}
@@ -441,6 +567,7 @@ export function MapaCanvas({
               const estaSelecionado = selecionado === balao.no.id;
               const estaEditando = editando === balao.no.id;
               const qtdComentarios = comentariosPorNo.get(balao.no.id)?.length ?? 0;
+              const imagem = urlImagemMapa(balao.no.imagem_path);
 
               return (
                 <div
@@ -448,6 +575,7 @@ export function MapaCanvas({
                   className="absolute left-0 top-0"
                   style={{ transform: `translate(${balao.x}px, ${balao.y}px)`, width: balao.largura }}
                   onPointerDown={(e) => {
+                    if (modoMao) return; // com a mãozinha, o balão não sai do lugar
                     e.stopPropagation();
                     setSelecionado(balao.no.id);
                     if (!podeEditar || estaEditando) return;
@@ -457,75 +585,111 @@ export function MapaCanvas({
                       y: e.clientY,
                       baseX: balao.no.desloc_x ?? 0,
                       baseY: balao.no.desloc_y ?? 0,
+                      moveu: false,
                     };
-                    (e.currentTarget.parentElement as HTMLElement | null)?.parentElement?.setPointerCapture?.(e.pointerId);
                   }}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
                     comecarEdicao(balao.no.id);
                   }}
                 >
+                  {/* ------------------------------------------------------ */}
+                  {/* O BALÃO                                                 */}
+                  {/* ------------------------------------------------------ */}
+                  {/* Cartão da plataforma, não adesivo colorido: a mesma
+                      borda, o mesmo raio e o mesmo fundo dos cards do resto
+                      do sistema. A cor do ramo entra como um filete de 3px na
+                      lateral — o mesmo recurso dos blocos da Ordem de Externa
+                      —, o que separa os ramos de relance sem que cada balão
+                      vire um retângulo pintado. */}
                   <div
                     className={cn(
-                      "relative rounded-xl px-3.5 py-2.5 text-sm leading-[19px] transition-shadow",
+                      "relative overflow-hidden rounded-xl transition-shadow",
                       ehRaiz
-                        ? "font-semibold text-white shadow-lg"
-                        : "border-2 bg-base-900 font-medium text-ink-primary",
-                      estaSelecionado && "ring-2 ring-offset-2 ring-offset-base-950",
-                      podeEditar && "cursor-grab"
+                        ? "bg-accent text-white shadow-[0_8px_28px_-6px_rgb(var(--color-accent)/0.55)]"
+                        : "border border-base-700 bg-base-900/95 text-ink-primary shadow-[0_2px_10px_-4px_rgb(0_0_0/0.5)]",
+                      !ehRaiz && balao.profundidade === 1 && "bg-base-850/95",
+                      estaSelecionado && !ehRaiz && "border-transparent",
+                      !modoMao && podeEditar && "cursor-grab active:cursor-grabbing"
                     )}
                     style={{
                       minHeight: balao.altura,
-                      // A raiz é preenchida, os ramos são contornados: o
-                      // preenchimento é o que faz o olho achar o centro
-                      // primeiro, sem precisar de tamanho muito maior.
-                      backgroundColor: ehRaiz ? CORES_MAPA.azul : undefined,
-                      borderColor: ehRaiz ? undefined : balao.cor,
                       ...(estaSelecionado ? { boxShadow: `0 0 0 2px ${ehRaiz ? CORES_MAPA.azul : balao.cor}` } : {}),
                     }}
                   >
-                    {estaEditando ? (
-                      <textarea
-                        ref={textareaRef}
-                        value={rascunho}
-                        onChange={(e) => setRascunho(e.target.value)}
-                        onBlur={confirmarEdicao}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        rows={1}
-                        className="w-full resize-none border-0 bg-transparent p-0 text-inherit leading-[19px] outline-none"
-                        style={{ minHeight: balao.altura - 22 }}
+                    {/* O filete do ramo, colado no lado que aponta para o pai. */}
+                    {!ehRaiz && (
+                      <span
+                        className="absolute inset-y-0 w-[3px]"
+                        style={{ backgroundColor: balao.cor, ...(balao.lado === -1 ? { right: 0 } : { left: 0 }) }}
+                        aria-hidden
                       />
-                    ) : (
-                      <span className="block whitespace-pre-wrap break-words">
-                        {balao.no.texto || <span className="italic opacity-40">{t.baloVazio}</span>}
-                      </span>
                     )}
 
-                    {/* Contagem de comentários — some quando não há nenhum,
-                        para não poluir um mapa que ninguém comentou. */}
+                    <div className={cn("px-3.5 py-2.5", !ehRaiz && (balao.lado === -1 ? "pr-4" : "pl-4"))}>
+                      {imagem && (
+                        // Miniatura por cima do texto: quem anexou uma
+                        // referência visual quer vê-la sem clicar.
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={imagem}
+                          alt=""
+                          draggable={false}
+                          className="mb-2 w-full rounded-lg object-cover"
+                          style={{ height: ALTURA_IMAGEM }}
+                        />
+                      )}
+
+                      {estaEditando ? (
+                        <textarea
+                          ref={textareaRef}
+                          value={rascunho}
+                          onChange={(e) => setRascunho(e.target.value)}
+                          onBlur={confirmarEdicao}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          rows={1}
+                          className="w-full resize-none border-0 bg-transparent p-0 text-inherit outline-none"
+                          style={{ ...estiloDoTexto(balao.no, ehRaiz), minHeight: 19 }}
+                        />
+                      ) : (
+                        <span
+                          className="block whitespace-pre-wrap break-words"
+                          style={estiloDoTexto(balao.no, ehRaiz)}
+                        >
+                          {balao.no.texto || <span className="italic opacity-40">{t.baloVazio}</span>}
+                        </span>
+                      )}
+
+                      {balao.no.link && (
+                        <a
+                          href={balao.no.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onPointerDown={(e) => e.stopPropagation()}
+                          className={cn(
+                            "mt-1.5 flex items-center gap-1 truncate text-[11px] underline-offset-2 hover:underline",
+                            ehRaiz ? "text-white/80" : "text-accent"
+                          )}
+                        >
+                          <IconExternalLink className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{balao.no.link.replace(/^https?:\/\//, "")}</span>
+                        </a>
+                      )}
+                    </div>
+
                     {qtdComentarios > 0 && (
-                      <button
-                        type="button"
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onClick={() => {
-                          setSelecionado(balao.no.id);
-                          setPainelComentarios(true);
-                        }}
-                        className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-base-800 px-1 text-[10px] font-semibold tabular-nums text-ink-secondary ring-1 ring-base-600"
-                      >
+                      <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-base-800 px-1 text-[9px] font-semibold tabular-nums text-ink-secondary ring-1 ring-base-600">
                         {qtdComentarios}
-                      </button>
+                      </span>
                     )}
                   </div>
 
-                  {/* Botão de abrir/fechar o ramo, colado na borda que aponta
-                      para os filhos. */}
                   {balao.temFilhos && (
                     <button
                       type="button"
                       onPointerDown={(e) => e.stopPropagation()}
                       onClick={() => mudarNo(balao.no.id, { colapsado: !balao.no.colapsado })}
-                      className="absolute top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-base-600 bg-base-900 text-[11px] font-bold leading-none text-ink-secondary hover:text-ink-primary"
+                      className="absolute top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-base-600 bg-base-900 text-[11px] font-bold leading-none text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
                       style={balao.lado === -1 ? { left: -10 } : { right: -10 }}
                       aria-label={balao.no.colapsado ? t.expandir : t.recolher}
                     >
@@ -537,18 +701,17 @@ export function MapaCanvas({
             })}
           </div>
 
-          {/* Ajuda de teclado — fica no rodapé do canvas, discreta, porque
-              atalho que ninguém descobre é atalho que não existe. */}
-          {podeEditar && (
-            <p className="pointer-events-none absolute bottom-3 left-4 text-[11px] text-ink-muted">{t.dicaTeclado}</p>
-          )}
+          <PaletaFerramentas grupos={gruposDaPaleta} />
+
+          {/* A legenda de atalhos, escrita na página. */}
+          {podeEditar && <PainelAtalhos />}
         </div>
 
-        {/* -------------------------------------------------------------- */}
-        {/* Painel lateral do balão selecionado                             */}
-        {/* -------------------------------------------------------------- */}
-        {noSelecionado && (podeEditar || painelComentarios || comentariosDoSelecionado.length > 0) && (
-          <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto rounded-2xl border border-base-700 bg-base-900/60 p-4">
+        {/* ============================================================== */}
+        {/* PAINEL DO BALÃO                                                 */}
+        {/* ============================================================== */}
+        {noSelecionado && (podeEditar || podeComentar || comentariosDoSelecionado.length > 0) && (
+          <aside className="flex w-72 shrink-0 flex-col gap-4 overflow-y-auto rounded-2xl border border-base-700 bg-base-900/70 p-4 backdrop-blur-sm">
             <p className="truncate text-xs font-medium text-ink-primary">{noSelecionado.texto || t.baloVazio}</p>
 
             {podeEditar && (
@@ -570,8 +733,6 @@ export function MapaCanvas({
                       <IconPalette className="h-3 w-3" /> {t.corDoRamo}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
-                      {/* Vazio = herda a cor do ramo. É a opção mais útil e
-                          por isso vem primeiro. */}
                       <button
                         type="button"
                         onClick={() => mudarNo(noSelecionado.id, { cor: "" })}
@@ -599,6 +760,22 @@ export function MapaCanvas({
                     </div>
                   </div>
                 )}
+
+                <FormatoDoTexto no={noSelecionado} aoMudar={(valores) => mudarNo(noSelecionado.id, valores)} />
+
+                <AnexosDoBalao
+                  key={noSelecionado.id}
+                  no={noSelecionado}
+                  podeEnviarImagem={Boolean(api.enviarImagem)}
+                  aoMudarLink={(link) => mudarNo(noSelecionado.id, { link })}
+                  aoEnviarImagem={async (arquivo) => {
+                    if (!api.enviarImagem) return;
+                    const r = await api.enviarImagem(arquivo);
+                    if (!r.ok) setErro(r.error);
+                    else mudarNo(noSelecionado.id, { imagem_path: r.caminho });
+                  }}
+                  aoRemoverImagem={() => mudarNo(noSelecionado.id, { imagem_path: null })}
+                />
               </>
             )}
 
@@ -637,6 +814,62 @@ export function MapaCanvas({
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * O estilo do texto de um balão.
+ *
+ * Vive junto do desenho porque tem de bater com o que o cálculo de posição
+ * assumiu (ver `medirBalao`): se aqui o corpo fosse um e lá outro, o balão
+ * ficaria maior que o espaço reservado para ele e passaria por cima do
+ * vizinho.
+ */
+function estiloDoTexto(no: MapaNoRow, ehRaiz: boolean): React.CSSProperties {
+  const corpo = no.tamanho || (ehRaiz ? 16 : 14);
+  return {
+    fontFamily: fonteCss(no.fonte),
+    fontSize: corpo,
+    lineHeight: `${Math.round(corpo * 1.36)}px`,
+    fontWeight: no.negrito || ehRaiz ? 600 : 500,
+    fontStyle: no.italico ? "italic" : "normal",
+  };
+}
+
+/** A seta do cursor, para o botão parecer o que ele faz. */
+function IconSeta() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
+      <path d="M5.5 2.8a1 1 0 0 1 1.6-.75l11.2 8.6a1 1 0 0 1-.5 1.79l-4.9.5a1 1 0 0 0-.75.46l-2.7 4.3a1 1 0 0 1-1.85-.4L5.5 2.8Z" />
+    </svg>
+  );
+}
+
+/** Setas para fora (entrar) ou para dentro (sair) da tela cheia. */
+function IconTelaCheia({ saindo }: { saindo: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      {saindo ? (
+        <>
+          <path d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6" />
+        </>
+      ) : (
+        <>
+          <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+/** A mãozinha de arrastar. */
+function IconMao() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11" />
+      <path d="M12 11V4.5a1.5 1.5 0 0 1 3 0V11" />
+      <path d="M15 11.5V7a1.5 1.5 0 0 1 3 0v6.5a7 7 0 0 1-7 7h-1a6 6 0 0 1-5.2-3l-1.6-2.8a1.5 1.5 0 0 1 2.5-1.6L9 15.5V11" />
+    </svg>
   );
 }
 
@@ -680,8 +913,6 @@ function Comentarios({
 
       {podeComentar && (
         <div className="space-y-2">
-          {/* Quem chega pelo link não tem conta: o nome é o único jeito de a
-              equipe saber de quem veio o recado. */}
           <input
             value={autor}
             onChange={(e) => setAutor(e.target.value)}
@@ -712,3 +943,4 @@ function Comentarios({
     </div>
   );
 }
+

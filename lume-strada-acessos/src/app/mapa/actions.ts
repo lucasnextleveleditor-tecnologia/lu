@@ -38,7 +38,7 @@ async function abrir(token: string, precisa: "ver" | "comentar" | "editar") {
   return { admin, mapa };
 }
 
-const CAMPOS_NO = ["texto", "cor", "colapsado", "desloc_x", "desloc_y", "lado", "ordem"] as const;
+const CAMPOS_NO = ["texto", "cor", "colapsado", "desloc_x", "desloc_y", "lado", "ordem", "link", "fonte", "tamanho", "negrito", "italico"] as const;
 
 export async function adicionarNoPublico(token: string, paiId: string, valores: Record<string, unknown> = {}): Promise<ResultadoNo> {
   const aberto = await abrir(token, "editar");

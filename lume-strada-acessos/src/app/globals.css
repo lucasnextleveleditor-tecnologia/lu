@@ -134,6 +134,44 @@ body {
 
    A regra geral aqui é subtrativa: some com o layout do app (menu, banner,
    botões) e deixe passar só a folha. */
+/* Fundo do mapa mental — claro ou escuro, INDEPENDENTE do tema do app.
+   Um mapa é uma tela de trabalho: dá vontade de olhar no escuro à noite e no
+   claro para projetar numa reunião, sem virar o painel inteiro junto. Aqui só
+   `base` e `ink` mudam; a cor da marca (`--color-accent`) fica de fora de
+   propósito, para o acento continuar sendo o da agência nos dois fundos. */
+.mapa-escuro {
+  --color-base-950: 6 7 12;
+  --color-base-900: 11 14 23;
+  --color-base-850: 16 20 31;
+  --color-base-800: 21 26 39;
+  --color-base-700: 27 32 47;
+  --color-base-600: 42 49 66;
+  --color-ink-primary: 255 255 255;
+  --color-ink-secondary: 161 161 170;
+  --color-ink-muted: 113 113 122;
+  --glow-rgb: 255 255 255;
+}
+
+.mapa-claro {
+  --color-base-950: 246 247 250;
+  --color-base-900: 255 255 255;
+  --color-base-850: 244 244 245;
+  --color-base-800: 228 228 231;
+  --color-base-700: 214 214 219;
+  --color-base-600: 161 161 170;
+  --color-ink-primary: 24 24 27;
+  --color-ink-secondary: 82 82 91;
+  --color-ink-muted: 113 113 122;
+  --glow-rgb: 0 0 0;
+}
+
+/* Em tela cheia o navegador pinta o fundo de preto por baixo do elemento —
+   o que aparece nas beiradas enquanto o mapa não ocupa tudo. */
+.mapa-area:fullscreen {
+  background-color: rgb(var(--color-base-950));
+  padding: 1rem;
+}
+
 @media print {
   /* Sem margem de página: quem controla a margem é a própria folha (regra
      `.folha-ordem-dia` abaixo). Assim o PDF colorido pode sangrar o fundo

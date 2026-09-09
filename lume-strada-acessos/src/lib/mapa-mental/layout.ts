@@ -1,4 +1,4 @@
-import type { MapaNoRow } from "@/lib/types/mapa-mental";
+import { ALTURA_IMAGEM, larguraCharDaFonte, type MapaNoRow } from "@/lib/types/mapa-mental";
 
 /**
  * Onde cada balão fica.
@@ -22,7 +22,7 @@ import type { MapaNoRow } from "@/lib/types/mapa-mental";
  * altura dos filhos, então nada nunca se sobrepõe.
  */
 
-export const LARGURA_MIN = 92;
+export const LARGURA_MIN = 96;
 export const LARGURA_MAX = 224;
 export const ALTURA_LINHA = 19;
 export const PADDING_X = 14;
@@ -41,12 +41,21 @@ export const VAO_Y = 14;
  * com desenhos diferentes em duas telas. Uma estimativa determinística vale
  * mais aqui do que precisão: todo mundo vê o mesmo mapa.
  */
-export function medirBalao(texto: string, ehRaiz: boolean): { largura: number; altura: number } {
-  const escala = ehRaiz ? 8.4 : 7.3; // largura média do caractere na Outfit
+export type NoMensuravel = Pick<MapaNoRow, "texto" | "link" | "imagem_path" | "fonte" | "tamanho" | "negrito">;
+
+export function medirBalao(no: NoMensuravel, ehRaiz: boolean): { largura: number; altura: number } {
+  const texto = no.texto;
+  // O tamanho e a fonte escolhidos entram na CONTA, não só no CSS: um balão
+  // em corpo 21 com fonte monoespaçada ocupa quase o dobro de um em corpo 12,
+  // e um layout que não soubesse disso empilharia um por cima do outro.
+  const corpo = no.tamanho || (ehRaiz ? 16 : 14);
+  const escala = larguraCharDaFonte(no.fonte) * (corpo / 14) * (no.negrito ? 1.06 : 1);
   const conteudo = texto.trim() || "…";
   const larguraIdeal = conteudo.length * escala + PADDING_X * 2;
   const largura = Math.max(LARGURA_MIN, Math.min(ehRaiz ? LARGURA_MAX + 40 : LARGURA_MAX, larguraIdeal));
 
+  // Mesma escala usada na largura: se a quebra fosse estimada com outro
+  // valor, a altura prevista não bateria com a desenhada.
   const porLinha = Math.max(1, Math.floor((largura - PADDING_X * 2) / escala));
   // Conta as quebras que a pessoa digitou, além das que o texto vai dar
   // sozinho ao encher a linha.
@@ -54,8 +63,18 @@ export function medirBalao(texto: string, ehRaiz: boolean): { largura: number; a
     .split("\n")
     .reduce((total, linha) => total + Math.max(1, Math.ceil(linha.length / porLinha)), 0);
 
-  const alturaLinha = ehRaiz ? ALTURA_LINHA + 4 : ALTURA_LINHA;
-  return { largura, altura: linhas * alturaLinha + PADDING_Y * 2 };
+  const alturaLinha = Math.round(corpo * 1.36);
+
+  // Anexos entram na CONTA do tamanho, não por cima dele: uma miniatura que
+  // o layout não conhecesse faria o balão passar por cima do vizinho de
+  // baixo — exatamente o que a árvore existe para evitar.
+  const extraImagem = no.imagem_path ? ALTURA_IMAGEM + 8 : 0;
+  const extraLink = no.link ? 22 : 0;
+
+  return {
+    largura: no.imagem_path ? Math.max(largura, 168) : largura,
+    altura: linhas * alturaLinha + PADDING_Y * 2 + extraImagem + extraLink,
+  };
 }
 
 export interface BalaoPosicionado {
@@ -103,7 +122,7 @@ function alturaDoRamo(no: MapaNoRow, filhosDe: Map<string | null, MapaNoRow[]>, 
   const guardado = cache.get(no.id);
   if (guardado !== undefined) return guardado;
 
-  const { altura } = medirBalao(no.texto, no.pai_id === null);
+  const { altura } = medirBalao(no, no.pai_id === null);
   const filhos = no.colapsado ? [] : (filhosDe.get(no.id) ?? []);
 
   let total = altura;
@@ -132,7 +151,7 @@ export function desenharMapa(nos: MapaNoRow[], corDoRamo: (cor: string, ramo: nu
   const baloes: BalaoPosicionado[] = [];
   const ligacoes: { de: string; para: string; cor: string }[] = [];
 
-  const medidaRaiz = medirBalao(raiz.texto, true);
+  const medidaRaiz = medirBalao(raiz, true);
   baloes.push({
     no: raiz,
     x: -medidaRaiz.largura / 2,
@@ -193,7 +212,7 @@ export function desenharMapa(nos: MapaNoRow[], corDoRamo: (cor: string, ramo: nu
     ramo: number,
     paiId: string
   ) {
-    const { largura, altura } = medirBalao(no.texto, false);
+    const { largura, altura } = medirBalao(no, false);
     const x = lado === 1 ? distancia : -distancia - largura;
     const y = centroY - altura / 2;
 

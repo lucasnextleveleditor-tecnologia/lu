@@ -757,3 +757,13 @@ export function IconSitemap(props: IconProps) {
     </svg>
   );
 }
+
+/** Letra "A" com régua — formatação de texto (paleta do Mapa Mental). */
+export function IconType(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M4 20 10 5l6 15M6.5 15h7" />
+      <path d="M18 20h3M19.5 20v-7" />
+    </svg>
+  );
+}
