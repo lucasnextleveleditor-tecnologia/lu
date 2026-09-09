@@ -43,7 +43,7 @@ export const mapaMental: MapaMentalDict = {
   enviarComentario: "Comentar",
 
   compartilhar: "Compartir",
-  quemPodeAbrir: "Quien abra el enlace puede",
+  quemPodeAbrir: "Solo quien tiene cuenta en la agencia",
   acessoPrivadoLabel: "Nadie — solo el equipo",
   acessoPrivadoHint: "El enlace deja de funcionar sin cambiar de dirección. Vuelve a activarlo cuando quieras.",
   acessoVerLabel: "Ver",
@@ -52,6 +52,7 @@ export const mapaMental: MapaMentalDict = {
   acessoComentarHint: "Deja recados en los globos, sin cuenta y sin poder alterar el mapa.",
   acessoEditarLabel: "Ver y editar",
   acessoEditarHint: "Edita el mapa entero. Cuidado: quien reciba el enlace reenviado también edita.",
+  avisoCadastro: "El enlace lleva al mapa, pero quien lo abra tiene que entrar con la cuenta de empleado o cliente de tu agencia. Quien no tiene cuenta no ve nada.",
   copiarLink: "Copiar enlace",
   linkCopiado: "Enlace copiado",
   privado: "Privado",
@@ -89,6 +90,7 @@ export const mapaMental: MapaMentalDict = {
   confirmarSair: "Tienes una edición abierta sin guardar. ¿Salir de todos modos?",
 
   texto: "Texto",
+  formaETexto: "Forma y texto",
   fonte: "Fuente",
   tamanho: "Tamaño",
   negrito: "Negrita",
@@ -97,6 +99,9 @@ export const mapaMental: MapaMentalDict = {
   desfazer: "Deshacer",
   refazer: "Rehacer",
 
+  semAcessoTitulo: "No tienes acceso a este mapa",
+  semAcessoDescricao: "Este mapa es de otra agencia, o el nivel de compartir cambió. Pide a quien lo envió que te dé acceso.",
+  irParaInicio: "Ir al inicio",
   linkInvalidoTitulo: "Mapa no encontrado",
   linkInvalidoDescricao: "Este enlace ya no existe o se desactivó el compartir. Pide uno nuevo a quien lo envió.",
   somenteLeitura: "Estás viendo este mapa por el enlace — puedes navegar, pero no editar.",

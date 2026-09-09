@@ -1,7 +1,7 @@
 "use client";
 
 import type { MapaNoRow } from "@/lib/types/mapa-mental";
-import { FONTES_MAPA, ORDEM_FONTES, TAMANHOS_MAPA, fonteCss } from "@/lib/types/mapa-mental";
+import { FONTES_MAPA, FORMAS_MAPA, ORDEM_FONTES, ORDEM_FORMAS, TAMANHOS_MAPA, fonteCss } from "@/lib/types/mapa-mental";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils/cn";
 import { IconType } from "@/components/ui/icons";
@@ -29,10 +29,38 @@ export function FormatoDoTexto({
   return (
     <div className="border-t border-base-800 pt-3">
       <p className="mb-2 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-ink-muted">
-        <IconType className="h-3 w-3" /> {t.texto}
+        <IconType className="h-3 w-3" /> {t.formaETexto}
       </p>
 
       <div className="space-y-2">
+        {/* A forma do balão vem antes da tipografia: é a escolha que muda
+            mais o mapa de longe, e a que a pessoa procura primeiro. Cada
+            opção é desenhada com a própria forma — uma lista de nomes
+            ("hexágono", "pílula") obrigaria a imaginar o resultado. */}
+        {no.pai_id && (
+          <div className="flex flex-wrap gap-1.5 pb-1">
+            {ORDEM_FORMAS.map((chave) => {
+              const atual = (no.forma || "arredondado") === chave;
+              return (
+                <button
+                  key={chave}
+                  type="button"
+                  onClick={() => aoMudar({ forma: chave === "arredondado" ? "" : chave })}
+                  title={FORMAS_MAPA[chave].rotulo}
+                  aria-label={FORMAS_MAPA[chave].rotulo}
+                  aria-pressed={atual}
+                  className={cn(
+                    "flex h-8 w-10 items-center justify-center rounded-lg border transition",
+                    atual ? "border-accent/40 bg-accent/[0.14]" : "border-base-700 hover:border-base-600"
+                  )}
+                >
+                  <MiniForma forma={chave} ativa={atual} />
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         <select
           value={no.fonte || "padrao"}
           onChange={(e) => aoMudar({ fonte: e.target.value === "padrao" ? "" : e.target.value })}
@@ -99,4 +127,28 @@ export function FormatoDoTexto({
       </div>
     </div>
   );
+}
+
+/** A prévia de uma forma, desenhada com ela mesma. */
+function MiniForma({ forma, ativa }: { forma: string; ativa: boolean }) {
+  const cor = ativa ? "rgb(var(--color-accent))" : "rgb(var(--color-ink-muted))";
+  const comum = { width: 22, height: 13, border: `1.5px solid ${cor}` } as const;
+
+  if (forma === "sublinhado") {
+    return <span style={{ width: 22, height: 13, borderBottom: `2.5px solid ${cor}` }} />;
+  }
+  if (forma === "hexagono") {
+    return (
+      <span
+        style={{
+          width: 22,
+          height: 13,
+          backgroundColor: cor,
+          clipPath: "polygon(22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%, 0 50%)",
+        }}
+      />
+    );
+  }
+  const raio = forma === "pilula" ? 999 : forma === "elipse" ? "50%" : forma === "reto" ? 0 : 4;
+  return <span style={{ ...comum, borderRadius: raio }} />;
 }

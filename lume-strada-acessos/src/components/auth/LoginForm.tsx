@@ -41,14 +41,16 @@ export function LoginForm() {
     // papel (super_admin -> /super-admin, admin -> /admin, funcionário ->
     // /admin/dashboard, cliente -> /dashboard).
     //
-    // O `?redirectTo=` da URL é ignorado de propósito: ele é escrito por
-    // quem foi barrado numa rota protegida, e pode ter ficado guardado de
-    // uma sessão anterior, de outro papel ou de um link velho. Mandar a
-    // pessoa direto pra ele fazia um super_admin aterrissar em `/dashboard`
-    // e ficar lá, vendo o portal do cliente. `refresh()` força o Next a
-    // revalidar os server components com a sessão nova antes de navegar.
-    router.refresh();
-    router.push("/");
+    // O `?redirectTo=` da URL é ignorado de propósito — ele é escrito por
+    // quem monta o link, e mandar a pessoa recém-logada para um destino
+    // vindo de fora é como um super admin acabou caindo no portal do
+    // cliente. A ÚNICA exceção é `/mapa/...`: é um caminho relativo, de uma
+    // tela que faz a própria checagem de empresa antes de mostrar qualquer
+    // coisa, e é o que faz o link de um mapa levar ao mapa depois do login
+    // em vez de despejar a pessoa na home sem explicação.
+    const destino = searchParams.get("redirectTo");
+    const paraOMapa = destino && /^\/mapa\/[A-Za-z0-9_-]+$/.test(destino);
+    router.push(paraOMapa ? destino : "/");
   }
 
   return (

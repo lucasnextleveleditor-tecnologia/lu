@@ -2,11 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  ALTURA_IMAGEM,
   CORES_MAPA,
   ORDEM_CORES,
   corDoRamo,
-  fonteCss,
   type MapaComentarioRow,
   type MapaNoRow,
 } from "@/lib/types/mapa-mental";
@@ -35,6 +33,7 @@ import { AnexosDoBalao } from "./AnexosDoBalao";
 import { FormatoDoTexto } from "./FormatoDoTexto";
 import { PaletaFerramentas, type ItemPaleta } from "./PaletaFerramentas";
 import { MenuDoBalao } from "./MenuDoBalao";
+import { Balao } from "./Balao";
 
 type Resultado = { ok: true } | { ok: false; error: string };
 type ResultadoNo = { ok: true; no: MapaNoRow } | { ok: false; error: string };
@@ -138,8 +137,20 @@ export function MapaCanvas({
   );
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  /** Onde o pan está AGORA — fica à frente do estado durante um arraste. */
+  const panAtual = useRef(pan);
   const areaRef = useRef<HTMLDivElement | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  // A camada que recebe o pan/zoom, e os elementos de cada balão. Durante um
+  // arraste o estilo dessas caixas é mexido DIRETO no DOM, sem passar pelo
+  // React: com duzentos balões, um `setState` por movimento do mouse
+  // recalcularia o mapa inteiro sessenta vezes por segundo. O estado só é
+  // atualizado quando o dedo solta.
+  const camadaRef = useRef<HTMLDivElement | null>(null);
+  const refsBaloes = useRef<Map<string, HTMLDivElement>>(new Map());
+  const registrarRef = useCallback((noId: string, el: HTMLDivElement | null) => {
+    if (el) refsBaloes.current.set(noId, el);
+    else refsBaloes.current.delete(noId);
+  }, []);
 
   const { pessoas, avisar } = useMapaAoVivo({
     mapaId,
@@ -275,10 +286,6 @@ export function MapaCanvas({
     if (rascunho !== anterior) mudarNo(editando, { texto: rascunho });
     setEditando(null);
   }
-
-  useEffect(() => {
-    if (editando) textareaRef.current?.focus();
-  }, [editando]);
 
   async function criarBalao(paiId: string) {
     if (!podeEditar) return;
@@ -449,7 +456,19 @@ export function MapaCanvas({
   }
 
   const arrastandoFundo = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
-  const arrastandoNo = useRef<{ id: string; x: number; y: number; baseX: number; baseY: number; moveu: boolean } | null>(null);
+  const arrastandoNo = useRef<{
+    id: string;
+    x: number;
+    y: number;
+    baseX: number;
+    baseY: number;
+    /** Posição calculada pelo layout, sem o deslocamento — a base do transform. */
+    origemX: number;
+    origemY: number;
+    ultimoX: number;
+    ultimoY: number;
+    moveu: boolean;
+  } | null>(null);
 
   function fundoPressionado(e: React.PointerEvent) {
     if (e.button !== 0 && e.button !== 1) return;
@@ -463,12 +482,23 @@ export function MapaCanvas({
     setSelecionado(null);
   }
 
+  // Fora de um arraste, o ref acompanha o estado (zoom, encaixar, refazer).
+  if (!arrastandoFundo.current) panAtual.current = pan;
+
   function ponteiroMoveu(e: React.PointerEvent) {
     if (arrastandoFundo.current) {
       const d = arrastandoFundo.current;
-      setPan({ x: d.panX + (e.clientX - d.x), y: d.panY + (e.clientY - d.y) });
+      const x = d.panX + (e.clientX - d.x);
+      const y = d.panY + (e.clientY - d.y);
+      panAtual.current = { x, y };
+      // Direto no DOM: mover a tela não muda NADA do conteúdo, só onde ele
+      // aparece. Passar isso pelo React redesenharia todos os balões a cada
+      // pixel arrastado, para desenhar exatamente a mesma coisa.
+      if (camadaRef.current) camadaRef.current.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
+      if (areaRef.current) areaRef.current.style.backgroundPosition = `${x}px ${y}px`;
       return;
     }
+
     const d = arrastandoNo.current;
     if (d) {
       const dx = e.clientX - d.x;
@@ -477,21 +507,62 @@ export function MapaCanvas({
       // selecionar deixaria o balão um fio de cabelo fora do lugar.
       if (!d.moveu && Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
       d.moveu = true;
-      setNos((atual) =>
-        atual.map((n) => (n.id === d.id ? { ...n, desloc_x: d.baseX + dx / zoom, desloc_y: d.baseY + dy / zoom } : n))
-      );
+      d.ultimoX = d.baseX + dx / zoom;
+      d.ultimoY = d.baseY + dy / zoom;
+      // Também direto no DOM, e só neste balão: o resto do mapa não muda de
+      // lugar enquanto um ramo é puxado.
+      const el = refsBaloes.current.get(d.id);
+      if (el) el.style.transform = `translate(${d.origemX + d.ultimoX}px, ${d.origemY + d.ultimoY}px)`;
     }
   }
 
   function ponteiroSoltou() {
-    arrastandoFundo.current = null;
+    if (arrastandoFundo.current) {
+      arrastandoFundo.current = null;
+      // Agora sim o estado alcança o DOM — uma vez, no fim do gesto.
+      setPan(panAtual.current);
+    }
+
     const d = arrastandoNo.current;
     arrastandoNo.current = null;
-    if (d?.moveu) {
-      const no = nosPorId.get(d.id);
-      if (no) mudarNo(d.id, { desloc_x: no.desloc_x, desloc_y: no.desloc_y });
-    }
+    if (d?.moveu) mudarNo(d.id, { desloc_x: d.ultimoX, desloc_y: d.ultimoY });
   }
+
+  /**
+   * Pressionar um balão: seleciona e prepara o arraste.
+   *
+   * Estável (`useCallback`) porque é prop de um componente memoizado — uma
+   * função nova a cada render anularia o `memo` e devolveria o redesenho de
+   * todos os balões que ele existe para evitar.
+   */
+  const balaoPressionado = useCallback(
+    (e: React.PointerEvent, noId: string) => {
+      e.stopPropagation();
+      setSelecionado(noId);
+      if (!podeEditar || editando === noId) return;
+      const balao = porId.get(noId);
+      if (!balao) return;
+      const no = balao.no;
+      arrastandoNo.current = {
+        id: noId,
+        x: e.clientX,
+        y: e.clientY,
+        baseX: no.desloc_x ?? 0,
+        baseY: no.desloc_y ?? 0,
+        origemX: balao.x - (no.desloc_x ?? 0),
+        origemY: balao.y - (no.desloc_y ?? 0),
+        ultimoX: no.desloc_x ?? 0,
+        ultimoY: no.desloc_y ?? 0,
+        moveu: false,
+      };
+    },
+    [editando, podeEditar, porId]
+  );
+
+  const alternarRamo = useCallback(
+    (noId: string, colapsado: boolean) => mudarNo(noId, { colapsado }),
+    [mudarNo]
+  );
 
   function reorganizar() {
     setNos((atual) => atual.map((n) => ({ ...n, desloc_x: null, desloc_y: null, lado: null })));
@@ -578,6 +649,7 @@ export function MapaCanvas({
           }}
         >
           <div
+            ref={camadaRef}
             className="absolute left-1/2 top-1/2"
             style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "0 0" }}
           >
@@ -600,142 +672,23 @@ export function MapaCanvas({
               })}
             </svg>
 
-            {desenho.baloes.map((balao) => {
-              const ehRaiz = balao.no.pai_id === null;
-              const estaSelecionado = selecionado === balao.no.id;
-              const estaEditando = editando === balao.no.id;
-              const qtdComentarios = comentariosPorNo.get(balao.no.id)?.length ?? 0;
-              const imagem = urlImagemMapa(balao.no.imagem_path);
-
-              return (
-                <div
-                  key={balao.no.id}
-                  className="absolute left-0 top-0"
-                  style={{ transform: `translate(${balao.x}px, ${balao.y}px)`, width: balao.largura }}
-                  onPointerDown={(e) => {
-                    e.stopPropagation();
-                    setSelecionado(balao.no.id);
-                    if (!podeEditar || estaEditando) return;
-                    arrastandoNo.current = {
-                      id: balao.no.id,
-                      x: e.clientX,
-                      y: e.clientY,
-                      baseX: balao.no.desloc_x ?? 0,
-                      baseY: balao.no.desloc_y ?? 0,
-                      moveu: false,
-                    };
-                  }}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    comecarEdicao(balao.no.id);
-                  }}
-                >
-                  {/* ------------------------------------------------------ */}
-                  {/* O BALÃO                                                 */}
-                  {/* ------------------------------------------------------ */}
-                  {/* Cartão da plataforma, não adesivo colorido: a mesma
-                      borda, o mesmo raio e o mesmo fundo dos cards do resto
-                      do sistema. A cor do ramo entra como um filete de 3px na
-                      lateral — o mesmo recurso dos blocos da Ordem de Externa
-                      —, o que separa os ramos de relance sem que cada balão
-                      vire um retângulo pintado. */}
-                  <div
-                    className={cn(
-                      "relative overflow-hidden rounded-xl transition-shadow",
-                      ehRaiz
-                        ? "bg-accent text-white shadow-[0_8px_28px_-6px_rgb(var(--color-accent)/0.55)]"
-                        : "border border-base-700 bg-base-900/95 text-ink-primary shadow-[0_2px_10px_-4px_rgb(0_0_0/0.5)]",
-                      !ehRaiz && balao.profundidade === 1 && "bg-base-850/95",
-                      estaSelecionado && !ehRaiz && "border-transparent",
-                      podeEditar && "cursor-grab active:cursor-grabbing"
-                    )}
-                    style={{
-                      minHeight: balao.altura,
-                      ...(estaSelecionado ? { boxShadow: `0 0 0 2px ${ehRaiz ? CORES_MAPA.azul : balao.cor}` } : {}),
-                    }}
-                  >
-                    {/* O filete do ramo, colado no lado que aponta para o pai. */}
-                    {!ehRaiz && (
-                      <span
-                        className="absolute inset-y-0 w-[3px]"
-                        style={{ backgroundColor: balao.cor, ...(balao.lado === -1 ? { right: 0 } : { left: 0 }) }}
-                        aria-hidden
-                      />
-                    )}
-
-                    <div className={cn("px-3.5 py-2.5", !ehRaiz && (balao.lado === -1 ? "pr-4" : "pl-4"))}>
-                      {imagem && (
-                        // Miniatura por cima do texto: quem anexou uma
-                        // referência visual quer vê-la sem clicar.
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={imagem}
-                          alt=""
-                          draggable={false}
-                          className="mb-2 w-full rounded-lg object-cover"
-                          style={{ height: ALTURA_IMAGEM }}
-                        />
-                      )}
-
-                      {estaEditando ? (
-                        <textarea
-                          ref={textareaRef}
-                          value={rascunho}
-                          onChange={(e) => setRascunho(e.target.value)}
-                          onBlur={confirmarEdicao}
-                          onPointerDown={(e) => e.stopPropagation()}
-                          rows={1}
-                          className="w-full resize-none border-0 bg-transparent p-0 text-inherit outline-none"
-                          style={{ ...estiloDoTexto(balao.no, ehRaiz), minHeight: 19 }}
-                        />
-                      ) : (
-                        <span
-                          className="block whitespace-pre-wrap break-words"
-                          style={estiloDoTexto(balao.no, ehRaiz)}
-                        >
-                          {balao.no.texto || <span className="italic opacity-40">{t.baloVazio}</span>}
-                        </span>
-                      )}
-
-                      {balao.no.link && (
-                        <a
-                          href={balao.no.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onPointerDown={(e) => e.stopPropagation()}
-                          className={cn(
-                            "mt-1.5 flex items-center gap-1 truncate text-[11px] underline-offset-2 hover:underline",
-                            ehRaiz ? "text-white/80" : "text-accent"
-                          )}
-                        >
-                          <IconExternalLink className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{balao.no.link.replace(/^https?:\/\//, "")}</span>
-                        </a>
-                      )}
-                    </div>
-
-                    {qtdComentarios > 0 && (
-                      <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-base-800 px-1 text-[9px] font-semibold tabular-nums text-ink-secondary ring-1 ring-base-600">
-                        {qtdComentarios}
-                      </span>
-                    )}
-                  </div>
-
-                  {balao.temFilhos && (
-                    <button
-                      type="button"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={() => mudarNo(balao.no.id, { colapsado: !balao.no.colapsado })}
-                      className="absolute top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border border-base-600 bg-base-900 text-[11px] font-bold leading-none text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
-                      style={balao.lado === -1 ? { left: -10 } : { right: -10 }}
-                      aria-label={balao.no.colapsado ? t.expandir : t.recolher}
-                    >
-                      {balao.no.colapsado ? balao.filhosOcultos || "+" : "−"}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+            {desenho.baloes.map((balao) => (
+              <Balao
+                key={balao.no.id}
+                balao={balao}
+                selecionado={selecionado === balao.no.id}
+                editando={editando === balao.no.id}
+                rascunho={rascunho}
+                podeEditar={podeEditar}
+                qtdComentarios={comentariosPorNo.get(balao.no.id)?.length ?? 0}
+                aoPressionar={balaoPressionado}
+                aoDuploClique={comecarEdicao}
+                aoDigitar={setRascunho}
+                aoConfirmar={confirmarEdicao}
+                aoAlternarRamo={alternarRamo}
+                registrarRef={registrarRef}
+              />
+            ))}
           </div>
 
           <PaletaFerramentas grupos={gruposDaPaleta} />
@@ -970,25 +923,6 @@ export function MapaCanvas({
       </div>
     </div>
   );
-}
-
-/**
- * O estilo do texto de um balão.
- *
- * Vive junto do desenho porque tem de bater com o que o cálculo de posição
- * assumiu (ver `medirBalao`): se aqui o corpo fosse um e lá outro, o balão
- * ficaria maior que o espaço reservado para ele e passaria por cima do
- * vizinho.
- */
-function estiloDoTexto(no: MapaNoRow, ehRaiz: boolean): React.CSSProperties {
-  const corpo = no.tamanho || (ehRaiz ? 16 : 14);
-  return {
-    fontFamily: fonteCss(no.fonte),
-    fontSize: corpo,
-    lineHeight: `${Math.round(corpo * 1.36)}px`,
-    fontWeight: no.negrito || ehRaiz ? 600 : 500,
-    fontStyle: no.italico ? "italic" : "normal",
-  };
 }
 
 function BotaoBarra({

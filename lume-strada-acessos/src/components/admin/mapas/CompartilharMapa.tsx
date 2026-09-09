@@ -56,7 +56,12 @@ export function CompartilharMapa({ mapaId, token, acessoInicial }: { mapaId: str
               aberto atrapalhando o mapa. */}
           <div className="fixed inset-0 z-40" onClick={() => setAberto(false)} aria-hidden />
           <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-base-700 bg-base-900 p-3 shadow-xl">
-            <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-ink-muted">{t.quemPodeAbrir}</p>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-ink-muted">{t.quemPodeAbrir}</p>
+            {/* O aviso vem ANTES das opções, não depois: a diferença entre
+                "qualquer um com o link" e "qualquer um da minha agência com
+                o link" muda completamente o que é seguro compartilhar, e
+                precisa ser lida antes da escolha. */}
+            <p className="mb-2.5 mt-1 text-[11px] leading-snug text-ink-muted">{t.avisoCadastro}</p>
 
             <div className="space-y-1">
               {opcoes.map((o) => (

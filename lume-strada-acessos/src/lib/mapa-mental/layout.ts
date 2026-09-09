@@ -1,4 +1,4 @@
-import { ALTURA_IMAGEM, larguraCharDaFonte, type MapaNoRow } from "@/lib/types/mapa-mental";
+import { ALTURA_IMAGEM, folgaDaForma, larguraCharDaFonte, type MapaNoRow } from "@/lib/types/mapa-mental";
 
 /**
  * Onde cada balão fica.
@@ -41,7 +41,7 @@ export const VAO_Y = 14;
  * com desenhos diferentes em duas telas. Uma estimativa determinística vale
  * mais aqui do que precisão: todo mundo vê o mesmo mapa.
  */
-export type NoMensuravel = Pick<MapaNoRow, "texto" | "link" | "imagem_path" | "fonte" | "tamanho" | "negrito">;
+export type NoMensuravel = Pick<MapaNoRow, "texto" | "link" | "imagem_path" | "fonte" | "tamanho" | "negrito" | "forma">;
 
 export function medirBalao(no: NoMensuravel, ehRaiz: boolean): { largura: number; altura: number } {
   const texto = no.texto;
@@ -71,9 +71,14 @@ export function medirBalao(no: NoMensuravel, ehRaiz: boolean): { largura: number
   const extraImagem = no.imagem_path ? ALTURA_IMAGEM + 8 : 0;
   const extraLink = no.link ? 22 : 0;
 
+  // A forma entra na conta, não só no CSS: uma elipse precisa de mais caixa
+  // que um cartão para o mesmo texto (o retângulo que cabe dentro dela é
+  // menor), e um sublinhado precisa de menos, porque não tem caixa.
+  const { folgaX, folgaY } = folgaDaForma(no.forma);
+
   return {
-    largura: no.imagem_path ? Math.max(largura, 168) : largura,
-    altura: linhas * alturaLinha + PADDING_Y * 2 + extraImagem + extraLink,
+    largura: Math.max(LARGURA_MIN, (no.imagem_path ? Math.max(largura, 168) : largura) + folgaX),
+    altura: Math.max(28, linhas * alturaLinha + PADDING_Y * 2 + extraImagem + extraLink + folgaY),
   };
 }
 

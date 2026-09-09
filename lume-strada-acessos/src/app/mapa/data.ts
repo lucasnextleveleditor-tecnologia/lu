@@ -1,32 +1,34 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { AcessoPublicoMapa, MapaComentarioRow, MapaCompleto, MapaMentalRow, MapaNoRow } from "@/lib/types/mapa-mental";
+import { verificarAcessoPorToken, type ResultadoAcesso } from "./acesso";
+import type { AcessoPublicoMapa, MapaComentarioRow, MapaCompleto, MapaNoRow } from "@/lib/types/mapa-mental";
+
+export type MapaPorToken =
+  | { estado: "ok"; dados: MapaCompleto; acesso: AcessoPublicoMapa; nome: string }
+  | Exclude<ResultadoAcesso, { estado: "ok" }>;
 
 /**
- * Busca o mapa pelo TOKEN da URL — sempre via Service Role, nunca pelo
- * cliente autenticado: esta página não tem login, não existe sessão nem RLS
- * para filtrar por empresa. A única autorização é conhecer o token (24 bytes
- * aleatórios), e o filtro `.eq("token", token)` é o ÚNICO controle de acesso,
- * feito no código — mesmo desenho de `app/contrato/data.ts`.
- *
- * Um mapa `privado` devolve `null` mesmo com o token certo: desligar o link é
- * o jeito de revogar sem trocar a URL.
+ * O mapa aberto pelo link — só para quem está logado E é da empresa dona do
+ * mapa (ver `acesso.ts`). O token diz QUAL mapa; o cadastro diz SE pode.
  */
-export async function buscarMapaPublicoPorToken(token: string): Promise<(MapaCompleto & { acesso: AcessoPublicoMapa }) | null> {
+export async function buscarMapaPorToken(token: string): Promise<MapaPorToken> {
+  const acesso = await verificarAcessoPorToken(token, "ver");
+  if (acesso.estado !== "ok") return acesso;
+
   const admin = createAdminClient();
-
-  const { data: mapa } = await admin.from("mapas_mentais").select("*").eq("token", token).maybeSingle<MapaMentalRow>();
-  if (!mapa || mapa.acesso_publico === "privado") return null;
-
   const [nosRes, comentariosRes] = await Promise.all([
-    admin.from("mapa_nos").select("*").eq("mapa_id", mapa.id).order("ordem"),
-    admin.from("mapa_comentarios").select("*").eq("mapa_id", mapa.id).order("created_at"),
+    admin.from("mapa_nos").select("*").eq("mapa_id", acesso.mapa.id).order("ordem"),
+    admin.from("mapa_comentarios").select("*").eq("mapa_id", acesso.mapa.id).order("created_at"),
   ]);
 
   return {
-    mapa,
-    nos: (nosRes.data ?? []) as MapaNoRow[],
-    comentarios: (comentariosRes.data ?? []) as MapaComentarioRow[],
-    acesso: mapa.acesso_publico,
+    estado: "ok",
+    acesso: acesso.acesso,
+    nome: acesso.nome,
+    dados: {
+      mapa: acesso.mapa,
+      nos: (nosRes.data ?? []) as MapaNoRow[],
+      comentarios: (comentariosRes.data ?? []) as MapaComentarioRow[],
+    },
   };
 }

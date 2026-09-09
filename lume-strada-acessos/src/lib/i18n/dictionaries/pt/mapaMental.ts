@@ -62,6 +62,7 @@ export interface MapaMentalDict {
   acessoComentarHint: string;
   acessoEditarLabel: string;
   acessoEditarHint: string;
+  avisoCadastro: string;
   copiarLink: string;
   linkCopiado: string;
   privado: string;
@@ -100,6 +101,7 @@ export interface MapaMentalDict {
   confirmarSair: string;
 
   texto: string;
+  formaETexto: string;
   fonte: string;
   tamanho: string;
   negrito: string;
@@ -109,6 +111,9 @@ export interface MapaMentalDict {
   refazer: string;
 
   // Página pública
+  semAcessoTitulo: string;
+  semAcessoDescricao: string;
+  irParaInicio: string;
   linkInvalidoTitulo: string;
   linkInvalidoDescricao: string;
   somenteLeitura: string;
@@ -159,7 +164,7 @@ export const mapaMental: MapaMentalDict = {
   enviarComentario: "Comentar",
 
   compartilhar: "Compartilhar",
-  quemPodeAbrir: "Quem abrir o link pode",
+  quemPodeAbrir: "Só quem tem cadastro na agência",
   acessoPrivadoLabel: "Ninguém — só a equipe",
   acessoPrivadoHint: "O link para de funcionar sem trocar de endereço. Volte a ligar quando quiser.",
   acessoVerLabel: "Ver",
@@ -168,6 +173,7 @@ export const mapaMental: MapaMentalDict = {
   acessoComentarHint: "Deixa recados nos balões, sem conta e sem poder alterar o mapa.",
   acessoEditarLabel: "Ver e editar",
   acessoEditarHint: "Edita o mapa inteiro. Cuidado: quem receber o link repassado edita também.",
+  avisoCadastro: "O link leva ao mapa, mas quem abrir precisa entrar com a conta de funcionário ou cliente da sua agência. Quem não tem cadastro não vê nada.",
   copiarLink: "Copiar link",
   linkCopiado: "Link copiado",
   privado: "Privado",
@@ -205,6 +211,7 @@ export const mapaMental: MapaMentalDict = {
   confirmarSair: "Você tem uma edição aberta que ainda não foi salva. Sair mesmo assim?",
 
   texto: "Texto",
+  formaETexto: "Forma e texto",
   fonte: "Fonte",
   tamanho: "Tamanho",
   negrito: "Negrito",
@@ -213,6 +220,9 @@ export const mapaMental: MapaMentalDict = {
   desfazer: "Desfazer",
   refazer: "Refazer",
 
+  semAcessoTitulo: "Você não tem acesso a este mapa",
+  semAcessoDescricao: "Este mapa é de outra agência, ou o nível de compartilhamento foi alterado. Peça a quem enviou para liberar o seu acesso.",
+  irParaInicio: "Ir para o início",
   linkInvalidoTitulo: "Mapa não encontrado",
   linkInvalidoDescricao: "Este link não existe mais ou o compartilhamento foi desligado. Peça um novo a quem enviou.",
   somenteLeitura: "Você está vendo este mapa pelo link — dá para navegar, mas não para editar.",

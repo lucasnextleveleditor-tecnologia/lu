@@ -43,7 +43,7 @@ export const mapaMental: MapaMentalDict = {
   enviarComentario: "Comment",
 
   compartilhar: "Share",
-  quemPodeAbrir: "Anyone with the link can",
+  quemPodeAbrir: "Only people registered in the agency",
   acessoPrivadoLabel: "Nobody — team only",
   acessoPrivadoHint: "The link stops working without changing the address. Turn it back on whenever you like.",
   acessoVerLabel: "View",
@@ -52,6 +52,7 @@ export const mapaMental: MapaMentalDict = {
   acessoComentarHint: "Leaves notes on bubbles, with no account and no way to change the map.",
   acessoEditarLabel: "View and edit",
   acessoEditarHint: "Edits the whole map. Careful: whoever the link is forwarded to can edit too.",
+  avisoCadastro: "The link points to the map, but whoever opens it has to sign in with a team or client account from your agency. Anyone without an account sees nothing.",
   copiarLink: "Copy link",
   linkCopiado: "Link copied",
   privado: "Private",
@@ -89,6 +90,7 @@ export const mapaMental: MapaMentalDict = {
   confirmarSair: "You have an open edit that hasn't been saved. Leave anyway?",
 
   texto: "Text",
+  formaETexto: "Shape and text",
   fonte: "Font",
   tamanho: "Size",
   negrito: "Bold",
@@ -97,6 +99,9 @@ export const mapaMental: MapaMentalDict = {
   desfazer: "Undo",
   refazer: "Redo",
 
+  semAcessoTitulo: "You don't have access to this map",
+  semAcessoDescricao: "This map belongs to another agency, or the sharing level changed. Ask whoever sent it to grant you access.",
+  irParaInicio: "Go to start",
   linkInvalidoTitulo: "Map not found",
   linkInvalidoDescricao: "This link no longer exists or sharing was turned off. Ask the sender for a new one.",
   somenteLeitura: "You're viewing this map through the link — you can navigate, but not edit.",

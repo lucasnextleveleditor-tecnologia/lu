@@ -25,6 +25,7 @@ const CAMPOS_NO = [
   "tamanho",
   "negrito",
   "italico",
+  "forma",
 ] as const;
 
 function apenasPermitidos(valores: Record<string, unknown>): Record<string, unknown> {

@@ -1,35 +1,50 @@
+import Link from "next/link";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
-import { buscarMapaPublicoPorToken } from "@/app/mapa/data";
+import { buscarMapaPorToken } from "@/app/mapa/data";
 import { MapaPublicoView } from "@/components/admin/mapas/MapaPublicoView";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { IconLock } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Página pública do mapa — SEM LOGIN, acessada só de posse do token na URL
- * (mesmo desenho de `app/contrato/[token]`). Fora de `/admin`, não herda a
- * sidebar nem passa por nenhum guard de permissão: o token é a autorização,
- * e o nível de acesso vem do próprio mapa.
+ * O mapa aberto pelo link.
+ *
+ * Fora de `/admin`, sem sidebar — mas NÃO é uma página anônima: quem abre
+ * precisa estar logado e ter cadastro na mesma agência dona do mapa (ver
+ * `app/mapa/acesso.ts`). O `middleware` já manda quem não tem sessão para o
+ * login com `redirectTo`; as duas telas abaixo cobrem os casos que sobram —
+ * link desligado e conta de fora da agência.
  */
-export default async function MapaPublicoPage({ params }: { params: Promise<{ token: string }> }) {
+export default async function MapaPorLinkPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const [{ dict }, nomeApp, dados] = await Promise.all([
-    getDictionary(),
-    getNomeApp(),
-    buscarMapaPublicoPorToken((await params).token ?? token),
-  ]);
+  const [{ dict }, nomeApp, resultado] = await Promise.all([getDictionary(), getNomeApp(), buscarMapaPorToken(token)]);
   const t = dict.mapaMental;
 
-  if (!dados) {
+  if (resultado.estado !== "ok") {
+    const semAcesso = resultado.estado === "sem-acesso";
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <div className="fixed right-4 top-4 z-30">
           <ThemeToggle />
         </div>
         <div className="max-w-sm text-center">
-          <p className="text-lg font-semibold text-ink-primary">{t.linkInvalidoTitulo}</p>
-          <p className="mt-2 text-sm text-ink-muted">{t.linkInvalidoDescricao}</p>
+          <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-base-800">
+            <IconLock className="h-5 w-5 text-ink-muted" />
+          </span>
+          <p className="text-lg font-semibold text-ink-primary">
+            {semAcesso ? t.semAcessoTitulo : t.linkInvalidoTitulo}
+          </p>
+          <p className="mt-2 text-sm text-ink-muted">
+            {semAcesso ? t.semAcessoDescricao : t.linkInvalidoDescricao}
+          </p>
+          <Link
+            href="/"
+            className="mt-5 inline-flex items-center rounded-lg border border-base-600 px-3 py-2 text-xs text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+          >
+            {t.irParaInicio}
+          </Link>
         </div>
       </div>
     );
@@ -41,7 +56,13 @@ export default async function MapaPublicoPage({ params }: { params: Promise<{ to
         <ThemeToggle />
       </div>
       <div className="min-h-0 flex-1">
-        <MapaPublicoView dados={dados} token={token} acesso={dados.acesso} nomeApp={nomeApp} />
+        <MapaPublicoView
+          dados={resultado.dados}
+          token={token}
+          acesso={resultado.acesso}
+          nomeApp={nomeApp}
+          meuNome={resultado.nome}
+        />
       </div>
     </div>
   );

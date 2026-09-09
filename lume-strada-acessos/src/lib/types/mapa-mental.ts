@@ -46,6 +46,38 @@ export interface MapaNoRow {
   tamanho: number;
   negrito: boolean;
   italico: boolean;
+  /** Chave da forma — nunca CSS cru (ver `FORMAS_MAPA`). */
+  forma: string;
+}
+
+/**
+ * As seis formas de balão.
+ *
+ * `folgaX` e `folgaY` são o que cada forma cobra A MAIS de espaço, e existem
+ * porque o desenho é calculado: uma elipse com o mesmo retângulo de um
+ * cartão cortaria as pontas do texto, e um hexágono comeria as laterais. Sem
+ * essa folga na conta, trocar a forma quebraria o alinhamento do mapa
+ * inteiro.
+ *
+ * `sublinhado` é o oposto: sem caixa nenhuma, só o texto sobre um traço da
+ * cor do ramo. É a forma que deixa um mapa grande respirar, e por isso vale
+ * a pena existir ao lado das caixas.
+ */
+export const FORMAS_MAPA = {
+  arredondado: { rotulo: "Arredondado", folgaX: 0, folgaY: 0 },
+  reto: { rotulo: "Reto", folgaX: 0, folgaY: 0 },
+  pilula: { rotulo: "Pílula", folgaX: 18, folgaY: 0 },
+  elipse: { rotulo: "Elipse", folgaX: 34, folgaY: 16 },
+  hexagono: { rotulo: "Hexágono", folgaX: 26, folgaY: 0 },
+  sublinhado: { rotulo: "Sublinhado", folgaX: -12, folgaY: -8 },
+} as const;
+
+export type FormaMapa = keyof typeof FORMAS_MAPA;
+export const ORDEM_FORMAS = Object.keys(FORMAS_MAPA) as FormaMapa[];
+
+export function folgaDaForma(forma: string): { folgaX: number; folgaY: number } {
+  const f = FORMAS_MAPA[forma as FormaMapa] ?? FORMAS_MAPA.arredondado;
+  return { folgaX: f.folgaX, folgaY: f.folgaY };
 }
 
 /**

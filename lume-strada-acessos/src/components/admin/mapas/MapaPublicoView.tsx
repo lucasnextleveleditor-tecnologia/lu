@@ -25,11 +25,13 @@ export function MapaPublicoView({
   token,
   acesso,
   nomeApp,
+  meuNome,
 }: {
   dados: MapaCompleto;
   token: string;
   acesso: AcessoPublicoMapa;
   nomeApp: string;
+  meuNome: string;
 }) {
   const { dict } = useLocale();
   const t = dict.mapaMental;
@@ -43,7 +45,7 @@ export function MapaPublicoView({
       mapaId={dados.mapa.id}
       nosIniciais={dados.nos}
       comentariosIniciais={dados.comentarios}
-      meuNome=""
+      meuNome={meuNome}
       podeEditar={podeEditar}
       podeComentar={podeComentar}
       cabecalho={
