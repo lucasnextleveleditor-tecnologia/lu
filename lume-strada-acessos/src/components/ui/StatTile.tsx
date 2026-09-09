@@ -41,11 +41,39 @@ interface StatTileProps {
    * status. Sem esta prop, comportamento idêntico ao de antes dela existir.
    */
   moduleColor?: string;
+  /**
+   * `"destaque"` (padrão) é o cartão de sempre: badge sólido, barra no topo,
+   * número em 3xl. `"compacto"` é a versão quieta — sem badge sólido, sem
+   * barra, número menor, ícone pequeno ao lado do rótulo.
+   *
+   * A variante existe porque um painel precisa de níveis. Quando todo cartão
+   * grita, a pessoa não lê: varre. O compacto é para o número que vale a pena
+   * estar na tela mas não vale interromper ninguém — a maioria deles.
+   */
+  variant?: "destaque" | "compacto";
 }
 
-export function StatTile({ icon: Icon, label, value, tone = "neutral", hint, className, moduleColor }: StatTileProps) {
+export function StatTile({ icon: Icon, label, value, tone = "neutral", hint, className, moduleColor, variant = "destaque" }: StatTileProps) {
   const toneMeta = STAT_TONE_META[tone];
   const useModuleColor = tone === "neutral" && Boolean(moduleColor);
+
+  if (variant === "compacto") {
+    return (
+      <div className={cn("rounded-xl border border-base-800 bg-base-900/60 p-4", className)}>
+        <p className="flex items-center gap-1.5 text-xs text-ink-muted">
+          <Icon className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{label}</span>
+        </p>
+        <p className="mt-2 truncate text-xl font-semibold tracking-tight text-ink-primary">{value}</p>
+        {hint && (
+          <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-ink-muted">
+            {tone !== "neutral" && <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", toneMeta.dot)} />}
+            <span className="truncate">{hint}</span>
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div

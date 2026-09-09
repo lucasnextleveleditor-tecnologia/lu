@@ -1,14 +1,15 @@
-import type { ComponentType, SVGProps } from "react";
 import type { TarefaAgendaItem, LeadAgendaItem } from "@/lib/types/dashboard";
 import type { StatusSessaoWhatsapp } from "@/lib/types/whatsapp";
 import { STATUS_SESSAO_META } from "@/lib/utils/whatsapp";
 import { hojeISO } from "@/lib/utils/dashboard";
+import type { Tone } from "@/lib/utils/tone";
 import { fmtBRL } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
 import { AgendaDoDia } from "@/components/admin/dashboard/AgendaDoDia";
-import { FinanceiroDoMesCard } from "@/components/admin/dashboard/FinanceiroDoMesCard";
+import { HeroResultado } from "@/components/admin/dashboard/HeroResultado";
+import { PrecisaAtencao, type ItemAtencao } from "@/components/admin/dashboard/PrecisaAtencao";
 import {
   IconCamera,
   IconExternalLink,
@@ -22,7 +23,6 @@ import {
   IconBox,
   IconTrendingUp,
   IconMessageCircle,
-  IconColumns,
 } from "@/components/ui/icons";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 
@@ -59,40 +59,6 @@ interface VisaoGeralProps {
     entregas: TarefaAgendaItem[];
     followUps: LeadAgendaItem[];
   } | null;
-}
-
-/**
- * Cabeçalho de seção — mesmo padrão visual já usado dentro de `AgendaDoDia`
- * pra separar Captações/Entregas/Follow-ups (ícone + rótulo em versalete,
- * `ink-muted`). Reaproveitado aqui pra separar cada MÓDULO (Produção,
- * Comercial, Financeiro...) em vez de deixar os cards de fontes diferentes
- * soltos numa grade só — era exatamente isso que fazia a Visão Geral
- * "misturar" dado de módulos diferentes numa mesma fileira.
- */
-function SecaoDashboard({
-  icon: Icon,
-  titulo,
-  acao,
-  children,
-}: {
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
-  titulo: string;
-  /** Slot opcional pra uma ação no canto direito do cabeçalho da seção — hoje só o Financeiro usa (`OlhoValoresToggle`). */
-  acao?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-          <Icon className="h-3.5 w-3.5" />
-          {titulo}
-        </p>
-        {acao}
-      </div>
-      {children}
-    </div>
-  );
 }
 
 export async function VisaoGeral({
@@ -132,164 +98,124 @@ export async function VisaoGeral({
     );
   }
 
+  // --------------------------------------------------------------------------
+  // Tudo que está atrasado ou vence hoje, num lugar só. Cada um destes era um
+  // cartão inteiro na grade antiga — cinco cartões que, no dia comum, exibem
+  // "0". Aqui viram linhas, e só aparecem quando existem de verdade.
+  // --------------------------------------------------------------------------
+  const itensAtencao: ItemAtencao[] = [
+    tarefasAtrasadas !== null && {
+      chave: "tarefas",
+      icon: IconAlertTriangle,
+      rotulo: dict.dashboard.tarefasAtrasadasLabel,
+      quantidade: tarefasAtrasadas,
+      tone: "critical" as const,
+      href: "/admin/producao",
+    },
+    contasVencidas !== null && {
+      chave: "contas-vencidas",
+      icon: IconCreditCard,
+      rotulo: dict.dashboard.contasVencidasLabel,
+      quantidade: contasVencidas,
+      tone: "critical" as const,
+      href: "/admin/financeiro",
+    },
+    contasVencendoHoje !== null && {
+      chave: "contas-hoje",
+      icon: IconAlertTriangle,
+      rotulo: dict.dashboard.contasVencendoHojeLabel,
+      quantidade: contasVencendoHoje,
+      tone: "warning" as const,
+      href: "/admin/financeiro",
+    },
+    followUpsAtrasados !== null && {
+      chave: "follow-ups",
+      icon: IconActivity,
+      rotulo: dict.dashboard.followUpsAtrasadosLabel,
+      quantidade: followUpsAtrasados,
+      tone: "warning" as const,
+      href: "/admin/comercial",
+    },
+    entregasAguardandoAprovacao !== null && {
+      chave: "aprovacao",
+      icon: IconCheckCircle,
+      rotulo: dict.dashboard.aguardandoAprovacaoLabel,
+      quantidade: entregasAguardandoAprovacao,
+      tone: "warning" as const,
+      href: "/admin/producao",
+    },
+  ].filter(Boolean) as ItemAtencao[];
+
+  // --------------------------------------------------------------------------
+  // O "resto" — números que valem estar na tela, mas não valem interromper.
+  // Vão todos na variante compacta, embaixo, depois de um divisor.
+  // --------------------------------------------------------------------------
+  const compactos = [
+    captacoesHoje !== null && { chave: "captacoes", icon: IconCamera, label: dict.dashboard.captacoesHojeLabel, value: captacoesHoje },
+    entregasHoje !== null && { chave: "entregas", icon: IconExternalLink, label: dict.dashboard.entregasHojeLabel, value: entregasHoje },
+    leadsEmAberto !== null && { chave: "leads", icon: IconTarget, label: dict.dashboard.leadsEmAbertoLabel, value: leadsEmAberto },
+    valorPropostasAbertas !== null && {
+      chave: "propostas",
+      icon: IconDollarSign,
+      label: dict.dashboard.propostasAbertasLabel,
+      value: fmtBRL(valorPropostasAbertas),
+    },
+    saldoConsolidado !== null && {
+      chave: "saldo",
+      icon: IconWallet,
+      label: dict.dashboard.saldoConsolidadoLabel,
+      value: <ValorPrivado valor={fmtBRL(saldoConsolidado)} />,
+    },
+    resumoInventario !== null && {
+      chave: "inventario",
+      icon: IconBox,
+      label: dict.dashboard.itensEmManutencaoLabel,
+      value: resumoInventario.manutencao,
+      tone: resumoInventario.manutencao > 0 ? ("warning" as const) : undefined,
+    },
+    resumoTrafegoHoje !== null && {
+      chave: "trafego",
+      icon: IconTrendingUp,
+      label: dict.dashboard.investidoAdsHojeLabel,
+      value: fmtBRL(resumoTrafegoHoje.totalInvestido),
+      hint: dict.dashboard.leadsGeradosHoje.replace("{n}", String(resumoTrafegoHoje.totalLeads)),
+    },
+    whatsapp !== null && {
+      chave: "whatsapp",
+      icon: IconMessageCircle,
+      label: dict.dashboard.whatsappLabel,
+      value: whatsapp.status ? STATUS_SESSAO_META[whatsapp.status].label : dict.dashboard.naoConfigurado,
+      tone: whatsapp.status ? STATUS_SESSAO_META[whatsapp.status].tone : undefined,
+    },
+  ].filter(Boolean) as { chave: string; icon: typeof IconCamera; label: string; value: React.ReactNode; tone?: Tone; hint?: string }[];
+
+  const temAtencao = itensAtencao.length > 0 || mostrarProducao || mostrarComercial || mostrarFinanceiro;
+
   return (
-    <div className="space-y-10">
-      {mostrarProducao && (
-        <SecaoDashboard icon={IconColumns} titulo={dict.dashboard.secaoProducao}>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {captacoesHoje !== null && (
-              <StatTile
-                icon={IconCamera}
-                label={dict.dashboard.captacoesHojeLabel}
-                value={captacoesHoje}
-                hint={dict.dashboard.captacoesHojeHint}
-              />
-            )}
-            {entregasHoje !== null && (
-              <StatTile
-                icon={IconExternalLink}
-                label={dict.dashboard.entregasHojeLabel}
-                value={entregasHoje}
-                hint={dict.dashboard.entregasHojeHint}
-              />
-            )}
-            {tarefasAtrasadas !== null && (
-              <StatTile
-                icon={IconAlertTriangle}
-                label={dict.dashboard.tarefasAtrasadasLabel}
-                value={tarefasAtrasadas}
-                tone={tarefasAtrasadas > 0 ? "critical" : "neutral"}
-                hint={dict.dashboard.tarefasAtrasadasHint}
-              />
-            )}
-            {entregasAguardandoAprovacao !== null && (
-              <StatTile
-                icon={IconCheckCircle}
-                label={dict.dashboard.aguardandoAprovacaoLabel}
-                value={entregasAguardandoAprovacao}
-                tone={entregasAguardandoAprovacao > 0 ? "warning" : "neutral"}
-                hint={dict.dashboard.aguardandoAprovacaoHint}
-              />
-            )}
+    <div className="space-y-8">
+      {/* NÍVEL 1 — o herói e o que precisa de atenção, lado a lado. É a
+          primeira coisa que a pessoa vê ao abrir o sistema: quanto sobrou no
+          mês, e o que está pegando fogo. */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        {financeiroDoMes !== null ? (
+          <HeroResultado receitas={financeiroDoMes.receitas} despesas={financeiroDoMes.despesas} />
+        ) : (
+          // Sem permissão de Financeiro, o herói passa a ser o dia — nunca um
+          // buraco no layout, e nunca um dado que a pessoa não pode ver.
+          <div className="rounded-2xl border border-base-700 bg-base-900/80 p-6 backdrop-blur-sm sm:p-7">
+            <p className="text-xs font-medium text-ink-muted">{dict.dashboard.heroHojeLabel}</p>
+            <p className="mt-2 text-[44px] font-semibold leading-none tracking-tight text-ink-primary sm:text-5xl">
+              {(captacoesHoje ?? 0) + (entregasHoje ?? 0)}
+            </p>
+            <p className="mt-2 text-xs text-ink-muted">{dict.dashboard.heroHojeHint}</p>
           </div>
-        </SecaoDashboard>
-      )}
+        )}
 
-      {mostrarComercial && (
-        <SecaoDashboard icon={IconTarget} titulo={dict.dashboard.secaoComercial}>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {leadsEmAberto !== null && (
-              <StatTile
-                icon={IconTarget}
-                label={dict.dashboard.leadsEmAbertoLabel}
-                value={leadsEmAberto}
-                hint={dict.dashboard.leadsEmAbertoHint}
-              />
-            )}
-            {followUpsAtrasados !== null && (
-              <StatTile
-                icon={IconActivity}
-                label={dict.dashboard.followUpsAtrasadosLabel}
-                value={followUpsAtrasados}
-                tone={followUpsAtrasados > 0 ? "warning" : "neutral"}
-                hint={dict.dashboard.followUpsAtrasadosHint}
-              />
-            )}
-            {valorPropostasAbertas !== null && (
-              <StatTile
-                icon={IconDollarSign}
-                label={dict.dashboard.propostasAbertasLabel}
-                value={fmtBRL(valorPropostasAbertas)}
-                hint={dict.dashboard.propostasAbertasHint}
-              />
-            )}
-          </div>
-        </SecaoDashboard>
-      )}
+        {temAtencao && <PrecisaAtencao itens={itensAtencao} />}
+      </div>
 
-      {mostrarFinanceiro && (
-        <SecaoDashboard icon={IconWallet} titulo={dict.dashboard.secaoFinanceiro} acao={<OlhoValoresToggle />}>
-          <div className="space-y-4">
-            {(saldoConsolidado !== null || contasVencidas !== null || contasVencendoHoje !== null) && (
-              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {saldoConsolidado !== null && (
-                  <StatTile
-                    icon={IconWallet}
-                    label={dict.dashboard.saldoConsolidadoLabel}
-                    value={<ValorPrivado valor={fmtBRL(saldoConsolidado)} />}
-                    hint={dict.dashboard.saldoConsolidadoHint}
-                  />
-                )}
-                {contasVencidas !== null && (
-                  <StatTile
-                    icon={IconCreditCard}
-                    label={dict.dashboard.contasVencidasLabel}
-                    value={contasVencidas}
-                    tone={contasVencidas > 0 ? "critical" : "neutral"}
-                    hint={dict.dashboard.contasVencidasHint}
-                  />
-                )}
-                {contasVencendoHoje !== null && (
-                  <StatTile
-                    icon={IconAlertTriangle}
-                    label={dict.dashboard.contasVencendoHojeLabel}
-                    value={contasVencendoHoje}
-                    tone={contasVencendoHoje > 0 ? "warning" : "neutral"}
-                    hint={dict.dashboard.contasVencendoHojeHint}
-                  />
-                )}
-              </div>
-            )}
-            {financeiroDoMes !== null && (
-              <div className="lg:max-w-md">
-                <FinanceiroDoMesCard receitas={financeiroDoMes.receitas} despesas={financeiroDoMes.despesas} />
-              </div>
-            )}
-          </div>
-        </SecaoDashboard>
-      )}
-
-      {(mostrarInventario || mostrarTrafego || mostrarWhatsapp) && (
-        <SecaoDashboard icon={IconBox} titulo={dict.dashboard.secaoOutrosModulos}>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {resumoInventario !== null && (
-              <StatTile
-                icon={IconBox}
-                label={dict.dashboard.itensEmManutencaoLabel}
-                value={resumoInventario.manutencao}
-                tone={resumoInventario.manutencao > 0 ? "warning" : "neutral"}
-                hint={
-                  resumoInventario.emprestados > 0
-                    ? dict.dashboard.emprestadosNoMomento.replace("{n}", String(resumoInventario.emprestados))
-                    : dict.dashboard.nenhumItemEmprestado
-                }
-              />
-            )}
-            {resumoTrafegoHoje !== null && (
-              <StatTile
-                icon={IconTrendingUp}
-                label={dict.dashboard.investidoAdsHojeLabel}
-                value={fmtBRL(resumoTrafegoHoje.totalInvestido)}
-                hint={dict.dashboard.leadsGeradosHoje.replace("{n}", String(resumoTrafegoHoje.totalLeads))}
-              />
-            )}
-            {whatsapp !== null && (
-              <StatTile
-                icon={IconMessageCircle}
-                label={dict.dashboard.whatsappLabel}
-                value={whatsapp.status ? STATUS_SESSAO_META[whatsapp.status].label : dict.dashboard.naoConfigurado}
-                tone={whatsapp.status ? STATUS_SESSAO_META[whatsapp.status].tone : "neutral"}
-                hint={
-                  whatsapp.status
-                    ? dict.dashboard.conversasHoje.replace("{n}", String(whatsapp.conversasHoje))
-                    : dict.dashboard.conecteEmAdminWhatsapp
-                }
-              />
-            )}
-          </div>
-        </SecaoDashboard>
-      )}
-
+      {/* NÍVEL 2 — a agenda do dia, em largura inteira: é uma lista, e lista
+          se lê melhor larga do que espremida numa coluna. */}
       {mostrarAgenda && (
         <AgendaDoDia
           data={hojeISO()}
@@ -298,6 +224,23 @@ export async function VisaoGeral({
           entregas={agendaHoje.entregas}
           followUps={agendaHoje.followUps}
         />
+      )}
+
+      {/* NÍVEL 3 — o resto, quieto, atrás de um divisor. Continua acessível
+          sem competir com o que está acima. */}
+      {compactos.length > 0 && (
+        <div>
+          <div className="mb-3 flex items-center gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">{dict.dashboard.maisNumeros}</p>
+            <span className="h-px flex-1 bg-base-800" />
+            {mostrarFinanceiro && <OlhoValoresToggle />}
+          </div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+            {compactos.map((c) => (
+              <StatTile key={c.chave} variant="compacto" icon={c.icon} label={c.label} value={c.value} tone={c.tone} hint={c.hint} />
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

@@ -8,6 +8,26 @@
  */
 export interface DashboardDict {
   tituloPagina: string;
+  /** Sobretítulo pequeno acima do H1 — dá contexto sem competir com ele. */
+  kicker: string;
+  /** Saudação por faixa de horário. `{nome}` some quando o perfil não tem nome. */
+  saudacaoMadrugada: string;
+  saudacaoManha: string;
+  saudacaoTarde: string;
+  saudacaoNoite: string;
+  saudacaoComplemento: string;
+  /** Bloco de destaque — o único número grande da tela. */
+  heroResultadoLabel: string;
+  heroResultadoHint: string;
+  heroEntradas: string;
+  heroSaidas: string;
+  heroHojeLabel: string;
+  heroHojeHint: string;
+  /** Cartão que junta tudo que está atrasado ou vence hoje. */
+  atencaoTitulo: string;
+  atencaoTudoEmDia: string;
+  atencaoTudoEmDiaHint: string;
+  maisNumeros: string;
   subtituloPagina: string;
   tabVisaoGeral: string;
   tabCalendario: string;
@@ -77,7 +97,23 @@ export interface DashboardDict {
 }
 
 export const dashboard: DashboardDict = {
-  tituloPagina: "Dashboard",
+  tituloPagina: "Visão Geral",
+  kicker: "Painel da agência",
+  saudacaoMadrugada: "Boa madrugada",
+  saudacaoManha: "Bom dia",
+  saudacaoTarde: "Boa tarde",
+  saudacaoNoite: "Boa noite",
+  saudacaoComplemento: "veja um resumo da sua operação.",
+  heroResultadoLabel: "Resultado do mês",
+  heroResultadoHint: "Entradas menos saídas, no mês corrente.",
+  heroEntradas: "Entradas",
+  heroSaidas: "Saídas",
+  heroHojeLabel: "Na agenda de hoje",
+  heroHojeHint: "Captações e entregas marcadas para hoje.",
+  atencaoTitulo: "Precisa de atenção",
+  atencaoTudoEmDia: "Nada pendente",
+  atencaoTudoEmDiaHint: "Sem atrasos nem vencimentos para hoje.",
+  maisNumeros: "Mais números",
   subtituloPagina: "Visão geral da agência e agenda de captações e entregas.",
   tabVisaoGeral: "Visão Geral",
   tabCalendario: "Calendário",

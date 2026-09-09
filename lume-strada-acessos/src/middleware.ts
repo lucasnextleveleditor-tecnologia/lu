@@ -182,11 +182,14 @@ export async function middleware(request: NextRequest) {
           return NextResponse.redirect(url);
         }
 
-        // Super Admin cai no painel mestre; admin cai na Home do painel
-        // (Cadastros); funcionário cai direto no Dashboard (Visão Geral — o
-        // único módulo aberto a qualquer membro da equipe, sem depender de
-        // permissão); cliente vai pro portal dele.
-        const home = role === "super_admin" ? "/super-admin" : role === "admin" ? "/admin" : role === "funcionario" ? "/admin/dashboard" : "/dashboard";
+        // Super Admin cai no painel mestre; admin e funcionário caem no
+        // Dashboard (Visão Geral); cliente vai pro portal dele.
+        //
+        // O admin caía em `/admin` (Cadastros) por herança de quando o
+        // Dashboard ainda não existia. Abrir o sistema num cadastro é abrir
+        // no meio da operação: a primeira tela do dia deve ser o resumo —
+        // o que aconteceu, o que precisa de atenção, o que tem hoje.
+        const home = role === "super_admin" ? "/super-admin" : role === "admin" || role === "funcionario" ? "/admin/dashboard" : "/dashboard";
 
         if (pathname === "/login" || pathname === "/") {
           const url = request.nextUrl.clone();

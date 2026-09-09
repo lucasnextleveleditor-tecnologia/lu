@@ -1,16 +1,26 @@
+import { createClient } from "@/lib/supabase/server";
+import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
+import { CabecalhoDashboard } from "@/components/admin/dashboard/CabecalhoDashboard";
 import { DashboardNav } from "@/components/admin/dashboard/DashboardNav";
-import { getDictionary } from "@/lib/i18n/getDictionary";
 
+export const dynamic = "force-dynamic";
+
+/**
+ * O cabeçalho vive no layout (e não na página) porque o Dashboard tem
+ * sub-rotas — Visão Geral e Calendário — e as duas compartilham a mesma
+ * saudação e o mesmo título. Repetir isso em cada página só criaria duas
+ * cópias para desencontrar.
+ */
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { dict } = await getDictionary();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const perfil = user ? await buscarPerfilComPermissoes(supabase, user.id) : null;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold tracking-tight">{dict.dashboard.tituloPagina}</h1>
-        <p className="mt-0.5 text-sm text-ink-muted">{dict.dashboard.subtituloPagina}</p>
-      </div>
-
+    <div className="space-y-7">
+      <CabecalhoDashboard nomeCompleto={perfil?.full_name ?? null} />
       <DashboardNav />
       {children}
     </div>
