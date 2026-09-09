@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { BRANDING_CONFIG_ID } from "@/lib/branding/constants";
 import { NOME_APP_PADRAO } from "@/lib/branding/getNomeApp";
 import { ehImagemPermitida } from "@/lib/utils/upload";
+import { ehHexValido, normalizarHex } from "@/lib/branding/corDeMarca";
 import type { BannerTone, LoginBgPreset, LoginBoxPosition } from "@/lib/types/database";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -24,7 +24,7 @@ export type CampoUpload = "logo_url" | "logo_dark_url" | "logo_light_url" | "fav
  */
 export async function uploadBrandingAsset(campo: CampoUpload, formData: FormData): Promise<UploadResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase, companyId } = await requireAdmin();
     const file = formData.get("file");
 
     if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Selecione um arquivo." };
@@ -32,7 +32,11 @@ export async function uploadBrandingAsset(campo: CampoUpload, formData: FormData
     if (!ehImagemPermitida(file.type)) return { ok: false, error: "Envie um arquivo de imagem (PNG, JPG, WEBP ou GIF). SVG não é permitido." };
 
     const extensao = file.name.split(".").pop()?.toLowerCase() || "png";
-    const caminho = `${campo}/${Date.now()}.${extensao}`;
+    // Caminho prefixado pela empresa: além de organizar o bucket, evita que
+    // duas empresas diferentes colidam num mesmo nome de arquivo — o ponto
+    // que a migração multi-tenant deixou anotado como pendência de Storage
+    // ("evite reutilizar nomes de arquivo previsíveis entre empresas").
+    const caminho = `${companyId}/${campo}/${Date.now()}.${extensao}`;
 
     const { error: erroUpload } = await supabase.storage.from(BUCKET).upload(caminho, file, {
       upsert: true,
@@ -43,7 +47,7 @@ export async function uploadBrandingAsset(campo: CampoUpload, formData: FormData
     const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(caminho);
     const url = urlData.publicUrl;
 
-    const { error: erroUpdate } = await supabase.from("branding_config").update({ [campo]: url }).eq("id", BRANDING_CONFIG_ID);
+    const { error: erroUpdate } = await supabase.from("branding_config").update({ [campo]: url }).eq("company_id", companyId);
     if (erroUpdate) return { ok: false, error: erroUpdate.message };
 
     revalidatePath("/", "layout");
@@ -61,8 +65,8 @@ export async function uploadBrandingAsset(campo: CampoUpload, formData: FormData
  */
 export async function removerBrandingAsset(campo: CampoUpload): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
-    const { error } = await supabase.from("branding_config").update({ [campo]: null }).eq("id", BRANDING_CONFIG_ID);
+    const { supabase, companyId } = await requireAdmin();
+    const { error } = await supabase.from("branding_config").update({ [campo]: null }).eq("company_id", companyId);
     if (error) return { ok: false, error: error.message };
     revalidatePath("/", "layout");
     return { ok: true };
@@ -98,7 +102,7 @@ export interface BrandingInput {
  */
 export async function salvarBranding(input: BrandingInput): Promise<ActionResult> {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase, companyId } = await requireAdmin();
 
     if (!input.loginTitle.trim()) return { ok: false, error: "Informe o título da tela de login." };
 
@@ -129,7 +133,7 @@ export async function salvarBranding(input: BrandingInput): Promise<ActionResult
         banner_tone: input.bannerTone,
         banner_dispensavel: input.bannerDispensavel,
       })
-      .eq("id", BRANDING_CONFIG_ID);
+      .eq("company_id", companyId);
 
     if (error) return { ok: false, error: error.message };
 
@@ -145,9 +149,11 @@ export async function salvarBranding(input: BrandingInput): Promise<ActionResult
 
 /**
  * Nome do APP mostrado na sidebar do admin e no header do cliente
- * (`companies.nome_app`, ver `supabase/companies-nome-app.sql`) — diferente
- * de `branding_config` (que é global, compartilhado por TODAS as empresas):
- * este campo é só da empresa de quem está chamando.
+ * (`companies.nome_app`, ver `supabase/companies-nome-app.sql`). Vive em
+ * `companies` e não em `branding_config` por um motivo histórico — quando
+ * este campo nasceu, `branding_config` ainda era global; hoje as duas
+ * tabelas são por empresa (ver `supabase/branding-por-empresa.sql`), mas
+ * mover a coluna agora só criaria migração sem ganho.
  *
  * Usa a Service Role de propósito: `companies` só tem policy de ESCRITA pra
  * `super_admin` (`companies_super_admin_all`, ver
@@ -172,6 +178,42 @@ export async function atualizarNomeApp(nome: string): Promise<ActionResult> {
 
     // Afeta a sidebar do admin E o header do cliente (dois layouts
     // diferentes) — invalidação ampla, igual `salvarBranding` acima.
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Cor de marca da empresa (`branding_config.primary_color` +
+ * `accent_color`). Ação separada de `salvarBranding` de propósito: o card de
+ * cor salva sozinho, com preview imediato, e não deve depender de o admin
+ * lembrar de clicar em "Salvar Alterações" lá embaixo no fim do formulário.
+ *
+ * Estas duas colunas existiam desde o começo mas ficaram um tempo sem
+ * leitura nenhuma no código, quando a paleta virou fixa em preto/branco.
+ * Voltaram agora escopadas por empresa (ver `supabase/branding-por-empresa.sql`
+ * e `BrandingAccentStyle`) — é a cor de cada agência assinante, não uma
+ * configuração global como era antes.
+ */
+export async function salvarCoresMarca(primaryColor: string, accentColor: string): Promise<ActionResult> {
+  try {
+    const { supabase, companyId } = await requireAdmin();
+
+    if (!ehHexValido(primaryColor) || !ehHexValido(accentColor)) {
+      return { ok: false, error: "Cor inválida — use um valor em hexadecimal, como #4F7CFF." };
+    }
+
+    const { error } = await supabase
+      .from("branding_config")
+      .update({ primary_color: normalizarHex(primaryColor), accent_color: normalizarHex(accentColor) })
+      .eq("company_id", companyId);
+
+    if (error) return { ok: false, error: error.message };
+
+    // A cor entra via `<style>` renderizado nos layouts do admin e do portal
+    // do cliente — invalidação ampla, igual `salvarBranding`.
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (err) {

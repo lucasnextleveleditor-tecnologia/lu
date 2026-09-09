@@ -20,6 +20,7 @@ export const nav: NavDict = {
   trafegoMetas: "Traffic & Goals",
   inventarioPatrimonio: "Inventory & Assets",
   aparencia: "Appearance",
+  configuracoes: "Settings",
   expandirMenu: "Expand menu",
   recolherMenu: "Collapse menu",
 };

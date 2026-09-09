@@ -4,6 +4,7 @@ import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { BrandingAccentStyle } from "@/components/branding/BrandingAccentStyle";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   // Segunda camada de proteção (a primeira é o middleware): mesmo que
@@ -47,17 +48,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       : null;
 
   return (
-    <AdminShell
-      logoUrl={branding.logo_dark_url ?? branding.logo_url}
-      nomeApp={nomeApp}
-      nome={profile.full_name ?? ""}
-      email={profile.email}
-      colapsadoPadrao={branding.sidebar_compacto_padrao}
-      papel={profile.role}
-      permissoes={profile.permissoes ?? {}}
-      banner={banner}
-    >
-      {children}
-    </AdminShell>
+    <>
+      {/* Cor de marca da empresa por cima da paleta padrão — só aqui dentro
+          (área logada), nunca no login, que é anterior a saber de qual
+          empresa é o visitante. */}
+      <BrandingAccentStyle primaryColor={branding.primary_color} accentColor={branding.accent_color} />
+      <AdminShell
+        logoUrl={branding.logo_dark_url ?? branding.logo_url}
+        nomeApp={nomeApp}
+        nome={profile.full_name ?? ""}
+        email={profile.email}
+        colapsadoPadrao={branding.sidebar_compacto_padrao}
+        papel={profile.role}
+        permissoes={profile.permissoes ?? {}}
+        banner={banner}
+      >
+        {children}
+      </AdminShell>
+    </>
   );
 }

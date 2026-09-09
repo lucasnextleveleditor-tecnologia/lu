@@ -1,0 +1,190 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
+import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
+import { getNomeApp } from "@/lib/branding/getNomeApp";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import type { ProfileRow } from "@/lib/types/database";
+import type { CargoRow, DepartamentoRow, EquipeMembroRow } from "@/lib/types/cadastros";
+import { AparenciaForm } from "@/components/admin/aparencia/AparenciaForm";
+import { EquipeManager } from "@/components/admin/cadastros/EquipeManager";
+import { ConfiguracoesTabs, type AbaConfiguracoes, type ItemAbaConfiguracoes } from "@/components/admin/configuracoes/ConfiguracoesTabs";
+import { CorDaMarcaCard } from "@/components/admin/configuracoes/CorDaMarcaCard";
+import { EmpresaCard } from "@/components/admin/configuracoes/EmpresaCard";
+import { MinhaContaForm } from "@/components/admin/configuracoes/MinhaContaForm";
+import { AssinaturaCard } from "@/components/admin/configuracoes/AssinaturaCard";
+import { IconBuilding, IconUsers, IconPalette, IconCreditCard } from "@/components/ui/icons";
+
+export const dynamic = "force-dynamic";
+
+const ABAS_VALIDAS: AbaConfiguracoes[] = ["empresa", "conta", "aparencia", "assinatura"];
+/** Única aba que um funcionário pode ver — as outras três são de admin. */
+const ABA_PADRAO_FUNCIONARIO: AbaConfiguracoes = "conta";
+
+function ehAbaValida(valor: string | undefined): valor is AbaConfiguracoes {
+  return !!valor && (ABAS_VALIDAS as string[]).includes(valor);
+}
+
+/**
+ * Tela única de Configurações — a "engrenagem" no rodapé do menu lateral.
+ * Reúne quatro assuntos que antes moravam em lugares diferentes:
+ *
+ * - **Empresa & Equipe** — veio de dentro de `/admin` (a aba Equipe do módulo
+ *   Cadastros). Decidir quem tem acesso a quê é configuração da conta, não
+ *   cadastro operacional, e ficava escondido atrás da permissão "clientes",
+ *   que não tem relação nenhuma com o assunto.
+ * - **Minha Conta** — nova. Até aqui só existia troca FORÇADA de senha no
+ *   primeiro login (`/definir-senha`); não havia como trocar por vontade
+ *   própria depois.
+ * - **Aparência** — veio de `/admin/aparencia`, que agora só redireciona.
+ * - **Assinatura** — nova, somente leitura (ver `AssinaturaCard`).
+ *
+ * A aba fica na URL (`?aba=`), mesma mecânica do hub Comercial: sobrevive a
+ * F5 e pode ser mandada por link. A busca de dados é feita AQUI, condicionada
+ * à aba escolhida — em vez de um componente assíncrono por aba — pra que
+ * abrir "Minha Conta" não dispare as consultas de equipe, e vice-versa.
+ *
+ * Autorização segue a regra que já existia: três das quatro abas são de
+ * admin (o guard de servidor `requireAdmin` já protegia Aparência e Equipe
+ * antes), então um funcionário que forçar `?aba=aparencia` na barra de
+ * endereço é devolvido pra "Minha Conta" em vez de ver tela de erro. As
+ * Server Actions por trás de cada aba continuam com os próprios guards —
+ * isto aqui decide só o que MOSTRAR.
+ */
+export default async function ConfiguracoesPage({ searchParams }: { searchParams: Promise<{ aba?: string }> }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const perfil = await buscarPerfilComPermissoes(supabase, user.id);
+  if (!perfil) redirect("/login");
+  if (perfil.role !== "admin" && perfil.role !== "funcionario") redirect("/dashboard");
+
+  const souAdmin = perfil.role === "admin";
+  const { locale, dict } = await getDictionary();
+  const t = dict.configuracoes;
+
+  const { aba: abaParam } = await searchParams;
+  const abaPedida: AbaConfiguracoes = ehAbaValida(abaParam) ? abaParam : souAdmin ? "empresa" : ABA_PADRAO_FUNCIONARIO;
+  const aba: AbaConfiguracoes = souAdmin ? abaPedida : ABA_PADRAO_FUNCIONARIO;
+
+  const abas: ItemAbaConfiguracoes[] = souAdmin
+    ? [
+        { value: "empresa", label: t.abaEmpresa, icon: IconBuilding },
+        { value: "conta", label: t.abaConta, icon: IconUsers },
+        { value: "aparencia", label: t.abaAparencia, icon: IconPalette },
+        { value: "assinatura", label: t.abaAssinatura, icon: IconCreditCard },
+      ]
+    : [{ value: "conta", label: t.abaConta, icon: IconUsers }];
+
+  // --------------------------------------------------------------------------
+  // Empresa & Equipe — mesmas consultas que `app/admin/page.tsx` fazia pra
+  // montar a aba Equipe. `profiles` entra junto só pra resolver o status de
+  // acesso (Ativo/Expirado/Inativo) de cada membro; o RLS
+  // `profiles_select_admin` já limita isso à própria empresa.
+  // --------------------------------------------------------------------------
+  let conteudoEmpresa: React.ReactNode = null;
+  if (aba === "empresa") {
+    const [nomeApp, equipeRes, profilesRes, departamentosRes, cargosRes] = await Promise.all([
+      getNomeApp(),
+      supabase.from("equipe_membros").select("*").order("nome").overrideTypes<EquipeMembroRow[], { merge: false }>(),
+      supabase.from("profiles").select("*").overrideTypes<ProfileRow[], { merge: false }>(),
+      supabase.from("departamentos").select("*").order("ordem").overrideTypes<DepartamentoRow[], { merge: false }>(),
+      supabase.from("cargos").select("*").order("ordem").overrideTypes<CargoRow[], { merge: false }>(),
+    ]);
+
+    const equipeMembros = equipeRes.data ?? [];
+    const profiles = profilesRes.data ?? [];
+
+    conteudoEmpresa = (
+      <div className="space-y-5">
+        <EmpresaCard nomeApp={nomeApp} membrosComAcesso={equipeMembros.filter((m) => m.profile_id).length} dict={t} />
+        <EquipeManager
+          equipeMembros={equipeMembros}
+          profilesPorId={Object.fromEntries(profiles.map((p) => [p.id, p]))}
+          departamentos={departamentosRes.data ?? []}
+          cargos={cargosRes.data ?? []}
+        />
+      </div>
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // Minha Conta — o telefone mora no cadastro de RH, não no perfil de acesso.
+  // Quem não tem registro vinculado (`profile_id`) recebe `null` e o campo
+  // some da tela, em vez de aparecer um input que nunca salvaria nada.
+  // --------------------------------------------------------------------------
+  let conteudoConta: React.ReactNode = null;
+  if (aba === "conta") {
+    const { data: membro } = await supabase
+      .from("equipe_membros")
+      .select("telefone")
+      .eq("profile_id", user.id)
+      .maybeSingle<{ telefone: string | null }>();
+
+    conteudoConta = (
+      <MinhaContaForm
+        nomeInicial={perfil.full_name ?? ""}
+        email={perfil.email}
+        telefoneInicial={membro ? (membro.telefone ?? "") : null}
+      />
+    );
+  }
+
+  let conteudoAparencia: React.ReactNode = null;
+  if (aba === "aparencia") {
+    const [branding, nomeApp] = await Promise.all([getBrandingConfig(), getNomeApp()]);
+    conteudoAparencia = (
+      <div className="space-y-5">
+        {/* Cor primeiro: é a decisão que muda mais coisa de uma vez e a
+            única com prévia imediata. Logo/favicon/login/banner vêm depois,
+            no formulário grande que já existia. */}
+        <CorDaMarcaCard corInicial={branding.primary_color} accent2Inicial={branding.accent_color} />
+        <AparenciaForm initialBranding={branding} initialNomeApp={nomeApp} />
+      </div>
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // Assinatura — RLS (`companies_select_own`) já restringe a UMA linha, a
+  // própria empresa de quem chama, então não precisa filtrar por id aqui.
+  // --------------------------------------------------------------------------
+  let conteudoAssinatura: React.ReactNode = null;
+  if (aba === "assinatura") {
+    const { data: empresa } = await supabase
+      .from("companies")
+      .select("nome, nome_app, status, expires_at")
+      .maybeSingle<{ nome: string; nome_app: string | null; status: string; expires_at: string | null }>();
+
+    conteudoAssinatura = (
+      <AssinaturaCard
+        nomeEmpresa={empresa?.nome_app?.trim() || empresa?.nome || "—"}
+        status={empresa?.status ?? "ativo"}
+        expiraEm={empresa?.expires_at ?? null}
+        checkoutUrl={process.env.NEXT_PUBLIC_CHECKOUT_URL?.trim() || null}
+        dict={t}
+        locale={locale}
+      />
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-5">
+        <h1 className="text-lg font-semibold tracking-tight">{t.tituloPagina}</h1>
+        <p className="mt-0.5 text-sm text-ink-muted">{t.subtituloPagina}</p>
+      </div>
+
+      <div className="mb-6">
+        <ConfiguracoesTabs abas={abas} abaAtiva={aba} />
+      </div>
+
+      {conteudoEmpresa}
+      {conteudoConta}
+      {conteudoAparencia}
+      {conteudoAssinatura}
+    </div>
+  );
+}
