@@ -325,6 +325,21 @@ export const orcamentos: OrcamentosDict = {
   logoClienteSlotLabel: "Logo {n}",
   logosTamanhoLabel: "Logo size",
 
+  dadosJuridicosTitulo: "Company Legal Details",
+  dadosJuridicosSubtitulo: "Legal name, tax ID and address — shown in the proposal's legal footer and used to identify your company on generated contracts.",
+  razaoSocialLabel: "Legal / registered name",
+  placeholderRazaoSocial: "E.g.: Company Name LLC",
+  cpfCnpjEmpresaLabel: "Tax ID",
+  placeholderCpfCnpjEmpresa: "E.g.: 00-0000000",
+  enderecoEmpresaLabel: "Full address",
+  placeholderEnderecoEmpresa: "E.g.: 123 Example St — City, State, ZIP",
+
+  cpfAprovadorLabel: "Your Tax ID",
+  placeholderCpfAprovador: "000.000.000-00",
+  cpfAprovadorHint: "Only used to prepare the contract afterward — it isn't shown anywhere else.",
+  erroCpfObrigatorio: "Enter your Tax ID to confirm the approval.",
+  erroCpfInvalido: "That Tax ID doesn't look valid — double-check the numbers.",
+
   previewExemploAviso: "A preview of how your proposal will look — fill in the fields on the left to swap in your real content.",
   previewExemploTag: "example",
   placeholderEmailDestinatario: "client@company.com",

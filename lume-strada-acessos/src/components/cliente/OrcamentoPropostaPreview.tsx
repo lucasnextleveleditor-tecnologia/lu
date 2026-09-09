@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { DadosInstitucionaisOrcamento, PortfolioItemComUrl } from "@/lib/types/orcamentos";
 import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
 import { buildPropostaAccentVars } from "@/lib/utils/color";
@@ -173,7 +174,30 @@ export function OrcamentoPropostaPreview({
   const textoEncerramentoExibido = institucional.textoEncerramento || (textoEncerramentoExemplo ? exemplo.textoEncerramento : null);
   const temEncerramento = !!textoEncerramentoExibido;
 
-  const qrCodeUrl = linkPublico ? `https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=8&data=${encodeURIComponent(linkPublico)}` : null;
+  // QR Code gerado 100% no navegador (biblioteca `qrcode`, sem chamada de
+  // rede pra serviço externo) — de propósito: uma imagem de terceiro
+  // (ex: api.qrserver.com) deixa o canvas do html2canvas "contaminado" por
+  // CORS e QUEBRA o botão "Baixar PDF" inteiro, não só o QR. Gerando local
+  // (data: URI), o PDF sempre funciona, mesmo offline.
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!linkPublico) {
+      setQrDataUrl(null);
+      return;
+    }
+    let cancelado = false;
+    import("qrcode")
+      .then(({ default: QRCode }) => QRCode.toDataURL(linkPublico, { width: 240, margin: 1 }))
+      .then((url) => {
+        if (!cancelado) setQrDataUrl(url);
+      })
+      .catch(() => {
+        if (!cancelado) setQrDataUrl(null);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [linkPublico]);
 
   const accentVars = buildPropostaAccentVars(corDestaque);
 
@@ -530,10 +554,10 @@ export function OrcamentoPropostaPreview({
             )}
 
             {/* QR Code — recurso próprio, sem equivalente no concorrente: em quem vê a proposta pessoalmente (numa reunião, numa tela compartilhada), basta apontar a câmera pra continuar do próprio celular, já na tela de aprovação. Só existe depois da proposta ter um link público de verdade — nunca no rascunho/preview do construtor. */}
-            {qrCodeUrl && (
-              <div className="mx-auto mt-5 flex max-w-[200px] flex-col items-center gap-2 border-t border-base-800 pt-4 print:hidden">
+            {qrDataUrl && (
+              <div className="mx-auto mt-5 flex max-w-[200px] flex-col items-center gap-2 border-t border-base-800 pt-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={qrCodeUrl} alt={dict.orcamentos.qrCompartilharTitulo} className="h-28 w-28 rounded-lg border border-base-700 bg-white p-1.5" />
+                <img src={qrDataUrl} alt={dict.orcamentos.qrCompartilharTitulo} className="h-28 w-28 rounded-lg border border-base-700 bg-white p-1.5" />
                 <p className="flex items-center gap-1 text-[11px] font-semibold text-ink-secondary">
                   <IconQrCode className="h-3.5 w-3.5 text-accent" />
                   {dict.orcamentos.qrCompartilharTitulo}

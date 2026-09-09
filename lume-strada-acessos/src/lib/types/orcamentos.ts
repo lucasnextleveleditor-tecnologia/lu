@@ -77,6 +77,8 @@ export interface OrcamentoRow {
   visualizacoes_count: number;
   aprovado_em: string | null;
   aprovado_por_nome: string | null;
+  /** CPF de quem aprovou, só dígitos (11) — coletado no próprio momento da aprovação, pra já vir pronto na hora de gerar o contrato. A assinatura desenhada na tela fica pra uma etapa futura. */
+  aprovado_por_cpf: string | null;
   recusado_em: string | null;
   motivo_recusa: string | null;
   criado_por: string | null;

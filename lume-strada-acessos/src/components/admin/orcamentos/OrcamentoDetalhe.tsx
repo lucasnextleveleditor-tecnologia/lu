@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { OrcamentoComRelacoes, StatusOrcamento, PortfolioItemComUrl } from "@/lib/types/orcamentos";
 import { STATUS_ORCAMENTO_TONE, urlPublicaOrcamento } from "@/lib/utils/orcamentos";
 import { duplicarOrcamento, enviarOrcamento, marcarStatusManual, removerOrcamento } from "@/app/admin/orcamentos/actions";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtBRL, fmtDataCurta, fmtCpfCnpj } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -283,9 +283,16 @@ export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
           )}
 
           {orcamento.aprovado_em && orcamento.aprovado_por_nome && (
-            <p className="mt-4 text-xs text-status-good">
-              {dict.orcamentos.aprovadoAvisoDescricao.replace("{nome}", orcamento.aprovado_por_nome).replace("{data}", fmtDataCurta(orcamento.aprovado_em.slice(0, 10)))}
-            </p>
+            <div className="mt-4 rounded-lg border border-status-good/30 bg-status-good/5 p-3">
+              <p className="text-xs text-status-good">
+                {dict.orcamentos.aprovadoAvisoDescricao.replace("{nome}", orcamento.aprovado_por_nome).replace("{data}", fmtDataCurta(orcamento.aprovado_em.slice(0, 10)))}
+              </p>
+              {orcamento.aprovado_por_cpf && (
+                <p className="mt-1 text-xs text-ink-muted">
+                  {dict.orcamentos.cpfAprovadorLabel}: <span className="font-medium text-ink-secondary">{fmtCpfCnpj(orcamento.aprovado_por_cpf)}</span>
+                </p>
+              )}
+            </div>
           )}
           {orcamento.recusado_em && (
             <p className="mt-4 text-xs text-danger">

@@ -33,6 +33,9 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
   const { dict } = useLocale();
   const jaConfigurada = !!(institucional.logoUrl || institucional.bannerUrl || institucional.rodapeUrl || institucional.textoInstitucional);
   const [aberto, setAberto] = useState(!jaConfigurada);
+  const [razaoSocial, setRazaoSocial] = useState(institucional.nomeLegal ?? "");
+  const [cpfCnpjEmpresa, setCpfCnpjEmpresa] = useState(institucional.cpfCnpj ?? "");
+  const [enderecoEmpresa, setEnderecoEmpresa] = useState(institucional.endereco ?? "");
   const [textoInstitucional, setTextoInstitucional] = useState(institucional.textoInstitucional ?? "");
   const [clientesAtendidos, setClientesAtendidos] = useState(institucional.clientesAtendidos.join("\n"));
   const [textoEncerramento, setTextoEncerramento] = useState(institucional.textoEncerramento ?? "");
@@ -47,7 +50,17 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
     setError(null);
     setSalvo(false);
     startTransition(async () => {
-      const result = await salvarInstitucionalOrcamento({ textoInstitucional, clientesAtendidos, textoEncerramento, emailComercial, siteComercial, logosTamanho });
+      const result = await salvarInstitucionalOrcamento({
+        textoInstitucional,
+        clientesAtendidos,
+        textoEncerramento,
+        emailComercial,
+        siteComercial,
+        logosTamanho,
+        razaoSocial,
+        cpfCnpj: cpfCnpjEmpresa,
+        enderecoEmpresa,
+      });
       if (!result.ok) {
         setError(result.error);
         return;
@@ -62,6 +75,9 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
         emailComercial: emailComercial.trim() || null,
         siteComercial: siteComercial.trim() || null,
         logosTamanhoPx: logosTamanho,
+        nomeLegal: razaoSocial.trim() || institucional.nomeLegal,
+        cpfCnpj: cpfCnpjEmpresa.trim() || null,
+        endereco: enderecoEmpresa.trim() || null,
       });
       setSalvo(true);
       setTimeout(() => setSalvo(false), 2000);
@@ -132,6 +148,27 @@ export function MarcaApresentacaoCard({ institucional, onChange }: MarcaApresent
                 onChange={(url) => onChange({ rodapeUrl: url })}
                 formato="wide"
               />
+            </div>
+          </div>
+
+          <div className="border-t border-base-800 pt-4">
+            <h3 className="text-sm font-semibold text-ink-primary">{dict.orcamentos.dadosJuridicosTitulo}</h3>
+            <p className="mt-0.5 text-xs text-ink-muted">{dict.orcamentos.dadosJuridicosSubtitulo}</p>
+            <div className="mt-3 space-y-3">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.razaoSocialLabel}</label>
+                <Input value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)} placeholder={dict.orcamentos.placeholderRazaoSocial} />
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.cpfCnpjEmpresaLabel}</label>
+                  <Input value={cpfCnpjEmpresa} onChange={(e) => setCpfCnpjEmpresa(e.target.value)} placeholder={dict.orcamentos.placeholderCpfCnpjEmpresa} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.enderecoEmpresaLabel}</label>
+                  <Input value={enderecoEmpresa} onChange={(e) => setEnderecoEmpresa(e.target.value)} placeholder={dict.orcamentos.placeholderEnderecoEmpresa} />
+                </div>
+              </div>
             </div>
           </div>
 

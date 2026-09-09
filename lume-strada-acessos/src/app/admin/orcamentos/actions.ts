@@ -6,6 +6,13 @@ import { addDaysISO, todayISO } from "@/lib/utils/format";
 import type { DescontoTipo, PerfilOrcamento, UnidadeServico } from "@/lib/types/orcamentos";
 
 const PATH = "/admin/orcamentos";
+// `/admin/orcamentos` é só uma rota-redirect (ver `page.tsx`) — quem realmente
+// renderiza a lista/funil de propostas que a pessoa vê no dia a dia é a aba
+// "Propostas" do hub unificado, em `/admin/comercial`. Sem revalidar esse
+// caminho também, o cache de navegação do Next podia continuar mostrando a
+// versão de ANTES da edição até um F5 manual — por isso toda ação que muda
+// um orçamento revalida os dois.
+const PATH_HUB = "/admin/comercial";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
@@ -320,6 +327,7 @@ export async function criarOrcamentoCompleto(
     if (!resultV2.ok) return resultV2;
 
     revalidatePath(PATH);
+    revalidatePath(PATH_HUB);
     return { ok: true, id: orcamento.id };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -381,6 +389,7 @@ export async function atualizarOrcamentoCompleto(
 
     revalidatePath(PATH);
     revalidatePath(`${PATH}/${id}`);
+    revalidatePath(PATH_HUB);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -394,6 +403,7 @@ export async function removerOrcamento(id: string): Promise<ActionResult> {
     if (error) return { ok: false, error: error.message };
 
     revalidatePath(PATH);
+    revalidatePath(PATH_HUB);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -472,6 +482,7 @@ export async function duplicarOrcamento(id: string): Promise<ActionResultId> {
     }
 
     revalidatePath(PATH);
+    revalidatePath(PATH_HUB);
     return { ok: true, id: copia.id };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -495,6 +506,7 @@ export async function enviarOrcamento(id: string): Promise<ActionResult> {
 
     revalidatePath(PATH);
     revalidatePath(`${PATH}/${id}`);
+    revalidatePath(PATH_HUB);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -515,6 +527,7 @@ export async function marcarStatusManual(id: string, status: "rascunho" | "aprov
 
     revalidatePath(PATH);
     revalidatePath(`${PATH}/${id}`);
+    revalidatePath(PATH_HUB);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

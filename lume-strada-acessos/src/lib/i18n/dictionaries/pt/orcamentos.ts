@@ -352,6 +352,27 @@ export interface OrcamentosDict {
   logoClienteSlotLabel: string;
   logosTamanhoLabel: string;
 
+  // Dados jurídicos da empresa (razão social/CPF-CNPJ/endereço) — até aqui só
+  // editáveis pelo super-admin; expostos aqui porque alimentam o rodapé
+  // jurídico da proposta/PDF e a identificação da CONTRATADA nos contratos.
+  dadosJuridicosTitulo: string;
+  dadosJuridicosSubtitulo: string;
+  razaoSocialLabel: string;
+  placeholderRazaoSocial: string;
+  cpfCnpjEmpresaLabel: string;
+  placeholderCpfCnpjEmpresa: string;
+  enderecoEmpresaLabel: string;
+  placeholderEnderecoEmpresa: string;
+
+  // Aprovação pública — nome + CPF de quem aprova, coletados na hora, pra já
+  // vir pronto no momento de gerar o contrato (a assinatura desenhada na
+  // tela fica pra uma etapa futura).
+  cpfAprovadorLabel: string;
+  placeholderCpfAprovador: string;
+  cpfAprovadorHint: string;
+  erroCpfObrigatorio: string;
+  erroCpfInvalido: string;
+
   // Preview "sempre completo" do construtor (Proposta Comercial Web v2.1) —
   // com os campos reais vazios, mostra conteúdo de exemplo em vez de
   // esconder a seção, pra dar uma ideia real do resultado final enquanto a
@@ -710,6 +731,21 @@ export const orcamentos: OrcamentosDict = {
   logosClientesSubtitulo: "Até 6 logos de marcas/clientes já atendidos — exibidos junto do \"Quem Somos\" na proposta.",
   logoClienteSlotLabel: "Logo {n}",
   logosTamanhoLabel: "Tamanho dos logos",
+
+  dadosJuridicosTitulo: "Dados Jurídicos da Empresa",
+  dadosJuridicosSubtitulo: "Razão social, CNPJ/CPF e endereço — aparecem no rodapé jurídico da proposta e identificam sua empresa nos contratos gerados.",
+  razaoSocialLabel: "Razão social / Nome legal",
+  placeholderRazaoSocial: "Ex: Nome Ltda.",
+  cpfCnpjEmpresaLabel: "CNPJ ou CPF",
+  placeholderCpfCnpjEmpresa: "Ex: 00.000.000/0001-00",
+  enderecoEmpresaLabel: "Endereço completo",
+  placeholderEnderecoEmpresa: "Ex: Rua Exemplo, 123 — Bairro, Cidade/UF, 00000-000",
+
+  cpfAprovadorLabel: "Seu CPF",
+  placeholderCpfAprovador: "000.000.000-00",
+  cpfAprovadorHint: "Usado só pra já preparar o contrato depois — não aparece em nenhum outro lugar.",
+  erroCpfObrigatorio: "Informe seu CPF pra confirmar a aprovação.",
+  erroCpfInvalido: "Esse CPF não parece válido — confira os números.",
 
   previewExemploAviso: "Exemplo de como sua proposta vai ficar — preencha os campos ao lado pra trocar pelo conteúdo real.",
   previewExemploTag: "exemplo",

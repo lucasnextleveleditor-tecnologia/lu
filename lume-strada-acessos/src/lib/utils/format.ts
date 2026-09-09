@@ -55,3 +55,15 @@ export function fmtMoedaEstrangeira(valor: number, moeda: "USD" | "EUR"): string
 export function fmtPercent(valor: number): string {
   return `${Math.round(valor * 100)}%`;
 }
+
+/** Aplica a máscara de CPF (11 dígitos) ou CNPJ (14 dígitos) pra exibição — se não bater nenhum dos dois tamanhos, devolve os dígitos como vieram (nunca quebra a tela por causa de um dado antigo/inválido). */
+export function fmtCpfCnpj(valor: string): string {
+  const digitos = valor.replace(/\D/g, "");
+  if (digitos.length === 11) {
+    return digitos.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  }
+  if (digitos.length === 14) {
+    return digitos.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+  }
+  return valor;
+}

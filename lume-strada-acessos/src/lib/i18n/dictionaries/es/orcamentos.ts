@@ -325,6 +325,21 @@ export const orcamentos: OrcamentosDict = {
   logoClienteSlotLabel: "Logo {n}",
   logosTamanhoLabel: "Tamaño de los logos",
 
+  dadosJuridicosTitulo: "Datos Jurídicos de la Empresa",
+  dadosJuridicosSubtitulo: "Razón social, CUIT/CPF y dirección — aparecen en el pie legal de la propuesta e identifican tu empresa en los contratos generados.",
+  razaoSocialLabel: "Razón social / Nombre legal",
+  placeholderRazaoSocial: "Ej: Nombre S.A.",
+  cpfCnpjEmpresaLabel: "CUIT / CPF",
+  placeholderCpfCnpjEmpresa: "Ej: 00.000.000/0001-00",
+  enderecoEmpresaLabel: "Dirección completa",
+  placeholderEnderecoEmpresa: "Ej: Calle Ejemplo 123 — Ciudad, Provincia, CP",
+
+  cpfAprovadorLabel: "Tu CPF",
+  placeholderCpfAprovador: "000.000.000-00",
+  cpfAprovadorHint: "Se usa solo para preparar el contrato después — no aparece en ningún otro lugar.",
+  erroCpfObrigatorio: "Ingresa tu CPF para confirmar la aprobación.",
+  erroCpfInvalido: "Ese CPF no parece válido — revisa los números.",
+
   previewExemploAviso: "Ejemplo de cómo quedará tu propuesta — completa los campos a la izquierda para reemplazarlo con tu contenido real.",
   previewExemploTag: "ejemplo",
   placeholderEmailDestinatario: "cliente@empresa.com",

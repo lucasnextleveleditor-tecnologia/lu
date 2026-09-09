@@ -222,24 +222,33 @@ export async function salvarInstitucionalOrcamento(input: {
   emailComercial?: string;
   siteComercial?: string;
   logosTamanho?: number;
+  /** Razão social/nome legal (`companies.nome`) — até aqui só dava pra editar pelo painel de super-admin; exposto aqui também porque é o mesmo nome usado no rodapé jurídico da proposta e nos contratos, e quem usa o dia a dia não deveria depender de suporte pra corrigir um typo. */
+  razaoSocial?: string;
+  cpfCnpj?: string;
+  enderecoEmpresa?: string;
 }): Promise<ActionResult> {
   try {
     const { companyId } = await requireAdmin();
     const admin = createAdminClient();
-    const { error } = await admin
-      .from("companies")
-      .update({
-        orc_texto_institucional: input.textoInstitucional.trim() || null,
-        orc_clientes_atendidos: input.clientesAtendidos.trim() || null,
-        orc_texto_encerramento: input.textoEncerramento.trim() || null,
-        orc_email_comercial: input.emailComercial?.trim() || null,
-        orc_site_comercial: input.siteComercial?.trim() || null,
-        orc_logos_tamanho_px: input.logosTamanho && input.logosTamanho > 0 ? Math.round(input.logosTamanho) : 60,
-      })
-      .eq("id", companyId);
+    const patch: Record<string, unknown> = {
+      orc_texto_institucional: input.textoInstitucional.trim() || null,
+      orc_clientes_atendidos: input.clientesAtendidos.trim() || null,
+      orc_texto_encerramento: input.textoEncerramento.trim() || null,
+      orc_email_comercial: input.emailComercial?.trim() || null,
+      orc_site_comercial: input.siteComercial?.trim() || null,
+      orc_logos_tamanho_px: input.logosTamanho && input.logosTamanho > 0 ? Math.round(input.logosTamanho) : 60,
+      cpf_cnpj: input.cpfCnpj?.trim() || null,
+      endereco: input.enderecoEmpresa?.trim() || null,
+    };
+    // `nome` só entra no update quando preenchido — evita zerar por engano o
+    // nome que já existe (usado em outras telas) só porque este form também
+    // grava nesse mesmo campo.
+    if (input.razaoSocial?.trim()) patch.nome = input.razaoSocial.trim();
+    const { error } = await admin.from("companies").update(patch).eq("id", companyId);
     if (error) return { ok: false, error: error.message };
     revalidatePath(PATH);
     revalidatePath("/admin/orcamentos");
+    revalidatePath("/admin/comercial");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

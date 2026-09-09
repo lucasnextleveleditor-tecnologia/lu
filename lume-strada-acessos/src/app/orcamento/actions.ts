@@ -7,6 +7,15 @@ import type { OrcamentoRow } from "@/lib/types/orcamentos";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
+/** Hub administrativo onde a lista/kanban de propostas realmente vive — ver nota em `admin/orcamentos/actions.ts`. Uma aprovação/recusa feita pelo cliente também precisa acordar essa página na hora. */
+const PATH_HUB = "/admin/comercial";
+
+/** Só dígitos, 11 (CPF) ou 14 (CNPJ, pra empresa aprovando em nome de PJ) caracteres — validação simples, sem dígito verificador, só pra pegar erro de digitação grosseiro. */
+function cpfValido(valor: string): boolean {
+  const digitos = valor.replace(/\D/g, "");
+  return digitos.length === 11 || digitos.length === 14;
+}
+
 /**
  * Toda ação aqui é chamada SEM LOGIN, a partir da página pública
  * `/orcamento/[token]` — o token (não uma sessão) é a única credencial.
@@ -43,15 +52,19 @@ export async function alternarItemPublico(token: string, itemId: string, selecio
     if (error) return { ok: false, error: error.message };
 
     revalidatePath(`/orcamento/${token}`);
+    revalidatePath(PATH_HUB);
+    revalidatePath(`/admin/orcamentos/${orcamento.id}`);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
 }
 
-export async function aprovarOrcamentoPublico(token: string, nomeAprovador: string): Promise<ActionResult> {
+export async function aprovarOrcamentoPublico(token: string, nomeAprovador: string, cpfAprovador: string): Promise<ActionResult> {
   try {
     if (!nomeAprovador.trim()) return { ok: false, error: "Informe seu nome pra confirmar a aprovação." };
+    if (!cpfAprovador.trim()) return { ok: false, error: "Informe o CPF de quem está aprovando." };
+    if (!cpfValido(cpfAprovador)) return { ok: false, error: "CPF inválido. Confira os números e tente de novo." };
 
     const contexto = await buscarOrcamentoAtivoPorToken(token);
     if (!contexto.ok) return contexto;
@@ -59,11 +72,18 @@ export async function aprovarOrcamentoPublico(token: string, nomeAprovador: stri
 
     const { error } = await admin
       .from("orcamentos")
-      .update({ status: "aprovado", aprovado_em: new Date().toISOString(), aprovado_por_nome: nomeAprovador.trim() })
+      .update({
+        status: "aprovado",
+        aprovado_em: new Date().toISOString(),
+        aprovado_por_nome: nomeAprovador.trim(),
+        aprovado_por_cpf: cpfAprovador.replace(/\D/g, ""),
+      })
       .eq("id", orcamento.id);
     if (error) return { ok: false, error: error.message };
 
     revalidatePath(`/orcamento/${token}`);
+    revalidatePath(PATH_HUB);
+    revalidatePath(`/admin/orcamentos/${orcamento.id}`);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
@@ -83,6 +103,8 @@ export async function recusarOrcamentoPublico(token: string, motivo: string | nu
     if (error) return { ok: false, error: error.message };
 
     revalidatePath(`/orcamento/${token}`);
+    revalidatePath(PATH_HUB);
+    revalidatePath(`/admin/orcamentos/${orcamento.id}`);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

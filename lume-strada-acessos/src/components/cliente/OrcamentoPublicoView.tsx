@@ -46,6 +46,7 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
   const [dialogAprovar, setDialogAprovar] = useState(false);
   const [dialogRecusar, setDialogRecusar] = useState(false);
   const [nomeAprovador, setNomeAprovador] = useState("");
+  const [cpfAprovador, setCpfAprovador] = useState("");
   const [motivoRecusa, setMotivoRecusa] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [statusLocal, setStatusLocal] = useState<StatusOrcamento>(orcamento.statusExibicao);
@@ -90,9 +91,17 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
       setError(dict.orcamentos.placeholderSeuNome);
       return;
     }
+    if (!cpfAprovador.trim()) {
+      setError(dict.orcamentos.erroCpfObrigatorio);
+      return;
+    }
+    if (cpfAprovador.replace(/\D/g, "").length !== 11 && cpfAprovador.replace(/\D/g, "").length !== 14) {
+      setError(dict.orcamentos.erroCpfInvalido);
+      return;
+    }
     setEnviando(true);
     setError(null);
-    const result = await aprovarOrcamentoPublico(token, nomeAprovador);
+    const result = await aprovarOrcamentoPublico(token, nomeAprovador, cpfAprovador);
     setEnviando(false);
     if (!result.ok) {
       setError(result.error);
@@ -223,6 +232,9 @@ export function OrcamentoPublicoView({ orcamento, token }: { orcamento: Orcament
             <p className="mb-4 text-xs text-ink-muted">{dict.orcamentos.confirmarAprovacaoDescricao}</p>
             <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.seuNomeLabel}</label>
             <Input autoFocus value={nomeAprovador} onChange={(e) => setNomeAprovador(e.target.value)} placeholder={dict.orcamentos.placeholderSeuNome} />
+            <label className="mb-1.5 mt-3 block text-xs font-medium text-ink-secondary">{dict.orcamentos.cpfAprovadorLabel}</label>
+            <Input value={cpfAprovador} onChange={(e) => setCpfAprovador(e.target.value)} placeholder={dict.orcamentos.placeholderCpfAprovador} />
+            <p className="mt-1 text-[11px] text-ink-muted">{dict.orcamentos.cpfAprovadorHint}</p>
             {error && <p className="mt-2 text-xs text-danger">{error}</p>}
             <div className="mt-4 flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setDialogAprovar(false)}>
