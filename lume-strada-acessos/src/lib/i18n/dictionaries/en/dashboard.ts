@@ -12,6 +12,7 @@ export const dashboard: DashboardDict = {
   heroResultadoHint: "Money in minus money out, for the current month.",
   heroEntradas: "In",
   heroSaidas: "Out",
+  heroNoVermelho: "in the red",
   heroHojeLabel: "On today's schedule",
   heroHojeHint: "Shoots and deliveries booked for today.",
   atencaoTitulo: "Needs attention",

@@ -1,9 +1,9 @@
 import type { OrdemDoDiaDict } from "../pt/ordemDoDia";
 
 export const ordemDoDia: OrdemDoDiaDict = {
-  tituloPagina: "Orden del Día",
-  subtituloPagina: "La hoja que todos reciben la víspera: dónde es, a qué hora, quién estará.",
-  novaOrdem: "Nueva orden del día",
+  tituloPagina: "Orden de Externa",
+  subtituloPagina: "La hoja que todos reciben la víspera: dónde es, a qué hora, quién estará y qué se graba.",
+  novaOrdem: "Nueva orden de externa",
   novaAPartirDeCaptacao: "A partir de una agenda",
   semOrdensTitulo: "Todavía no hay órdenes del día",
   semOrdensDescricao: "Crea la primera para organizar horarios, lugares y personas de un día de trabajo.",
@@ -87,6 +87,29 @@ export const ordemDoDia: OrdemDoDiaDict = {
   adicionarDoCadastro: "Añadir del registro",
   equipeVazio: "Nadie confirmado todavía.",
   contagemPessoas: { um: "1 persona", muitos: "{n} personas" },
+
+  roteirosTitulo: "Guiones de grabación",
+  roteirosVazio: "Ningún guion — lista aquí cada video que se va a grabar y qué se dice en cada uno.",
+  adicionarRoteiro: "Añadir guion",
+  roteiroTitulo: "Tema del video",
+  roteiroTituloExemplo: "Video sobre los 3 errores que frenan al cliente",
+  roteiroFormato: "Formato",
+  roteiroFormatoExemplo: "Reels 30s",
+  roteiroFalas: "Diálogos",
+  roteiroFalasExemplo: "Apertura: \"Si tu cliente desaparece tras el presupuesto, el problema no es el precio.\"\nDesarrollo: los tres errores, uno a uno.\nCierre: llamada al link de la bio.",
+  contagemRoteiros: { um: "1 guion", muitos: "{n} guiones" },
+  formatosSugeridos: [
+    "Reels 30s",
+    "Reels 60s",
+    "Stories",
+    "YouTube",
+    "YouTube Shorts",
+    "TikTok",
+    "Testimonio",
+    "Institucional",
+    "Detrás de cámaras",
+    "Entrevista",
+  ],
 
   observacoesTitulo: "Qué más hay que saber",
   observacoesPlaceholder:

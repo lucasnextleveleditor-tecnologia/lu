@@ -1,9 +1,9 @@
 import type { OrdemDoDiaDict } from "../pt/ordemDoDia";
 
 export const ordemDoDia: OrdemDoDiaDict = {
-  tituloPagina: "Day Sheet",
-  subtituloPagina: "The sheet everyone gets the night before: where, what time, who's on it.",
-  novaOrdem: "New day sheet",
+  tituloPagina: "Location Day Sheet",
+  subtituloPagina: "The sheet everyone gets the night before: where, what time, who's on it and what gets shot.",
+  novaOrdem: "New location day sheet",
   novaAPartirDeCaptacao: "From a booking",
   semOrdensTitulo: "No day sheets yet",
   semOrdensDescricao: "Create the first one to lay out times, places and people for a working day.",
@@ -87,6 +87,29 @@ export const ordemDoDia: OrdemDoDiaDict = {
   adicionarDoCadastro: "Add from team",
   equipeVazio: "Nobody confirmed yet.",
   contagemPessoas: { um: "1 person", muitos: "{n} people" },
+
+  roteirosTitulo: "Shooting scripts",
+  roteirosVazio: "No scripts yet — list each video to be shot and what gets said in it.",
+  adicionarRoteiro: "Add script",
+  roteiroTitulo: "What the video is about",
+  roteiroTituloExemplo: "Video on the 3 mistakes that stall a client",
+  roteiroFormato: "Format",
+  roteiroFormatoExemplo: "Reels 30s",
+  roteiroFalas: "Lines",
+  roteiroFalasExemplo: "Open: \"If your client goes quiet after the quote, price isn't the problem.\"\nMiddle: the three mistakes, one at a time.\nClose: call to the link in bio.",
+  contagemRoteiros: { um: "1 script", muitos: "{n} scripts" },
+  formatosSugeridos: [
+    "Reels 30s",
+    "Reels 60s",
+    "Stories",
+    "YouTube",
+    "YouTube Shorts",
+    "TikTok",
+    "Testimonial",
+    "Brand film",
+    "Behind the scenes",
+    "Interview",
+  ],
 
   observacoesTitulo: "Anything else to know",
   observacoesPlaceholder:

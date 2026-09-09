@@ -12,6 +12,7 @@ export const dashboard: DashboardDict = {
   heroResultadoHint: "Entradas menos salidas, en el mes actual.",
   heroEntradas: "Entradas",
   heroSaidas: "Salidas",
+  heroNoVermelho: "en rojo",
   heroHojeLabel: "En la agenda de hoy",
   heroHojeHint: "Rodajes y entregas marcados para hoy.",
   atencaoTitulo: "Necesita atención",

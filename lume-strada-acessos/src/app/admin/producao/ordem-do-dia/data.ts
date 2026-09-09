@@ -1,6 +1,13 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { CronogramaRow, EquipeOrdemRow, LocacaoRow, OrdemDoDiaCompleta, OrdemDoDiaRow } from "@/lib/types/ordem-do-dia";
+import type {
+  CronogramaRow,
+  EquipeOrdemRow,
+  LocacaoRow,
+  OrdemDoDiaCompleta,
+  OrdemDoDiaRow,
+  RoteiroRow,
+} from "@/lib/types/ordem-do-dia";
 
 /**
  * Todas as ordens do dia da empresa, mais recentes primeiro. O RLS já limita
@@ -32,12 +39,13 @@ export async function buscarOrdemDoDia(id: string): Promise<OrdemDoDiaCompleta |
 
   if (!ordem) return null;
 
-  // As três listas são independentes entre si — buscar em paralelo em vez de
-  // uma depois da outra corta o tempo de abertura da folha pela metade.
-  const [locacoesRes, cronogramaRes, equipeRes] = await Promise.all([
+  // As quatro listas são independentes entre si — buscar em paralelo em vez
+  // de uma depois da outra corta o tempo de abertura da folha.
+  const [locacoesRes, cronogramaRes, equipeRes, roteirosRes] = await Promise.all([
     supabase.from("ordem_dia_locacoes").select("*").eq("ordem_id", id).order("ordem"),
     supabase.from("ordem_dia_cronograma").select("*").eq("ordem_id", id).order("ordem"),
     supabase.from("ordem_dia_equipe").select("*").eq("ordem_id", id).order("ordem"),
+    supabase.from("ordem_dia_roteiros").select("*").eq("ordem_id", id).order("ordem"),
   ]);
 
   const { clientes, ...semRelacao } = ordem;
@@ -47,6 +55,7 @@ export async function buscarOrdemDoDia(id: string): Promise<OrdemDoDiaCompleta |
     locacoes: (locacoesRes.data ?? []) as LocacaoRow[],
     cronograma: (cronogramaRes.data ?? []) as CronogramaRow[],
     equipe: (equipeRes.data ?? []) as EquipeOrdemRow[],
+    roteiros: (roteirosRes.data ?? []) as RoteiroRow[],
     clienteNome: clientes?.nome ?? null,
   };
 }

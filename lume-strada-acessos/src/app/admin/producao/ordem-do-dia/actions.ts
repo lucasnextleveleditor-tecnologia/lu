@@ -126,12 +126,13 @@ export async function excluirOrdemDoDia(id: string): Promise<ActionResult> {
 // chave fixa, senão bastaria mandar "profiles" no lugar e escrever onde não
 // devia.
 
-type ListaOrdemDia = "locacoes" | "cronograma" | "equipe";
+type ListaOrdemDia = "locacoes" | "cronograma" | "equipe" | "roteiros";
 
 const TABELA: Record<ListaOrdemDia, string> = {
   locacoes: "ordem_dia_locacoes",
   cronograma: "ordem_dia_cronograma",
   equipe: "ordem_dia_equipe",
+  roteiros: "ordem_dia_roteiros",
 };
 
 /** Campos que cada lista aceita — mesma proteção: um campo fora desta lista é ignorado. */
@@ -139,6 +140,7 @@ const CAMPOS: Record<ListaOrdemDia, string[]> = {
   locacoes: ["nome", "endereco", "notas", "ordem"],
   cronograma: ["hora", "atividade", "local", "ordem"],
   equipe: ["membro_id", "funcao", "nome", "contato", "horario_chamada", "ordem"],
+  roteiros: ["titulo", "formato", "falas", "ordem"],
 };
 
 /**

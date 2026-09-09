@@ -21,6 +21,7 @@ export interface DashboardDict {
   heroResultadoHint: string;
   heroEntradas: string;
   heroSaidas: string;
+  heroNoVermelho: string;
   heroHojeLabel: string;
   heroHojeHint: string;
   /** Cartão que junta tudo que está atrasado ou vence hoje. */
@@ -108,6 +109,7 @@ export const dashboard: DashboardDict = {
   heroResultadoHint: "Entradas menos saídas, no mês corrente.",
   heroEntradas: "Entradas",
   heroSaidas: "Saídas",
+  heroNoVermelho: "no vermelho",
   heroHojeLabel: "Na agenda de hoje",
   heroHojeHint: "Captações e entregas marcadas para hoje.",
   atencaoTitulo: "Precisa de atenção",

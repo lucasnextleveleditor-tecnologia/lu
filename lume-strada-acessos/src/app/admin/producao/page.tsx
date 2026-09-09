@@ -108,7 +108,10 @@ export default async function ProducaoPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/admin/producao/ordem-do-dia"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-base-600 px-3 py-2 text-sm font-medium text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+            // Em destaque, na cor da marca: é o documento que se abre de
+            // manhã e se imprime na véspera. Como cinza-neutro ao lado do
+            // menu de exportar, passava por botão secundário e ninguém achava.
+            className="inline-flex items-center gap-1.5 rounded-lg bg-accent/[0.14] px-3 py-2 text-sm font-semibold text-accent ring-1 ring-inset ring-accent/30 transition hover:bg-accent/20 hover:ring-accent/50"
           >
             <IconClipboardList className="h-4 w-4" />
             {dict.ordemDoDia.tituloPagina}

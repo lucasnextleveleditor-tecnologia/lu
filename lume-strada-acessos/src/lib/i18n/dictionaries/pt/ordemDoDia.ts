@@ -102,6 +102,19 @@ export interface OrdemDoDiaDict {
   equipeVazio: string;
   contagemPessoas: FormaPlural;
 
+  // Roteiros de gravação
+  roteirosTitulo: string;
+  roteirosVazio: string;
+  adicionarRoteiro: string;
+  roteiroTitulo: string;
+  roteiroTituloExemplo: string;
+  roteiroFormato: string;
+  roteiroFormatoExemplo: string;
+  roteiroFalas: string;
+  roteiroFalasExemplo: string;
+  contagemRoteiros: FormaPlural;
+  formatosSugeridos: string[];
+
   observacoesTitulo: string;
   observacoesPlaceholder: string;
 
@@ -115,11 +128,11 @@ export interface OrdemDoDiaDict {
 }
 
 export const ordemDoDia: OrdemDoDiaDict = {
-  tituloPagina: "Ordem do Dia",
-  subtituloPagina: "A folha que todo mundo recebe na véspera: onde é, a que horas, quem vai estar.",
-  novaOrdem: "Nova ordem do dia",
+  tituloPagina: "Ordem de Externa",
+  subtituloPagina: "A folha que todo mundo recebe na véspera da externa: onde é, a que horas, quem vai estar e o que vai ser gravado.",
+  novaOrdem: "Nova ordem de externa",
   novaAPartirDeCaptacao: "A partir de um agendamento",
-  semOrdensTitulo: "Nenhuma ordem do dia ainda",
+  semOrdensTitulo: "Nenhuma ordem de externa ainda",
   semOrdensDescricao: "Crie a primeira para organizar horários, locais e pessoas de um dia de trabalho.",
   semProjeto: "Sem projeto",
   semData: "Sem data",
@@ -127,7 +140,7 @@ export const ordemDoDia: OrdemDoDiaDict = {
   de: "de",
   abrir: "Abrir",
   excluir: "Excluir",
-  confirmarExclusao: "Excluir esta ordem do dia?",
+  confirmarExclusao: "Excluir esta ordem de externa?",
 
   documento: "Ordem do Dia",
   projetoLabel: "Projeto",
@@ -201,6 +214,29 @@ export const ordemDoDia: OrdemDoDiaDict = {
   adicionarDoCadastro: "Adicionar do cadastro",
   equipeVazio: "Ninguém confirmado ainda.",
   contagemPessoas: { um: "1 pessoa", muitos: "{n} pessoas" },
+
+  roteirosTitulo: "Roteiros de gravação",
+  roteirosVazio: "Nenhum roteiro — liste aqui cada vídeo que vai ser gravado e o que se fala em cada um.",
+  adicionarRoteiro: "Adicionar roteiro",
+  roteiroTitulo: "Assunto do vídeo",
+  roteiroTituloExemplo: "Vídeo sobre os 3 erros que travam o cliente",
+  roteiroFormato: "Formato",
+  roteiroFormatoExemplo: "Reels 30s",
+  roteiroFalas: "Falas",
+  roteiroFalasExemplo: "Abertura: \"Se o seu cliente some depois do orçamento, o problema não é o preço.\"\nDesenvolvimento: os três erros, um por vez.\nFechamento: chamada para o link da bio.",
+  contagemRoteiros: { um: "1 roteiro", muitos: "{n} roteiros" },
+  formatosSugeridos: [
+    "Reels 30s",
+    "Reels 60s",
+    "Stories",
+    "YouTube",
+    "YouTube Shorts",
+    "TikTok",
+    "Depoimento",
+    "Institucional",
+    "Making of",
+    "Entrevista",
+  ],
 
   observacoesTitulo: "O que mais precisa saber",
   observacoesPlaceholder:

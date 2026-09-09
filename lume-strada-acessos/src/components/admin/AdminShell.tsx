@@ -21,6 +21,7 @@ import {
   IconSettings,
   IconWallet,
   IconColumns,
+  IconClipboardList,
   IconTarget,
   IconLayoutGrid,
   IconBarChart2,
@@ -96,7 +97,21 @@ const NAV_GRUPOS = [
     tituloKey: "grupoGestao",
     itens: [
       { href: "/admin/agenda", labelKey: "agenda", icon: IconCalendar, chave: "agenda" },
-      { href: "/admin/producao", labelKey: "producaoTarefas", icon: IconColumns, chave: "producao" },
+      {
+        href: "/admin/producao",
+        labelKey: "producaoTarefas",
+        icon: IconColumns,
+        chave: "producao",
+        // A Ordem de Externa é filha de Produção na URL, mas tem entrada
+        // própria logo abaixo — sem esta exclusão as duas ficariam acesas ao
+        // mesmo tempo, já que o destaque é por prefixo de rota.
+        naoAtivoEm: ["/admin/producao/ordem-do-dia"],
+      },
+      // Entrada própria, e não só um botão dentro de Produção: a folha do dia
+      // é o documento que se abre de manhã e se imprime na véspera — quem
+      // precisa dela não deveria ter de entrar no quadro de tarefas primeiro
+      // para achá-la.
+      { href: "/admin/producao/ordem-do-dia", labelKey: "ordemDeExterna", icon: IconClipboardList, chave: "producao" },
       { href: "/admin/trafego", labelKey: "trafegoMetas", icon: IconActivity, chave: "trafego" },
       { href: "/admin/inventario", labelKey: "inventarioPatrimonio", icon: IconBox, chave: "inventario" },
     ],
@@ -124,6 +139,8 @@ const NAV_GRUPOS = [
     adminOnly?: boolean;
     /** Quando presente, SUBSTITUI `chave` na checagem de visibilidade — aparece pra quem tem QUALQUER UMA dessas permissões (ver hub Comercial acima, que junta "comercial" e "orcamentos"). `chave` continua valendo só pra escolher a cor do destaque ativo (`MODULO_COR`). */
     chavesQualquer?: ReadonlyArray<string>;
+    /** Prefixos de rota que NÃO devem acender este item, mesmo casando com `href` — para sub-rotas que ganharam entrada própria no menu (ver Produção × Ordem de Externa). */
+    naoAtivoEm?: ReadonlyArray<string>;
     /** Prefixos de rota (além de `href`) que também contam como "esse item está ativo" — pra itens guarda-chuva cujas sub-rotas moraram fora do próprio hub (ex: `/admin/orcamentos/novo`, `/admin/contratos`). Default: só `href`. */
     matchPrefixes?: ReadonlyArray<string>;
   }>;
@@ -238,7 +255,12 @@ export function AdminShell({
               <div className="space-y-1">
                 {grupo.itens.map((item) => {
                   const prefixos: readonly string[] = "matchPrefixes" in item && item.matchPrefixes ? item.matchPrefixes : [item.href];
-                  const active = item.href === "/admin" ? pathname === "/admin" : prefixos.some((prefixo) => pathname?.startsWith(prefixo));
+                  const excluidos: readonly string[] = "naoAtivoEm" in item && item.naoAtivoEm ? item.naoAtivoEm : [];
+                  const active =
+                    item.href === "/admin"
+                      ? pathname === "/admin"
+                      : prefixos.some((prefixo) => pathname?.startsWith(prefixo)) &&
+                        !excluidos.some((prefixo) => pathname?.startsWith(prefixo));
                   const Icon = item.icon;
                   const label = dict.nav[item.labelKey];
                   // Cor de módulo só entra em jogo pro item ATIVO — os

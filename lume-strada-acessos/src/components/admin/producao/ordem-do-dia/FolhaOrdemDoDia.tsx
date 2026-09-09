@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import type { CronogramaRow, EquipeOrdemRow, LocacaoRow, OrdemDoDiaCompleta } from "@/lib/types/ordem-do-dia";
+import type { CronogramaRow, EquipeOrdemRow, LocacaoRow, OrdemDoDiaCompleta, RoteiroRow } from "@/lib/types/ordem-do-dia";
 import type { FormaPlural } from "@/lib/i18n/dictionaries/pt/ordemDoDia";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils/cn";
@@ -52,6 +52,8 @@ function porExtenso(iso: string | null, locale: string): string | null {
 function contar(n: number, forma: FormaPlural): string {
   return n === 1 ? forma.um : forma.muitos.replace("{n}", String(n));
 }
+
+type ListaDaFolha = "locacoes" | "cronograma" | "equipe" | "roteiros";
 
 /** "07:00:00" -> "07:00" — o banco devolve `time` com segundos que ninguém quer ver. */
 const semSegundos = (hora: string | null) => (hora ? hora.slice(0, 5) : "");
@@ -137,6 +139,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
   const [locacoes, setLocacoes] = useState<LocacaoRow[]>(dados.locacoes);
   const [cronograma, setCronograma] = useState<CronogramaRow[]>(dados.cronograma);
   const [equipe, setEquipe] = useState<EquipeOrdemRow[]>(dados.equipe);
+  const [roteiros, setRoteiros] = useState<RoteiroRow[]>(dados.roteiros);
   const [clima, setClima] = useState<ClimaSalvo | null>(
     ordem.clima_resumo
       ? {
@@ -191,7 +194,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
 
   /** Edita uma linha: aplica na tela e avisa o servidor. */
   function editarLinha<T extends { id: string }>(
-    lista: "locacoes" | "cronograma" | "equipe",
+    lista: ListaDaFolha,
     definir: React.Dispatch<React.SetStateAction<T[]>>,
     linhaId: string,
     valores: Record<string, unknown>
@@ -202,7 +205,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
 
   /** Acrescenta uma linha usando a que o banco devolveu (já com `id`). */
   async function novaLinha<T>(
-    lista: "locacoes" | "cronograma" | "equipe",
+    lista: ListaDaFolha,
     definir: React.Dispatch<React.SetStateAction<T[]>>,
     valores: Record<string, unknown> = {}
   ) {
@@ -218,7 +221,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
   }
 
   function apagarLinha<T extends { id: string }>(
-    lista: "locacoes" | "cronograma" | "equipe",
+    lista: ListaDaFolha,
     definir: React.Dispatch<React.SetStateAction<T[]>>,
     linhaId: string
   ) {
@@ -697,8 +700,82 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
               )}
             </BlocoFolha>
 
-            {/* --------------------- 04 · OBSERVAÇÕES --------------------- */}
-            <BlocoFolha numero="04" titulo={t.observacoesTitulo}>
+            {/* ------------------ 04 · ROTEIROS DE GRAVAÇÃO ---------------- */}
+            {/* O que vai ser gravado, e o que se fala. Numa diária de conteúdo
+                são seis vídeos diferentes num dia só — sem isto na folha,
+                essa lista vive num bloco de notas que ninguém mais acha. */}
+            <BlocoFolha
+              numero="04"
+              titulo={t.roteirosTitulo}
+              auxiliar={roteiros.length ? contar(roteiros.length, t.contagemRoteiros) : undefined}
+              acao={
+                <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={() => void novaLinha("roteiros", setRoteiros)}>
+                  <IconPlus className="h-3.5 w-3.5" /> {t.adicionarRoteiro}
+                </Button>
+              }
+            >
+              {roteiros.length === 0 ? (
+                <Vazio texto={t.roteirosVazio} />
+              ) : (
+                <ul className="space-y-6">
+                  {roteiros.map((roteiro, i) => (
+                    <li key={roteiro.id} className="break-inside-avoid">
+                      <div className="flex items-start gap-4">
+                        {/* V01, V02… — na hora de gravar, "vamos pro V03" é
+                            mais rápido do que ler o título inteiro em voz alta. */}
+                        <span className="mt-0.5 shrink-0 rounded-md bg-accent/[0.14] px-2 py-1 text-[11px] font-semibold tabular-nums tracking-wider text-accent ring-1 ring-inset ring-accent/25 papel:bg-transparent papel:px-0 papel:text-black papel:ring-0">
+                          V{String(i + 1).padStart(2, "0")}
+                        </span>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-baseline gap-x-3">
+                            <span className="min-w-0 flex-1">
+                              <CampoInline
+                                ariaLabel={t.roteiroTitulo}
+                                valor={roteiro.titulo}
+                                exemplo={t.roteiroTituloExemplo}
+                                onSalvar={(v) => editarLinha("roteiros", setRoteiros, roteiro.id, { titulo: v })}
+                                className="-ml-1.5 text-[15px] font-semibold text-ink-primary papel:text-black"
+                              />
+                            </span>
+                            <span className="inline-block w-[9rem] shrink-0">
+                              <CampoInline
+                                ariaLabel={t.roteiroFormato}
+                                valor={roteiro.formato}
+                                exemplo={t.roteiroFormatoExemplo}
+                                sugestoes={t.formatosSugeridos}
+                                onSalvar={(v) => editarLinha("roteiros", setRoteiros, roteiro.id, { formato: v })}
+                                className="text-right text-[11px] uppercase tracking-[0.1em] text-ink-muted papel:text-black/60"
+                              />
+                            </span>
+                          </div>
+
+                          {/* As falas ficam recuadas e com um filete à
+                              esquerda: no papel, é o que separa "o que é o
+                              vídeo" de "o que se diz nele" sem precisar de
+                              mais um rótulo. */}
+                          <div className="mt-1 border-l-2 border-base-700 pl-3 papel:border-black/20">
+                            <CampoInline
+                              ariaLabel={t.roteiroFalas}
+                              multiline
+                              valor={roteiro.falas}
+                              exemplo={t.roteiroFalasExemplo}
+                              onSalvar={(v) => editarLinha("roteiros", setRoteiros, roteiro.id, { falas: v })}
+                              className="-ml-1.5 text-sm leading-relaxed text-ink-secondary papel:text-black/80"
+                            />
+                          </div>
+                        </div>
+
+                        <BotaoRemover onClick={() => apagarLinha("roteiros", setRoteiros, roteiro.id)} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </BlocoFolha>
+
+            {/* --------------------- 05 · OBSERVAÇÕES --------------------- */}
+            <BlocoFolha numero="05" titulo={t.observacoesTitulo}>
               <CampoInline
                 ariaLabel={t.observacoesTitulo}
                 multiline

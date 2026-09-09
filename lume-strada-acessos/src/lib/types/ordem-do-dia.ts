@@ -54,11 +54,27 @@ export interface EquipeOrdemRow {
   horario_chamada: string | null;
 }
 
+/**
+ * Um vídeo a gravar naquele dia: o assunto e as falas.
+ *
+ * `formato` é texto livre ("Reels 30s", "YouTube", "Depoimento") porque a
+ * lista de formatos muda mais rápido do que qualquer menu fechado.
+ */
+export interface RoteiroRow {
+  id: string;
+  ordem_id: string;
+  ordem: number;
+  titulo: string;
+  formato: string;
+  falas: string;
+}
+
 /** Tudo que a folha precisa para ser desenhada, numa viagem só ao banco. */
 export interface OrdemDoDiaCompleta {
   ordem: OrdemDoDiaRow;
   locacoes: LocacaoRow[];
   cronograma: CronogramaRow[];
   equipe: EquipeOrdemRow[];
+  roteiros: RoteiroRow[];
   clienteNome: string | null;
 }
