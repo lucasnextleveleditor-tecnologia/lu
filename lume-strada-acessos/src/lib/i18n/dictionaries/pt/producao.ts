@@ -111,21 +111,9 @@ export interface ProducaoDict {
   // Seções do formulário reorganizado (`BriefingCamposAvancados.tsx`).
   briefingInformacoesBasicasTitulo: string;
   briefingEntregaveisPrazosTitulo: string;
-  objetivoMaterialLabel: string;
-  objetivoOpcaoConversaoAnuncio: string;
-  objetivoOpcaoEngajamentoOrganico: string;
-  objetivoOpcaoCoberturaEvento: string;
-  objetivoOpcaoReels: string;
-  objetivoOpcaoTiktok: string;
-  objetivoOpcaoYoutube: string;
-  objetivoOpcaoCriativoVenda: string;
-  objetivoOpcaoPortfolio: string;
-  objetivoOpcaoEditorial: string;
-  objetivoOpcaoInstitucional: string;
-  objetivoOutroPlaceholder: string;
   referenciasEstiloLabel: string;
   referenciasEstiloAjuda: string;
-  referenciasEstiloPlaceholder: string;
+  referenciasEstiloAdicionarLink: string;
   formatosExportacaoLabel: string;
   formatosExportacaoPlaceholder: string;
   formatoChip916: string;
@@ -278,21 +266,9 @@ export const producao: ProducaoDict = {
 
   briefingInformacoesBasicasTitulo: "Informações Básicas",
   briefingEntregaveisPrazosTitulo: "Entregáveis e Prazos",
-  objetivoMaterialLabel: "Objetivo do Material",
-  objetivoOpcaoConversaoAnuncio: "Conversão em Anúncio",
-  objetivoOpcaoEngajamentoOrganico: "Engajamento Orgânico",
-  objetivoOpcaoCoberturaEvento: "Cobertura de Evento",
-  objetivoOpcaoReels: "Reels",
-  objetivoOpcaoTiktok: "TikTok",
-  objetivoOpcaoYoutube: "YouTube",
-  objetivoOpcaoCriativoVenda: "Criativo de Venda",
-  objetivoOpcaoPortfolio: "Portfólio",
-  objetivoOpcaoEditorial: "Editorial",
-  objetivoOpcaoInstitucional: "Institucional",
-  objetivoOutroPlaceholder: "+ Outro — digite e pressione Enter",
   referenciasEstiloLabel: "Referências de Estilo",
-  referenciasEstiloAjuda: "1 ou 2 links que mostram o mood/estilo desejado (Reels, TikTok, Pinterest, portfólio de terceiros...).",
-  referenciasEstiloPlaceholder: "Um link por linha...",
+  referenciasEstiloAjuda: "Links que mostram o mood/estilo desejado (Reels, TikTok, Pinterest, portfólio de terceiros...).",
+  referenciasEstiloAdicionarLink: "Adicionar link",
   formatosExportacaoLabel: "Formatos para Exportação",
   formatosExportacaoPlaceholder: "Ex: 1 Reel 9:16 de até 60s + 1 versão sem legenda",
   formatoChip916: "9:16",

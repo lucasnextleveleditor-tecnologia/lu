@@ -1,120 +1,83 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
-function parseLista(valor: string): string[] {
-  return valor
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
-}
+const MAX_LINKS_ESTILO = 5;
 
-interface ObjetivoMaterialFieldProps {
+interface ReferenciasEstiloFieldProps {
+  /** Links separados por quebra de linha, como salvo em `prod_tarefas.referencias_estilo`. */
   value: string;
   onChange: (value: string) => void;
 }
 
 /**
- * "Objetivo do Material" — pedido do usuário pra virar clicável/selecionável
- * sempre que der, em vez de só texto livre: chips com os objetivos/destinos
- * mais comuns (campanha paga, orgânico, cobertura de evento, Reels/TikTok/
- * YouTube, portfólio, editorial...) + "+ Outro" pra qualquer coisa fora da
- * lista, digitada e confirmada com Enter. Guardado como texto separado por
- * vírgula em `prod_tarefas.objetivo_material` — sem tabela própria, é só um
- * punhado de tags por tarefa, sem precisar de CRUD/gestão dedicada.
+ * "Referências de Estilo" — em vez de uma única caixa de texto pedindo "um
+ * link por linha", um campo de URL por referência (até `MAX_LINKS_ESTILO`),
+ * com "+ Adicionar link" pra abrir o próximo campo. Guardado como texto
+ * simples separado por `\n` em `prod_tarefas.referencias_estilo` (sem
+ * tabela própria — é só um punhado de URLs de consulta rápida por tarefa),
+ * então o parse/serialização acontece só aqui, na borda da UI.
  *
- * A lista mistura objetivo de negócio (conversão, engajamento, cobertura) e
- * destino/formato de conteúdo (Reels, TikTok, YouTube) de propósito — na
- * prática, pra quem produz vídeo/social isso já responde "pra que serve",
- * e quem não é audiovisual (fotógrafo, storymaker) usa as opções genéricas
- * (Portfólio, Editorial, Institucional) ou digita a própria em "+ Outro".
+ * O estado local (`links`) guarda TODOS os campos, inclusive os vazios que
+ * o usuário ainda não preencheu — é o que permite digitar num campo do meio
+ * sem os outros sumirem. `onChange` recebe só os links não-vazios, unidos
+ * por quebra de linha, que é o formato persistido.
  */
-export function ObjetivoMaterialField({ value, onChange }: ObjetivoMaterialFieldProps) {
+export function ReferenciasEstiloField({ value, onChange }: ReferenciasEstiloFieldProps) {
   const { dict } = useLocale();
-  const [outro, setOutro] = useState("");
+  const links = value === "" ? [""] : value.split("\n");
 
-  const OPCOES = [
-    dict.producao.objetivoOpcaoConversaoAnuncio,
-    dict.producao.objetivoOpcaoEngajamentoOrganico,
-    dict.producao.objetivoOpcaoCoberturaEvento,
-    dict.producao.objetivoOpcaoReels,
-    dict.producao.objetivoOpcaoTiktok,
-    dict.producao.objetivoOpcaoYoutube,
-    dict.producao.objetivoOpcaoCriativoVenda,
-    dict.producao.objetivoOpcaoPortfolio,
-    dict.producao.objetivoOpcaoEditorial,
-    dict.producao.objetivoOpcaoInstitucional,
-  ];
-
-  const selecionados = parseLista(value);
-  const extras = selecionados.filter((s) => !OPCOES.includes(s));
-
-  function toggle(opcao: string) {
-    const atual = parseLista(value);
-    const novo = atual.includes(opcao) ? atual.filter((x) => x !== opcao) : [...atual, opcao];
-    onChange(novo.join(", "));
+  function commit(novosLinks: string[]) {
+    onChange(novosLinks.filter((l) => l.trim() !== "").join("\n"));
   }
 
-  function removerExtra(item: string) {
-    onChange(
-      parseLista(value)
-        .filter((x) => x !== item)
-        .join(", ")
-    );
+  function atualizar(indice: number, novoValor: string) {
+    const novosLinks = [...links];
+    novosLinks[indice] = novoValor;
+    // Emite o valor bruto (com o campo em edição, mesmo vazio) só quando ele
+    // não é o único campo — assim o próprio `links` derivado de `value`
+    // continua mostrando o campo que o usuário está preenchendo.
+    onChange(novosLinks.join("\n"));
   }
 
-  function adicionarOutro(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== "Enter") return;
-    e.preventDefault();
-    const texto = outro.trim();
-    if (!texto) return;
-    const atual = parseLista(value);
-    if (!atual.includes(texto)) onChange([...atual, texto].join(", "));
-    setOutro("");
+  function remover(indice: number) {
+    const novosLinks = links.filter((_, i) => i !== indice);
+    commit(novosLinks.length > 0 ? novosLinks : [""]);
+  }
+
+  function adicionar() {
+    if (links.length >= MAX_LINKS_ESTILO) return;
+    onChange([...links, ""].join("\n"));
   }
 
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.objetivoMaterialLabel}</label>
-      <div className="flex flex-wrap gap-1.5">
-        {OPCOES.map((opcao) => {
-          const ativo = selecionados.includes(opcao);
-          return (
-            <button
-              key={opcao}
-              type="button"
-              onClick={() => toggle(opcao)}
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
-                ativo ? "border-accent bg-accent text-base-950" : "border-base-700 text-ink-secondary hover:border-ink-muted hover:text-ink-primary"
-              )}
-            >
-              {opcao}
-            </button>
-          );
-        })}
-        {extras.map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => removerExtra(item)}
-            title={dict.common.remover}
-            className="flex items-center gap-1 rounded-full border border-accent bg-accent px-2.5 py-1 text-[11px] font-medium text-base-950"
-          >
-            {item} ×
-          </button>
+      <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.referenciasEstiloLabel}</label>
+      <div className="space-y-1.5">
+        {links.map((link, indice) => (
+          <div key={indice} className="flex gap-1.5">
+            <Input value={link} onChange={(e) => atualizar(indice, e.target.value)} placeholder="https://..." className="flex-1 text-xs" />
+            {links.length > 1 && (
+              <button
+                type="button"
+                onClick={() => remover(indice)}
+                aria-label={dict.common.remover}
+                className="shrink-0 px-1 text-ink-muted transition hover:text-danger"
+              >
+                ×
+              </button>
+            )}
+          </div>
         ))}
       </div>
-      <input
-        value={outro}
-        onChange={(e) => setOutro(e.target.value)}
-        onKeyDown={adicionarOutro}
-        placeholder={dict.producao.objetivoOutroPlaceholder}
-        className="mt-1.5 w-full rounded-lg border border-base-600 bg-base-900 px-3 py-1.5 text-xs text-ink-primary placeholder:text-ink-muted transition focus:border-accent/60 focus:outline-none focus:ring-1 focus:ring-accent/30"
-      />
+      {links.length < MAX_LINKS_ESTILO && (
+        <button type="button" onClick={adicionar} className="mt-1.5 text-xs font-medium text-accent hover:underline">
+          + {dict.producao.referenciasEstiloAdicionarLink}
+        </button>
+      )}
+      <p className="mt-1 text-[11px] text-ink-muted">{dict.producao.referenciasEstiloAjuda}</p>
     </div>
   );
 }

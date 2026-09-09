@@ -10,8 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
-import { ObjetivoMaterialField, FormatosExportacaoField } from "@/components/admin/producao/BriefingCamposAvancados";
-import { Textarea } from "@/components/ui/Textarea";
+import { ReferenciasEstiloField, FormatosExportacaoField } from "@/components/admin/producao/BriefingCamposAvancados";
 import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
 import { GerenciarClientesAcessoModal } from "@/components/admin/producao/GerenciarClientesAcessoModal";
 import { ClienteModal } from "@/components/admin/cadastros/ClienteModal";
@@ -47,7 +46,6 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, dataEntregaI
   const [dataCaptacao, setDataCaptacao] = useState("");
   const [dataEntrega, setDataEntrega] = useState(dataEntregaInicial ?? "");
   const [dataEntregaV1, setDataEntregaV1] = useState("");
-  const [objetivoMaterial, setObjetivoMaterial] = useState("");
   const [referenciasEstilo, setReferenciasEstilo] = useState("");
   const [formatosExportacao, setFormatosExportacao] = useState("");
   const [loading, setLoading] = useState(false);
@@ -76,7 +74,6 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, dataEntregaI
       dataCaptacao: dataCaptacao || null,
       dataEntrega: dataEntrega || null,
       dataEntregaV1: dataEntregaV1 || null,
-      objetivoMaterial: objetivoMaterial || null,
       referenciasEstilo: referenciasEstilo || null,
       formatosExportacao: formatosExportacao || null,
     });
@@ -175,18 +172,7 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, dataEntregaI
             </Select>
           </div>
 
-          <ObjetivoMaterialField value={objetivoMaterial} onChange={setObjetivoMaterial} />
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.referenciasEstiloLabel}</label>
-            <Textarea
-              rows={2}
-              value={referenciasEstilo}
-              onChange={(e) => setReferenciasEstilo(e.target.value)}
-              placeholder={dict.producao.referenciasEstiloPlaceholder}
-            />
-            <p className="mt-1 text-[11px] text-ink-muted">{dict.producao.referenciasEstiloAjuda}</p>
-          </div>
+          <ReferenciasEstiloField value={referenciasEstilo} onChange={setReferenciasEstilo} />
 
           <p className="pt-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.producao.briefingEntregaveisPrazosTitulo}</p>
 

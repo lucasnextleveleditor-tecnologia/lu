@@ -88,7 +88,6 @@ export interface TarefaInput {
   dataCaptacao: string | null;
   dataEntrega: string | null;
   dataEntregaV1: string | null;
-  objetivoMaterial: string | null;
   referenciasEstilo: string | null;
   formatosExportacao: string | null;
 }
@@ -114,6 +113,21 @@ async function resolverVinculoCliente(
   return { cliente_cadastro_id: clienteCadastroId, cliente_id: data?.profile_id ?? null };
 }
 
+/**
+ * Normaliza o texto de "Referências de Estilo" (`ReferenciasEstiloField`,
+ * até 5 campos de link) antes de gravar: descarta linhas vazias/só espaço —
+ * o campo de UI manda uma linha por input, inclusive os que o usuário ainda
+ * não preencheu, pra manter a posição dos campos estável enquanto digita.
+ */
+function sanitizarLinksMultilinha(valor: string | null): string | null {
+  if (!valor) return null;
+  const linhas = valor
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  return linhas.length > 0 ? linhas.join("\n") : null;
+}
+
 export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
   try {
     const { supabase } = await requireModulo("producao");
@@ -133,8 +147,7 @@ export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
         data_captacao: input.dataCaptacao || null,
         data_entrega: input.dataEntrega || null,
         data_entrega_v1: input.dataEntregaV1 || null,
-        objetivo_material: input.objetivoMaterial?.trim() || null,
-        referencias_estilo: input.referenciasEstilo?.trim() || null,
+        referencias_estilo: sanitizarLinksMultilinha(input.referenciasEstilo),
         formatos_exportacao: input.formatosExportacao?.trim() || null,
       })
       .select("id")
@@ -167,8 +180,7 @@ export async function atualizarTarefa(id: string, input: TarefaInput): Promise<A
         data_captacao: input.dataCaptacao || null,
         data_entrega: input.dataEntrega || null,
         data_entrega_v1: input.dataEntregaV1 || null,
-        objetivo_material: input.objetivoMaterial?.trim() || null,
-        referencias_estilo: input.referenciasEstilo?.trim() || null,
+        referencias_estilo: sanitizarLinksMultilinha(input.referenciasEstilo),
         formatos_exportacao: input.formatosExportacao?.trim() || null,
       })
       .eq("id", id);

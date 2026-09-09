@@ -29,8 +29,7 @@ export interface TarefaRow {
   data_captacao: string | null; // ISO date — dia da gravação/filmagem (ver módulo Dashboard/Calendário)
   data_entrega: string | null; // ISO date — entrega FINAL (rótulo na UI: "Data de Entrega Final")
   data_entrega_v1: string | null; // ISO date — primeiro corte/rascunho, opcional; puramente informativo (não entra em isTarefaAtrasada nem nos outros módulos)
-  objetivo_material: string | null; // Ex: conversão em anúncio, engajamento orgânico, cobertura de evento — texto livre
-  referencias_estilo: string | null; // 1+ links de referência de estilo/mood, um por linha
+  referencias_estilo: string | null; // 1+ links de referência de estilo/mood (até 5, um por linha) — "Objetivo do Material" foi descartado por duplicar Tipo de Serviço (ver `prod_tipos_servico`)
   formatos_exportacao: string | null; // Specs de exportação esperadas — texto livre
   created_at: string;
   updated_at: string;

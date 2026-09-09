@@ -11,8 +11,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
-import { ObjetivoMaterialField, FormatosExportacaoField } from "@/components/admin/producao/BriefingCamposAvancados";
-import { Textarea } from "@/components/ui/Textarea";
+import { ReferenciasEstiloField, FormatosExportacaoField } from "@/components/admin/producao/BriefingCamposAvancados";
 import { SubtarefasChecklist } from "@/components/admin/producao/SubtarefasChecklist";
 import { EntregasSection } from "@/components/admin/producao/EntregasSection";
 import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
@@ -58,7 +57,6 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
   const [dataCaptacao, setDataCaptacao] = useState(tarefa.data_captacao ?? "");
   const [dataEntrega, setDataEntrega] = useState(tarefa.data_entrega ?? "");
   const [dataEntregaV1, setDataEntregaV1] = useState(tarefa.data_entrega_v1 ?? "");
-  const [objetivoMaterial, setObjetivoMaterial] = useState(tarefa.objetivo_material ?? "");
   const [referenciasEstilo, setReferenciasEstilo] = useState(tarefa.referencias_estilo ?? "");
   const [formatosExportacao, setFormatosExportacao] = useState(tarefa.formatos_exportacao ?? "");
   const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
@@ -91,7 +89,6 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
         dataCaptacao: dataCaptacao || null,
         dataEntrega: dataEntrega || null,
         dataEntregaV1: dataEntregaV1 || null,
-        objetivoMaterial: objetivoMaterial || null,
         referenciasEstilo: referenciasEstilo || null,
         formatosExportacao: formatosExportacao || null,
       });
@@ -231,18 +228,7 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
             </Select>
           </div>
 
-          <ObjetivoMaterialField value={objetivoMaterial} onChange={setObjetivoMaterial} />
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.referenciasEstiloLabel}</label>
-            <Textarea
-              rows={2}
-              value={referenciasEstilo}
-              onChange={(e) => setReferenciasEstilo(e.target.value)}
-              placeholder={dict.producao.referenciasEstiloPlaceholder}
-            />
-            <p className="mt-1 text-[11px] text-ink-muted">{dict.producao.referenciasEstiloAjuda}</p>
-          </div>
+          <ReferenciasEstiloField value={referenciasEstilo} onChange={setReferenciasEstilo} />
 
           <p className="pt-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.producao.briefingEntregaveisPrazosTitulo}</p>
 
