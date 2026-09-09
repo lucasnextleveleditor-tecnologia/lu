@@ -34,6 +34,7 @@ import { PainelAtalhos } from "./PainelAtalhos";
 import { AnexosDoBalao } from "./AnexosDoBalao";
 import { FormatoDoTexto } from "./FormatoDoTexto";
 import { PaletaFerramentas, type ItemPaleta } from "./PaletaFerramentas";
+import { MenuDoBalao } from "./MenuDoBalao";
 
 type Resultado = { ok: true } | { ok: false; error: string };
 type ResultadoNo = { ok: true; no: MapaNoRow } | { ok: false; error: string };
@@ -79,8 +80,6 @@ interface Props {
   aoMudarPendencias?: (temPendencias: boolean) => void;
 }
 
-type Ferramenta = "selecionar" | "mao";
-
 const ZOOM_MIN = 0.25;
 const ZOOM_MAX = 2.5;
 
@@ -105,7 +104,6 @@ export function MapaCanvas({
   const [rascunho, setRascunho] = useState("");
   const [erro, setErro] = useState<string | null>(null);
 
-  const [ferramenta, setFerramenta] = useState<Ferramenta>("selecionar");
   const [fundoClaro, setFundoClaro] = useState(false);
   const [telaCheia, setTelaCheia] = useState(false);
   // Quantas gravações estão em voo agora. O mapa salva sozinho a cada
@@ -138,16 +136,10 @@ export function MapaCanvas({
     },
     [atualizarContadores]
   );
-  const [espacoPressionado, setEspacoPressionado] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const areaRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-
-  // A ferramenta em uso agora: o espaço vira mãozinha temporária, que é como
-  // todo editor de canvas funciona — sem isso, quem está no modo de editar
-  // teria de trocar de ferramenta só para deslizar dois centímetros.
-  const modoMao = ferramenta === "mao" || espacoPressionado;
 
   const { pessoas, avisar } = useMapaAoVivo({
     mapaId,
@@ -228,69 +220,6 @@ export function MapaCanvas({
     jaEncaixou.current = true;
     encaixar();
   }, [desenho, encaixar]);
-
-  // Espaço = mãozinha temporária. Fica no `window` porque a tecla precisa
-  // valer mesmo quando o foco está num campo do painel lateral.
-  useEffect(() => {
-    function desceu(e: KeyboardEvent) {
-      const alvo = e.target as HTMLElement | null;
-      const digitando = alvo && (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA");
-      if (e.code === "Space" && !digitando) {
-        e.preventDefault();
-        setEspacoPressionado(true);
-      }
-    }
-    function subiu(e: KeyboardEvent) {
-      if (e.code === "Space") setEspacoPressionado(false);
-    }
-    window.addEventListener("keydown", desceu);
-    window.addEventListener("keyup", subiu);
-    return () => {
-      window.removeEventListener("keydown", desceu);
-      window.removeEventListener("keyup", subiu);
-    };
-  }, []);
-
-  // ---------------------------------------------------------------------
-  // Pendências, aviso de saída e tela cheia
-  // ---------------------------------------------------------------------
-  const temPendencias = editando !== null || emVoo > 0;
-
-  useEffect(() => {
-    aoMudarPendencias?.(temPendencias);
-  }, [temPendencias, aoMudarPendencias]);
-
-  // Fechar a aba com uma edição aberta perderia o que está no campo — o
-  // navegador só deixa avisar, não impedir, e é o suficiente.
-  useEffect(() => {
-    if (!temPendencias) return;
-    function avisar(e: BeforeUnloadEvent) {
-      e.preventDefault();
-      e.returnValue = "";
-    }
-    window.addEventListener("beforeunload", avisar);
-    return () => window.removeEventListener("beforeunload", avisar);
-  }, [temPendencias]);
-
-  const raizRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    function mudou() {
-      setTelaCheia(document.fullscreenElement === raizRef.current);
-    }
-    document.addEventListener("fullscreenchange", mudou);
-    return () => document.removeEventListener("fullscreenchange", mudou);
-  }, []);
-
-  async function alternarTelaCheia() {
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await raizRef.current?.requestFullscreen();
-    } catch {
-      // Navegador ou permissão sem tela cheia: o mapa continua funcionando
-      // do mesmo jeito, então não vale interromper com um erro.
-    }
-  }
 
   function comecarEdicao(noId: string) {
     if (!podeEditar) return;
@@ -482,15 +411,14 @@ export function MapaCanvas({
   const arrastandoNo = useRef<{ id: string; x: number; y: number; baseX: number; baseY: number; moveu: boolean } | null>(null);
 
   function fundoPressionado(e: React.PointerEvent) {
-    // Botão do meio sempre navega, seja qual for a ferramenta — é o gesto que
-    // todo mundo já traz de outros programas.
-    const navegar = modoMao || e.button === 1;
     if (e.button !== 0 && e.button !== 1) return;
-    if (navegar) {
-      arrastandoFundo.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
-      e.currentTarget.setPointerCapture(e.pointerId);
-      return;
-    }
+    // Uma ferramenta só, e o gesto decide o que acontece: arrastar o FUNDO
+    // navega, arrastar um BALÃO move o balão, dois cliques editam o texto.
+    // Um botão de mãozinha só existiria para dizer, em forma de ícone, o que
+    // o gesto já diz sozinho — e cobraria um clique a mais toda vez que a
+    // pessoa quisesse alternar entre mover a tela e mexer no mapa.
+    arrastandoFundo.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
+    e.currentTarget.setPointerCapture(e.pointerId);
     setSelecionado(null);
   }
 
@@ -535,24 +463,6 @@ export function MapaCanvas({
   // A paleta: como se aponta, como se enxerga, como a tela se comporta.
   const gruposDaPaleta: ItemPaleta[][] = [
     [
-      {
-        chave: "selecionar",
-        rotulo: t.ferramentaSelecionar,
-        dica: t.ferramentaSelecionarHint,
-        icone: <IconSeta />,
-        ativo: ferramenta === "selecionar" && !espacoPressionado,
-        aoClicar: () => setFerramenta("selecionar"),
-      },
-      {
-        chave: "mao",
-        rotulo: t.ferramentaMao,
-        dica: t.ferramentaMaoHint,
-        icone: <IconMao />,
-        ativo: modoMao,
-        aoClicar: () => setFerramenta("mao"),
-      },
-    ],
-    [
       { chave: "encaixar", rotulo: t.encaixar, icone: <IconTarget className="h-4 w-4" />, aoClicar: encaixar },
       ...(podeEditar
         ? [
@@ -584,6 +494,7 @@ export function MapaCanvas({
   ];
 
   const noSelecionado = selecionado ? nosPorId.get(selecionado) : null;
+  const balaoSelecionado = selecionado ? porId.get(selecionado) : null;
   const comentariosDoSelecionado = selecionado ? (comentariosPorNo.get(selecionado) ?? []) : [];
 
   return (
@@ -598,26 +509,6 @@ export function MapaCanvas({
         {cabecalho}
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          {pessoas.length > 0 && (
-            <div className="mr-1 flex items-center -space-x-2" title={pessoas.map((p) => p.nome).join(", ")}>
-              {pessoas.slice(0, 5).map((p) => (
-                <span
-                  key={p.id}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-base-900 text-[11px] font-semibold text-white"
-                  style={{ backgroundColor: p.cor }}
-                  aria-label={p.nome}
-                >
-                  {p.nome.trim().charAt(0).toUpperCase() || "?"}
-                </span>
-              ))}
-              {pessoas.length > 5 && (
-                <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-base-900 bg-base-700 text-[10px] font-semibold text-ink-secondary">
-                  +{pessoas.length - 5}
-                </span>
-              )}
-            </div>
-          )}
-
         </div>
       </div>
 
@@ -637,8 +528,7 @@ export function MapaCanvas({
           onPointerUp={ponteiroSoltou}
           onPointerCancel={ponteiroSoltou}
           className={cn(
-            "relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-base-700 bg-base-950/60 outline-none transition-colors focus:border-base-600",
-            modoMao ? "cursor-grab active:cursor-grabbing" : "cursor-default"
+            "relative min-h-0 flex-1 cursor-grab overflow-hidden rounded-2xl border border-base-700 bg-base-950/60 outline-none transition-colors focus:border-base-600 active:cursor-grabbing"
           )}
           style={{
             backgroundImage: "radial-gradient(circle at 1px 1px, rgb(var(--glow-rgb) / 0.055) 1px, transparent 0)",
@@ -682,7 +572,6 @@ export function MapaCanvas({
                   className="absolute left-0 top-0"
                   style={{ transform: `translate(${balao.x}px, ${balao.y}px)`, width: balao.largura }}
                   onPointerDown={(e) => {
-                    if (modoMao) return; // com a mãozinha, o balão não sai do lugar
                     e.stopPropagation();
                     setSelecionado(balao.no.id);
                     if (!podeEditar || estaEditando) return;
@@ -717,7 +606,7 @@ export function MapaCanvas({
                         : "border border-base-700 bg-base-900/95 text-ink-primary shadow-[0_2px_10px_-4px_rgb(0_0_0/0.5)]",
                       !ehRaiz && balao.profundidade === 1 && "bg-base-850/95",
                       estaSelecionado && !ehRaiz && "border-transparent",
-                      !modoMao && podeEditar && "cursor-grab active:cursor-grabbing"
+                      podeEditar && "cursor-grab active:cursor-grabbing"
                     )}
                     style={{
                       minHeight: balao.altura,
@@ -810,6 +699,33 @@ export function MapaCanvas({
 
           <PaletaFerramentas grupos={gruposDaPaleta} />
 
+          {/* Quem está aqui agora, no canto de cima do MAPA. Na barra da
+              página estes avatares esbarravam nos botões fixos de tema e
+              idioma do painel — e, de todo jeito, "quem está junto" é
+              informação sobre o mapa, não sobre a página. */}
+          {pessoas.length > 0 && (
+            <div
+              className="absolute right-3 top-3 z-20 flex items-center -space-x-2 rounded-full border border-base-700 bg-base-900/90 p-1 shadow-lg backdrop-blur-sm"
+              title={pessoas.map((p) => p.nome).join(", ")}
+            >
+              {pessoas.slice(0, 5).map((p) => (
+                <span
+                  key={p.id}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-base-900 text-[11px] font-semibold text-white"
+                  style={{ backgroundColor: p.cor }}
+                  aria-label={p.nome}
+                >
+                  {p.nome.trim().charAt(0).toUpperCase() || "?"}
+                </span>
+              ))}
+              {pessoas.length > 5 && (
+                <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-base-900 bg-base-700 text-[10px] font-semibold text-ink-secondary">
+                  +{pessoas.length - 5}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* ---------------------------------------------------------- */}
           {/* BARRA FLUTUANTE — zoom e salvamento, no rodapé do mapa       */}
           {/* ---------------------------------------------------------- */}
@@ -872,6 +788,34 @@ export function MapaCanvas({
               </>
             )}
           </div>
+
+          {/* --------------------------------------------------------- */}
+          {/* MENU DO BALÃO SELECIONADO                                   */}
+          {/* --------------------------------------------------------- */}
+          {podeEditar && balaoSelecionado && (
+            <MenuDoBalao
+              // Posição em pixels DE TELA: o menu fica ao lado do balão mas
+              // não encolhe junto com o zoom. Sai pela direita, ou pela
+              // esquerda quando o ramo cresce para aquele lado.
+              x={
+                (areaRef.current?.clientWidth ?? 0) / 2 +
+                pan.x +
+                (balaoSelecionado.lado === -1
+                  ? balaoSelecionado.x * zoom - 84
+                  : (balaoSelecionado.x + balaoSelecionado.largura) * zoom + 12)
+              }
+              y={
+                (areaRef.current?.clientHeight ?? 0) / 2 +
+                pan.y +
+                (balaoSelecionado.y + balaoSelecionado.altura / 2) * zoom
+              }
+              ehRaiz={balaoSelecionado.no.pai_id === null}
+              corAtual={balaoSelecionado.no.cor}
+              aoCriarRamo={() => void criarBalao(balaoSelecionado.no.id)}
+              aoMudarCor={(cor) => mudarNo(balaoSelecionado.no.id, { cor })}
+              aoApagar={() => apagarBalao(balaoSelecionado.no.id)}
+            />
+          )}
 
           {/* A legenda de atalhos, escrita na página. */}
           {podeEditar && <PainelAtalhos />}
@@ -1054,15 +998,6 @@ function IconDesfazer({ espelhado }: { espelhado?: boolean }) {
   );
 }
 
-/** A seta do cursor, para o botão parecer o que ele faz. */
-function IconSeta() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
-      <path d="M5.5 2.8a1 1 0 0 1 1.6-.75l11.2 8.6a1 1 0 0 1-.5 1.79l-4.9.5a1 1 0 0 0-.75.46l-2.7 4.3a1 1 0 0 1-1.85-.4L5.5 2.8Z" />
-    </svg>
-  );
-}
-
 /** Setas para fora (entrar) ou para dentro (sair) da tela cheia. */
 function IconTelaCheia({ saindo }: { saindo: boolean }) {
   return (
@@ -1076,17 +1011,6 @@ function IconTelaCheia({ saindo }: { saindo: boolean }) {
           <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
         </>
       )}
-    </svg>
-  );
-}
-
-/** A mãozinha de arrastar. */
-function IconMao() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11" />
-      <path d="M12 11V4.5a1.5 1.5 0 0 1 3 0V11" />
-      <path d="M15 11.5V7a1.5 1.5 0 0 1 3 0v6.5a7 7 0 0 1-7 7h-1a6 6 0 0 1-5.2-3l-1.6-2.8a1.5 1.5 0 0 1 2.5-1.6L9 15.5V11" />
     </svg>
   );
 }

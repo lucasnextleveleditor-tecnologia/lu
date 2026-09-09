@@ -68,6 +68,7 @@ export const mapaMental: MapaMentalDict = {
   atalhoSair: "leaves editing",
   atalhoZoom: "zooms",
   atalhoArrastar: "pans the canvas",
+  atalhoEditar2: "edit the bubble",
   anexos: "Attachments",
   link: "Link",
   linkExemplo: "https://...",

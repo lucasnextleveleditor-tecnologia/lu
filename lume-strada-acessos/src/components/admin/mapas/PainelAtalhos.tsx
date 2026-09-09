@@ -24,8 +24,9 @@ export function PainelAtalhos() {
     { teclas: ["F2"], oQueFaz: t.atalhoEditar },
     { teclas: ["Delete"], oQueFaz: t.atalhoApagar },
     { teclas: ["Esc"], oQueFaz: t.atalhoSair },
+    { teclas: ["2 cliques"], oQueFaz: t.atalhoEditar2 },
     { teclas: ["Scroll"], oQueFaz: t.atalhoZoom },
-    { teclas: ["Espaço", "+", "arrastar"], oQueFaz: t.atalhoArrastar },
+    { teclas: ["Arrastar o fundo"], oQueFaz: t.atalhoArrastar },
   ];
 
   return (
