@@ -11,6 +11,7 @@ import { BrandingLogo } from "@/components/branding/BrandingLogo";
 import { IconPrinter, IconPlus, IconTrash, IconSun, IconMoon, IconLoader, IconFileText } from "@/components/ui/icons";
 import { CampoInline } from "./CampoInline";
 import { BlocoFolha } from "./BlocoFolha";
+import { CompartilharOrdem } from "./CompartilharOrdem";
 import {
   adicionarLinha,
   atualizarClima,
@@ -27,6 +28,8 @@ interface Props {
   equipeCadastro: { id: string; nome: string; cargo: string | null; telefone: string | null }[];
   logoUrl: string | null;
   nomeApp: string;
+  /** A folha aberta pelo link da equipe: mesmo documento, sem os controles. */
+  somenteLeitura?: boolean;
 }
 
 /** "2026-09-10" -> "Quinta-feira, 10 de setembro de 2026" */
@@ -110,7 +113,7 @@ function imprimir(colorido: boolean) {
   window.print();
 }
 
-export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nomeApp }: Props) {
+export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nomeApp, somenteLeitura = false }: Props) {
   const { dict, locale } = useLocale();
   const t = dict.ordemDoDia;
 
@@ -239,9 +242,18 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
       {/* ---------------------------------------------------------------- */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 print:hidden">
         <p className="text-xs text-ink-muted">
-          {salvando > 0 ? t.salvando : erro ? <span className="text-danger">{erro}</span> : t.salvo}
+          {somenteLeitura ? "" : salvando > 0 ? t.salvando : erro ? <span className="text-danger">{erro}</span> : t.salvo}
         </p>
         <div className="flex flex-wrap items-center gap-2">
+          {!somenteLeitura && (
+            <CompartilharOrdem
+              ordemId={ordem.id}
+              token={ordem.token}
+              compartilhadoInicial={ordem.compartilhado}
+              projeto={cabecalho.projeto}
+              data={dataExtenso}
+            />
+          )}
           {/* Duas saídas para a mesma folha, e a diferença entre elas está no
               rótulo: uma vai para a impressora, a outra vai para o WhatsApp. */}
           <Button variant="ghost" onClick={() => imprimir(true)} title={t.pdfColoridoHint}>
@@ -287,6 +299,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                   a que o componente pediu. */}
               <span className="inline-block w-9">
                 <CampoInline
+                  somenteLeitura={somenteLeitura}
                   ariaLabel={t.diariaNumeroLabel}
                   tipo="number"
                   valor={String(cabecalho.diariaNumero)}
@@ -297,6 +310,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
               <span className="text-xs text-ink-muted papel:text-black/60">/</span>
               <span className="inline-block w-9">
                 <CampoInline
+                  somenteLeitura={somenteLeitura}
                   ariaLabel={t.diariaTotalLabel}
                   tipo="number"
                   valor={String(cabecalho.diariaTotal)}
@@ -318,6 +332,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
               identificação desce para uma linha só embaixo. */}
           <header>
             <CampoInline
+                  somenteLeitura={somenteLeitura}
               ariaLabel={t.projetoLabel}
               valor={cabecalho.projeto}
               exemplo={t.projetoExemplo}
@@ -327,20 +342,26 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
 
             <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-ink-secondary papel:text-black/70">
               {/* Na tela é um seletor; no papel vira só o nome. */}
-              <Select
-                value={cabecalho.clienteId ?? ""}
-                aria-label={t.clienteLabel}
-                onChange={(e) => salvarCampoCabecalho({ clienteId: e.target.value || null })}
-                className="h-8 w-auto py-1 text-xs papel:hidden"
-              >
-                <option value="">{t.semCliente}</option>
-                {clientes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nome}
-                  </option>
-                ))}
-              </Select>
-              <span className="hidden papel:inline">{clienteNome ?? "—"}</span>
+              {somenteLeitura ? (
+                <span>{clienteNome ?? dados.clienteNome ?? "—"}</span>
+              ) : (
+                <>
+                  <Select
+                    value={cabecalho.clienteId ?? ""}
+                    aria-label={t.clienteLabel}
+                    onChange={(e) => salvarCampoCabecalho({ clienteId: e.target.value || null })}
+                    className="h-8 w-auto py-1 text-xs papel:hidden"
+                  >
+                    <option value="">{t.semCliente}</option>
+                    {clientes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nome}
+                      </option>
+                    ))}
+                  </Select>
+                  <span className="hidden papel:inline">{clienteNome ?? "—"}</span>
+                </>
+              )}
 
               <Separador />
 
@@ -350,6 +371,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                   ofícios que usam isto não cabe num menu fechado. */}
               <span className="inline-flex w-[13rem] items-center rounded-full bg-accent/[0.14] px-2 py-0.5 text-xs font-medium text-accent ring-1 ring-inset ring-accent/25 papel:w-auto papel:bg-transparent papel:px-0 papel:py-0 papel:text-black papel:ring-0">
                 <CampoInline
+                  somenteLeitura={somenteLeitura}
                   ariaLabel={t.tipoLabel}
                   valor={cabecalho.tipo}
                   exemplo={t.tipoExemplo}
@@ -361,8 +383,9 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
 
               <Separador />
 
-              <span className="inline-block w-[9.5rem] papel:hidden">
+              <span className={cn("inline-block w-[9.5rem] papel:hidden", somenteLeitura && "hidden")}>
                 <CampoInline
+                  somenteLeitura={somenteLeitura}
                   ariaLabel={t.dataLabel}
                   tipo="date"
                   valor={cabecalho.data ?? ""}
@@ -370,7 +393,9 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                   className="text-sm"
                 />
               </span>
-              {dataExtenso && <span className="hidden text-black papel:inline">{dataExtenso}</span>}
+              {dataExtenso && (
+                <span className={cn("hidden text-black papel:inline", somenteLeitura && "!inline text-ink-primary")}>{dataExtenso}</span>
+              )}
               {dataExtenso && <span className="text-xs text-ink-muted papel:hidden">{dataExtenso}</span>}
             </div>
           </header>
@@ -388,6 +413,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
               hint={t.chamadaHint}
               valor={cabecalho.crewCall ?? ""}
               onSalvar={(v) => salvarCampoCabecalho({ crewCall: v || null })}
+              somenteLeitura={somenteLeitura}
             />
 
             {/* O vão. Na vertical (celular) vira só o texto da duração. */}
@@ -424,6 +450,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
               valor={cabecalho.wrap ?? ""}
               onSalvar={(v) => salvarCampoCabecalho({ wrap: v || null })}
               alinharDireita
+              somenteLeitura={somenteLeitura}
             />
           </div>
 
@@ -460,7 +487,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
 
             <Button
               variant="ghost"
-              className="ml-auto px-2 py-0.5 text-[11px] print:hidden"
+              className={cn("ml-auto px-2 py-0.5 text-[11px] print:hidden", somenteLeitura && "hidden")}
               disabled={buscandoClima}
               onClick={async () => {
                 setBuscandoClima(true);
@@ -484,11 +511,11 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
               numero="01"
               titulo={t.locacoesTitulo}
               auxiliar={locacoes.length ? contar(locacoes.length, t.contagemLocais) : undefined}
-              acao={
+              acao={somenteLeitura ? undefined : (
                 <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={() => void novaLinha("locacoes", setLocacoes)}>
                   <IconPlus className="h-3.5 w-3.5" /> {t.adicionarLocacao}
                 </Button>
-              }
+              )}
             >
               {locacoes.length === 0 ? (
                 <Vazio texto={t.locacoesVazio} />
@@ -503,6 +530,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                       </span>
                       <div className="min-w-0 flex-1">
                         <CampoInline
+                  somenteLeitura={somenteLeitura}
                           ariaLabel={t.locacaoNome}
                           valor={loc.nome}
                           exemplo={t.locacaoNomeExemplo}
@@ -510,6 +538,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                           className="-ml-1.5 text-[15px] font-semibold text-ink-primary papel:text-black"
                         />
                         <CampoInline
+                  somenteLeitura={somenteLeitura}
                           ariaLabel={t.locacaoEndereco}
                           valor={loc.endereco}
                           exemplo={t.locacaoEnderecoExemplo}
@@ -522,6 +551,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                           className="-ml-1.5 text-sm text-ink-secondary papel:text-black/75"
                         />
                         <CampoInline
+                  somenteLeitura={somenteLeitura}
                           ariaLabel={t.locacaoNotas}
                           valor={loc.notas}
                           exemplo={t.locacaoNotasExemplo}
@@ -529,7 +559,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                           className="-ml-1.5 text-xs text-ink-muted papel:text-black/60"
                         />
                       </div>
-                      <BotaoRemover onClick={() => apagarLinha("locacoes", setLocacoes, loc.id)} />
+                      {!somenteLeitura && <BotaoRemover onClick={() => apagarLinha("locacoes", setLocacoes, loc.id)} />}
                     </li>
                   ))}
                 </ul>
@@ -541,11 +571,11 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
               numero="02"
               titulo={t.cronogramaTitulo}
               auxiliar={cronograma.length ? contar(cronograma.length, t.contagemEtapas) : undefined}
-              acao={
+              acao={somenteLeitura ? undefined : (
                 <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={() => void novaLinha("cronograma", setCronograma)}>
                   <IconPlus className="h-3.5 w-3.5" /> {t.adicionarLinha}
                 </Button>
-              }
+              )}
             >
               {cronograma.length === 0 ? (
                 <Vazio texto={t.cronogramaVazio} />
@@ -560,6 +590,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                     // acontece" e "onde".
                     <li key={linha.id} className={GRADE_CRONOGRAMA}>
                       <CampoInline
+                  somenteLeitura={somenteLeitura}
                         ariaLabel={t.cronogramaHora}
                         tipo="time"
                         valor={semSegundos(linha.hora)}
@@ -580,6 +611,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                       </div>
 
                       <CampoInline
+                  somenteLeitura={somenteLeitura}
                         ariaLabel={t.cronogramaAtividade}
                         valor={linha.atividade}
                         exemplo={t.cronogramaAtividadeExemplo}
@@ -588,6 +620,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                       />
 
                       <CampoInline
+                  somenteLeitura={somenteLeitura}
                         ariaLabel={t.cronogramaLocal}
                         valor={linha.local}
                         exemplo={t.cronogramaLocalExemplo}
@@ -596,7 +629,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                       />
 
                       <div className="py-2">
-                        <BotaoRemover onClick={() => apagarLinha("cronograma", setCronograma, linha.id)} />
+                        {!somenteLeitura && <BotaoRemover onClick={() => apagarLinha("cronograma", setCronograma, linha.id)} />}
                       </div>
                     </li>
                   ))}
@@ -609,7 +642,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
               numero="03"
               titulo={t.equipeTitulo}
               auxiliar={equipe.length ? contar(equipe.length, t.contagemPessoas) : undefined}
-              acao={
+              acao={somenteLeitura ? undefined : (
                 <div className="flex items-center gap-2">
                   {/* Puxar do cadastro já preenche função, nome e telefone —
                       é o mesmo dado que a agência digitou uma vez. */}
@@ -639,7 +672,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                     <IconPlus className="h-3.5 w-3.5" /> {t.adicionarPessoa}
                   </Button>
                 </div>
-              }
+              )}
             >
               {equipe.length === 0 ? (
                 <Vazio texto={t.equipeVazio} />
@@ -665,6 +698,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                         )}
                       >
                         <CampoInline
+                  somenteLeitura={somenteLeitura}
                           ariaLabel={t.equipeFuncao}
                           valor={pessoa.funcao}
                           exemplo={t.equipeFuncaoExemplo}
@@ -672,6 +706,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                           className="text-[11px] uppercase tracking-[0.08em] text-ink-secondary papel:text-black/70"
                         />
                         <CampoInline
+                  somenteLeitura={somenteLeitura}
                           ariaLabel={t.equipeNome}
                           valor={pessoa.nome}
                           exemplo={t.equipeNomeExemplo}
@@ -679,6 +714,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                           className="text-sm font-medium text-ink-primary papel:text-black"
                         />
                         <CampoInline
+                  somenteLeitura={somenteLeitura}
                           ariaLabel={t.equipeContato}
                           valor={pessoa.contato}
                           exemplo={t.equipeContatoExemplo}
@@ -686,13 +722,14 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                           className="text-sm tabular-nums text-ink-secondary papel:text-black/75"
                         />
                         <CampoInline
+                  somenteLeitura={somenteLeitura}
                           ariaLabel={t.equipeChamada}
                           tipo="time"
                           valor={semSegundos(pessoa.horario_chamada)}
                           onSalvar={(v) => editarLinha("equipe", setEquipe, pessoa.id, { horario_chamada: v })}
                           className="text-right text-sm font-semibold tabular-nums text-ink-primary papel:text-black"
                         />
-                        <BotaoRemover onClick={() => apagarLinha("equipe", setEquipe, pessoa.id)} />
+                        {!somenteLeitura && <BotaoRemover onClick={() => apagarLinha("equipe", setEquipe, pessoa.id)} />}
                       </li>
                     ))}
                   </ul>
@@ -708,11 +745,11 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
               numero="04"
               titulo={t.roteirosTitulo}
               auxiliar={roteiros.length ? contar(roteiros.length, t.contagemRoteiros) : undefined}
-              acao={
+              acao={somenteLeitura ? undefined : (
                 <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={() => void novaLinha("roteiros", setRoteiros)}>
                   <IconPlus className="h-3.5 w-3.5" /> {t.adicionarRoteiro}
                 </Button>
-              }
+              )}
             >
               {roteiros.length === 0 ? (
                 <Vazio texto={t.roteirosVazio} />
@@ -731,6 +768,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                           <div className="flex flex-wrap items-baseline gap-x-3">
                             <span className="min-w-0 flex-1">
                               <CampoInline
+                  somenteLeitura={somenteLeitura}
                                 ariaLabel={t.roteiroTitulo}
                                 valor={roteiro.titulo}
                                 exemplo={t.roteiroTituloExemplo}
@@ -740,6 +778,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                             </span>
                             <span className="inline-block w-[9rem] shrink-0">
                               <CampoInline
+                  somenteLeitura={somenteLeitura}
                                 ariaLabel={t.roteiroFormato}
                                 valor={roteiro.formato}
                                 exemplo={t.roteiroFormatoExemplo}
@@ -756,6 +795,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                               mais um rótulo. */}
                           <div className="mt-1 border-l-2 border-base-700 pl-3 papel:border-black/20">
                             <CampoInline
+                  somenteLeitura={somenteLeitura}
                               ariaLabel={t.roteiroFalas}
                               multiline
                               valor={roteiro.falas}
@@ -766,7 +806,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
                           </div>
                         </div>
 
-                        <BotaoRemover onClick={() => apagarLinha("roteiros", setRoteiros, roteiro.id)} />
+                        {!somenteLeitura && <BotaoRemover onClick={() => apagarLinha("roteiros", setRoteiros, roteiro.id)} />}
                       </div>
                     </li>
                   ))}
@@ -777,6 +817,7 @@ export function FolhaOrdemDoDia({ dados, clientes, equipeCadastro, logoUrl, nome
             {/* --------------------- 05 · OBSERVAÇÕES --------------------- */}
             <BlocoFolha numero="05" titulo={t.observacoesTitulo}>
               <CampoInline
+                  somenteLeitura={somenteLeitura}
                 ariaLabel={t.observacoesTitulo}
                 multiline
                 valor={cabecalho.observacoes}
@@ -814,17 +855,20 @@ function Horario({
   valor,
   onSalvar,
   alinharDireita = false,
+  somenteLeitura = false,
 }: {
   rotulo: string;
   hint: string;
   valor: string;
   onSalvar: (v: string) => void;
   alinharDireita?: boolean;
+  somenteLeitura?: boolean;
 }) {
   return (
     <div className={cn("w-[9rem]", alinharDireita && "sm:text-right")}>
       <p className="text-[10px] uppercase tracking-[0.2em] text-ink-muted papel:text-black/60">{rotulo}</p>
       <CampoInline
+                  somenteLeitura={somenteLeitura}
         ariaLabel={rotulo}
         tipo="time"
         valor={valor}

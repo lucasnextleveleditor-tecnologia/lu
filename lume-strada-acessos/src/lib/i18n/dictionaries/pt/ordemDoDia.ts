@@ -118,6 +118,30 @@ export interface OrdemDoDiaDict {
   observacoesTitulo: string;
   observacoesPlaceholder: string;
 
+  // Link para a equipe
+  enviar: string;
+  linkLigado: string;
+  linkDesligado: string;
+  linkDesligadoHint: string;
+  linkLigadoHint: string;
+  avisoCadastro: string;
+  copiarLink: string;
+  linkCopiado: string;
+  enviarWhatsapp: string;
+  mensagemWhatsapp: string;
+  arquivar: string;
+  desarquivar: string;
+  ativas: string;
+  arquivadas: string;
+  semArquivadasTitulo: string;
+  semArquivadasDescricao: string;
+  acoes: string;
+  semAcessoTitulo: string;
+  semAcessoDescricao: string;
+  linkInvalidoTitulo: string;
+  linkInvalidoDescricao: string;
+  irParaInicio: string;
+
   imprimir: string;
   imprimirHint: string;
   pdfColorido: string;
@@ -241,6 +265,29 @@ export const ordemDoDia: OrdemDoDiaDict = {
   observacoesTitulo: "O que mais precisa saber",
   observacoesPlaceholder:
     "Alimentação, transporte, estacionamento, roupa e figurino, equipamento que cada um leva, senha do Wi-Fi, para onde vão os arquivos no fim do dia...",
+
+  enviar: "Enviar para a equipe",
+  linkLigado: "Link ligado",
+  linkDesligado: "Link desligado",
+  linkDesligadoHint: "A folha fica só no painel. Ligue para mandar o link para quem vai trabalhar no dia.",
+  linkLigadoHint: "Quem abrir vê a folha sempre atualizada — se o horário mudar às 22h, o celular de todo mundo já mostra o novo.",
+  avisoCadastro: "Quem abrir precisa entrar com a conta de funcionário ou cliente da sua agência. Quem não tem cadastro não vê nada.",
+  copiarLink: "Copiar link",
+  linkCopiado: "Link copiado",
+  enviarWhatsapp: "Mandar no WhatsApp",
+  mensagemWhatsapp: "Ordem de externa de {projeto} — {data}. Abra aqui:",
+  arquivar: "Arquivar",
+  desarquivar: "Desarquivar",
+  ativas: "Ativas",
+  arquivadas: "Arquivadas",
+  semArquivadasTitulo: "Nenhuma folha arquivada",
+  semArquivadasDescricao: "Folhas arquivadas saem da lista principal, mas continuam inteiras.",
+  acoes: "Ações",
+  semAcessoTitulo: "Você não tem acesso a esta folha",
+  semAcessoDescricao: "Esta folha é de outra agência, ou o compartilhamento foi desligado. Peça a quem enviou para liberar o seu acesso.",
+  linkInvalidoTitulo: "Folha não encontrada",
+  linkInvalidoDescricao: "Este link não existe mais ou o compartilhamento foi desligado.",
+  irParaInicio: "Ir para o início",
 
   imprimir: "Imprimir",
   imprimirHint: "Folha em preto e branco, para levar no bolso",

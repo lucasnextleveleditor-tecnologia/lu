@@ -30,6 +30,7 @@ export function CampoInline({
   ariaLabel,
   multiline = false,
   sugestoes,
+  somenteLeitura = false,
 }: {
   valor: string;
   onSalvar: (novo: string) => void;
@@ -41,6 +42,8 @@ export function CampoInline({
   multiline?: boolean;
   /** Opções sugeridas — o campo continua sendo texto livre. */
   sugestoes?: string[];
+  /** Vira texto puro: é assim que a mesma folha serve ao link da equipe. */
+  somenteLeitura?: boolean;
 }) {
   const [rascunho, setRascunho] = useState(valor);
   const [focado, setFocado] = useState(false);
@@ -80,6 +83,18 @@ export function CampoInline({
     "papel:border-transparent papel:bg-transparent papel:px-0 papel:py-0 papel:placeholder:text-transparent",
     className
   );
+
+  // Sem edição, o campo não é um input desabilitado — é texto. Um input
+  // cinza convida a clicar e frustra; o texto simplesmente se lê. E o
+  // exemplo não aparece: sugestão de preenchimento para quem não preenche
+  // nada seria só ruído.
+  if (somenteLeitura) {
+    return (
+      <span className={cn("block whitespace-pre-wrap break-words px-1.5 py-1", className)}>
+        {valor || <span className="opacity-40">—</span>}
+      </span>
+    );
+  }
 
   if (multiline) {
     return (

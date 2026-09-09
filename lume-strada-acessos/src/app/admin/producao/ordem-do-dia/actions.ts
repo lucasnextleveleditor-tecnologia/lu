@@ -105,6 +105,32 @@ export async function salvarCabecalho(id: string, input: CabecalhoInput): Promis
   }
 }
 
+/** Tira da lista principal sem destruir nada — a folha continua inteira. */
+export async function arquivarOrdemDoDia(id: string, arquivado: boolean): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("producao");
+    const { error } = await supabase.from("ordens_do_dia").update({ arquivado }).eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(ROTA);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/** Liga ou desliga o link da folha. Desligar derruba o link sem trocar a URL. */
+export async function definirCompartilhamento(id: string, compartilhado: boolean): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("producao");
+    const { error } = await supabase.from("ordens_do_dia").update({ compartilhado }).eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`${ROTA}/${id}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
 export async function excluirOrdemDoDia(id: string): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("producao");

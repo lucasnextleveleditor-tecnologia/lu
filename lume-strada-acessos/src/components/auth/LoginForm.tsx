@@ -44,13 +44,13 @@ export function LoginForm() {
     // O `?redirectTo=` da URL é ignorado de propósito — ele é escrito por
     // quem monta o link, e mandar a pessoa recém-logada para um destino
     // vindo de fora é como um super admin acabou caindo no portal do
-    // cliente. A ÚNICA exceção é `/mapa/...`: é um caminho relativo, de uma
-    // tela que faz a própria checagem de empresa antes de mostrar qualquer
-    // coisa, e é o que faz o link de um mapa levar ao mapa depois do login
+    // cliente. As ÚNICAS exceções são `/mapa/...` e `/externa/...`: caminhos
+    // relativos, de telas que fazem a própria checagem de empresa antes de
+    // mostrar qualquer coisa, e é o que faz o link de um documento levar ao documento depois do login
     // em vez de despejar a pessoa na home sem explicação.
     const destino = searchParams.get("redirectTo");
-    const paraOMapa = destino && /^\/mapa\/[A-Za-z0-9_-]+$/.test(destino);
-    router.push(paraOMapa ? destino : "/");
+    const paraDocumento = destino && /^\/(mapa|externa)\/[A-Za-z0-9_-]+$/.test(destino);
+    router.push(paraDocumento ? destino : "/");
   }
 
   return (

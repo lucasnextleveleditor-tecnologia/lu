@@ -6,6 +6,9 @@ export interface OrdemDoDiaRow {
   tarefa_id: string | null;
   /** Gravacao, Ensaio fotografico, Dia de conteudo, Edicao... texto livre. */
   tipo: string;
+  arquivado: boolean;
+  compartilhado: boolean;
+  token: string;
   data: string | null;
   diaria_numero: number;
   diaria_total: number;

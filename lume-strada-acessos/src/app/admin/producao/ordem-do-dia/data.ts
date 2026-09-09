@@ -13,11 +13,14 @@ import type {
  * Todas as ordens do dia da empresa, mais recentes primeiro. O RLS já limita
  * à própria empresa, então não há filtro por `company_id` aqui.
  */
-export async function listarOrdensDoDia(): Promise<(OrdemDoDiaRow & { cliente_nome: string | null })[]> {
+export async function listarOrdensDoDia(
+  arquivadas = false
+): Promise<(OrdemDoDiaRow & { cliente_nome: string | null })[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("ordens_do_dia")
     .select("*, clientes(nome)")
+    .eq("arquivado", arquivadas)
     .order("data", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
