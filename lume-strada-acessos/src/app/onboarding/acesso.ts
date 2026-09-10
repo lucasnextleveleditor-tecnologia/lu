@@ -130,6 +130,54 @@ export async function salvarEtapaPublica(
   return { ok: true };
 }
 
+/**
+ * Avisa a equipe, no sininho, que o cliente respondeu.
+ *
+ * É a primeira notificação de NEGÓCIO do sistema — até aqui só existiam
+ * avisos publicados à mão pelo admin. Faz sentido começar por aqui: é o
+ * único evento do módulo que acontece longe de quem precisa saber. A equipe
+ * mandou o link e foi cuidar de outra coisa; sem isso, ela só descobre que o
+ * briefing chegou se lembrar de voltar na tela.
+ *
+ * Falhar aqui NÃO pode derrubar o envio do cliente. Ele fez a parte dele; a
+ * resposta já está gravada. Um erro ao avisar a equipe é um problema da
+ * equipe, não dele — por isso tudo mora dentro de um try/catch que engole.
+ */
+async function avisarEquipe(acesso: AcessoOnboarding, respondidoPor: string): Promise<void> {
+  try {
+    const admin = createAdminClient();
+    const { data: equipe } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("company_id", acesso.onboarding.company_id)
+      .in("role", ["admin", "funcionario"]);
+
+    if (!equipe || equipe.length === 0) return;
+
+    const quem = respondidoPor.trim() || acesso.clienteNome;
+    await admin.from("notifications").insert(
+      equipe.map((pessoa: { id: string }) => ({
+        company_id: acesso.onboarding.company_id,
+        user_id: pessoa.id,
+        // `system` e não um tipo novo: a coluna tem lista fechada de valores,
+        // e inventar "onboarding" aqui quebraria o insert num banco que ainda
+        // não conhece esse valor.
+        tipo: "system",
+        titulo: `${acesso.clienteNome} respondeu o briefing`,
+        mensagem: `Preenchido por ${quem}.`,
+        // O caminho é resolvido AQUI, por quem cria — a tela do sino nunca
+        // remonta rota (ver `types/notificacoes.ts`).
+        href: `/admin/onboarding/${acesso.onboarding.cliente_id}`,
+        reference_id: acesso.onboarding.id,
+        reference_type: "cliente_onboarding",
+        ator_nome: quem,
+      }))
+    );
+  } catch {
+    // Silêncio de propósito — ver o comentário acima.
+  }
+}
+
 /** Fecha o briefing pelo lado do cliente. Mesma conferência de essenciais do lado da equipe. */
 export async function concluirPublico(token: string, respondidoPor: string): Promise<ResultadoPublico> {
   const acesso = await buscarOnboardingPorToken(token);
@@ -150,5 +198,7 @@ export async function concluirPublico(token: string, respondidoPor: string): Pro
     })
     .eq("token", token);
   if (error) return { ok: false, error: error.message };
+
+  await avisarEquipe(acesso, respondidoPor);
   return { ok: true };
 }

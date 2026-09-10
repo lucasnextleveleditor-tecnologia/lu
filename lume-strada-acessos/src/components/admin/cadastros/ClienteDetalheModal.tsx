@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState } from "react";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { ProfileRow } from "@/lib/types/database";
@@ -9,6 +11,7 @@ import { AcessoStatusControls } from "@/components/admin/cadastros/AcessoStatusC
 import { AtividadesManager } from "@/components/admin/cadastros/AtividadesManager";
 import { GerarAcessoClienteModal } from "@/components/admin/cadastros/GerarAcessoClienteModal";
 import { urlPublicaPortal } from "@/lib/utils/portal";
+import { IconClipboardList, IconChevronRight } from "@/components/ui/icons";
 import { IconKey, IconCopy } from "@/components/ui/icons";
 
 interface ClienteDetalheModalProps {
@@ -86,6 +89,19 @@ export function ClienteDetalheModal({ cliente, profile, souAdmin, onClose }: Cli
             </div>
           )}
         </div>
+
+        {/* Ponte para o briefing. A ficha do cliente é onde a pessoa está
+            quando lembra que precisa consultar o tom de voz ou a meta — e o
+            briefing vive noutra tela. Sem este atalho, ela sai daqui, volta
+            pra lista, troca de aba e procura o cliente de novo. */}
+        <Link
+          href={`/admin/onboarding/${cliente.id}`}
+          className="flex items-center gap-2 rounded-lg border border-base-700 bg-base-900/60 px-3 py-2.5 text-xs text-ink-secondary transition hover:border-base-600 hover:text-ink-primary"
+        >
+          <IconClipboardList className="h-3.5 w-3.5 shrink-0 text-accent" />
+          <span className="flex-1">{dict.onboarding.abaOnboarding}</span>
+          <IconChevronRight className="h-3.5 w-3.5 text-ink-muted" />
+        </Link>
 
         <div>
           <h4 className="mb-3 text-sm font-semibold text-ink-primary">{dict.cadastros.atividadesTarefasTitulo}</h4>
