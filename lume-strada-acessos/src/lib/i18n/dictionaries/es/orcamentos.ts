@@ -288,6 +288,9 @@ export const orcamentos: OrcamentosDict = {
   calcAvisoImpostoMargemLimite: "Impuesto + margen no puede llegar a 99% o más — ajusta los valores para calcular un precio válido.",
   calcDicaFreelancer: "¿Trabajas solo/a? Recuerda incluir tu propio tiempo como un costo de servicio aquí — la Ganancia Estimada es lo que queda para reinvertir en el negocio, no tu sueldo.",
   calcSemServicosParaCriar: "Agrega al menos un servicio para poder crear un presupuesto a partir de esta simulación.",
+  calcBaixarPdfBtn: "Descargar PDF de la simulación",
+  calcBaixandoPdf: "Generando PDF...",
+  calcPdfErro: "No pude generar el PDF ahora. Inténtalo de nuevo en unos instantes.",
 
   capaTitulo: "Portada de la Propuesta",
   capaSubtitulo: "Imagen de fondo, insignia y escala de texto mostradas en la portada de esta propuesta.",

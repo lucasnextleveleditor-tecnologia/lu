@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { IconPlus, IconTrash, IconSearch, IconDollarSign, IconWallet, IconTrendingUp, IconPercent, IconBox, IconAlertTriangle } from "@/components/ui/icons";
+import { IconPlus, IconTrash, IconSearch, IconDollarSign, IconWallet, IconTrendingUp, IconPercent, IconBox, IconAlertTriangle, IconDownload } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { fmtBRL } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
@@ -79,6 +79,9 @@ export function CalculadoraMargem({ categorias, servicosComCategoria, equipament
   const [custoFixoPercentual, setCustoFixoPercentual] = useState(0);
 
   const [margemDesejada, setMargemDesejada] = useState(30);
+
+  const [baixando, setBaixando] = useState(false);
+  const [erroPdf, setErroPdf] = useState<string | null>(null);
 
   const servicosFiltrados = useMemo(() => {
     const termo = buscaServico.trim().toLowerCase();
@@ -156,6 +159,64 @@ export function CalculadoraMargem({ categorias, servicosComCategoria, equipament
   function removerItem(lista: "servico" | "equipamento", key: string) {
     const setter = lista === "servico" ? setItensServico : setItensEquipamento;
     setter((prev) => prev.filter((i) => i.key !== key));
+  }
+
+  /**
+   * Baixa a simulação em PDF.
+   *
+   * O documento é montado NO SERVIDOR, como texto de verdade (mesmo motor
+   * dos PDFs de orçamento e contrato), e não por captura de tela: foto de
+   * tela corta o que passa da dobra e corta nome longo no "...". Aqui a
+   * lista pagina sozinha e o nome do item quebra em quantas linhas precisar.
+   *
+   * Como a simulação não existe no banco, os números vão no corpo da
+   * requisição — não há id para o servidor buscar.
+   */
+  async function handleBaixarPdf() {
+    if (baixando) return;
+    setBaixando(true);
+    setErroPdf(null);
+    try {
+      const resposta = await fetch("/api/orcamentos/calculadora/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itensServico: itensServico.map((i) => ({ nome: i.nome, quantidade: i.quantidade, custoUnitario: i.custoUnitario })),
+          itensEquipamento: itensEquipamento.map((i) => ({ nome: i.nome, quantidade: i.quantidade, custoUnitario: i.custoUnitario })),
+          custoServicos,
+          custoEquipamentos,
+          impostosAtivo,
+          aliquotaImposto,
+          custoFixoAtivo,
+          custoFixoBase,
+          custoFixoPercentual,
+          custoFixoRateado,
+          margemDesejada,
+          custoOperacionalTotal,
+          impostoValor,
+          lucroEstimado,
+          valorFinalDoProjeto,
+        }),
+      });
+      if (!resposta.ok) throw new Error(String(resposta.status));
+
+      const blob = await resposta.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const dia = new Date().toISOString().slice(0, 10);
+      link.download = `simulacao-precificacao-${dia}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      // Solta a memória do blob só depois do clique — revogar antes cancela
+      // o download em alguns navegadores.
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    } catch {
+      setErroPdf(dict.orcamentos.calcPdfErro);
+    } finally {
+      setBaixando(false);
+    }
   }
 
   function handleCriarOrcamento() {
@@ -430,10 +491,25 @@ export function CalculadoraMargem({ categorias, servicosComCategoria, equipament
       <Card className="space-y-3">
         <p className="text-xs text-ink-muted">{dict.orcamentos.calcAvisoNaoSalva}</p>
         {custoServicos <= 0 && <p className="text-xs text-status-warning">{dict.orcamentos.calcSemServicosParaCriar}</p>}
-        <Button disabled={custoServicos <= 0 || excedeLimite} onClick={handleCriarOrcamento} className="gap-1.5">
-          <IconPlus className="h-4 w-4" />
-          {dict.orcamentos.calcCriarOrcamentoBtn}
-        </Button>
+        {erroPdf && <p className="text-xs text-danger">{erroPdf}</p>}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button disabled={custoServicos <= 0 || excedeLimite} onClick={handleCriarOrcamento} className="gap-1.5">
+            <IconPlus className="h-4 w-4" />
+            {dict.orcamentos.calcCriarOrcamentoBtn}
+          </Button>
+          {/* Baixar não exige serviço lançado (dá para levar uma simulação só
+              de equipamentos), mas exige um cálculo válido — PDF com o valor
+              estourado não serve para nada. */}
+          <Button
+            variant="ghost"
+            disabled={baixando || excedeLimite || (custoOperacionalTotal <= 0 && itensServico.length === 0 && itensEquipamento.length === 0)}
+            onClick={() => void handleBaixarPdf()}
+            className="gap-1.5"
+          >
+            <IconDownload className="h-4 w-4" />
+            {baixando ? dict.orcamentos.calcBaixandoPdf : dict.orcamentos.calcBaixarPdfBtn}
+          </Button>
+        </div>
       </Card>
     </div>
   );

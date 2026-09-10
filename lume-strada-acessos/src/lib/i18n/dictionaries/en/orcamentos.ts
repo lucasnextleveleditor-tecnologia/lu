@@ -288,6 +288,9 @@ export const orcamentos: OrcamentosDict = {
   calcAvisoImpostoMargemLimite: "Tax + margin can't add up to 99% or more — adjust the values to get a valid price.",
   calcDicaFreelancer: "Working solo? Remember to include your own time as a service cost here — the Estimated Profit is what's left to reinvest in the business, not your paycheck.",
   calcSemServicosParaCriar: "Add at least one service to create a quote from this simulation.",
+  calcBaixarPdfBtn: "Download simulation PDF",
+  calcBaixandoPdf: "Generating PDF...",
+  calcPdfErro: "Couldn't generate the PDF right now. Try again in a moment.",
 
   capaTitulo: "Proposal Cover",
   capaSubtitulo: "Background image, badge and text scale shown on this proposal's cover.",

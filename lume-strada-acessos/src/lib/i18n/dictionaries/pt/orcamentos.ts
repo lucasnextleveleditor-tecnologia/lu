@@ -311,6 +311,9 @@ export interface OrcamentosDict {
   calcAvisoImpostoMargemLimite: string;
   calcDicaFreelancer: string;
   calcSemServicosParaCriar: string;
+  calcBaixarPdfBtn: string;
+  calcBaixandoPdf: string;
+  calcPdfErro: string;
 
   // Proposta Comercial Web v2 — capa (imagem de fundo + badge + escala),
   // resumo do projeto (diárias/equipe/itens de entrega), investimento em
@@ -695,6 +698,9 @@ export const orcamentos: OrcamentosDict = {
   calcAvisoImpostoMargemLimite: "Imposto + margem não pode passar de 99% — ajuste os valores pra calcular um preço válido.",
   calcDicaFreelancer: "Trabalha sozinho(a)? Lembre-se de incluir seu próprio tempo como um custo de serviço aqui — o Lucro Estimado é o que sobra pra reinvestir no negócio, não o seu salário.",
   calcSemServicosParaCriar: "Adicione pelo menos um serviço pra poder criar um orçamento a partir dessa simulação.",
+  calcBaixarPdfBtn: "Baixar PDF da simulação",
+  calcBaixandoPdf: "Gerando PDF...",
+  calcPdfErro: "Não consegui gerar o PDF agora. Tente de novo em instantes.",
 
   capaTitulo: "Capa da Proposta",
   capaSubtitulo: "Imagem de fundo, badge e escala de texto exibidos na capa desta proposta específica.",
