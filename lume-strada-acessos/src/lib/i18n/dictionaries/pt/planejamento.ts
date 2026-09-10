@@ -1,3 +1,5 @@
+import type { CanalDoPost, FormatoDoPost } from "@/lib/types/producao";
+
 /**
  * Planejamento Estratégico e Cronograma.
  *
@@ -18,6 +20,7 @@ export interface PlanejamentoDict {
   semClientes: string;
   semCicloAtivo: string;
   criarCiclo: string;
+  continuarRascunho: string;
   criando: string;
   abrir: string;
   /** `{n}` de `{total}` clientes com ciclo ativo. */
@@ -96,6 +99,41 @@ export interface PlanejamentoDict {
   proximoAviso: string;
   semMaisAvisos: string;
 
+  // Calendário de conteúdo
+  conteudoTitulo: string;
+  conteudoDescricao: string;
+  visaoLista: string;
+  visaoCalendario: string;
+  /** `{n}` de `{total}` posts pautados. */
+  postsPautadosDe: string;
+  postsPautados: string;
+  postsPautadosUm: string;
+  novoPostPlaceholder: string;
+  adicionarPost: string;
+  removerPost: string;
+  postSemTitulo: string;
+  semPosts: string;
+  canal: string;
+  formato: string;
+  canais: Record<CanalDoPost, string>;
+  formatos: Record<FormatoDoPost, string>;
+  selecionarTodos: string;
+  semResponsavel: string;
+  /** Subir `{n}` para produção. */
+  subirParaProducao: string;
+  subiuUm: string;
+  subiuVarios: string;
+  jaNaProducao: string;
+  devolverParaPauta: string;
+  semDiaUm: string;
+  semDiaVarios: string;
+  mesAnterior: string;
+  proximoMes: string;
+  /** +`{n}` mais, na célula do dia. */
+  maisPosts: string;
+  /** Dom, Seg, ... — cabeçalho da grade. */
+  diasDaSemana: string[];
+
   historicoTitulo: string;
   semHistorico: string;
 
@@ -115,6 +153,7 @@ export const planejamento: PlanejamentoDict = {
   semClientes: "Cadastre um cliente para montar o primeiro planejamento.",
   semCicloAtivo: "Sem ciclo ativo",
   criarCiclo: "Criar ciclo",
+  continuarRascunho: "Continuar rascunho",
   criando: "Criando…",
   abrir: "Abrir",
   resumoAtivos: "{n} de {total} clientes com ciclo ativo.",
@@ -185,6 +224,53 @@ export const planejamento: PlanejamentoDict = {
   reguaPadrao: "Usar a régua padrão",
   proximoAviso: "Próximo aviso quando faltarem {n} dias.",
   semMaisAvisos: "Todos os avisos deste ciclo já foram enviados.",
+
+  conteudoTitulo: "Calendário de conteúdo",
+  conteudoDescricao:
+    "Os posts deste ciclo, dia a dia. Escreva as ideias na lista e depois solte para a produção com um responsável.",
+  visaoLista: "Lista",
+  visaoCalendario: "Calendário",
+  postsPautadosDe: "{n} de {total} posts pautados",
+  postsPautados: "{n} posts pautados",
+  postsPautadosUm: "{n} post pautado",
+  novoPostPlaceholder: "Ideia do post — ex.: bastidores da gravação",
+  adicionarPost: "Adicionar",
+  removerPost: "Excluir post",
+  postSemTitulo: "Escreva a ideia do post antes de adicionar.",
+  semPosts: "Nenhum post ainda. Escreva a primeira ideia acima.",
+  canal: "Canal",
+  formato: "Formato",
+  canais: {
+    instagram: "Instagram",
+    tiktok: "TikTok",
+    youtube: "YouTube",
+    linkedin: "LinkedIn",
+    facebook: "Facebook",
+    site: "Site / blog",
+    outro: "Outro",
+  },
+  formatos: {
+    reels: "Reels",
+    carrossel: "Carrossel",
+    story: "Story",
+    estatico: "Estático",
+    video: "Vídeo",
+    texto: "Texto",
+    outro: "Outro",
+  },
+  selecionarTodos: "Selecionar todos",
+  semResponsavel: "Sem responsável",
+  subirParaProducao: "Subir {n} para produção",
+  subiuUm: "1 post foi para a produção.",
+  subiuVarios: "{n} posts foram para a produção.",
+  jaNaProducao: "Em produção",
+  devolverParaPauta: "Devolver para a pauta",
+  semDiaUm: "1 post ainda está sem dia.",
+  semDiaVarios: "{n} posts ainda estão sem dia.",
+  mesAnterior: "Mês anterior",
+  proximoMes: "Próximo mês",
+  maisPosts: "+{n} mais",
+  diasDaSemana: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
 
   historicoTitulo: "Ciclos deste cliente",
   semHistorico: "Este é o primeiro ciclo deste cliente.",

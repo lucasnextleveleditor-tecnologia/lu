@@ -6,9 +6,11 @@ import { fmtDataCurta } from "@/lib/utils/format";
 import { substituir } from "@/lib/utils/texto";
 import { cn } from "@/lib/utils/cn";
 import { FormularioDoPlano } from "@/components/admin/planejamento/FormularioDoPlano";
+import { CalendarioDeConteudo } from "@/components/admin/planejamento/CalendarioDeConteudo";
 import { IconChevronLeft, IconCalendar, IconPrinter } from "@/components/ui/icons";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { PlanoRow, StatusDoPlano } from "@/lib/types/planejamento";
+import type { TarefaRow } from "@/lib/types/producao";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +40,7 @@ export default async function CicloDePlanejamentoPage({ params }: { params: Prom
 
   if (!plano) notFound();
 
-  const [clienteRes, irmaosRes] = await Promise.all([
+  const [clienteRes, irmaosRes, postsRes, funcionariosRes] = await Promise.all([
     supabase.from("clientes").select("id, nome").eq("id", plano.cliente_id).maybeSingle<Pick<ClienteRow, "id" | "nome">>(),
     supabase
       .from("planos_estrategicos")
@@ -46,6 +48,24 @@ export default async function CicloDePlanejamentoPage({ params }: { params: Prom
       .eq("cliente_id", plano.cliente_id)
       .order("data_inicio", { ascending: false })
       .overrideTypes<Pick<PlanoRow, "id" | "data_inicio" | "data_fim" | "status" | "duracao_meses">[], { merge: false }>(),
+    // Os posts DESTE ciclo — em pauta e já em produção, na mesma consulta.
+    // São a mesma tabela e a mesma linha: o que separa os dois é só a coluna
+    // `em_pauta`, e separar em memória custa menos que duas idas ao banco.
+    supabase
+      .from("prod_tarefas")
+      .select("*")
+      .eq("plano_id", planoId)
+      .order("data_entrega", { ascending: true })
+      .overrideTypes<TarefaRow[], { merge: false }>(),
+    // A mesma lista de pessoas que Produção usa (`prod_funcionarios`, que é
+    // espelho automático da Equipe) — para o responsável escolhido aqui ser
+    // exatamente o responsável que aparece lá.
+    supabase
+      .from("prod_funcionarios")
+      .select("id, nome")
+      .eq("ativo", true)
+      .order("nome")
+      .overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
   ]);
 
   if (!clienteRes.data) notFound();
@@ -58,6 +78,9 @@ export default async function CicloDePlanejamentoPage({ params }: { params: Prom
   };
 
   const irmaos = (irmaosRes.data ?? []).filter((p) => p.id !== plano.id);
+  const posts = postsRes.data ?? [];
+  const pauta = posts.filter((p) => p.em_pauta);
+  const produzindo = posts.filter((p) => !p.em_pauta);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -92,6 +115,22 @@ export default async function CicloDePlanejamentoPage({ params }: { params: Prom
       </div>
 
       <FormularioDoPlano plano={plano} />
+
+      {/* O calendário vem DEPOIS do escopo, e não antes: o número de posts
+          vendidos está lá em cima, e é contra ele que o contador daqui se
+          compara ("9 de 12 posts pautados"). Ler o escopo e depois preencher é
+          a ordem em que a pessoa trabalha. */}
+      <div className="mt-5">
+        <CalendarioDeConteudo
+          planoId={plano.id}
+          inicio={plano.data_inicio}
+          fim={plano.data_fim}
+          meta={plano.qtd_posts_social}
+          pautaInicial={pauta}
+          produzindoInicial={produzindo}
+          funcionarios={funcionariosRes.data ?? []}
+        />
+      </div>
 
       {/* O histórico fica no fim, e não numa tela própria: a pergunta "o que
           a gente combinou no ciclo passado?" quase sempre nasce enquanto se

@@ -31,9 +31,46 @@ export interface TarefaRow {
   data_entrega_v1: string | null; // ISO date — primeiro corte/rascunho, opcional; puramente informativo (não entra em isTarefaAtrasada nem nos outros módulos)
   referencias_estilo: string | null; // 1+ links de referência de estilo/mood (até 5, um por linha) — "Objetivo do Material" foi descartado por duplicar Tipo de Serviço (ver `prod_tipos_servico`)
   formatos_exportacao: string | null; // Specs de exportação esperadas — texto livre
+
+  // --------------------------------------------------------------------------
+  // Calendário de conteúdo (Planejamento → Produção)
+  // --------------------------------------------------------------------------
+  /**
+   * `true` = ainda é ideia no calendário de conteúdo, invisível para quem
+   * produz. TODA leitura de Produção precisa filtrar isto — sem o filtro, as
+   * 30 pautas do mês caem no backlog do Kanban de todo mundo.
+   */
+  em_pauta: boolean;
+  /** Ciclo que originou o post. `null` para tarefa criada direto em Produção. */
+  plano_id: string | null;
+  post_canal: CanalDoPost | null;
+  post_formato: FormatoDoPost | null;
+
   created_at: string;
   updated_at: string;
 }
+
+export const CANAIS_DO_POST = [
+  "instagram",
+  "tiktok",
+  "youtube",
+  "linkedin",
+  "facebook",
+  "site",
+  "outro",
+] as const;
+export type CanalDoPost = (typeof CANAIS_DO_POST)[number];
+
+export const FORMATOS_DO_POST = [
+  "reels",
+  "carrossel",
+  "story",
+  "estatico",
+  "video",
+  "texto",
+  "outro",
+] as const;
+export type FormatoDoPost = (typeof FORMATOS_DO_POST)[number];
 
 /** Tarefa enriquecida com os nomes relacionados (join em memória) e contagem de subtarefas. */
 export type TarefaComRelacoes = TarefaRow & {

@@ -28,6 +28,9 @@ export async function buscarDadosAgenda() {
     supabase
       .from("prod_tarefas")
       .select("id, titulo, cliente_id, cliente_cadastro_id, status, prioridade, data_captacao, data_entrega")
+      // Pauta não vira compromisso na Agenda enquanto for pauta
+      // (ver `prod_tarefas.em_pauta`).
+      .eq("em_pauta", false)
       .overrideTypes<TarefaMin[], { merge: false }>(),
     // Cadastro completo de clientes (Cadastros → Clientes) — antes esta
     // busca era em `profiles` (role='cliente'), só pegando quem já tinha

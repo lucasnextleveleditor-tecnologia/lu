@@ -24,7 +24,15 @@ export default async function ProducaoPage() {
   const { dict } = await getDictionary();
 
   const [tarefasRes, subtarefasRes, entregasRes, versoesRes, clientesRes, funcionariosRes, tiposServicoRes, compromissosAgendaRes] = await Promise.all([
-    supabase.from("prod_tarefas").select("*").order("data_entrega", { ascending: true }).overrideTypes<TarefaRow[], { merge: false }>(),
+    // `em_pauta` de fora: post ainda em planejamento não é trabalho de
+    // ninguém. Sem este filtro, as 30 pautas do mês caem no backlog do Kanban
+    // de todo mundo (ver `prod_tarefas.em_pauta`).
+    supabase
+      .from("prod_tarefas")
+      .select("*")
+      .eq("em_pauta", false)
+      .order("data_entrega", { ascending: true })
+      .overrideTypes<TarefaRow[], { merge: false }>(),
     supabase.from("prod_subtarefas").select("*").order("created_at").overrideTypes<SubtarefaRow[], { merge: false }>(),
     supabase.from("prod_entregas").select("*").order("created_at").overrideTypes<EntregaRow[], { merge: false }>(),
     supabase

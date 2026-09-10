@@ -77,7 +77,14 @@ async function validarDonoDaVersao(
 export async function listarAprovacoesPendentes(): Promise<AprovacaoPendente[]> {
   const { user, admin } = await requireCliente();
 
-  const { data: tarefas } = await admin.from("prod_tarefas").select("id, titulo").eq("cliente_id", user.id);
+  // `em_pauta` de fora, e aqui isso é o mais delicado da lista: este é o
+  // PORTAL DO CLIENTE. Uma pauta que ainda está sendo pensada não pode
+  // aparecer para ele antes de a agência decidir mostrar.
+  const { data: tarefas } = await admin
+    .from("prod_tarefas")
+    .select("id, titulo")
+    .eq("cliente_id", user.id)
+    .eq("em_pauta", false);
   const tarefaIds = (tarefas ?? []).map((t) => t.id);
   if (tarefaIds.length === 0) return [];
   const tituloTarefa = new Map(tarefas!.map((t) => [t.id, t.titulo]));

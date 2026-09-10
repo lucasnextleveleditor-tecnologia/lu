@@ -74,6 +74,9 @@ export default async function DashboardPage() {
       supabase
         .from("prod_tarefas")
         .select("id, titulo, cliente_id, status, prioridade, data_captacao, data_entrega")
+        // Pauta não conta no painel: ela ainda é ideia, não carga de trabalho
+        // (ver `prod_tarefas.em_pauta`).
+        .eq("em_pauta", false)
         .overrideTypes<TarefaMin[], { merge: false }>(),
       supabase
         .from("profiles")

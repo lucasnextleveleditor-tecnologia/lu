@@ -36,9 +36,21 @@ export async function PainelPlanejamento({
   const t = dict.planejamento;
 
   const ativoPorCliente = new Map<string, PlanoRow>();
+  // O rascunho mais recente do cliente. Existe por um motivo prático: sem
+  // ele, um cliente que já tem um ciclo em montagem continuava mostrando
+  // "Criar ciclo" — porque a linha só olhava para o ATIVO — e cada visita à
+  // tela virava um rascunho novo. Rascunho não ocupa a vaga do ativo no
+  // banco (o índice único é parcial), então quem tem que lembrar dele é esta
+  // tela.
+  const rascunhoPorCliente = new Map<string, PlanoRow>();
   const encerradosPorCliente = new Map<string, number>();
   for (const plano of planos) {
     if (plano.status === "ativo") ativoPorCliente.set(plano.cliente_id, plano);
+    if (plano.status === "rascunho" && !rascunhoPorCliente.has(plano.cliente_id)) {
+      // Os planos chegam ordenados por `data_inicio` decrescente, então o
+      // primeiro rascunho que aparece é o mais recente.
+      rascunhoPorCliente.set(plano.cliente_id, plano);
+    }
     if (plano.status === "encerrado") {
       encerradosPorCliente.set(plano.cliente_id, (encerradosPorCliente.get(plano.cliente_id) ?? 0) + 1);
     }
@@ -47,10 +59,12 @@ export async function PainelPlanejamento({
   const linhas = clientes
     .map((cliente) => {
       const ativo = ativoPorCliente.get(cliente.id) ?? null;
+      const rascunho = ativo ? null : (rascunhoPorCliente.get(cliente.id) ?? null);
       const dias = ativo ? diasAte(ativo.data_fim) : null;
       return {
         cliente,
         ativo,
+        rascunho,
         dias,
         encerrados: encerradosPorCliente.get(cliente.id) ?? 0,
       };
@@ -90,7 +104,7 @@ export async function PainelPlanejamento({
             </tr>
           </thead>
           <tbody>
-            {linhas.map(({ cliente, ativo, dias, encerrados }) => (
+            {linhas.map(({ cliente, ativo, rascunho, dias, encerrados }) => (
               <tr key={cliente.id} className="border-b border-base-800 last:border-0">
                 <td className="max-w-[16rem] px-4 py-3" title={cliente.nome}>
                   <p className="truncate text-sm text-ink-primary">{cliente.nome}</p>
@@ -109,6 +123,8 @@ export async function PainelPlanejamento({
                       inicio: fmtDataCurta(ativo.data_inicio),
                       fim: fmtDataCurta(ativo.data_fim),
                     })
+                  ) : rascunho ? (
+                    <span className="text-ink-muted">{t.statusRascunho}</span>
                   ) : (
                     <span className="text-ink-muted">{t.semCicloAtivo}</span>
                   )}
@@ -148,12 +164,12 @@ export async function PainelPlanejamento({
                 </td>
 
                 <td className="px-4 py-3 text-right">
-                  {ativo ? (
+                  {ativo || rascunho ? (
                     <Link
-                      href={`/admin/planejamento/${ativo.id}`}
+                      href={`/admin/planejamento/${(ativo ?? rascunho)!.id}`}
                       className="inline-flex items-center gap-1 rounded-lg border border-base-600 px-3 py-1.5 text-xs font-medium text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
                     >
-                      {t.abrir}
+                      {ativo ? t.abrir : t.continuarRascunho}
                       <IconChevronRight className="h-3.5 w-3.5" />
                     </Link>
                   ) : (

@@ -17,6 +17,9 @@ export default async function DashboardCalendarioPage() {
     supabase
       .from("prod_tarefas")
       .select("id, titulo, cliente_id, status, prioridade, data_captacao, data_entrega")
+      // Pauta ainda não é compromisso: só entra no calendário geral depois de
+      // subir para produção (ver `prod_tarefas.em_pauta`).
+      .eq("em_pauta", false)
       .overrideTypes<TarefaMin[], { merge: false }>(),
     supabase
       .from("profiles")

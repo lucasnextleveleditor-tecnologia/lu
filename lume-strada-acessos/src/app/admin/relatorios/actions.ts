@@ -234,6 +234,9 @@ export async function buscarRelatorioProducao(dataInicio: string, dataFim: strin
         supabase
           .from("prod_tarefas")
           .select("id, status, responsavel_id, data_entrega, created_at, updated_at")
+          // Pauta fora do relatório: contar ideia como entrega infla a
+          // produtividade da equipe (ver `prod_tarefas.em_pauta`).
+          .eq("em_pauta", false)
           .range(de, ate)
           .overrideTypes<
             { id: string; status: StatusTarefa; responsavel_id: string | null; data_entrega: string | null; created_at: string; updated_at: string }[],
