@@ -44,4 +44,11 @@ as $$
 $$;
 
 revoke all on function public.todos_os_arquivos(integer, integer) from public;
+-- `anon` PRECISA ser revogado à parte. O Supabase concede EXECUTE direto a
+-- `anon` e `authenticated` por privilégio padrão em toda função nova do
+-- schema public, e revogar do PUBLIC não desfaz uma concessão direta — o
+-- linter do projeto pegou exatamente isso. Sem login a função devolveria zero
+-- linhas de qualquer jeito (não há `auth.uid()`), mas uma função que ENUMERA
+-- o acervo inteiro não deve nem ser chamável por visitante.
+revoke execute on function public.todos_os_arquivos(integer, integer) from anon;
 grant execute on function public.todos_os_arquivos(integer, integer) to authenticated;
