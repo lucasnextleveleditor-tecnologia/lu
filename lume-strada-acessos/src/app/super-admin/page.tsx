@@ -11,7 +11,7 @@ export default async function SuperAdminPage() {
   // query voltaria vazia mesmo sem o guard de `layout.tsx`.
   const { data: companies } = await supabase
     .from("companies")
-    .select("id, nome, status, expires_at, created_by, created_at, updated_at")
+    .select("id, nome, status, expires_at, limite_armazenamento_mb, created_by, created_at, updated_at")
     .order("created_at", { ascending: false })
     .overrideTypes<CompanyRow[], { merge: false }>();
 

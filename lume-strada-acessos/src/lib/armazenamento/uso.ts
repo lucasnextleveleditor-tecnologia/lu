@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { LIMITE_PADRAO_MB } from "./limites";
 
 /**
  * Quanto a empresa já ocupou, e quanto pode ocupar.
@@ -34,7 +35,7 @@ export const buscarUsoDeArmazenamento = cache(async (): Promise<UsoDeArmazenamen
     const bytesUsados = Number(usoRes.data ?? 0);
     if (!Number.isFinite(bytesUsados)) return null;
 
-    const limiteMb = empresaRes.data?.limite_armazenamento_mb || 10240;
+    const limiteMb = empresaRes.data?.limite_armazenamento_mb || LIMITE_PADRAO_MB;
     const bytesLimite = limiteMb * MB;
 
     return { bytesUsados, bytesLimite, fracao: bytesLimite > 0 ? Math.min(1, bytesUsados / bytesLimite) : 0 };

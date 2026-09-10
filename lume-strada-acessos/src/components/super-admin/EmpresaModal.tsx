@@ -6,6 +6,7 @@ import { criarEmpresa, atualizarEmpresa } from "@/app/super-admin/actions";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { LIMITE_PADRAO_MB } from "@/lib/armazenamento/limites";
 
 interface EmpresaModalProps {
   empresa?: CompanyRow | null;
@@ -21,6 +22,11 @@ function paraInputDate(iso: string | null): string {
 export function EmpresaModal({ empresa, onClose }: EmpresaModalProps) {
   const [nome, setNome] = useState(empresa?.nome ?? "");
   const [expiresAt, setExpiresAt] = useState(paraInputDate(empresa?.expires_at ?? null));
+  // Vazio = segue o padrão do sistema. Guardado em GB porque é assim que se
+  // fala com o cliente ("cinco giga"), não em MB.
+  const [limiteGb, setLimiteGb] = useState(
+    empresa?.limite_armazenamento_mb ? String(empresa.limite_armazenamento_mb / 1024) : ""
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +37,12 @@ export function EmpresaModal({ empresa, onClose }: EmpresaModalProps) {
     setLoading(true);
     setError(null);
 
-    const input = { nome, expiresAt: expiresAt || null };
+    const digitado = Number(limiteGb.replace(",", "."));
+    const input = {
+      nome,
+      expiresAt: expiresAt || null,
+      limiteGb: limiteGb.trim() === "" || !Number.isFinite(digitado) ? null : digitado,
+    };
     const result = empresa ? await atualizarEmpresa(empresa.id, input) : await criarEmpresa(input);
 
     setLoading(false);
@@ -61,6 +72,23 @@ export function EmpresaModal({ empresa, onClose }: EmpresaModalProps) {
             <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Data de expiração da licença</label>
             <DatePicker value={expiresAt} onChange={setExpiresAt} clearable />
             <p className="mt-1 text-xs text-ink-muted">Deixe em branco para uma licença sem data de expiração.</p>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">Limite de armazenamento (GB)</label>
+            <Input
+              type="number"
+              min={1}
+              step={1}
+              inputMode="numeric"
+              value={limiteGb}
+              onChange={(e) => setLimiteGb(e.target.value)}
+              placeholder={`Padrão: ${LIMITE_PADRAO_MB / 1024} GB`}
+            />
+            <p className="mt-1 text-xs text-ink-muted">
+              Em branco = {LIMITE_PADRAO_MB / 1024} GB, o padrão do sistema (e acompanha o padrão se ele mudar).
+              Preencha só para vender espaço extra a um cliente específico.
+            </p>
           </div>
 
           {error && <p className="text-sm text-danger">{error}</p>}

@@ -13,6 +13,12 @@ export interface CompanyRow {
   nome_app: string;
   status: StatusEmpresa;
   expires_at: string | null; // ISO timestamp — null = sem expiração definida
+  /**
+   * Teto de armazenamento desta empresa, em MB. `null` usa o padrão do
+   * sistema (`LIMITE_PADRAO_MB`) — é assim que dá pra vender espaço extra
+   * pra um cliente específico sem mudar o padrão de todo mundo.
+   */
+  limite_armazenamento_mb: number | null;
   created_by: string | null; // uuid -> profiles.id (qual super_admin cadastrou)
   created_at: string;
   updated_at: string;

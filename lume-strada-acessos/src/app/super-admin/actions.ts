@@ -26,6 +26,19 @@ const PATH = "/super-admin";
 export interface EmpresaInput {
   nome: string;
   expiresAt: string | null;
+  /**
+   * Teto de armazenamento em GB. `null` deixa a empresa no padrão do sistema
+   * — e é assim que ela CONTINUA acompanhando o padrão se ele mudar um dia.
+   * Gravar o número atual em todo mundo congelaria cada empresa no valor que
+   * valia no dia do cadastro.
+   */
+  limiteGb: number | null;
+}
+
+/** GB do formulário -> MB da coluna. Fora da faixa vira `null` (usa o padrão). */
+function limiteEmMb(limiteGb: number | null): number | null {
+  if (limiteGb === null || !Number.isFinite(limiteGb) || limiteGb <= 0) return null;
+  return Math.round(Math.min(limiteGb, 2048) * 1024);
 }
 
 export async function criarEmpresa(input: EmpresaInput): Promise<ActionResultId> {
@@ -40,6 +53,7 @@ export async function criarEmpresa(input: EmpresaInput): Promise<ActionResultId>
       .insert({
         nome,
         expires_at: input.expiresAt ? new Date(input.expiresAt).toISOString() : null,
+        limite_armazenamento_mb: limiteEmMb(input.limiteGb),
         created_by: user.id,
       })
       .select("id")
@@ -62,7 +76,11 @@ export async function atualizarEmpresa(id: string, input: EmpresaInput): Promise
 
     const { error } = await supabase
       .from("companies")
-      .update({ nome, expires_at: input.expiresAt ? new Date(input.expiresAt).toISOString() : null })
+      .update({
+        nome,
+        expires_at: input.expiresAt ? new Date(input.expiresAt).toISOString() : null,
+        limite_armazenamento_mb: limiteEmMb(input.limiteGb),
+      })
       .eq("id", id);
     if (error) return { ok: false, error: error.message };
 
