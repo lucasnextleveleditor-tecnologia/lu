@@ -24,6 +24,16 @@ export function IconUsers(props: IconProps) {
   );
 }
 
+/** UMA pessoa. `IconUsers` é de várias — usado onde o assunto é equipe, não conta. */
+export function IconUser(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <circle cx="12" cy="8" r="3.4" />
+      <path d="M5 20c.9-3.4 3.7-5.4 7-5.4s6.1 2 7 5.4" />
+    </svg>
+  );
+}
+
 export function IconActivity(props: IconProps) {
   return (
     <svg {...BASE} {...props}>
