@@ -880,3 +880,15 @@ export function IconAtSign(props: IconProps) {
     </svg>
   );
 }
+
+/** Setas apontando para dentro — comprimir/reduzir um arquivo. */
+export function IconMinimize(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M9.5 3.5v4a2 2 0 0 1-2 2h-4" />
+      <path d="M14.5 3.5v4a2 2 0 0 0 2 2h4" />
+      <path d="M9.5 20.5v-4a2 2 0 0 0-2-2h-4" />
+      <path d="M14.5 20.5v-4a2 2 0 0 1 2-2h4" />
+    </svg>
+  );
+}

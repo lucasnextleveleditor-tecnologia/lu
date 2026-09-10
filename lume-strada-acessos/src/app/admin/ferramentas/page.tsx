@@ -8,6 +8,7 @@ import {
   IconSignature,
   IconSitemap,
   IconTool,
+  IconMinimize,
 } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
@@ -93,6 +94,17 @@ export default async function FerramentasPage() {
         "nenhum contrato aguardando"
       ),
       destaque: contagens.contratosAguardando > 0,
+    },
+    {
+      chave: null,
+      href: "/admin/ferramentas/comprimir",
+      icone: IconMinimize,
+      cor: "#60a5fa",
+      titulo: "Comprimir Arquivo",
+      descricao:
+        "Vídeo, PDF ou imagem grande demais para mandar? Escolha o tamanho final e a conversão acontece aqui mesmo, no seu navegador.",
+      meta: "Não gasta armazenamento da conta",
+      destaque: false,
     },
     {
       chave: "orcamentos" as const,
