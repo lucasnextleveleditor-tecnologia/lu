@@ -104,12 +104,8 @@ export interface TextosDoCompressor {
   avisoVideoJaComprimido: string;
 }
 
-/** Troca `{chave}` pelos valores dados. Sem chave correspondente, o texto passa intacto. */
-export function substituir(texto: string, valores: Record<string, string | number>): string {
-  return texto.replace(/\{(\w+)\}/g, (inteiro, chave: string) =>
-    chave in valores ? String(valores[chave]) : inteiro
-  );
-}
+/** Reexportado por conveniência — o motor usa em quase toda etapa com número. */
+export { substituir } from "@/lib/utils/texto";
 
 /** Acima disto o navegador começa a ficar sem memória de verdade. */
 export const LIMITES_DE_ENTRADA: Record<TipoDeArquivo, number> = {
@@ -154,21 +150,8 @@ export function detectarTipo(file: File): TipoDeArquivo | null {
   return null;
 }
 
-/**
- * Tamanho de arquivo em texto curto.
- *
- * As unidades (B, KB, MB, GB) NÃO são traduzidas de propósito: são as mesmas
- * nos três idiomas do app, e inventar variação regional aqui só criaria
- * chance de erro. O separador decimal segue o locale.
- */
-export function fmtBytes(bytes: number, locale = "pt-BR"): string {
-  const n = (valor: number, casas: number) =>
-    valor.toLocaleString(locale, { minimumFractionDigits: casas, maximumFractionDigits: casas });
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${n(bytes / 1024, 0)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${n(bytes / (1024 * 1024), 1)} MB`;
-  return `${n(bytes / (1024 * 1024 * 1024), 2)} GB`;
-}
+/** Reexportado por conveniência: quase todo arquivo do compressor precisa dele. */
+export { fmtBytes } from "@/lib/utils/bytes";
 
 export const MB = 1024 * 1024;
 

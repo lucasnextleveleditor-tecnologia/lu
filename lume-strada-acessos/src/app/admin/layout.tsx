@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
-import { buscarUsoDeArmazenamento, fmtBytes } from "@/lib/armazenamento/uso";
+import { buscarUsoDeArmazenamento } from "@/lib/armazenamento/uso";
+import { fmtBytes } from "@/lib/utils/bytes";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { BrandingAccentStyle } from "@/components/branding/BrandingAccentStyle";
 
@@ -32,6 +34,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const branding = await getBrandingConfig();
   const uso = await buscarUsoDeArmazenamento();
+  // Só o idioma: a barra de armazenamento na sidebar mostra número, e
+  // "1,5 GB" e "1.5 GB" não são a mesma coisa em cada língua.
+  const { locale } = await getDictionary();
 
   const banner =
     branding.banner_ativo_admin && branding.banner_titulo.trim()
@@ -57,7 +62,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         logoUrl={branding.logo_dark_url ?? branding.logo_url}
         fotoUrl={profile.avatar_url ?? null}
         armazenamento={
-          uso ? { usado: fmtBytes(uso.bytesUsados), limite: fmtBytes(uso.bytesLimite), fracao: uso.fracao } : null
+          uso
+            ? { usado: fmtBytes(uso.bytesUsados, locale), limite: fmtBytes(uso.bytesLimite, locale), fracao: uso.fracao }
+            : null
         }
         nome={profile.full_name ?? ""}
         email={profile.email}

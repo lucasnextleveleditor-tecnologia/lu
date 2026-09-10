@@ -43,13 +43,6 @@ export const buscarUsoDeArmazenamento = cache(async (): Promise<UsoDeArmazenamen
   }
 });
 
-/** "1,2 GB" / "340 MB" / "8 KB" — com vírgula, como se lê em português. */
-export function fmtBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < MB) return `${(bytes / 1024).toFixed(0)} KB`;
-  if (bytes < 1024 * MB) return `${(bytes / MB).toFixed(bytes < 10 * MB ? 1 : 0).replace(".", ",")} MB`;
-  return `${(bytes / (1024 * MB)).toFixed(1).replace(".", ",")} GB`;
-}
 
 
 /* ==================================================================== */
@@ -58,59 +51,28 @@ export function fmtBytes(bytes: number): string {
 
 /**
  * O nome do bucket não diz nada a quem usa o sistema: "orcamentos-midia" e
- * "infoprodutos" são nomes de infraestrutura. Aqui cada um vira a tela onde
- * a pessoa reconhece o arquivo — e o caminho para chegar lá.
+ * "infoprodutos" são nomes de infraestrutura. A CHAVE mapeia cada um para a
+ * tela onde a pessoa reconhece aquele arquivo.
+ *
+ * O rótulo e a explicação de cada área moram no dicionário
+ * (`i18n/dictionaries/<idioma>/armazenamento.ts`), não aqui: é texto que a
+ * pessoa lê, e o painel inteiro fala três idiomas. Aqui fica só o que não
+ * se traduz — a rota.
  */
-export const AREAS_DE_ARMAZENAMENTO: Record<
-  string,
-  { rotulo: string; explicacao: string; href: string | null }
-> = {
-  assinaturas: {
-    rotulo: "Documentos para assinatura",
-    explicacao: "PDFs enviados para assinar e as vias assinadas. Não dá para trocar por link: a assinatura é carimbada no arquivo.",
-    href: "/admin/assinaturas",
-  },
-  producao: {
-    rotulo: "Entregas de produção",
-    explicacao: "Versões enviadas ao cliente. É o que mais cresce — cada revisão é um arquivo novo.",
-    href: "/admin/producao",
-  },
-  financeiro: {
-    rotulo: "Anexos do financeiro",
-    explicacao: "Comprovantes e notas presos a lançamentos.",
-    href: "/admin/financeiro",
-  },
-  "orcamentos-midia": {
-    rotulo: "Portfólio e propostas",
-    explicacao: "Imagens e vídeos que aparecem nas propostas.",
-    href: "/admin/orcamentos",
-  },
-  infoprodutos: {
-    rotulo: "Criativos de anúncio",
-    explicacao: "Prints e vídeos dos criativos lançados.",
-    href: "/admin/trafego?fluxo=infoproduto",
-  },
-  mapas: {
-    rotulo: "Imagens de mapa mental",
-    explicacao: "Imagens coladas dentro dos balões.",
-    href: "/admin/ferramentas",
-  },
-  avatares: {
-    rotulo: "Fotos de perfil",
-    explicacao: "Uma por pessoa da equipe. Ocupa quase nada.",
-    href: "/admin/configuracoes?aba=conta",
-  },
-  branding: {
-    rotulo: "Marca e aparência",
-    explicacao: "Logo, fundo de login e banner.",
-    href: "/admin/configuracoes?aba=aparencia",
-  },
+export const HREF_DA_AREA: Record<string, string | null> = {
+  assinaturas: "/admin/assinaturas",
+  producao: "/admin/producao",
+  financeiro: "/admin/financeiro",
+  "orcamentos-midia": "/admin/orcamentos",
+  infoprodutos: "/admin/trafego?fluxo=infoproduto",
+  mapas: "/admin/ferramentas",
+  avatares: "/admin/configuracoes?aba=conta",
+  branding: "/admin/configuracoes?aba=aparencia",
 };
 
 export interface AreaComUso {
+  /** Id do bucket — a chave para achar o texto da área no dicionário. */
   chave: string;
-  rotulo: string;
-  explicacao: string;
   href: string | null;
   arquivos: number;
   bytes: number;
@@ -120,7 +82,6 @@ export interface AreaComUso {
 
 export interface ArquivoGrande {
   bucket: string;
-  area: string;
   nome: string;
   bytes: number;
   criadoEm: string;
@@ -138,18 +99,13 @@ export const buscarDetalheDoArmazenamento = cache(
       const linhas = (areasRes.data ?? []) as { bucket: string; arquivos: number; bytes: number }[];
       const total = linhas.reduce((soma, l) => soma + Number(l.bytes), 0);
 
-      const areas: AreaComUso[] = linhas.map((l) => {
-        const meta = AREAS_DE_ARMAZENAMENTO[l.bucket];
-        return {
-          chave: l.bucket,
-          rotulo: meta?.rotulo ?? l.bucket,
-          explicacao: meta?.explicacao ?? "",
-          href: meta?.href ?? null,
-          arquivos: Number(l.arquivos),
-          bytes: Number(l.bytes),
-          fatia: total > 0 ? Number(l.bytes) / total : 0,
-        };
-      });
+      const areas: AreaComUso[] = linhas.map((l) => ({
+        chave: l.bucket,
+        href: HREF_DA_AREA[l.bucket] ?? null,
+        arquivos: Number(l.arquivos),
+        bytes: Number(l.bytes),
+        fatia: total > 0 ? Number(l.bytes) / total : 0,
+      }));
 
       const maiores: ArquivoGrande[] = ((maioresRes.data ?? []) as {
         bucket: string;
@@ -158,7 +114,6 @@ export const buscarDetalheDoArmazenamento = cache(
         criado_em: string;
       }[]).map((l) => ({
         bucket: l.bucket,
-        area: AREAS_DE_ARMAZENAMENTO[l.bucket]?.rotulo ?? l.bucket,
         // Só o nome do arquivo: o caminho inteiro começa com o uuid da
         // empresa e da pasta, que não dizem nada a quem está lendo.
         nome: l.caminho.split("/").pop() || l.caminho,
