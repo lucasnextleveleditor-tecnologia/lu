@@ -200,8 +200,6 @@ const MODULO_COR: Record<string, string> = {
 
 interface AdminShellProps {
   logoUrl: string | null;
-  /** Nome da empresa — mora no canto superior direito, ao lado do sino. */
-  nomeApp: string;
   /** Nome do APP mostrado no topo da sidebar (`companies.nome_app`, editável em Aparência) — nunca o nome literal de uma empresa específica. Default "App Gestão". */
   nome: string;
   email: string;
@@ -216,7 +214,6 @@ interface AdminShellProps {
 
 export function AdminShell({
   logoUrl,
-  nomeApp,
   nome,
   email,
   colapsadoPadrao: _colapsadoPadrao,
@@ -386,25 +383,24 @@ export function AdminShell({
         {/* O sino vem antes do tema e do idioma porque é o único dos três que
             MUDA sozinho: os outros dois a pessoa procura quando quer, este
             precisa ser encontrado sem procurar. */}
-        {/* O nome da conta vem ANTES dos controles: é identificação, não
-            comando — diz de quem é o painel que está aberto, que é a
-            primeira coisa que alguém com mais de uma conta precisa
-            conferir. Some abaixo de `sm` para não brigar por espaço com os
-            três botões numa tela estreita. */}
+        <SinoDeNotificacoes />
+        <ThemeToggle />
+        <LanguageSwitcher />
+
+        {/* Por último, na ponta direita da tela — é a posição de "quem está
+            aqui" em quase todo painel, e é onde o olho vai procurar. Some
+            abaixo de `sm` para não brigar por espaço com os três controles
+            numa tela estreita. */}
         <Link
           href="/admin/configuracoes?aba=conta"
-          title={nome ? `${nome} · ${email}` : email}
+          title={email}
           className="hidden items-center gap-2 rounded-full border border-base-700 bg-base-900/80 py-1.5 pl-1.5 pr-3.5 backdrop-blur-sm transition hover:border-base-600 hover:bg-base-900 sm:flex"
         >
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-base-800 text-ink-secondary">
             <IconUser className="h-3.5 w-3.5" />
           </span>
-          <span className="max-w-[14rem] truncate text-sm text-ink-primary">{nomeApp}</span>
+          <span className="max-w-[14rem] truncate text-sm text-ink-primary">{nome || email}</span>
         </Link>
-
-        <SinoDeNotificacoes />
-        <ThemeToggle />
-        <LanguageSwitcher />
       </div>
 
       {/* padding-left travado na largura RECOLHIDA de propósito — a sidebar
