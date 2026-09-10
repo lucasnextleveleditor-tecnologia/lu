@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
+import { registrar } from "@/lib/eventos/registrar";
 import {
   CAMPOS_POR_ETAPA,
   TOTAL_DE_ETAPAS,
@@ -93,6 +94,14 @@ export async function salvarEtapaOnboarding(
       .single<OnboardingRow>();
     if (error) return { ok: false, error: error.message };
 
+    await registrar(supabase, user.id, {
+      acao: "onboarding_salvo",
+      entidade: "onboarding",
+      entidadeId: data.id,
+      clienteId: clienteId,
+      detalhe: { etapa },
+    });
+
     revalidar();
     return { ok: true, row: data };
   } catch (err) {
@@ -135,6 +144,13 @@ export async function concluirOnboarding(
       .single<OnboardingRow>();
     if (error) return { ok: false, error: error.message };
 
+    await registrar(supabase, user.id, {
+      acao: "onboarding_concluido",
+      entidade: "onboarding",
+      entidadeId: data.id,
+      clienteId: clienteId,
+    });
+
     revalidar();
     return { ok: true, row: data };
   } catch (err) {
@@ -151,6 +167,11 @@ export async function reabrirOnboarding(clienteId: string): Promise<ResultadoSim
       .update({ concluido_em: null, atualizado_por: user.id })
       .eq("cliente_id", clienteId);
     if (error) return { ok: false, error: error.message };
+    await registrar(supabase, user.id, {
+      acao: "onboarding_reaberto",
+      entidade: "onboarding",
+      clienteId: clienteId,
+    });
     revalidar();
     return { ok: true };
   } catch (err) {
@@ -204,6 +225,13 @@ export async function enviarLinkOnboarding(
 
     if (error) return { ok: false, error: error.message };
     if (!data?.token) return { ok: false, error: "Este briefing ainda não tem link. Rode a migração de onboarding." };
+
+    await registrar(supabase, user.id, {
+      acao: "onboarding_link_enviado",
+      entidade: "onboarding",
+      clienteId: clienteId,
+      detalhe: { dias },
+    });
 
     revalidar();
     return { ok: true, token: data.token };

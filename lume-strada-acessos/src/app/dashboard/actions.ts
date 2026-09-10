@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { registrarDoCliente } from "@/lib/eventos/registrar";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { TipoVersaoEntrega } from "@/lib/types/producao";
@@ -135,6 +136,43 @@ export async function getUrlDownloadCliente(versaoId: string): Promise<SignedUrl
   }
 }
 
+/**
+ * Registra na trilha um passo dado pelo PRÓPRIO CLIENTE, do portal.
+ *
+ * Tudo aqui roda com Service Role e sem `auth.uid()` da equipe, então três
+ * coisas precisam ser resolvidas à mão: a empresa (o default da tabela
+ * devolveria nulo), o cliente do cadastro (é a linha do tempo dele) e o nome
+ * de quem aprovou — que vem de `clientes.nome`, porque no portal não há um
+ * perfil de funcionário para consultar.
+ *
+ * A distinção importa mais aqui do que em qualquer outro lugar da trilha:
+ * "aprovado pelo cliente" e "aprovado pela agência" são fatos diferentes, e
+ * é o `ator_tipo` que os separa.
+ */
+async function registrarDoPortal(
+  admin: ReturnType<typeof createAdminClient>,
+  _userId: string,
+  tarefaId: string,
+  evento: Omit<Parameters<typeof registrarDoCliente>[3], "clienteId" | "titulo">
+): Promise<void> {
+  const { data: tarefa } = await admin
+    .from("prod_tarefas")
+    .select("titulo, company_id, cliente_cadastro_id")
+    .eq("id", tarefaId)
+    .maybeSingle<{ titulo: string; company_id: string; cliente_cadastro_id: string | null }>();
+  if (!tarefa) return;
+
+  const { data: cliente } = tarefa.cliente_cadastro_id
+    ? await admin.from("clientes").select("nome").eq("id", tarefa.cliente_cadastro_id).maybeSingle<{ nome: string }>()
+    : { data: null };
+
+  await registrarDoCliente(admin, tarefa.company_id, cliente?.nome ?? null, {
+    ...evento,
+    clienteId: tarefa.cliente_cadastro_id,
+    titulo: tarefa.titulo,
+  });
+}
+
 /** Aprovar — mesma lógica de `aprovarVersao` (Produção/admin): fecha a revisão e marca a tarefa como Concluída. */
 export async function aprovarVersaoCliente(versaoId: string): Promise<ActionResult> {
   try {
@@ -151,6 +189,13 @@ export async function aprovarVersaoCliente(versaoId: string): Promise<ActionResu
 
     const { error: erroTarefa } = await admin.from("prod_tarefas").update({ status: "concluida" }).eq("id", dono.tarefaId);
     if (erroTarefa) return { ok: false, error: erroTarefa.message };
+
+    await registrarDoPortal(admin, user.id, dono.tarefaId, {
+      acao: "versao_aprovada",
+      entidade: "versao",
+      entidadeId: versaoId,
+      para: "concluida",
+    });
 
     revalidatePath(PATH);
     return { ok: true };
@@ -181,6 +226,14 @@ export async function solicitarAlteracaoVersaoCliente(versaoId: string, observac
 
     const { error: erroTarefa } = await admin.from("prod_tarefas").update({ status: "em_producao" }).eq("id", dono.tarefaId);
     if (erroTarefa) return { ok: false, error: erroTarefa.message };
+
+    await registrarDoPortal(admin, user.id, dono.tarefaId, {
+      acao: "versao_alteracao_solicitada",
+      entidade: "versao",
+      entidadeId: versaoId,
+      para: "em_producao",
+      detalhe: { observacao: observacao.trim().slice(0, 300) },
+    });
 
     revalidatePath(PATH);
     return { ok: true };

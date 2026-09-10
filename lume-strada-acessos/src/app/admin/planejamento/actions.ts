@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
+import { registrar, type AcaoEvento } from "@/lib/eventos/registrar";
 import {
   CAMPOS_EDITAVEIS,
   JA_EXISTE_ATIVO,
@@ -68,6 +69,14 @@ export async function criarCiclo(
       .single<{ id: string }>();
 
     if (error) return { ok: false, error: error.message };
+
+    await registrar(supabase, user.id, {
+      acao: "plano_criado",
+      entidade: "plano",
+      entidadeId: data.id,
+      clienteId,
+    });
+
     revalidar();
     return { ok: true, id: data.id };
   } catch (err) {
@@ -120,6 +129,14 @@ export async function salvarPlano(
       .single<PlanoRow>();
 
     if (error) return { ok: false, error: error.message };
+
+    await registrar(supabase, user.id, {
+      acao: "plano_editado",
+      entidade: "plano",
+      entidadeId: planoId,
+      clienteId: data.cliente_id,
+    });
+
     revalidar();
     return { ok: true, row: data };
   } catch (err) {
@@ -155,6 +172,25 @@ export async function mudarStatusDoPlano(
         return { ok: false, error: JA_EXISTE_ATIVO };
       }
       return { ok: false, error: error.message };
+    }
+
+    // Uma ação por destino, e não um "plano_status" genérico: ativar, encerrar
+    // e cancelar são três acontecimentos diferentes na vida do cliente, e
+    // quem lê a trilha quer distingui-los sem interpretar códigos.
+    const ACAO_POR_STATUS: Partial<Record<StatusDoPlano, AcaoEvento>> = {
+      ativo: "plano_ativado",
+      encerrado: "plano_encerrado",
+      cancelado: "plano_cancelado",
+    };
+    const acao = ACAO_POR_STATUS[status];
+    if (acao) {
+      await registrar(supabase, user.id, {
+        acao,
+        entidade: "plano",
+        entidadeId: planoId,
+        clienteId: data.cliente_id,
+        para: status,
+      });
     }
 
     revalidar();

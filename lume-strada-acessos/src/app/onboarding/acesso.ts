@@ -1,5 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { registrarDoCliente } from "@/lib/eventos/registrar";
 import {
   CAMPOS_POR_ETAPA,
   TOTAL_DE_ETAPAS,
@@ -198,6 +199,21 @@ export async function concluirPublico(token: string, respondidoPor: string): Pro
     })
     .eq("token", token);
   if (error) return { ok: false, error: error.message };
+
+  // O registro entra no CONCLUIR, e não a cada etapa salva: trinta linhas de
+  // "o cliente salvou a etapa 2" enterrariam o evento que de fato importa
+  // para a equipe — o briefing chegou.
+  await registrarDoCliente(
+    admin,
+    acesso.onboarding.company_id,
+    respondidoPor.trim() || acesso.clienteNome || null,
+    {
+      acao: "onboarding_respondido_cliente",
+      entidade: "onboarding",
+      entidadeId: acesso.onboarding.id,
+      clienteId: acesso.onboarding.cliente_id,
+    }
+  );
 
   await avisarEquipe(acesso, respondidoPor);
   return { ok: true };

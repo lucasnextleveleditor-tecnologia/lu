@@ -16,9 +16,12 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 export function SeletorDeCliente({
   clientes,
   atual,
+  aba = "conteudo",
 }: {
   clientes: { id: string; nome: string }[];
   atual: string;
+  /** Para qual aba de Gestão de Clientes navegar — Conteúdo e Histórico usam o mesmo seletor. */
+  aba?: "conteudo" | "historico";
 }) {
   const { dict } = useLocale();
   const router = useRouter();
@@ -30,7 +33,7 @@ export function SeletorDeCliente({
       </label>
       <Select
         value={atual}
-        onChange={(e) => router.push(`/admin?aba=conteudo&cliente=${e.target.value}`)}
+        onChange={(e) => router.push(`/admin?aba=${aba}&cliente=${e.target.value}`)}
       >
         {clientes.map((c) => (
           <option key={c.id} value={c.id}>

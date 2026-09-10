@@ -25,6 +25,7 @@ import { ferramentas } from "./ferramentas";
 import { armazenamento } from "./armazenamento";
 import { onboarding } from "./onboarding";
 import { planejamento } from "./planejamento";
+import { historico } from "./historico";
 
 export const en: Dictionary = {
   common,
@@ -53,4 +54,5 @@ export const en: Dictionary = {
   armazenamento,
   onboarding,
   planejamento,
+  historico,
 };

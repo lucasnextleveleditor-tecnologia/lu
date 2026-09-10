@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { registrar } from "@/lib/eventos/registrar";
 import { requireModulo, requireQualquerModulo } from "@/lib/auth/requireAdmin";
 import { sanitizarBriefingHtml } from "@/lib/utils/sanitize";
 import { ehExtensaoPerigosaParaEntrega } from "@/lib/utils/upload";
@@ -128,9 +129,34 @@ function sanitizarLinksMultilinha(valor: string | null): string | null {
   return linhas.length > 0 ? linhas.join("\n") : null;
 }
 
+/**
+ * Registra um evento resolvendo o cliente e o título A PARTIR DA TAREFA.
+ *
+ * As ações de versão (enviar, aprovar, devolver) só conhecem o id da tarefa e
+ * o da versão — mas a trilha que se lê é a do CLIENTE. Sem esta resolução, o
+ * evento existiria e não apareceria na linha do tempo de ninguém.
+ */
+async function registrarSobreTarefa(
+  supabase: Awaited<ReturnType<typeof requireModulo>>["supabase"],
+  userId: string,
+  tarefaId: string,
+  evento: Omit<Parameters<typeof registrar>[2], "clienteId" | "titulo">
+): Promise<void> {
+  const { data } = await supabase
+    .from("prod_tarefas")
+    .select("titulo, cliente_cadastro_id")
+    .eq("id", tarefaId)
+    .maybeSingle<{ titulo: string; cliente_cadastro_id: string | null }>();
+  await registrar(supabase, userId, {
+    ...evento,
+    clienteId: data?.cliente_cadastro_id ?? null,
+    titulo: data?.titulo ?? null,
+  });
+}
+
 export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase, user } = await requireModulo("producao");
     if (!input.titulo.trim()) return { ok: false, error: "Informe o título da tarefa." };
 
     const vinculoCliente = await resolverVinculoCliente(supabase, input.clienteId);
@@ -154,6 +180,15 @@ export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
       .single();
 
     if (error) return { ok: false, error: error.message };
+
+    await registrar(supabase, user.id, {
+      acao: "tarefa_criada",
+      entidade: "tarefa",
+      entidadeId: data!.id as string,
+      clienteId: vinculoCliente.cliente_cadastro_id,
+      titulo: input.titulo.trim(),
+    });
+
     revalidatePath(PATH);
     return { ok: true, id: data!.id as string };
   } catch (err) {
@@ -196,9 +231,33 @@ export async function atualizarTarefa(id: string, input: TarefaInput): Promise<A
 /** Move o card entre colunas — usado pelo drag-and-drop do Kanban e pelo seletor de status no detalhe. */
 export async function moverStatusTarefa(id: string, status: StatusTarefa): Promise<ActionResult> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase, user } = await requireModulo("producao");
+
+    // O estado ANTERIOR é lido antes de mudar, e é ele que dá sentido ao
+    // registro: sem o "de", a trilha diria "mudou para revisão interna" sem
+    // dizer de onde — e é a transição que conta a história ("entregou para
+    // revisão" é diferente de "voltou para revisão").
+    const { data: antes } = await supabase
+      .from("prod_tarefas")
+      .select("status, titulo, cliente_cadastro_id")
+      .eq("id", id)
+      .maybeSingle<{ status: StatusTarefa; titulo: string; cliente_cadastro_id: string | null }>();
+
     const { error } = await supabase.from("prod_tarefas").update({ status }).eq("id", id);
     if (error) return { ok: false, error: error.message };
+
+    if (antes && antes.status !== status) {
+      await registrar(supabase, user.id, {
+        acao: "tarefa_status",
+        entidade: "tarefa",
+        entidadeId: id,
+        clienteId: antes.cliente_cadastro_id,
+        titulo: antes.titulo,
+        de: antes.status,
+        para: status,
+      });
+    }
+
     revalidatePath(PATH);
     return { ok: true };
   } catch (err) {
@@ -208,9 +267,27 @@ export async function moverStatusTarefa(id: string, status: StatusTarefa): Promi
 
 export async function removerTarefa(id: string): Promise<ActionResult> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase, user } = await requireModulo("producao");
+
+    // Lido ANTES de apagar: depois do delete não há de onde tirar o nome, e
+    // "fulano apagou uma tarefa" sem dizer qual não serve de trilha.
+    const { data: antes } = await supabase
+      .from("prod_tarefas")
+      .select("titulo, cliente_cadastro_id")
+      .eq("id", id)
+      .maybeSingle<{ titulo: string; cliente_cadastro_id: string | null }>();
+
     const { error } = await supabase.from("prod_tarefas").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
+
+    await registrar(supabase, user.id, {
+      acao: "tarefa_removida",
+      entidade: "tarefa",
+      entidadeId: id,
+      clienteId: antes?.cliente_cadastro_id ?? null,
+      titulo: antes?.titulo ?? null,
+    });
+
     revalidatePath(PATH);
     return { ok: true };
   } catch (err) {
@@ -382,6 +459,15 @@ export async function confirmarVersaoArquivo(
     if (error) return { ok: false, error: error.message };
 
     await supabase.from("prod_tarefas").update({ status: "preview_cliente" }).eq("id", tarefaId);
+
+    await registrarSobreTarefa(supabase, user.id, tarefaId, {
+      acao: "versao_enviada",
+      entidade: "versao",
+      entidadeId: data!.id as string,
+      para: "preview_cliente",
+      detalhe: { versao: input.versao, tipo: "arquivo" },
+    });
+
     revalidatePath(PATH);
     return { ok: true, id: data!.id as string };
   } catch (err) {
@@ -421,6 +507,15 @@ export async function enviarVersaoLink(
     if (error) return { ok: false, error: error.message };
 
     await supabase.from("prod_tarefas").update({ status: "preview_cliente" }).eq("id", tarefaId);
+
+    await registrarSobreTarefa(supabase, user.id, tarefaId, {
+      acao: "versao_enviada",
+      entidade: "versao",
+      entidadeId: data!.id as string,
+      para: "preview_cliente",
+      detalhe: { versao: proximaVersao, tipo: "link" },
+    });
+
     revalidatePath(PATH);
     return { ok: true, id: data!.id as string };
   } catch (err) {
@@ -440,6 +535,12 @@ export async function aprovarVersao(tarefaId: string, versaoId: string): Promise
 
     const { error: erroTarefa } = await supabase.from("prod_tarefas").update({ status: "concluida" }).eq("id", tarefaId);
     if (erroTarefa) return { ok: false, error: erroTarefa.message };
+
+    await registrarSobreTarefa(supabase, user.id, tarefaId, {
+      acao: "versao_aprovada",
+      entidade: "versao",
+      entidadeId: versaoId,
+    });
 
     revalidatePath(PATH);
     return { ok: true };
@@ -467,6 +568,13 @@ export async function solicitarAlteracaoVersao(tarefaId: string, versaoId: strin
 
     const { error: erroTarefa } = await supabase.from("prod_tarefas").update({ status: "em_producao" }).eq("id", tarefaId);
     if (erroTarefa) return { ok: false, error: erroTarefa.message };
+
+    await registrarSobreTarefa(supabase, user.id, tarefaId, {
+      acao: "versao_alteracao_solicitada",
+      entidade: "versao",
+      entidadeId: versaoId,
+      detalhe: { observacao: observacao.trim().slice(0, 300) },
+    });
 
     revalidatePath(PATH);
     return { ok: true };

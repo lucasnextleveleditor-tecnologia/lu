@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
+import { registrar } from "@/lib/eventos/registrar";
 import type { CanalDoPost, FormatoDoPost, TarefaRow, TipoDePauta } from "@/lib/types/producao";
 
 /**
@@ -57,7 +58,7 @@ export async function criarPauta(
   campos: Partial<CamposDaPauta>
 ): Promise<ResultadoPauta> {
   try {
-    const { supabase } = await requireModulo("clientes");
+    const { supabase, user } = await requireModulo("clientes");
     const titulo = (campos.titulo ?? "").trim();
     if (!titulo) return { ok: false, error: "SEM_TITULO" };
 
@@ -98,6 +99,16 @@ export async function criarPauta(
       .single<TarefaRow>();
 
     if (error) return { ok: false, error: error.message };
+
+    await registrar(supabase, user.id, {
+      acao: "pauta_criada",
+      entidade: "pauta",
+      entidadeId: data.id,
+      clienteId: plano.cliente_id,
+      titulo,
+      detalhe: { tipo: campos.tipo_pauta ?? "post", dia: campos.data_entrega ?? null },
+    });
+
     revalidar();
     return { ok: true, row: data };
   } catch (err) {
@@ -165,9 +176,26 @@ export async function salvarPauta(
 /** Apaga um post. Só enquanto for pauta — depois de subir, quem apaga é a Produção. */
 export async function removerPauta(id: string): Promise<ResultadoSimples> {
   try {
-    const { supabase } = await requireModulo("clientes");
+    const { supabase, user } = await requireModulo("clientes");
+
+    // Lido antes de apagar — depois do delete não há de onde tirar o nome.
+    const { data: antes } = await supabase
+      .from("prod_tarefas")
+      .select("titulo, cliente_cadastro_id")
+      .eq("id", id)
+      .maybeSingle<{ titulo: string; cliente_cadastro_id: string | null }>();
+
     const { error } = await supabase.from("prod_tarefas").delete().eq("id", id).eq("em_pauta", true);
     if (error) return { ok: false, error: error.message };
+
+    await registrar(supabase, user.id, {
+      acao: "pauta_removida",
+      entidade: "pauta",
+      entidadeId: id,
+      clienteId: antes?.cliente_cadastro_id ?? null,
+      titulo: antes?.titulo ?? null,
+    });
+
     revalidar();
     return { ok: true };
   } catch (err) {
@@ -269,7 +297,7 @@ export async function subirParaProducao(
   responsavelId: string | null
 ): Promise<{ ok: true; quantos: number } | { ok: false; error: string }> {
   try {
-    const { supabase } = await requireModulo("clientes");
+    const { supabase, user } = await requireModulo("clientes");
     const limpos = ids.filter(Boolean);
     if (limpos.length === 0) return { ok: false, error: "NENHUM_SELECIONADO" };
 
@@ -336,6 +364,26 @@ export async function subirParaProducao(
     );
 
     const subiram = resultados.filter(Boolean).length;
+
+    // UM evento para a leva inteira, e não um por post. Soltar o mês é um
+    // gesto só; trinta linhas iguais no mesmo segundo afogariam a trilha e
+    // esconderiam tudo o que veio antes.
+    if (subiram > 0) {
+      const { data: dono } = await supabase
+        .from("prod_tarefas")
+        .select("cliente_cadastro_id")
+        .eq("id", posts[0]!.id)
+        .maybeSingle<{ cliente_cadastro_id: string | null }>();
+
+      await registrar(supabase, user.id, {
+        acao: "pauta_subiu",
+        entidade: "pauta",
+        clienteId: dono?.cliente_cadastro_id ?? null,
+        para: "a_fazer",
+        detalhe: { quantos: subiram, com_responsavel: Boolean(responsavelId) },
+      });
+    }
+
     revalidar();
     if (subiram === 0) return { ok: false, error: "NENHUM_SELECIONADO" };
     return { ok: true, quantos: subiram };
@@ -362,7 +410,7 @@ function subtrairDias(iso: string, dias: number): string {
  */
 export async function devolverParaPauta(id: string): Promise<ResultadoSimples> {
   try {
-    const { supabase } = await requireModulo("clientes");
+    const { supabase, user } = await requireModulo("clientes");
     const { error } = await supabase
       .from("prod_tarefas")
       .update({ em_pauta: true, status: "backlog" })
@@ -370,6 +418,21 @@ export async function devolverParaPauta(id: string): Promise<ResultadoSimples> {
       .eq("em_pauta", false)
       .in("status", ["a_fazer", "backlog"]);
     if (error) return { ok: false, error: error.message };
+
+    const { data: alvo } = await supabase
+      .from("prod_tarefas")
+      .select("titulo, cliente_cadastro_id")
+      .eq("id", id)
+      .maybeSingle<{ titulo: string; cliente_cadastro_id: string | null }>();
+
+    await registrar(supabase, user.id, {
+      acao: "pauta_devolvida",
+      entidade: "pauta",
+      entidadeId: id,
+      clienteId: alvo?.cliente_cadastro_id ?? null,
+      titulo: alvo?.titulo ?? null,
+    });
+
     revalidar();
     return { ok: true };
   } catch (err) {
