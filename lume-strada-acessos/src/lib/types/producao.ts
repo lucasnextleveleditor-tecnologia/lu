@@ -61,6 +61,25 @@ export const CANAIS_DO_POST = [
 ] as const;
 export type CanalDoPost = (typeof CANAIS_DO_POST)[number];
 
+/**
+ * A receita de produção de um formato de post.
+ *
+ * Configurada uma vez por empresa (Configurações → Conteúdo) e aplicada em
+ * todo post que sobe do calendário — e SÓ nos campos que ficaram em branco.
+ * Sem linha para um formato = sem padrão, e a tarefa sobe como está.
+ */
+export interface PostReceitaRow {
+  id: string;
+  company_id: string;
+  formato: FormatoDoPost;
+  tipo_servico_id: string | null;
+  formatos_exportacao: string | null;
+  /** Dias antes do post em que o primeiro corte deve estar pronto. Null = sem V1. */
+  dias_v1: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export const FORMATOS_DO_POST = [
   "reels",
   "carrossel",

@@ -9,18 +9,20 @@ import type { CargoRow, DepartamentoRow, EquipeMembroRow } from "@/lib/types/cad
 import { AparenciaForm } from "@/components/admin/aparencia/AparenciaForm";
 import { EquipeManager } from "@/components/admin/cadastros/EquipeManager";
 import { ConfiguracoesTabs, type AbaConfiguracoes, type ItemAbaConfiguracoes } from "@/components/admin/configuracoes/ConfiguracoesTabs";
+import { ReceitasDePost } from "@/components/admin/configuracoes/ReceitasDePost";
+import type { PostReceitaRow } from "@/lib/types/producao";
 import { CorDaMarcaCard } from "@/components/admin/configuracoes/CorDaMarcaCard";
 import { EmpresaCard } from "@/components/admin/configuracoes/EmpresaCard";
 import { MoedaEIdiomaCard } from "@/components/admin/configuracoes/MoedaEIdiomaCard";
 import { MinhaContaForm } from "@/components/admin/configuracoes/MinhaContaForm";
 import { AssinaturaCard } from "@/components/admin/configuracoes/AssinaturaCard";
-import { IconBuilding, IconUsers, IconPalette, IconCreditCard, IconMegaphone } from "@/components/ui/icons";
+import { IconBuilding, IconUsers, IconPalette, IconCreditCard, IconMegaphone, IconClipboardList } from "@/components/ui/icons";
 import { CentralDeAvisos, type PessoaDaEquipe } from "@/components/admin/notificacoes/CentralDeAvisos";
 import type { AvisoRow } from "@/lib/types/notificacoes";
 
 export const dynamic = "force-dynamic";
 
-const ABAS_VALIDAS: AbaConfiguracoes[] = ["empresa", "avisos", "conta", "aparencia", "assinatura"];
+const ABAS_VALIDAS: AbaConfiguracoes[] = ["empresa", "avisos", "conteudo", "conta", "aparencia", "assinatura"];
 /** Única aba que um funcionário pode ver — as outras três são de admin. */
 const ABA_PADRAO_FUNCIONARIO: AbaConfiguracoes = "conta";
 
@@ -81,6 +83,9 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
         // respondem à mesma pergunta — quem trabalha aqui e o que essa gente
         // precisa saber.
         { value: "avisos", label: "Avisos", icon: IconMegaphone },
+        // Conteúdo fica entre Avisos e Conta porque é regra de OPERAÇÃO, como
+        // as duas de cima — o que vem depois é sobre a pessoa e a assinatura.
+        { value: "conteudo", label: dict.planejamento.abaConteudo, icon: IconClipboardList },
         { value: "conta", label: t.abaConta, icon: IconUsers },
         { value: "aparencia", label: t.abaAparencia, icon: IconPalette },
         { value: "assinatura", label: t.abaAssinatura, icon: IconCreditCard },
@@ -167,6 +172,30 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
   }
 
   // --------------------------------------------------------------------------
+  // Conteúdo — a receita de produção de cada formato de post.
+  //
+  // Mora aqui, e não dentro de Produção, porque é uma regra da AGÊNCIA: quem
+  // decide que todo Reels sai em 9:16 com legenda e com o primeiro corte três
+  // dias antes é quem manda na operação, não quem está montando o mês de um
+  // cliente. A leitura é da equipe (o calendário aplica a receita ao subir o
+  // post), mas a escrita é de admin — e a RLS da tabela garante isso mesmo se
+  // alguém chamar a action direto.
+  // --------------------------------------------------------------------------
+  let conteudoConteudo: React.ReactNode = null;
+  if (aba === "conteudo") {
+    const [receitasRes, tiposRes] = await Promise.all([
+      supabase.from("post_receitas").select("*").overrideTypes<PostReceitaRow[], { merge: false }>(),
+      supabase
+        .from("prod_tipos_servico")
+        .select("id, nome")
+        .order("nome")
+        .overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
+    ]);
+
+    conteudoConteudo = <ReceitasDePost receitas={receitasRes.data ?? []} tiposServico={tiposRes.data ?? []} />;
+  }
+
+  // --------------------------------------------------------------------------
   // Minha Conta — o telefone mora no cadastro de RH, não no perfil de acesso.
   // Quem não tem registro vinculado (`profile_id`) recebe `null` e o campo
   // some da tela, em vez de aparecer um input que nunca salvaria nada.
@@ -239,6 +268,7 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
 
       {conteudoEmpresa}
       {conteudoAvisos}
+      {conteudoConteudo}
       {conteudoConta}
       {conteudoAparencia}
       {conteudoAssinatura}

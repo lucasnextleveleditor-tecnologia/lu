@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ComponentType } from "react";
 import { cn } from "@/lib/utils/cn";
 
-export type AbaConfiguracoes = "empresa" | "avisos" | "conta" | "aparencia" | "assinatura";
+export type AbaConfiguracoes = "empresa" | "avisos" | "conteudo" | "conta" | "aparencia" | "assinatura";
 
 export interface ItemAbaConfiguracoes {
   value: AbaConfiguracoes;

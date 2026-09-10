@@ -17,9 +17,13 @@ import {
   IconTrash,
   IconChevronLeft,
   IconChevronRight,
+  IconChevronDown,
   IconArrowRight,
   IconRotateCcw,
+  IconPalette,
 } from "@/components/ui/icons";
+import { ReferenciasEstiloField } from "@/components/admin/producao/BriefingCamposAvancados";
+import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
 import {
   CANAIS_DO_POST,
   FORMATOS_DO_POST,
@@ -28,6 +32,7 @@ import {
   type TarefaRow,
 } from "@/lib/types/producao";
 import {
+  blocoDaMarca,
   criarPauta,
   devolverParaPauta,
   removerPauta,
@@ -74,6 +79,7 @@ export function CalendarioDeConteudo({
   pautaInicial,
   produzindoInicial,
   funcionarios,
+  tiposServico,
 }: {
   planoId: string;
   /** Limites do ciclo — o calendário não navega para fora deles. */
@@ -85,6 +91,8 @@ export function CalendarioDeConteudo({
   /** Posts deste ciclo que já subiram — contam no total, mas não se editam aqui. */
   produzindoInicial: TarefaRow[];
   funcionarios: { id: string; nome: string }[];
+  /** Os mesmos tipos cadastrados em Produção — para o post já subir categorizado. */
+  tiposServico: { id: string; nome: string }[];
 }) {
   const { dict } = useLocale();
   const t = dict.planejamento;
@@ -105,6 +113,22 @@ export function CalendarioDeConteudo({
   const [novoTitulo, setNovoTitulo] = useState("");
 
   const [mes, setMes] = useState<Date>(() => primeiroDiaDoMes(inicio));
+
+  // Um post aberto por vez. Trinta painéis abertos seriam uma parede, e a
+  // pessoa que abre um detalhe está olhando para aquele post, não para a lista.
+  const [aberto, setAberto] = useState<string | null>(null);
+
+  // O bloco da marca é buscado UMA vez, na primeira abertura, e guardado:
+  // ele é o mesmo para todos os posts do ciclo (é do cliente, não do post), e
+  // buscá-lo a cada expansão seria trinta idas ao servidor para o mesmo texto.
+  // `undefined` = ainda não buscamos; `null` = buscamos e não há onboarding.
+  const [marca, setMarca] = useState<string | null | undefined>(undefined);
+
+  async function garantirMarca() {
+    if (marca !== undefined) return;
+    const r = await blocoDaMarca(planoId);
+    setMarca(r.ok ? r.html : null);
+  }
 
   const total = pauta.length + produzindo.length;
 
@@ -363,6 +387,22 @@ export function CalendarioDeConteudo({
                   </div>
                   <button
                     type="button"
+                    onClick={() => {
+                      setAberto((a) => (a === post.id ? null : post.id));
+                      garantirMarca();
+                    }}
+                    aria-expanded={aberto === post.id}
+                    className={cn(
+                      "shrink-0 rounded-lg p-1.5 transition",
+                      aberto === post.id ? "text-accent" : "text-ink-muted hover:text-ink-primary"
+                    )}
+                    aria-label={t.postDetalhes}
+                    title={t.postDetalhes}
+                  >
+                    <IconChevronDown className={cn("h-4 w-4 transition", aberto === post.id && "rotate-180")} />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => remover(post.id)}
                     disabled={ocupado}
                     className="shrink-0 rounded-lg p-1.5 text-ink-muted transition hover:text-danger disabled:opacity-40"
@@ -371,6 +411,15 @@ export function CalendarioDeConteudo({
                   >
                     <IconTrash className="h-4 w-4" />
                   </button>
+
+                  {aberto === post.id && (
+                    <DetalhesDoPost
+                      post={post}
+                      tiposServico={tiposServico}
+                      marca={marca ?? null}
+                      onChange={(campos) => editar(post.id, campos)}
+                    />
+                  )}
                 </li>
               ))}
 
@@ -463,6 +512,140 @@ export function CalendarioDeConteudo({
       {erro && <p className="mt-3 text-xs text-danger">{erro}</p>}
       {aviso && !erro && <p className="mt-3 text-xs text-status-good">{aviso}</p>}
     </section>
+  );
+}
+
+/**
+ * O detalhe de um post — o que a produção vai precisar, preenchido por quem
+ * escreveu a ideia e SEM ela abrir o formulário de tarefa.
+ *
+ * Só quatro campos, e nenhum obrigatório. O que importa é título, referências,
+ * briefing e data — o resto a receita do formato completa sozinha quando o
+ * post sobe (ver `subirParaProducao`), então deixar em branco aqui não é
+ * descuido, é o caminho normal.
+ *
+ * Os campos de referência e de formatos são OS MESMOS componentes que a tela
+ * de Produção usa (`ReferenciasEstiloField`, `RichTextEditor`), e não cópias
+ * parecidas: o texto vai para as mesmas colunas, e um campo que se comporta
+ * diferente nos dois lugares gera briefing que quebra de um lado só.
+ */
+function DetalhesDoPost({
+  post,
+  tiposServico,
+  marca,
+  onChange,
+}: {
+  post: TarefaRow;
+  tiposServico: { id: string; nome: string }[];
+  /** HTML do bloco da marca, vindo do Onboarding. `null` = não há o que colar. */
+  marca: string | null;
+  onChange: (campos: Partial<CamposDaPauta>) => void;
+}) {
+  const { dict } = useLocale();
+  const t = dict.planejamento;
+
+  const [briefing, setBriefing] = useState(post.briefing ?? "");
+  const [referencias, setReferencias] = useState(post.referencias_estilo ?? "");
+  const [formatos, setFormatos] = useState(post.formatos_exportacao ?? "");
+
+  const CHIPS = [
+    dict.producao.formatoChip916,
+    dict.producao.formatoChip11,
+    dict.producao.formatoChip169,
+    dict.producao.formatoChipComLegenda,
+    dict.producao.formatoChipSemLegenda,
+    dict.producao.formatoChipAltaResolucao,
+  ];
+
+  function inserirChip(chip: string) {
+    const atual = formatos.trim();
+    if (atual.includes(chip)) return;
+    const novo = atual ? `${atual}, ${chip}` : chip;
+    setFormatos(novo);
+    onChange({ formatos_exportacao: novo });
+  }
+
+  return (
+    <div className="mt-2 w-full space-y-3 border-t border-base-800 pt-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.postTipoServico}</label>
+          <Select
+            value={post.tipo_servico_id ?? ""}
+            onChange={(e) => onChange({ tipo_servico_id: e.target.value || null })}
+          >
+            <option value="">{t.semTipoServico}</option>
+            {tiposServico.map((tipo) => (
+              <option key={tipo.id} value={tipo.id}>
+                {tipo.nome}
+              </option>
+            ))}
+          </Select>
+          <p className="mt-1 text-[11px] text-ink-muted">{t.campoOpcionalReceita}</p>
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.postFormatoEntrega}</label>
+          <div className="mb-1.5 flex flex-wrap gap-1">
+            {CHIPS.map((chip) => (
+              <button
+                key={chip}
+                type="button"
+                onClick={() => inserirChip(chip)}
+                className="rounded-full border border-base-700 px-2 py-0.5 text-[10px] font-medium text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+              >
+                + {chip}
+              </button>
+            ))}
+          </div>
+          <Input
+            value={formatos}
+            placeholder={dict.producao.formatosExportacaoPlaceholder}
+            onChange={(e) => setFormatos(e.target.value)}
+            onBlur={() => onChange({ formatos_exportacao: formatos })}
+          />
+        </div>
+      </div>
+
+      <ReferenciasEstiloField
+        value={referencias}
+        onChange={(v) => {
+          setReferencias(v);
+          onChange({ referencias_estilo: v });
+        }}
+      />
+
+      <div>
+        <div className="mb-1.5 flex flex-wrap items-center gap-2">
+          <label className="text-xs font-medium text-ink-secondary">{t.postBriefing}</label>
+          {/* Um clique traz tom de voz, público, diretrizes e o drive de ativos
+              que o CLIENTE escreveu no Onboarding. A informação existe desde o
+              primeiro dia e nunca chegava em quem produz. */}
+          {marca && (
+            <button
+              type="button"
+              onClick={() => {
+                const novo = briefing.trim() ? `${briefing}${marca}` : marca;
+                setBriefing(novo);
+                onChange({ briefing: novo });
+              }}
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-accent transition hover:underline"
+            >
+              <IconPalette className="h-3 w-3" />
+              {t.inserirMarca}
+            </button>
+          )}
+        </div>
+        <RichTextEditor
+          value={briefing}
+          onChange={(v) => {
+            setBriefing(v);
+            onChange({ briefing: v });
+          }}
+          placeholder={t.postBriefingPlaceholder}
+        />
+      </div>
+    </div>
   );
 }
 

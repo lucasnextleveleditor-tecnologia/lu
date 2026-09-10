@@ -129,6 +129,24 @@ export const planejamento: PlanejamentoDict = {
   maisPosts: "+{n} más",
   diasDaSemana: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
 
+  postDetalhes: "Detalles del post",
+  postTipoServico: "Tipo de servicio",
+  semTipoServico: "Sin categoría",
+  postFormatoEntrega: "Formato de entrega",
+  postBriefing: "Briefing",
+  postBriefingPlaceholder: "Copy, guion, lo que tiene que aparecer…",
+  inserirMarca: "Insertar la marca del cliente",
+  campoOpcionalReceita: "En blanco, el estándar del formato lo completa al subir.",
+
+  abaConteudo: "Contenido",
+  receitasTitulo: "Estándares de producción por formato",
+  receitasDescricao:
+    "Lo que cada formato de post ya implica. Se aplica cuando el post pasa a producción, y solo en los campos dejados en blanco — así quien escribe la planificación no completa un formulario de producción.",
+  receitasSemTipos: "Registra los tipos de servicio en Producción para poder elegirlos aquí.",
+  receitaDiasV1: "Primer corte",
+  receitaDiasV1Sufixo: "días antes del post",
+  receitaSemV1: "sin primer corte",
+
   historicoTitulo: "Ciclos de este cliente",
   semHistorico: "Este es el primer ciclo de este cliente.",
 

@@ -13,10 +13,10 @@ import type { CanalDoPost, FormatoDoPost, TarefaRow } from "@/lib/types/producao
  * e copiar significa duas linhas com título, cliente, data e briefing iguais,
  * que divergem no primeiro dia em que alguém corrigir a data de um lado só.
  *
- * O efeito prático: "subir para produção" não move nada. Ele só tira a marca
- * e escolhe o responsável — e a mesma linha aparece no Kanban, no calendário
- * de Produção e no "Por funcionário", com o briefing e as referências já nos
- * campos certos, porque nunca saíram de lá.
+ * O efeito prático: "subir para produção" não move nada. Ele tira a marca,
+ * escolhe o responsável e completa com a RECEITA do formato o que ficou em
+ * branco — e a mesma linha aparece no Kanban, com o briefing e as referências
+ * já nos campos certos, porque nunca saíram de lá.
  *
  * A permissão é a de CLIENTES (quem monta o plano monta a pauta), e não a de
  * produção: a social media que escreve as ideias não precisa ter acesso ao
@@ -31,6 +31,8 @@ export interface CamposDaPauta {
   data_entrega: string | null;
   post_canal: CanalDoPost | null;
   post_formato: FormatoDoPost | null;
+  tipo_servico_id: string | null;
+  formatos_exportacao: string | null;
   briefing: string | null;
   referencias_estilo: string | null;
 }
@@ -48,11 +50,6 @@ function mensagem(err: unknown): string {
  * O cliente NÃO vem da tela: vem do plano. Deixar a tela mandar o cliente
  * abriria a porta para um post de um ciclo aparecer preso a outro cliente —
  * e o cliente é o que decide quem vê a peça no portal.
- *
- * As duas colunas de vínculo (`cliente_cadastro_id` e `cliente_id`) seguem o
- * mesmo desenho de `resolverVinculoCliente` em produção: a primeira é o
- * vínculo de verdade, a segunda só existe quando aquele cliente tem login, e
- * é a que o portal dele usa.
  */
 export async function criarPauta(
   planoId: string,
@@ -71,6 +68,9 @@ export async function criarPauta(
     if (erroPlano) return { ok: false, error: erroPlano.message };
     if (!plano) return { ok: false, error: "PLANO_NAO_ENCONTRADO" };
 
+    // As duas colunas de vínculo seguem o desenho de `resolverVinculoCliente`
+    // em produção: `cliente_cadastro_id` é o vínculo de verdade, `cliente_id`
+    // só existe quando aquele cliente tem login — e é a que o portal dele usa.
     const { data: cliente } = await supabase
       .from("clientes")
       .select("profile_id")
@@ -85,16 +85,12 @@ export async function criarPauta(
         // A marca. Enquanto ela existir, esta linha não aparece em Produção,
         // nem no painel, nem na agenda, nem no portal do cliente.
         em_pauta: true,
-        // Nasce em `backlog` porque é onde ela vai estar quando subir: subir
-        // para produção mexe no status, não no lugar da fila.
         status: "backlog",
         cliente_cadastro_id: plano.cliente_id,
         cliente_id: cliente?.profile_id ?? null,
         data_entrega: campos.data_entrega || null,
         post_canal: campos.post_canal ?? null,
         post_formato: campos.post_formato ?? null,
-        briefing: campos.briefing?.trim() || null,
-        referencias_estilo: campos.referencias_estilo?.trim() || null,
       })
       .select("*")
       .single<TarefaRow>();
@@ -131,9 +127,20 @@ export async function salvarPauta(
     if (campos.data_entrega !== undefined) payload.data_entrega = campos.data_entrega || null;
     if (campos.post_canal !== undefined) payload.post_canal = campos.post_canal ?? null;
     if (campos.post_formato !== undefined) payload.post_formato = campos.post_formato ?? null;
+    if (campos.tipo_servico_id !== undefined) payload.tipo_servico_id = campos.tipo_servico_id || null;
+    if (campos.formatos_exportacao !== undefined) {
+      payload.formatos_exportacao = campos.formatos_exportacao?.trim() || null;
+    }
     if (campos.briefing !== undefined) payload.briefing = campos.briefing?.trim() || null;
     if (campos.referencias_estilo !== undefined) {
-      payload.referencias_estilo = campos.referencias_estilo?.trim() || null;
+      // Mesma limpeza de produção: o campo de UI manda uma linha por input,
+      // inclusive os que ninguém preencheu, para os campos não pularem de
+      // posição enquanto se digita.
+      const linhas = (campos.referencias_estilo ?? "")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
+      payload.referencias_estilo = linhas.length > 0 ? linhas.join("\n") : null;
     }
 
     const { data, error } = await supabase
@@ -166,21 +173,93 @@ export async function removerPauta(id: string): Promise<ResultadoSimples> {
 }
 
 /**
+ * O bloco da marca, pronto para colar no briefing.
+ *
+ * É a resposta para "o editor abre a tarefa e não sabe como aquela marca
+ * fala". A informação existe desde o primeiro dia — foi o cliente que
+ * escreveu, no Onboarding — e nunca chegava em quem produz. Aqui ela vira um
+ * botão: um clique, o texto entra no briefing, e a social media edita o que
+ * quiser em cima.
+ *
+ * Colar TEXTO e não apontar para o onboarding de propósito. O briefing é o
+ * retrato do que valia quando a peça foi pedida; se a marca mudar o tom de voz
+ * em março, a peça de janeiro não deve mudar de instrução junto.
+ *
+ * Devolve `null` quando não há onboarding preenchido — e aí a tela nem mostra
+ * o botão, em vez de mostrar um botão que não faz nada.
+ */
+export async function blocoDaMarca(planoId: string): Promise<{ ok: true; html: string | null } | { ok: false; error: string }> {
+  try {
+    const { supabase } = await requireModulo("clientes");
+
+    const { data: plano } = await supabase
+      .from("planos_estrategicos")
+      .select("cliente_id")
+      .eq("id", planoId)
+      .maybeSingle<{ cliente_id: string }>();
+    if (!plano) return { ok: true, html: null };
+
+    const { data: onb } = await supabase
+      .from("cliente_onboarding")
+      .select("tom_de_voz, diretrizes_marca, drive_ativos_url, paleta_cores, publico_alvo")
+      .eq("cliente_id", plano.cliente_id)
+      .maybeSingle<{
+        tom_de_voz: string | null;
+        diretrizes_marca: string | null;
+        drive_ativos_url: string | null;
+        paleta_cores: string[] | null;
+        publico_alvo: string | null;
+      }>();
+    if (!onb) return { ok: true, html: null };
+
+    const partes: string[] = [];
+    const linha = (rotulo: string, valor: string | null | undefined) => {
+      if (!valor || !valor.trim()) return;
+      partes.push(`<p><strong>${rotulo}:</strong> ${escapar(valor.trim())}</p>`);
+    };
+
+    linha("Tom de voz", onb.tom_de_voz);
+    linha("Público-alvo", onb.publico_alvo);
+    linha("Diretrizes de marca", onb.diretrizes_marca);
+    if (onb.paleta_cores && onb.paleta_cores.length > 0) {
+      linha("Paleta", onb.paleta_cores.join(", "));
+    }
+    linha("Drive de ativos", onb.drive_ativos_url);
+
+    return { ok: true, html: partes.length > 0 ? partes.join("") : null };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+/** O briefing é HTML. O que vem do onboarding é texto digitado por gente. */
+function escapar(texto: string): string {
+  return texto
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br />");
+}
+
+/**
  * Solta os posts para a produção.
  *
- * É o botão inteiro do módulo, e ele faz três coisas numa linha: tira a
- * marca, põe a tarefa em "A Fazer" e escreve o responsável. Nenhum dado é
- * copiado, porque nunca houve cópia — o briefing que a social media escreveu
- * já está em `briefing`, as referências em `referencias_estilo`, o cliente e a
- * data nos campos de sempre.
+ * É o botão inteiro do módulo. Faz três coisas: tira a marca, põe a tarefa em
+ * "A Fazer" e escreve o responsável — e completa com a RECEITA do formato o
+ * que a social media deixou em branco.
  *
- * `backlog` não serve como destino aqui: a coluna de backlog em Produção é
- * "coisa que existe mas ninguém pegou", e um post com responsável e data já
- * é trabalho combinado. Por isso `a_fazer`.
+ * "O que ficou em branco" é a regra toda: a receita nunca sobrescreve. Se ela
+ * escreveu os formatos de exportação daquele post à mão, foi porque aquele
+ * post é diferente — e um padrão que apaga a exceção é pior do que nenhum
+ * padrão.
  *
- * O responsável é opcional de propósito. Nem sempre se sabe quem vai editar
- * na hora de soltar o mês inteiro, e travar o botão nisso faria a pessoa
- * escolher qualquer um só para destravar — o que é pior do que ninguém.
+ * `backlog` não serve como destino: a coluna de backlog em Produção é "coisa
+ * que existe mas ninguém pegou", e um post com responsável e data já é
+ * trabalho combinado. Por isso `a_fazer`.
+ *
+ * O responsável é opcional de propósito. Nem sempre se sabe quem vai editar na
+ * hora de soltar o mês inteiro, e travar o botão nisso faria a pessoa escolher
+ * qualquer um só para destravar — o que é pior do que ninguém.
  */
 export async function subirParaProducao(
   ids: string[],
@@ -191,22 +270,83 @@ export async function subirParaProducao(
     const limpos = ids.filter(Boolean);
     if (limpos.length === 0) return { ok: false, error: "NENHUM_SELECIONADO" };
 
-    const payload: Record<string, unknown> = { em_pauta: false, status: "a_fazer" };
-    if (responsavelId) payload.responsavel_id = responsavelId;
+    const [postsRes, receitasRes] = await Promise.all([
+      supabase
+        .from("prod_tarefas")
+        .select("id, post_formato, tipo_servico_id, formatos_exportacao, data_entrega, data_entrega_v1")
+        .in("id", limpos)
+        .eq("em_pauta", true)
+        .overrideTypes<
+          {
+            id: string;
+            post_formato: FormatoDoPost | null;
+            tipo_servico_id: string | null;
+            formatos_exportacao: string | null;
+            data_entrega: string | null;
+            data_entrega_v1: string | null;
+          }[],
+          { merge: false }
+        >(),
+      supabase
+        .from("post_receitas")
+        .select("formato, tipo_servico_id, formatos_exportacao, dias_v1")
+        .overrideTypes<
+          {
+            formato: FormatoDoPost;
+            tipo_servico_id: string | null;
+            formatos_exportacao: string | null;
+            dias_v1: number | null;
+          }[],
+          { merge: false }
+        >(),
+    ]);
 
-    const { data, error } = await supabase
-      .from("prod_tarefas")
-      .update(payload)
-      .in("id", limpos)
-      .eq("em_pauta", true)
-      .select("id");
+    if (postsRes.error) return { ok: false, error: postsRes.error.message };
+    const posts = postsRes.data ?? [];
+    if (posts.length === 0) return { ok: false, error: "NENHUM_SELECIONADO" };
 
-    if (error) return { ok: false, error: error.message };
+    // Receita ausente não é erro: significa "este formato não tem padrão", e a
+    // tarefa sobe com os campos como estão.
+    const receitaDe = new Map((receitasRes.data ?? []).map((r) => [r.formato, r]));
+
+    const resultados = await Promise.all(
+      posts.map(async (post) => {
+        const patch: Record<string, unknown> = { em_pauta: false, status: "a_fazer" };
+        if (responsavelId) patch.responsavel_id = responsavelId;
+
+        const receita = post.post_formato ? receitaDe.get(post.post_formato) : undefined;
+        if (receita) {
+          if (!post.tipo_servico_id && receita.tipo_servico_id) {
+            patch.tipo_servico_id = receita.tipo_servico_id;
+          }
+          if (!post.formatos_exportacao?.trim() && receita.formatos_exportacao?.trim()) {
+            patch.formatos_exportacao = receita.formatos_exportacao.trim();
+          }
+          if (!post.data_entrega_v1 && post.data_entrega && receita.dias_v1 !== null) {
+            patch.data_entrega_v1 = subtrairDias(post.data_entrega, receita.dias_v1);
+          }
+        }
+
+        const { error } = await supabase.from("prod_tarefas").update(patch).eq("id", post.id).eq("em_pauta", true);
+        return error ? null : post.id;
+      })
+    );
+
+    const subiram = resultados.filter(Boolean).length;
     revalidar();
-    return { ok: true, quantos: (data ?? []).length };
+    if (subiram === 0) return { ok: false, error: "NENHUM_SELECIONADO" };
+    return { ok: true, quantos: subiram };
   } catch (err) {
     return { ok: false, error: mensagem(err) };
   }
+}
+
+/** Em UTC, como todo cálculo de data do sistema. */
+function subtrairDias(iso: string, dias: number): string {
+  const partes = iso.split("-").map(Number);
+  const d = new Date(Date.UTC(partes[0] ?? 1970, (partes[1] ?? 1) - 1, partes[2] ?? 1));
+  d.setUTCDate(d.getUTCDate() - dias);
+  return d.toISOString().slice(0, 10);
 }
 
 /**

@@ -40,7 +40,7 @@ export default async function CicloDePlanejamentoPage({ params }: { params: Prom
 
   if (!plano) notFound();
 
-  const [clienteRes, irmaosRes, postsRes, funcionariosRes] = await Promise.all([
+  const [clienteRes, irmaosRes, postsRes, funcionariosRes, tiposRes] = await Promise.all([
     supabase.from("clientes").select("id, nome").eq("id", plano.cliente_id).maybeSingle<Pick<ClienteRow, "id" | "nome">>(),
     supabase
       .from("planos_estrategicos")
@@ -64,6 +64,13 @@ export default async function CicloDePlanejamentoPage({ params }: { params: Prom
       .from("prod_funcionarios")
       .select("id, nome")
       .eq("ativo", true)
+      .order("nome")
+      .overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
+    // Os mesmos tipos de serviço de Produção — para o post já subir
+    // categorizado, e para a receita do formato ter o que preencher.
+    supabase
+      .from("prod_tipos_servico")
+      .select("id, nome")
       .order("nome")
       .overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
   ]);
@@ -129,6 +136,7 @@ export default async function CicloDePlanejamentoPage({ params }: { params: Prom
           pautaInicial={pauta}
           produzindoInicial={produzindo}
           funcionarios={funcionariosRes.data ?? []}
+          tiposServico={tiposRes.data ?? []}
         />
       </div>
 

@@ -134,6 +134,25 @@ export interface PlanejamentoDict {
   /** Dom, Seg, ... — cabeçalho da grade. */
   diasDaSemana: string[];
 
+  // Detalhe do post
+  postDetalhes: string;
+  postTipoServico: string;
+  semTipoServico: string;
+  postFormatoEntrega: string;
+  postBriefing: string;
+  postBriefingPlaceholder: string;
+  inserirMarca: string;
+  campoOpcionalReceita: string;
+
+  // Receita de produção por formato (Configurações → Conteúdo)
+  abaConteudo: string;
+  receitasTitulo: string;
+  receitasDescricao: string;
+  receitasSemTipos: string;
+  receitaDiasV1: string;
+  receitaDiasV1Sufixo: string;
+  receitaSemV1: string;
+
   historicoTitulo: string;
   semHistorico: string;
 
@@ -271,6 +290,24 @@ export const planejamento: PlanejamentoDict = {
   proximoMes: "Próximo mês",
   maisPosts: "+{n} mais",
   diasDaSemana: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
+
+  postDetalhes: "Detalhes do post",
+  postTipoServico: "Tipo de serviço",
+  semTipoServico: "Sem categoria",
+  postFormatoEntrega: "Formato de entrega",
+  postBriefing: "Briefing",
+  postBriefingPlaceholder: "Legenda, roteiro, o que precisa aparecer…",
+  inserirMarca: "Inserir a marca do cliente",
+  campoOpcionalReceita: "Em branco, o padrão do formato preenche ao subir.",
+
+  abaConteudo: "Conteúdo",
+  receitasTitulo: "Padrões de produção por formato",
+  receitasDescricao:
+    "O que cada formato de post já implica. É aplicado quando o post sobe para a produção, e só nos campos deixados em branco — assim quem escreve a pauta não preenche formulário de produção.",
+  receitasSemTipos: "Cadastre os tipos de serviço em Produção para poder escolher aqui.",
+  receitaDiasV1: "Primeiro corte",
+  receitaDiasV1Sufixo: "dias antes do post",
+  receitaSemV1: "sem primeiro corte",
 
   historicoTitulo: "Ciclos deste cliente",
   semHistorico: "Este é o primeiro ciclo deste cliente.",

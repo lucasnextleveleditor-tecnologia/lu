@@ -129,6 +129,24 @@ export const planejamento: PlanejamentoDict = {
   maisPosts: "+{n} more",
   diasDaSemana: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
 
+  postDetalhes: "Post details",
+  postTipoServico: "Service type",
+  semTipoServico: "No category",
+  postFormatoEntrega: "Delivery format",
+  postBriefing: "Brief",
+  postBriefingPlaceholder: "Caption, script, what has to appear…",
+  inserirMarca: "Insert the client's brand",
+  campoOpcionalReceita: "Left blank, the format's default fills it on send.",
+
+  abaConteudo: "Content",
+  receitasTitulo: "Production defaults per format",
+  receitasDescricao:
+    "What each post format already implies. Applied when the post goes to production, and only to fields left blank — so whoever writes the plan never fills in a production form.",
+  receitasSemTipos: "Add service types in Production to be able to pick them here.",
+  receitaDiasV1: "First cut",
+  receitaDiasV1Sufixo: "days before the post",
+  receitaSemV1: "no first cut",
+
   historicoTitulo: "Cycles for this client",
   semHistorico: "This is the first cycle for this client.",
 
