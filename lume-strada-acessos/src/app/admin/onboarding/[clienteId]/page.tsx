@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { OnboardingWizard } from "@/components/admin/onboarding/OnboardingWizard";
+import { LinkDoOnboarding } from "@/components/admin/onboarding/LinkDoOnboarding";
 import { IconChevronLeft, IconClipboardList } from "@/components/ui/icons";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { OnboardingRow } from "@/lib/types/onboarding";
@@ -57,6 +58,16 @@ export default async function OnboardingDoClientePage({ params }: { params: Prom
           <p className="mt-0.5 text-sm text-ink-muted">{t.subtituloPagina}</p>
         </div>
       </div>
+
+      <LinkDoOnboarding
+        clienteId={clienteRes.data.id}
+        clienteNome={clienteRes.data.nome}
+        token={onboardingRes.data?.token ?? null}
+        linkEnviadoEm={onboardingRes.data?.link_enviado_em ?? null}
+        whatsappAprovador={onboardingRes.data?.aprovador_whatsapp ?? null}
+        respondidoPorNome={onboardingRes.data?.respondido_por_nome ?? null}
+        respondidoEm={onboardingRes.data?.respondido_em ?? null}
+      />
 
       <OnboardingWizard
         clienteId={clienteRes.data.id}

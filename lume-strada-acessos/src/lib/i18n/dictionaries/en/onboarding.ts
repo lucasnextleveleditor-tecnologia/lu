@@ -116,6 +116,36 @@ export const onboarding: OnboardingDict = {
   observacoesOperacionais: "Agreements and restrictions",
   observacoesOperacionaisPlaceholder: "Response hours, approval deadlines, who must not be contacted directly.",
 
+  erroTabelaAusente:
+    "The database doesn't have the onboarding table yet. Run supabase/cliente-onboarding.sql in the Supabase SQL editor — it takes a minute and only happens once.",
   selecione: "Select…",
   naoInformado: "Not provided",
+
+  enviarLink: "Send to the client to fill in",
+  linkTitulo: "Link for the client",
+  linkExplicacao:
+    "The client opens it, answers in their own words and sends it — no account, no password. What they write is worth more than a transcript of a meeting.",
+  linkValidade: "Link validity",
+  gerarLink: "Generate link",
+  gerando: "Generating…",
+  copiarLink: "Copy link",
+  linkCopiado: "Copied!",
+  enviarPorWhatsapp: "Send on WhatsApp",
+  linkEnviadoEm: "Link active since {data}.",
+  respondidoPor: "Answered by {nome} on {data}.",
+  desativarLink: "Disable link",
+  linkDesativado: "Link disabled.",
+  dias30: "30 days",
+  dias60: "60 days",
+  semPrazo: "No expiry",
+
+  publicoIntro:
+    "These questions guide everything we'll produce for you. You don't have to answer it all at once — each step saves itself, and you can come back through this same link.",
+  seuNome: "Your name",
+  seuNomePlaceholder: "Who is answering",
+  enviarRespostas: "Send answers",
+  obrigadoTitulo: "Got it, thank you!",
+  obrigadoTexto: "Your answers are with the team. If anything needs changing, just tell us.",
+  linkInvalidoTitulo: "This link is no longer valid",
+  linkInvalidoTexto: "It may have expired or been disabled. Ask whoever sent it for a new one.",
 };

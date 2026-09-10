@@ -116,6 +116,36 @@ export const onboarding: OnboardingDict = {
   observacoesOperacionais: "Acuerdos y restricciones",
   observacoesOperacionaisPlaceholder: "Horario de respuesta, plazo de aprobación, a quién no se puede contactar directo.",
 
+  erroTabelaAusente:
+    "La base todavía no tiene la tabla del onboarding. Ejecuta supabase/cliente-onboarding.sql en el editor SQL de Supabase — lleva un minuto y es una sola vez.",
   selecione: "Selecciona…",
   naoInformado: "No informado",
+
+  enviarLink: "Enviar al cliente para que complete",
+  linkTitulo: "Enlace para el cliente",
+  linkExplicacao:
+    "El cliente lo abre, responde con sus palabras y lo envía — sin crear cuenta, sin contraseña. Lo que él escribe vale más que la transcripción de una reunión.",
+  linkValidade: "Validez del enlace",
+  gerarLink: "Generar enlace",
+  gerando: "Generando…",
+  copiarLink: "Copiar enlace",
+  linkCopiado: "¡Copiado!",
+  enviarPorWhatsapp: "Enviar por WhatsApp",
+  linkEnviadoEm: "Enlace activo desde {data}.",
+  respondidoPor: "Respondido por {nome} el {data}.",
+  desativarLink: "Desactivar enlace",
+  linkDesativado: "Enlace desactivado.",
+  dias30: "30 días",
+  dias60: "60 días",
+  semPrazo: "Sin plazo",
+
+  publicoIntro:
+    "Estas preguntas guían todo lo que vamos a producir para ti. No hace falta responder todo de una vez — cada etapa se guarda sola y puedes volver por este mismo enlace.",
+  seuNome: "Tu nombre",
+  seuNomePlaceholder: "Quién está respondiendo",
+  enviarRespostas: "Enviar respuestas",
+  obrigadoTitulo: "¡Recibido, gracias!",
+  obrigadoTexto: "Tus respuestas ya están con el equipo. Si necesitas cambiar algo, solo avísanos.",
+  linkInvalidoTitulo: "Este enlace ya no es válido",
+  linkInvalidoTexto: "Puede haber expirado o sido desactivado. Pídele un enlace nuevo a quien te lo envió.",
 };

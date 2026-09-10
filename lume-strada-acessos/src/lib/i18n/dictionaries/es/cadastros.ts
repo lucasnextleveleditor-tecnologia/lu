@@ -1,8 +1,8 @@
 import type { CadastrosDict } from "../pt/cadastros";
 
 export const cadastros: CadastrosDict = {
-  tituloPagina: "Centro de Registros",
-  subtituloPagina: "Base de datos de clientes y del equipo de la agencia — registro y gestión de accesos.",
+  tituloPagina: "Gestión de Clientes",
+  subtituloPagina: "El registro de cada cliente y el briefing que orienta todo lo que el equipo produce para él.",
   abaClientes: "Clientes",
   abaEquipe: "Equipo (Personal)",
 

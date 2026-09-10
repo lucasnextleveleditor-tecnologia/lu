@@ -19,6 +19,7 @@ import {
   type RedeSocial,
 } from "@/lib/types/onboarding";
 import { concluirOnboarding, reabrirOnboarding, salvarEtapaOnboarding } from "@/app/admin/onboarding/actions";
+import { concluirDoCliente, salvarEtapaDoCliente } from "@/app/onboarding/actions";
 
 /**
  * O briefing do cliente, em cinco etapas.
@@ -43,10 +44,19 @@ export function OnboardingWizard({
   clienteId,
   clienteNome,
   inicial,
+  publico,
 }: {
-  clienteId: string;
+  /** Vazio no modo público: do lado de lá o id do cliente nunca chega ao navegador. */
+  clienteId?: string;
   clienteNome: string;
   inicial: OnboardingRow | null;
+  /**
+   * Presente = está sendo respondido pelo PRÓPRIO CLIENTE, por link, sem
+   * login. Muda quem grava (Service Role conferindo o token, em vez da
+   * sessão da equipe), acrescenta o campo "seu nome" e tira o "reabrir" —
+   * reabrir é decisão da agência, não de quem respondeu.
+   */
+  publico?: { token: string };
 }) {
   const { dict, locale, moeda } = useLocale();
   const t = dict.onboarding;
@@ -55,6 +65,7 @@ export function OnboardingWizard({
   const [etapa, setEtapa] = useState(inicial?.etapa_atual ?? 1);
   const [concluidoEm, setConcluidoEm] = useState<string | null>(inicial?.concluido_em ?? null);
 
+  const [respondidoPor, setRespondidoPor] = useState(inicial?.respondido_por_nome ?? "");
   const [salvando, setSalvando] = useState(false);
   const [salvo, setSalvo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -68,18 +79,30 @@ export function OnboardingWizard({
   async function salvar(etapaAlvo = etapa): Promise<boolean> {
     setSalvando(true);
     setErro(null);
-    const r = await salvarEtapaOnboarding(clienteId, etapaAlvo, campos);
+    const r = publico
+      ? await salvarEtapaDoCliente(publico.token, etapaAlvo, campos, respondidoPor)
+      : await salvarEtapaOnboarding(clienteId!, etapaAlvo, campos);
     setSalvando(false);
     if (!r.ok) {
-      setErro(r.error);
+      setErro(amigavel(r.error, t.erroTabelaAusente));
       return false;
     }
     setSalvo(true);
     return true;
   }
 
+  /**
+   * Avançar TENTA salvar, mas anda de qualquer jeito.
+   *
+   * Prender a navegação ao salvamento parecia zelo e era armadilha: bastava
+   * a rede cair (ou a migração não ter rodado) pra pessoa ficar presa na
+   * etapa 1 sem conseguir nem olhar o resto do formulário. E não há o que
+   * perder andando — o que foi digitado vive no estado da tela até a página
+   * ser fechada, então voltar e salvar de novo recupera tudo. O erro fica na
+   * tela, visível, em vez de virar uma parede.
+   */
   async function avancar() {
-    if (!(await salvar())) return;
+    await salvar();
     setEtapa((n) => Math.min(TOTAL_DE_ETAPAS, n + 1));
   }
 
@@ -87,8 +110,7 @@ export function OnboardingWizard({
   // a etapa 2 preenchida e perder o que foi digitado seria uma armadilha.
   async function irPara(destino: number) {
     if (destino === etapa) return;
-    if (destino > etapa && !(await salvar())) return;
-    if (destino < etapa) await salvar();
+    await salvar();
     setEtapa(destino);
   }
 
@@ -96,7 +118,24 @@ export function OnboardingWizard({
     if (!(await salvar())) return;
     setSalvando(true);
     setFaltando([]);
-    const r = await concluirOnboarding(clienteId);
+
+    // Os dois caminhos são tratados separados de propósito: a action da
+    // equipe devolve a linha gravada, a pública devolve só `ok` — do lado do
+    // cliente o navegador não precisa da linha e não deve recebê-la.
+    if (publico) {
+      const rPublico = await concluirDoCliente(publico.token, respondidoPor);
+      setSalvando(false);
+      if (!rPublico.ok) {
+        if (rPublico.faltando && rPublico.faltando.length > 0) setFaltando(rPublico.faltando);
+        else setErro(rPublico.error);
+        return;
+      }
+      setConcluidoEm(new Date().toISOString());
+      setErro(null);
+      return;
+    }
+
+    const r = await concluirOnboarding(clienteId!);
     setSalvando(false);
     if (!r.ok) {
       if (r.faltando && r.faltando.length > 0) setFaltando(r.faltando);
@@ -108,6 +147,7 @@ export function OnboardingWizard({
   }
 
   async function reabrir() {
+    if (!clienteId) return;
     setSalvando(true);
     const r = await reabrirOnboarding(clienteId);
     setSalvando(false);
@@ -139,7 +179,7 @@ export function OnboardingWizard({
     <div>
       {/* Trilha das etapas — clicável, porque quem volta pra corrigir uma
           coisa não quer passar por três telas até chegar lá. */}
-      <ol className="mb-6 flex items-center gap-1 overflow-x-auto">
+      <ol className={cn("mb-6 flex items-center gap-1 overflow-x-auto", concluidoEm && publico && "hidden")}>
         {etapas.map((e, i) => {
           const feita = e.n < etapa;
           const aqui = e.n === etapa;
@@ -170,7 +210,21 @@ export function OnboardingWizard({
         })}
       </ol>
 
-      {concluidoEm && (
+      {/* Do lado do cliente, briefing enviado encerra a tela: ele já fez a
+          parte dele, e deixar quarenta campos abertos convida a mexer sem
+          motivo. Do lado da equipe, o formulário continua ali, com um
+          "reabrir" — corrigir o briefing é trabalho normal da agência. */}
+      {concluidoEm && publico ? (
+        <div className="rounded-2xl border border-status-good/40 bg-status-good/10 p-6 text-center">
+          <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-status-good/50 text-status-good">
+            <IconCheck className="h-6 w-6" />
+          </span>
+          <p className="text-base font-semibold text-ink-primary">{t.obrigadoTitulo}</p>
+          <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-ink-muted">{t.obrigadoTexto}</p>
+        </div>
+      ) : null}
+
+      {concluidoEm && !publico && (
         <p className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-status-good/40 bg-status-good/10 p-3 text-xs text-ink-secondary">
           <IconCheck className="h-4 w-4 shrink-0 text-status-good" />
           {substituir(t.concluidoEm, { data: new Date(concluidoEm).toLocaleDateString(locale) })}
@@ -185,7 +239,7 @@ export function OnboardingWizard({
         </p>
       )}
 
-      <div className="rounded-2xl border border-base-700 bg-base-900/40 p-5">
+      <div className={cn("rounded-2xl border border-base-700 bg-base-900/40 p-5", concluidoEm && publico && "hidden")}>
         <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
           {substituir(t.etapaDe, { n: etapa, total: TOTAL_DE_ETAPAS })}
         </p>
@@ -193,6 +247,13 @@ export function OnboardingWizard({
         <p className="mt-0.5 text-xs text-ink-muted">{atual.descricao}</p>
 
         <div className="mt-5 space-y-4">
+          {publico && (
+            <Campo rotulo={t.seuNome}>
+              <Input value={respondidoPor} placeholder={t.seuNomePlaceholder}
+                onChange={(e) => { setRespondidoPor(e.target.value); setSalvo(false); }} />
+            </Campo>
+          )}
+
           {etapa === 1 && (
             <>
               <Campo rotulo={t.ofertaPrincipal}>
@@ -420,7 +481,7 @@ export function OnboardingWizard({
             </Button>
           ) : (
             <Button onClick={concluir} disabled={salvando || Boolean(concluidoEm)}>
-              {salvando ? t.concluindo : t.concluir}
+              {salvando ? t.concluindo : publico ? t.enviarRespostas : t.concluir}
             </Button>
           )}
 
@@ -439,7 +500,7 @@ export function OnboardingWizard({
         </div>
       </div>
 
-      <p className="mt-3 text-[11px] text-ink-muted">{clienteNome}</p>
+      {!publico && <p className="mt-3 text-[11px] text-ink-muted">{clienteNome}</p>}
     </div>
   );
 }
@@ -576,6 +637,19 @@ function PaletaDeCores({
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * Traduz o erro cru do banco quando ele tem tradução conhecida.
+ *
+ * "Could not find the table ... in the schema cache" é o que o PostgREST
+ * responde quando a migração não foi aplicada — uma frase que não diz nada a
+ * quem não conhece o Supabase, e que descreve exatamente uma coisa que se
+ * resolve em trinta segundos se você souber qual é.
+ */
+function amigavel(erro: string, tabelaAusente: string): string {
+  if (/schema cache|does not exist|PGRST205/i.test(erro)) return tabelaAusente;
+  return erro;
+}
 
 /** Campo de número vazio é `null`, não `0` — "não informado" e "zero" são coisas diferentes. */
 function numero(v: string): number | null {

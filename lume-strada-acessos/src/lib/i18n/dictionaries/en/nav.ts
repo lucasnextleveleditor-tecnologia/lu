@@ -15,7 +15,7 @@ export const nav: NavDict = {
   orcamentos: "Quotes",
   comercialHub: "Commercial",
   whatsapp: "WhatsApp",
-  cadastros: "Records",
+  cadastros: "Client Management",
   financeiro: "Finance",
   objetivos: "Goals",
   producaoTarefas: "Production & Tasks",

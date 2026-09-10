@@ -31,11 +31,9 @@ export function CadastrosWorkspace({ clientes, profilesPorId, souAdmin }: Cadast
 
   return (
     <div>
-      <div className="mb-5">
-        <h1 className="text-lg font-semibold tracking-tight">{dict.cadastros.tituloPagina}</h1>
-        <p className="mt-0.5 text-sm text-ink-muted">{dict.cadastros.subtituloPagina}</p>
-      </div>
-
+      {/* O título saiu daqui e subiu pro nível da página: com duas abas
+          (Clientes e Onboarding), um título dentro de uma delas pareceria
+          título DA ABA, e não da tela. */}
       {souAdmin && (
         <Link
           href="/admin/configuracoes?aba=empresa"

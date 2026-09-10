@@ -1,8 +1,8 @@
 import type { CadastrosDict } from "../pt/cadastros";
 
 export const cadastros: CadastrosDict = {
-  tituloPagina: "Records Center",
-  subtituloPagina: "Client and team database — records and access management.",
+  tituloPagina: "Client Management",
+  subtituloPagina: "Each client's record and the brief that guides everything the team produces for them.",
   abaClientes: "Clients",
   abaEquipe: "Team (Staff)",
 

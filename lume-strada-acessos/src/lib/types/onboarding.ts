@@ -75,6 +75,14 @@ export interface OnboardingRow {
 
   etapa_atual: number;
   concluido_em: string | null;
+
+  /** Credencial do link público. Nunca sai do servidor a não ser para montar o link. */
+  token: string | null;
+  /** `null` = link nunca enviado; o formulário público fica fechado. */
+  link_enviado_em: string | null;
+  token_expira_em: string | null;
+  respondido_por_nome: string | null;
+  respondido_em: string | null;
   criado_por: string | null;
   atualizado_por: string | null;
   created_at: string;
@@ -84,7 +92,20 @@ export interface OnboardingRow {
 /** Só o que o formulário escreve — o resto (id, company_id, datas) é do servidor. */
 export type CamposDoOnboarding = Omit<
   OnboardingRow,
-  "id" | "company_id" | "cliente_id" | "etapa_atual" | "concluido_em" | "criado_por" | "atualizado_por" | "created_at" | "updated_at"
+  | "id"
+  | "company_id"
+  | "cliente_id"
+  | "etapa_atual"
+  | "concluido_em"
+  | "token"
+  | "link_enviado_em"
+  | "token_expira_em"
+  | "respondido_por_nome"
+  | "respondido_em"
+  | "criado_por"
+  | "atualizado_por"
+  | "created_at"
+  | "updated_at"
 >;
 
 /**

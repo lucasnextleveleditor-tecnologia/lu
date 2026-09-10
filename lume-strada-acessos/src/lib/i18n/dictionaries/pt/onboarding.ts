@@ -134,8 +134,38 @@ export interface OnboardingDict {
   observacoesOperacionais: string;
   observacoesOperacionaisPlaceholder: string;
 
+  erroTabelaAusente: string;
   selecione: string;
   naoInformado: string;
+
+  // Link público — o cliente responde sem login
+  enviarLink: string;
+  linkTitulo: string;
+  linkExplicacao: string;
+  linkValidade: string;
+  gerarLink: string;
+  gerando: string;
+  copiarLink: string;
+  linkCopiado: string;
+  enviarPorWhatsapp: string;
+  /** `{data}` */
+  linkEnviadoEm: string;
+  /** `{nome}` e `{data}` */
+  respondidoPor: string;
+  desativarLink: string;
+  linkDesativado: string;
+  dias30: string;
+  dias60: string;
+  semPrazo: string;
+
+  publicoIntro: string;
+  seuNome: string;
+  seuNomePlaceholder: string;
+  enviarRespostas: string;
+  obrigadoTitulo: string;
+  obrigadoTexto: string;
+  linkInvalidoTitulo: string;
+  linkInvalidoTexto: string;
 }
 
 export const onboarding: OnboardingDict = {
@@ -254,6 +284,36 @@ export const onboarding: OnboardingDict = {
   observacoesOperacionais: "Combinados e restrições",
   observacoesOperacionaisPlaceholder: "Horário de resposta, prazo de aprovação, quem não pode ser acionado direto.",
 
+  erroTabelaAusente:
+    "O banco ainda não tem a tabela do onboarding. Rode supabase/cliente-onboarding.sql no editor SQL do Supabase — leva um minuto e é uma vez só.",
   selecione: "Selecione…",
   naoInformado: "Não informado",
+
+  enviarLink: "Enviar para o cliente preencher",
+  linkTitulo: "Link para o cliente",
+  linkExplicacao:
+    "O cliente abre, responde com as palavras dele e envia — sem criar conta, sem senha. O que ele escreve vale mais do que a transcrição de uma reunião.",
+  linkValidade: "Validade do link",
+  gerarLink: "Gerar link",
+  gerando: "Gerando…",
+  copiarLink: "Copiar link",
+  linkCopiado: "Copiado!",
+  enviarPorWhatsapp: "Enviar no WhatsApp",
+  linkEnviadoEm: "Link ativo desde {data}.",
+  respondidoPor: "Respondido por {nome} em {data}.",
+  desativarLink: "Desativar link",
+  linkDesativado: "Link desativado.",
+  dias30: "30 dias",
+  dias60: "60 dias",
+  semPrazo: "Sem prazo",
+
+  publicoIntro:
+    "Estas perguntas guiam tudo o que vamos produzir para você. Não precisa responder tudo de uma vez — cada etapa é salva sozinha, e você pode voltar por este mesmo link.",
+  seuNome: "Seu nome",
+  seuNomePlaceholder: "Quem está respondendo",
+  enviarRespostas: "Enviar respostas",
+  obrigadoTitulo: "Recebemos, obrigado!",
+  obrigadoTexto: "Suas respostas já estão com a equipe. Se precisar mudar alguma coisa, é só falar com a gente.",
+  linkInvalidoTitulo: "Este link não está mais valendo",
+  linkInvalidoTexto: "Ele pode ter expirado ou sido desativado. Peça um link novo para quem te enviou.",
 };

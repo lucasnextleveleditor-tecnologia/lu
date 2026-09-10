@@ -157,3 +157,79 @@ export async function reabrirOnboarding(clienteId: string): Promise<ResultadoSim
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
 }
+
+/* ==================================================================== */
+/* O LINK PARA O CLIENTE PREENCHER                                      */
+/* ==================================================================== */
+
+/**
+ * Liga o link público e devolve o token para a tela montar o endereço.
+ *
+ * O token já nasce com a linha (default no banco), mas o link só COMEÇA A
+ * VALER quando `link_enviado_em` é preenchido — que é o que esta action faz.
+ * Sem essa separação, todo briefing criado pela equipe nasceria com uma
+ * porta pública aberta que ninguém pediu.
+ *
+ * `dias = null` é sem prazo, e existe porque briefing às vezes leva semanas
+ * para o cliente responder. Mas o padrão da tela é 30 dias: link de briefing
+ * passa por WhatsApp, é encaminhado, fica no histórico de um celular que
+ * trocou de dono.
+ */
+export async function enviarLinkOnboarding(
+  clienteId: string,
+  dias: number | null
+): Promise<{ ok: true; token: string } | { ok: false; error: string }> {
+  try {
+    const { supabase, user } = await requireModulo("clientes");
+
+    const expira =
+      dias === null ? null : new Date(Date.now() + dias * 24 * 60 * 60 * 1000).toISOString();
+
+    // Upsert: se a equipe ainda não abriu o formulário, a linha (e o token)
+    // nascem aqui — dá pra mandar o briefing pro cliente sem ter preenchido
+    // nada antes, que é justamente o caso mais comum.
+    const { data, error } = await supabase
+      .from("cliente_onboarding")
+      .upsert(
+        {
+          cliente_id: clienteId,
+          link_enviado_em: new Date().toISOString(),
+          token_expira_em: expira,
+          atualizado_por: user.id,
+        },
+        { onConflict: "cliente_id" }
+      )
+      .select("token")
+      .single<{ token: string | null }>();
+
+    if (error) return { ok: false, error: error.message };
+    if (!data?.token) return { ok: false, error: "Este briefing ainda não tem link. Rode a migração de onboarding." };
+
+    revalidar();
+    return { ok: true, token: data.token };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Desliga o link.
+ *
+ * Zera `link_enviado_em` em vez de trocar o token: o token continua o mesmo,
+ * então reativar depois devolve o MESMO endereço — e o link que o cliente já
+ * tinha salvo volta a funcionar em vez de virar um 404 sem explicação.
+ */
+export async function desativarLinkOnboarding(clienteId: string): Promise<ResultadoSimples> {
+  try {
+    const { supabase, user } = await requireModulo("clientes");
+    const { error } = await supabase
+      .from("cliente_onboarding")
+      .update({ link_enviado_em: null, atualizado_por: user.id })
+      .eq("cliente_id", clienteId);
+    if (error) return { ok: false, error: error.message };
+    revalidar();
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}

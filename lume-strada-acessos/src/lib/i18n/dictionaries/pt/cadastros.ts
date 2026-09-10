@@ -177,8 +177,8 @@ export interface CadastrosDict {
 }
 
 export const cadastros: CadastrosDict = {
-  tituloPagina: "Central de Cadastros",
-  subtituloPagina: "Base de dados de clientes e da equipe da agência — cadastro e liberação de acesso.",
+  tituloPagina: "Gestão de Clientes",
+  subtituloPagina: "O cadastro de cada cliente e o briefing que orienta tudo o que a equipe produz para ele.",
   abaClientes: "Clientes",
   abaEquipe: "Equipe (Funcionários)",
 

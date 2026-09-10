@@ -234,3 +234,65 @@ comment on column public.cliente_onboarding.cms_observacoes is
 -- uma rota pública lendo por token via Service Role, exatamente como
 -- `src/app/orcamento/data.ts` faz. Fica de fora agora porque muda o desenho
 -- da tela — e porque preencher pela equipe já resolve o caso de hoje.
+
+-- ============================================================================
+-- PARTE 2 — o cliente preenche por link
+-- ============================================================================
+--
+-- O mesmo formulário, aberto pelo próprio cliente sem login, do jeito que ele
+-- já aprova orçamento (`/orcamento/[token]`) e assina contrato
+-- (`/assinar/[token]`). É a diferença entre a agência transcrever uma reunião
+-- e o cliente escrever com as palavras dele — e o que o cliente escreve é o
+-- que ele realmente pensa da própria marca.
+--
+-- Rodar esta parte é seguro mesmo que a de cima já tenha sido aplicada:
+-- `add column if not exists` não faz nada quando a coluna existe.
+
+-- 32 bytes aleatórios em hexadecimal = 64 caracteres imprevisíveis. Mesmo
+-- gerador dos tokens de orçamento, contrato e portal do cliente
+-- (`extensions.gen_random_bytes`, nunca `random()`, que é previsível).
+alter table public.cliente_onboarding
+  add column if not exists token text unique default encode(extensions.gen_random_bytes(32), 'hex');
+
+-- Linhas criadas antes desta parte não têm token: o default só vale para
+-- linhas novas.
+update public.cliente_onboarding
+  set token = encode(extensions.gen_random_bytes(32), 'hex')
+  where token is null;
+
+-- `null` = o link nunca foi enviado, e o formulário público NÃO abre. O link
+-- só passa a valer quando alguém da equipe clica em enviar — sem isso, todo
+-- briefing criado nasceria com uma porta pública aberta que ninguém pediu.
+alter table public.cliente_onboarding
+  add column if not exists link_enviado_em timestamptz;
+
+-- Prazo do link. Um link de briefing que vale para sempre é um link que
+-- vaza: ele passa por WhatsApp, é encaminhado, fica no histórico de um
+-- celular que trocou de dono.
+alter table public.cliente_onboarding
+  add column if not exists token_expira_em timestamptz;
+
+-- Quem preencheu do lado de lá, para a equipe saber se o que está escrito
+-- veio do cliente ou foi transcrito por ela mesma. São coisas de peso
+-- diferente na hora de discordar do briefing.
+alter table public.cliente_onboarding
+  add column if not exists respondido_por_nome text;
+
+alter table public.cliente_onboarding
+  add column if not exists respondido_em timestamptz;
+
+create index if not exists cliente_onboarding_token_idx
+  on public.cliente_onboarding(token);
+
+comment on column public.cliente_onboarding.token is
+  'Credencial do link público. A rota /onboarding/[token] lê por Service Role — não existe RLS para quem não tem login.';
+comment on column public.cliente_onboarding.link_enviado_em is
+  'NULL = link nunca enviado e formulário público fechado. O link só vale depois que a equipe o envia.';
+
+-- Nenhuma política de RLS nova aqui, e isso é deliberado: quem responde pelo
+-- link NÃO TEM LOGIN, então não existe `auth.uid()` para uma política avaliar.
+-- O acesso público é feito por Service Role no servidor, que ignora RLS por
+-- definição — e é por isso que a checagem de verdade mora na aplicação
+-- (`src/app/onboarding/acesso.ts`): token existe, link foi enviado, prazo não
+-- venceu, e só os campos daquela etapa são gravados. Mesmo desenho de
+-- `/assinar` e `/orcamento`.

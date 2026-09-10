@@ -65,6 +65,11 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
 
   return (
     <div>
+      <div className="mb-4">
+        <h1 className="text-lg font-semibold tracking-tight">{dict.cadastros.tituloPagina}</h1>
+        <p className="mt-0.5 text-sm text-ink-muted">{dict.cadastros.subtituloPagina}</p>
+      </div>
+
       <div className="mb-4 flex items-center gap-1 overflow-x-auto border-b border-base-800">
         {abas.map((item) => (
           <Link
@@ -87,13 +92,7 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
       {abaAtiva === "clientes" ? (
         <CadastrosWorkspace clientes={clientes} profilesPorId={profilesPorId} souAdmin={souAdmin} />
       ) : (
-        <div>
-          <div className="mb-5">
-            <h1 className="text-lg font-semibold tracking-tight">{t.tituloPagina}</h1>
-            <p className="mt-0.5 text-sm text-ink-muted">{t.subtituloPagina}</p>
-          </div>
-          <PainelOnboarding clientes={clientes} onboardings={onboardings} />
-        </div>
+        <PainelOnboarding clientes={clientes} onboardings={onboardings} />
       )}
     </div>
   );
