@@ -2,6 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { ehMoeda } from "@/lib/types/moeda";
+import { isLocale } from "@/lib/i18n/locales";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -116,6 +119,42 @@ export async function alterarMinhaSenha(senhaAtual: string, senhaNova: string): 
     // não deve mais cair na tela de troca forçada no próximo login.
     await supabase.from("profiles").update({ senha_provisoria: false }).eq("id", user.id);
 
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+
+/**
+ * A moeda e o idioma padrão da conta.
+ *
+ * Só admin: é configuração da EMPRESA, não preferência de quem está usando.
+ * `requireAdmin` já resolve a empresa no servidor — o `companyId` nunca vem
+ * do navegador, senão bastaria trocar o id no formulário para mexer na
+ * configuração de outra agência.
+ *
+ * Nenhum valor lançado é tocado. Trocar a moeda muda o símbolo e o formato,
+ * e só: a cotação de cada dia era outra, e converter o histórico pela
+ * cotação de hoje falsificaria o passado.
+ */
+export async function definirMoedaEIdioma(moeda: string, idioma: string): Promise<ActionResult> {
+  try {
+    const { supabase, companyId } = await requireAdmin();
+
+    if (!ehMoeda(moeda)) return { ok: false, error: "Moeda inválida." };
+    if (!isLocale(idioma)) return { ok: false, error: "Idioma inválido." };
+
+    const { error } = await supabase
+      .from("companies")
+      .update({ moeda, idioma_padrao: idioma })
+      .eq("id", companyId);
+    if (error) return { ok: false, error: error.message };
+
+    // O dinheiro aparece em quase toda tela do painel — revalidar só
+    // `/admin/configuracoes` deixaria o resto com o símbolo antigo até a
+    // próxima navegação completa.
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };

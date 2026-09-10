@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { FluxoCaixaPonto } from "@/lib/types/financeiro";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { useValoresVisiveis } from "@/lib/valores-visiveis/ValoresVisiveisProvider";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -44,11 +44,11 @@ const COR_DESPESA = "#d03b3b";
  * fica negativo).
  */
 export function FluxoCaixaChart({ pontos }: FluxoCaixaChartProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const { visivel } = useValoresVisiveis();
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
-  const fmt = (v: number) => (visivel ? fmtBRL(v) : "••••");
+  const fmt = (v: number) => (visivel ? fmtMoeda(v) : "••••");
 
   const { min, max } = useMemo(() => {
     const valores = pontos.map((p) => p.saldoProjetado);

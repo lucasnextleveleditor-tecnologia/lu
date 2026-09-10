@@ -2,7 +2,7 @@
 
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { RelatorioTrafegoData } from "@/lib/types/relatorios";
-import { fmtBRL, fmtDataCurta, fmtPercent } from "@/lib/utils/format";
+import { fmtDataCurta, fmtPercent } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
 import { Card } from "@/components/ui/Card";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
@@ -18,7 +18,7 @@ interface TrafegoReportProps {
 }
 
 export function TrafegoReport({ data, carregando, erro }: TrafegoReportProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   if (erro) return <RelatorioEmptyState titulo={dict.relatorios.trafegoErroTitulo} descricao={erro} />;
   if (carregando || !data) return <RelatorioSkeleton />;
 
@@ -75,14 +75,14 @@ export function TrafegoReport({ data, carregando, erro }: TrafegoReportProps) {
           <StatTile
             icon={IconDollarSign}
             label={dict.relatorios.trafegoStatLucroLiquido}
-            value={fmtBRL(data.lucroLiquido)}
+            value={fmtMoeda(data.lucroLiquido)}
             tone={data.lucroLiquido >= 0 ? "good" : "critical"}
             hint={dict.relatorios.trafegoStatLucroLiquidoHint}
           />
           <StatTile
             icon={IconTrendingDown}
             label={dict.relatorios.trafegoStatReembolsos}
-            value={fmtBRL(data.totalReembolsos)}
+            value={fmtMoeda(data.totalReembolsos)}
             tone={data.totalReembolsos > 0 ? "warning" : "neutral"}
           />
         </div>
@@ -104,11 +104,11 @@ export function TrafegoReport({ data, carregando, erro }: TrafegoReportProps) {
                 </defs>
                 <CartesianGrid stroke={CHART_CORES.grade} strokeDasharray="3 5" vertical={false} />
                 <XAxis dataKey="data" tickFormatter={fmtDataCurta} {...CHART_AXIS_STYLE} minTickGap={28} />
-                <YAxis tickFormatter={(v: number) => fmtBRL(v).replace(",00", "")} {...CHART_AXIS_STYLE} width={72} />
+                <YAxis tickFormatter={(v: number) => fmtMoeda(v).replace(",00", "")} {...CHART_AXIS_STYLE} width={72} />
                 <Tooltip
                   {...CHART_TOOLTIP_STYLE}
                   labelFormatter={(v) => fmtDataCurta(String(v))}
-                  formatter={(valor: number, nome: string) => [fmtBRL(valor), nome === "receitaBruta" ? dict.relatorios.trafegoLegendaReceitaBruta : dict.relatorios.trafegoLegendaInvestimento]}
+                  formatter={(valor: number, nome: string) => [fmtMoeda(valor), nome === "receitaBruta" ? dict.relatorios.trafegoLegendaReceitaBruta : dict.relatorios.trafegoLegendaInvestimento]}
                 />
                 <Area type="monotone" dataKey="receitaBruta" stroke={CHART_CORES.receita} strokeWidth={2} fill="url(#gradReceitaTrafego)" />
                 <Area type="monotone" dataKey="investimento" stroke={CHART_CORES.investimento} strokeWidth={2} fill="url(#gradInvestimento)" />
@@ -136,10 +136,10 @@ export function TrafegoReport({ data, carregando, erro }: TrafegoReportProps) {
                 >
                   <CartesianGrid stroke={CHART_CORES.grade} strokeDasharray="3 5" vertical={false} />
                   <XAxis dataKey="semana" {...CHART_AXIS_STYLE} />
-                  <YAxis tickFormatter={(v: number) => fmtBRL(v).replace(",00", "")} {...CHART_AXIS_STYLE} width={72} />
+                  <YAxis tickFormatter={(v: number) => fmtMoeda(v).replace(",00", "")} {...CHART_AXIS_STYLE} width={72} />
                   <Tooltip
                     {...CHART_TOOLTIP_STYLE}
-                    formatter={(valor: number, nome: string) => [fmtBRL(valor), nome === "lucro" ? dict.relatorios.trafegoStatLucroLiquido : dict.relatorios.trafegoStatReembolsos]}
+                    formatter={(valor: number, nome: string) => [fmtMoeda(valor), nome === "lucro" ? dict.relatorios.trafegoStatLucroLiquido : dict.relatorios.trafegoStatReembolsos]}
                   />
                   <Bar dataKey="lucro" radius={[4, 4, 0, 0]} maxBarSize={36}>
                     {data.fechamentosNoPeriodo.map((f, i) => (
@@ -160,12 +160,12 @@ export function TrafegoReport({ data, carregando, erro }: TrafegoReportProps) {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.investimentoPorCliente} layout="vertical" margin={{ top: 4, right: 24, left: 8, bottom: 0 }}>
                   <CartesianGrid stroke={CHART_CORES.grade} strokeDasharray="3 5" horizontal={false} />
-                  <XAxis type="number" tickFormatter={(v: number) => fmtBRL(v).replace(",00", "")} {...CHART_AXIS_STYLE} />
+                  <XAxis type="number" tickFormatter={(v: number) => fmtMoeda(v).replace(",00", "")} {...CHART_AXIS_STYLE} />
                   <YAxis type="category" dataKey="nome" width={150} {...CHART_AXIS_STYLE} />
                   <Tooltip
                     {...CHART_TOOLTIP_STYLE}
                     formatter={(valor: number, nome: string) =>
-                      nome === "investido" ? [fmtBRL(valor), dict.relatorios.trafegoTooltipInvestido] : [valor, dict.relatorios.leadsLabel]
+                      nome === "investido" ? [fmtMoeda(valor), dict.relatorios.trafegoTooltipInvestido] : [valor, dict.relatorios.leadsLabel]
                     }
                   />
                   <Bar dataKey="investido" radius={[0, 4, 4, 0]} maxBarSize={22}>

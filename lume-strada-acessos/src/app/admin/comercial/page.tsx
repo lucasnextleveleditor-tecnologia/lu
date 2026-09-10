@@ -4,7 +4,7 @@ import { requireQualquerModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import type { AnotacaoRow, LeadComRelacoes, LeadRow } from "@/lib/types/comercial";
 import type { TipoServicoRow } from "@/lib/types/producao";
 import { leadEstaAberto } from "@/lib/utils/comercial";
-import { fmtBRL, fmtPercent, todayISO } from "@/lib/utils/format";
+import { fmtPercent, todayISO } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
 import { Button } from "@/components/ui/Button";
 import { IconTarget, IconTrendingUp, IconCheckCircle, IconAlertTriangle, IconClipboardList, IconPercent, IconColumns, IconList, IconShieldCheck, IconPlus } from "@/components/ui/icons";
@@ -42,7 +42,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function ComercialHubPage({ searchParams }: { searchParams: Promise<{ aba?: string }> }) {
   const { supabase, chavesAutorizadas } = await requireQualquerModuloOuRedirect(["comercial", "orcamentos"]);
-  const { dict } = await getDictionary();
+  const { dict, fmtMoeda } = await getDictionary();
   const { aba: abaParam } = await searchParams;
 
   const podeComercial = chavesAutorizadas.has("comercial");
@@ -174,7 +174,7 @@ export default async function ComercialHubPage({ searchParams }: { searchParams:
             <StatTile
               icon={IconTarget}
               label={dict.comercial.statEmNegociacao}
-              value={fmtBRL(dadosLeads.totalEmNegociacao)}
+              value={fmtMoeda(dadosLeads.totalEmNegociacao)}
               hint={dict.comercial.hintLeadsAbertos.replace("{count}", String(dadosLeads.leadsAbertosCount))}
             />
             <StatTile
@@ -204,10 +204,10 @@ export default async function ComercialHubPage({ searchParams }: { searchParams:
             <StatTile
               icon={IconClipboardList}
               label={dict.orcamentos.statEmAberto}
-              value={fmtBRL(dadosOrcamentos.valorEmAberto)}
+              value={fmtMoeda(dadosOrcamentos.valorEmAberto)}
               hint={dict.orcamentos.hintOrcamentosAbertos.replace("{n}", String(dadosOrcamentos.totalAbertos))}
             />
-            <StatTile icon={IconCheckCircle} label={dict.orcamentos.statAprovadoMes} value={fmtBRL(dadosOrcamentos.valorAprovadoMes)} tone="good" hint={dict.orcamentos.hintAprovadosDescricao} />
+            <StatTile icon={IconCheckCircle} label={dict.orcamentos.statAprovadoMes} value={fmtMoeda(dadosOrcamentos.valorAprovadoMes)} tone="good" hint={dict.orcamentos.hintAprovadosDescricao} />
             <StatTile icon={IconPercent} label={dict.orcamentos.statTaxaAprovacao} value={fmtPercent(dadosOrcamentos.taxaAprovacao)} hint={dict.orcamentos.hintTaxaAprovacaoDescricao} />
           </div>
 

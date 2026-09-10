@@ -1,7 +1,7 @@
 "use client";
 
 import type { OrcamentoRow, StatusOrcamento } from "@/lib/types/orcamentos";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -15,7 +15,7 @@ interface OrcamentoKanbanCardProps {
 
 /** Mesmo visual/densidade do `LeadCard.tsx` (Comercial) — card de arrastar no Funil de Propostas, com o essencial pra reconhecer o orçamento sem abrir o detalhe: título, destinatário, valor e validade. */
 export function OrcamentoKanbanCard({ orcamento, onClick, className }: OrcamentoKanbanCardProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
 
   return (
     <button
@@ -28,7 +28,7 @@ export function OrcamentoKanbanCard({ orcamento, onClick, className }: Orcamento
     >
       <p className="truncate text-sm font-medium text-ink-primary">{orcamento.titulo}</p>
       <p className="mt-0.5 truncate text-xs text-ink-secondary">{orcamento.cliente_nome ?? orcamento.nome_destinatario}</p>
-      <p className="mt-2 text-sm font-semibold text-ink-primary">{fmtBRL(orcamento.total)}</p>
+      <p className="mt-2 text-sm font-semibold text-ink-primary">{fmtMoeda(orcamento.total)}</p>
       {orcamento.data_expiracao && (
         <p className={cn("mt-2 text-xs", orcamento.statusExibicao === "expirado" ? "font-medium text-danger" : "text-ink-muted")}>
           {orcamento.statusExibicao === "expirado" ? dict.orcamentos.statusExpirado : dict.orcamentos.validoAte.replace("{data}", fmtDataCurta(orcamento.data_expiracao))}

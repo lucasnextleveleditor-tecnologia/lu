@@ -20,6 +20,13 @@ export interface ConfiguracoesDict {
   // --- Empresa & Equipe ---
   empresaCardTitulo: string;
   empresaCardDescricao: string;
+  moedaIdiomaTitulo: string;
+  moedaIdiomaDescricao: string;
+  moedaLabel: string;
+  moedaAviso: string;
+  idiomaPadraoLabel: string;
+  idiomaPadraoAviso: string;
+  moedaIdiomaSalvo: string;
   empresaMembrosAtivos: string;
   empresaSemAcessoTitulo: string;
   empresaSemAcessoDescricao: string;
@@ -97,6 +104,13 @@ export const configuracoes: ConfiguracoesDict = {
 
   empresaCardTitulo: "Empresa",
   empresaCardDescricao: "O nome que aparece no topo do menu e no portal dos seus clientes. Edite-o na aba Aparência.",
+  moedaIdiomaTitulo: "Moeda e idioma",
+  moedaIdiomaDescricao: "A unidade em que a empresa mede o faturamento e a língua com que o sistema abre.",
+  moedaLabel: "Moeda do sistema",
+  moedaAviso: "Vale para o time inteiro. Trocar a moeda muda o símbolo e o formato dos números — nenhum valor já lançado é convertido, porque a cotação de cada dia era outra.",
+  idiomaPadraoLabel: "Idioma de partida",
+  idiomaPadraoAviso: "É com esta língua que o sistema abre para quem ainda não escolheu. Cada pessoa continua trocando o idioma no canto da tela, e a escolha dela vale por cima desta.",
+  moedaIdiomaSalvo: "Salvo. A troca já vale em todas as telas.",
   empresaMembrosAtivos: "membros com acesso",
   empresaSemAcessoTitulo: "Só o administrador vê esta aba",
   empresaSemAcessoDescricao: "Quem tem acesso ao quê é decidido por quem administra a conta.",

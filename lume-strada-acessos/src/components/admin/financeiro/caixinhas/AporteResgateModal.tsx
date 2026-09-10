@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -27,7 +27,7 @@ interface AporteResgateModalProps {
  * regra de negócio mora na função SQL (atômica, valida saldo etc.).
  */
 export function AporteResgateModal({ caixinha, contas, tipoInicial, onClose }: AporteResgateModalProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const t = dict.financeiro.caixinhas;
   const [tipo, setTipo] = useState<"aporte" | "resgate">(tipoInicial);
   const contasDoContexto = contas.filter((c) => c.contexto === caixinha.contexto);
@@ -94,7 +94,7 @@ export function AporteResgateModal({ caixinha, contas, tipoInicial, onClose }: A
           </div>
 
           <p className="rounded-lg border border-base-700 bg-base-950/40 px-3 py-2 text-xs text-ink-secondary">
-            {t.saldoDisponivelPrefixo} <span className="font-semibold text-ink-primary">{fmtBRL(caixinha.saldo_atual)}</span>
+            {t.saldoDisponivelPrefixo} <span className="font-semibold text-ink-primary">{fmtMoeda(caixinha.saldo_atual)}</span>
           </p>
 
           <div>
@@ -105,7 +105,7 @@ export function AporteResgateModal({ caixinha, contas, tipoInicial, onClose }: A
               <Select required value={contaId} onChange={(e) => setContaId(e.target.value)}>
                 {contasDoContexto.map((conta) => (
                   <option key={conta.id} value={conta.id}>
-                    {conta.nome} — {fmtBRL(conta.saldo_atual)}
+                    {conta.nome} — {fmtMoeda(conta.saldo_atual)}
                   </option>
                 ))}
               </Select>

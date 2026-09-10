@@ -4,12 +4,13 @@ import type { StatusOrcamento } from "@/lib/types/orcamentos";
 import type { StatusContrato } from "@/lib/types/contratos";
 import { STATUS_ORCAMENTO_TONE } from "@/lib/utils/orcamentos";
 import { STATUS_CONTRATO_TONE } from "@/lib/utils/contratos";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { fmtDataHora } from "@/lib/utils/status";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { IconFileText, IconShieldCheck, IconImage, IconActivity, IconExternalLink, IconDownload } from "@/components/ui/icons";
+import type { FormatadorMoeda } from "@/lib/types/moeda";
 
 /**
  * View da Fase 4 (Portal do Cliente) — server component puro (sem "use
@@ -19,7 +20,7 @@ import { IconFileText, IconShieldCheck, IconImage, IconActivity, IconExternalLin
  * do server component pai (`page.tsx`), igual o resto do app faz quando não
  * há interatividade.
  */
-export function ClientePortalView({ data, dict }: { data: PortalClienteData; dict: Dictionary }) {
+export function ClientePortalView({ data, dict, fmtMoeda }: { data: PortalClienteData; dict: Dictionary; fmtMoeda: FormatadorMoeda }) {
   const statusOrcLabel: Record<StatusOrcamento, string> = {
     rascunho: dict.orcamentos.statusRascunho,
     enviado: dict.orcamentos.statusEnviado,
@@ -73,7 +74,7 @@ export function ClientePortalView({ data, dict }: { data: PortalClienteData; dic
                   <p className="truncate text-sm font-medium text-ink-primary">{o.titulo}</p>
                   <div className="mt-1 flex items-center gap-2">
                     <Badge tone={STATUS_ORCAMENTO_TONE[o.statusExibicao]} label={statusOrcLabel[o.statusExibicao]} />
-                    <span className="text-xs text-ink-muted">{fmtBRL(o.total)}</span>
+                    <span className="text-xs text-ink-muted">{fmtMoeda(o.total)}</span>
                   </div>
                 </div>
                 <a href={`/orcamento/${o.token}`} target="_blank" rel="noopener noreferrer" className="shrink-0">
@@ -103,7 +104,7 @@ export function ClientePortalView({ data, dict }: { data: PortalClienteData; dic
                   <p className="truncate text-sm font-medium text-ink-primary">{c.titulo}</p>
                   <div className="mt-1 flex items-center gap-2">
                     <Badge tone={STATUS_CONTRATO_TONE[c.status]} label={statusContratoLabel[c.status]} />
-                    <span className="text-xs text-ink-muted">{fmtBRL(c.total)}</span>
+                    <span className="text-xs text-ink-muted">{fmtMoeda(c.total)}</span>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">

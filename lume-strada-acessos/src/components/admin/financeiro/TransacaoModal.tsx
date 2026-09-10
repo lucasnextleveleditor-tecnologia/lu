@@ -21,7 +21,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { IconPlus } from "@/components/ui/icons";
 import { NovoFornecedorModal } from "@/components/admin/financeiro/NovoFornecedorModal";
 import { AnexosTransacaoSection } from "@/components/admin/financeiro/AnexosTransacaoSection";
-import { fmtBRL, fmtMoedaEstrangeira, todayISO } from "@/lib/utils/format";
+import { fmtMoedaEstrangeira, todayISO } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -52,7 +52,7 @@ export function TransacaoModal({
   tipoInicial,
   onClose,
 }: TransacaoModalProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const TIPO_OPCOES: { value: FinTipoTransacao; label: string }[] = [
     { value: "despesa", label: dict.financeiro.despesaLabel },
     { value: "receita", label: dict.financeiro.receitaLabel },
@@ -363,9 +363,9 @@ export function TransacaoModal({
                   ) : taxaCambio ? (
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-ink-secondary">
-                        {dict.financeiro.cotacaoLabel} {fmtMoedaEstrangeira(1, moeda)} = {fmtBRL(taxaCambio)}
+                        {dict.financeiro.cotacaoLabel} {fmtMoedaEstrangeira(1, moeda)} = {fmtMoeda(taxaCambio)}
                         {dataCotacao ? ` (${dataCotacao})` : ""} · {dict.financeiro.equivaleALabel}{" "}
-                        <span className="font-semibold text-ink-primary">{fmtBRL(valorFinalBRL)}</span>
+                        <span className="font-semibold text-ink-primary">{fmtMoeda(valorFinalBRL)}</span>
                       </span>
                       <button
                         type="button"
@@ -501,7 +501,7 @@ export function TransacaoModal({
                       </div>
                       <p className="text-xs text-ink-muted">
                         {dict.financeiro.parcelaPreviewPrefixo.replace("{n}", String(numParcelas))}{" "}
-                        <span className="font-medium text-ink-primary">{fmtBRL(valorPorParcela)}</span> {dict.financeiro.parcelaPreviewSufixo}
+                        <span className="font-medium text-ink-primary">{fmtMoeda(valorPorParcela)}</span> {dict.financeiro.parcelaPreviewSufixo}
                       </p>
                     </>
                   )}

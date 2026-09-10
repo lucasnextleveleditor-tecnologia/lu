@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import type { CategoriaPreview } from "@/lib/utils/financeiro-preview-mock";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtPercent } from "@/lib/utils/format";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export interface FatiaDonut {
   categoria: CategoriaPreview;
@@ -33,6 +34,7 @@ const CIRCUNFERENCIA = 2 * Math.PI * RAIO;
  * do gráfico, sem popover flutuante).
  */
 export function DonutChartCategorias({ dados, total }: DonutChartCategoriasProps) {
+  const { fmtMoeda } = useLocale();
   const [hoverId, setHoverId] = useState<string | null>(null);
 
   const segmentos = useMemo(() => {
@@ -82,13 +84,13 @@ export function DonutChartCategorias({ dados, total }: DonutChartCategoriasProps
               onMouseEnter={() => setHoverId(seg.categoria.id)}
               onMouseLeave={() => limparHover(seg.categoria.id)}
             >
-              <title>{`${seg.categoria.nome}: ${fmtBRL(seg.valor)} (${fmtPercent(seg.pct / 100)})`}</title>
+              <title>{`${seg.categoria.nome}: ${fmtMoeda(seg.valor)} (${fmtPercent(seg.pct / 100)})`}</title>
             </circle>
           ))}
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
           <p className="truncate text-[11px] uppercase tracking-wide text-ink-muted">{emDestaque ? emDestaque.categoria.nome : "Total"}</p>
-          <p className="text-lg font-bold text-ink-primary">{fmtBRL(emDestaque ? emDestaque.valor : total)}</p>
+          <p className="text-lg font-bold text-ink-primary">{fmtMoeda(emDestaque ? emDestaque.valor : total)}</p>
           {emDestaque && <p className="text-xs text-ink-secondary">{fmtPercent(emDestaque.pct / 100)}</p>}
         </div>
       </div>
@@ -108,7 +110,7 @@ export function DonutChartCategorias({ dados, total }: DonutChartCategoriasProps
               <span className="truncate text-sm text-ink-secondary">{fatia.categoria.nome}</span>
               {i < 3 && <span className="shrink-0 text-xs text-ink-muted">{fmtPercent(fatia.pct / 100)}</span>}
             </div>
-            <span className="shrink-0 text-sm font-medium text-ink-primary">{fmtBRL(fatia.valor)}</span>
+            <span className="shrink-0 text-sm font-medium text-ink-primary">{fmtMoeda(fatia.valor)}</span>
           </div>
         ))}
       </div>

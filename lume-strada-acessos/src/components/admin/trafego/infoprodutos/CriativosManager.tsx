@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import type { CriativoRow } from "@/lib/types/infoprodutos";
 import { alternarAtivoCriativo, removerCriativoCadastro } from "@/app/admin/trafego/infoprodutos-actions";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -23,7 +23,7 @@ interface CriativosManagerProps {
  * do Dia num anúncio NOVO (ver `CriativoRow`).
  */
 export function CriativosManager({ criativos, clienteCadastroId }: CriativosManagerProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [modalAberto, setModalAberto] = useState(false);
   const [criativoEditando, setCriativoEditando] = useState<CriativoRow | null>(null);
   const [confirmandoExclusao, setConfirmandoExclusao] = useState<string | null>(null);
@@ -86,7 +86,7 @@ export function CriativosManager({ criativos, clienteCadastroId }: CriativosMana
                     <p className="text-sm font-medium text-ink-primary">{criativo.nome}</p>
                   </td>
                   <td className="py-3 pr-4">
-                    <span className="text-sm text-ink-secondary">{fmtBRL(criativo.orcamento_diario)}</span>
+                    <span className="text-sm text-ink-secondary">{fmtMoeda(criativo.orcamento_diario)}</span>
                   </td>
                   <td className="py-3 pr-4">
                     <Badge tone={criativo.ativo ? "good" : "neutral"} label={criativo.ativo ? dict.common.ativo : dict.common.inativo} />

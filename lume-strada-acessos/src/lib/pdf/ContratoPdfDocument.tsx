@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
-import { fmtBRL } from "@/lib/utils/format";
+import type { FormatadorMoeda } from "@/lib/types/moeda";
 
 // ============================================================================
 // PDF de TEXTO REAL (não é print-to-image) — usa @react-pdf/renderer, que
@@ -47,6 +47,8 @@ export interface ContratoPdfItem {
 }
 
 export interface ContratoPdfProps {
+  /** Formatador na moeda da empresa — o PDF é montado no servidor, onde não existe contexto de React. */
+  fmtMoeda: FormatadorMoeda;
   empresaNome: string;
   /** URL pública da logo (`companies.contrato_logo_path`). Null = documento sem marca. */
   logoUrl?: string | null;
@@ -58,7 +60,7 @@ export interface ContratoPdfProps {
   assinatura?: { nome: string; data: string; ip: string | null } | null;
 }
 
-export function ContratoPdfDocument({ empresaNome, logoUrl, titulo, nomeCliente, itens, total, clausulas, assinatura }: ContratoPdfProps) {
+export function ContratoPdfDocument({ empresaNome, logoUrl, titulo, nomeCliente, itens, total, clausulas, assinatura, fmtMoeda }: ContratoPdfProps) {
   return (
     <Document title={titulo} author={empresaNome}>
       <Page size="A4" style={styles.page}>
@@ -87,12 +89,12 @@ export function ContratoPdfDocument({ empresaNome, logoUrl, titulo, nomeCliente,
                   </Text>
                   {item.descricao && <Text style={styles.itemDescricao}>{item.descricao}</Text>}
                 </View>
-                <Text style={styles.itemValor}>{fmtBRL(item.quantidade * item.valorUnitario)}</Text>
+                <Text style={styles.itemValor}>{fmtMoeda(item.quantidade * item.valorUnitario)}</Text>
               </View>
             ))}
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalLabel}>{fmtBRL(total)}</Text>
+              <Text style={styles.totalLabel}>{fmtMoeda(total)}</Text>
             </View>
           </View>
         )}

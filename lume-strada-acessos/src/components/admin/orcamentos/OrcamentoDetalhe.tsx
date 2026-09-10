@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { OrcamentoComRelacoes, StatusOrcamento, PortfolioItemComUrl } from "@/lib/types/orcamentos";
 import { STATUS_ORCAMENTO_TONE, urlPublicaOrcamento } from "@/lib/utils/orcamentos";
 import { duplicarOrcamento, enviarOrcamento, marcarStatusManual, removerOrcamento } from "@/app/admin/orcamentos/actions";
-import { fmtBRL, fmtDataCurta, fmtCpfCnpj } from "@/lib/utils/format";
+import { fmtDataCurta, fmtCpfCnpj } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -27,7 +27,7 @@ type OrcamentoDetalheProps = {
 const PRINT_ID = "orcamento-detalhe-conteudo";
 
 export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -202,7 +202,7 @@ export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
                     </div>
                     <p className="shrink-0 text-sm font-medium text-ink-primary">
                       {item.quantidade > 1 && `${item.quantidade}x `}
-                      {fmtBRL(item.quantidade * item.valor_unitario)}
+                      {fmtMoeda(item.quantidade * item.valor_unitario)}
                     </p>
                   </div>
                 ))}
@@ -222,7 +222,7 @@ export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
                     </div>
                     <p className="shrink-0 text-sm font-medium text-ink-primary">
                       {item.quantidade > 1 && `${item.quantidade}x `}
-                      {fmtBRL(item.quantidade * item.valor_unitario)}
+                      {fmtMoeda(item.quantidade * item.valor_unitario)}
                     </p>
                   </div>
                 ))}
@@ -254,17 +254,17 @@ export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
           <div className="ml-auto max-w-xs space-y-1.5 text-sm">
             <div className="flex justify-between text-ink-secondary">
               <span>{dict.orcamentos.subtotalLabel}</span>
-              <span>{fmtBRL(orcamento.subtotal)}</span>
+              <span>{fmtMoeda(orcamento.subtotal)}</span>
             </div>
             {orcamento.desconto_tipo && (
               <div className="flex justify-between text-ink-secondary">
                 <span>{dict.orcamentos.descontoLabel}</span>
-                <span>−{fmtBRL(orcamento.desconto)}</span>
+                <span>−{fmtMoeda(orcamento.desconto)}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-base-800 pt-1.5 text-base font-semibold text-ink-primary">
               <span>{dict.orcamentos.totalLabel}</span>
-              <span>{fmtBRL(orcamento.total)}</span>
+              <span>{fmtMoeda(orcamento.total)}</span>
             </div>
           </div>
 

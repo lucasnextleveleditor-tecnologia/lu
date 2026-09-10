@@ -22,7 +22,7 @@ import { Select } from "@/components/ui/Select";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { IconPlus, IconTrash, IconSearch, IconImage, IconFilm, IconEye, IconAlertTriangle } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { cn } from "@/lib/utils/cn";
 
 type OrcamentoParaEditar = Awaited<ReturnType<typeof buscarOrcamentoPorId>>;
@@ -83,7 +83,7 @@ interface OrcamentoBuilderProps {
 }
 
 export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, tiposOrcamento, portfolioItens, institucional, orcamentoParaEditar }: OrcamentoBuilderProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const router = useRouter();
   const editando = !!orcamentoParaEditar;
 
@@ -652,7 +652,7 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
               <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border border-base-800 px-3 py-2">
                 <div className="min-w-0">
                   <p className="truncate text-sm text-ink-primary">{s.nome}</p>
-                  <p className="text-xs text-ink-muted">{fmtBRL(s.valor_padrao)}</p>
+                  <p className="text-xs text-ink-muted">{fmtMoeda(s.valor_padrao)}</p>
                 </div>
                 <Button variant="ghost" className="shrink-0 gap-1 px-2.5 py-1 text-xs" onClick={() => handleAdicionarServico(s)}>
                   <IconPlus className="h-3.5 w-3.5" />
@@ -732,7 +732,7 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
                     />
                     {dict.orcamentos.itemOpcionalLabel}
                   </label>
-                  <p className="mt-2 text-right text-sm font-semibold text-ink-primary">{fmtBRL(item.quantidade * item.valorUnitario)}</p>
+                  <p className="mt-2 text-right text-sm font-semibold text-ink-primary">{fmtMoeda(item.quantidade * item.valorUnitario)}</p>
                 </div>
               ))}
             </div>

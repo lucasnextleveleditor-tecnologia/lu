@@ -10,7 +10,7 @@ import {
   STATUS_META_LUCRO,
   calcularReceitaLiquida,
 } from "@/lib/utils/infoprodutos";
-import { addDaysISO, fmtBRL, todayISO } from "@/lib/utils/format";
+import { addDaysISO, todayISO } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { StatTile } from "@/components/ui/StatTile";
 import { Badge } from "@/components/ui/Badge";
@@ -36,7 +36,7 @@ interface ResumoSemana {
 }
 
 export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, clienteCadastroId }: Dashboard7DiasProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [semanaAbrindoFechamento, setSemanaAbrindoFechamento] = useState<ResumoSemana | null>(null);
 
   const hoje = todayISO();
@@ -108,12 +108,12 @@ export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, cliente
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="text-xs text-ink-muted">{dict.trafego.metaDeLucroLabel}</p>
-              <p className="mt-1 text-lg font-semibold text-ink-primary">{fmtBRL(resumoHoje.meta)}</p>
+              <p className="mt-1 text-lg font-semibold text-ink-primary">{fmtMoeda(resumoHoje.meta)}</p>
             </div>
             <div>
               <p className="text-xs text-ink-muted">{dict.trafego.lucroGeradoLabel}</p>
               <p className={`mt-1 text-lg font-semibold ${resumoHoje.lucro >= 0 ? "text-status-good" : "text-status-critical"}`}>
-                {fmtBRL(resumoHoje.lucro)}
+                {fmtMoeda(resumoHoje.lucro)}
               </p>
             </div>
           </div>
@@ -127,12 +127,12 @@ export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, cliente
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="text-xs text-ink-muted">{dict.trafego.metaDaSemanaLabel}</p>
-              <p className="mt-1 text-lg font-semibold text-ink-primary">{fmtBRL(resumoSemana.meta)}</p>
+              <p className="mt-1 text-lg font-semibold text-ink-primary">{fmtMoeda(resumoSemana.meta)}</p>
             </div>
             <div>
               <p className="text-xs text-ink-muted">{dict.trafego.lucroDaSemanaLabel}</p>
               <p className={`mt-1 text-lg font-semibold ${resumoSemana.lucro >= 0 ? "text-status-good" : "text-status-critical"}`}>
-                {fmtBRL(resumoSemana.lucro)}
+                {fmtMoeda(resumoSemana.lucro)}
               </p>
             </div>
           </div>
@@ -140,15 +140,15 @@ export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, cliente
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={IconTarget} label={dict.trafego.metaDeHojeStat} value={fmtBRL(resumoHoje.meta)} hint={dict.trafego.lucroLiquidoNoBolsoHint} />
+        <StatTile icon={IconTarget} label={dict.trafego.metaDeHojeStat} value={fmtMoeda(resumoHoje.meta)} hint={dict.trafego.lucroLiquidoNoBolsoHint} />
         <StatTile
           icon={IconTrendingUp}
           label={dict.trafego.lucroDeHojeStat}
-          value={fmtBRL(resumoHoje.lucro)}
+          value={fmtMoeda(resumoHoje.lucro)}
           tone={resumoHoje.lucro >= resumoHoje.meta && resumoHoje.meta > 0 ? "good" : "warning"}
           hint={dict.trafego.aindaBrutoHint}
         />
-        <StatTile icon={IconPercent} label={dict.trafego.metaDaSemanaLabel} value={fmtBRL(resumoSemana.meta)} hint={dict.trafego.somaUltimos7DiasHint} />
+        <StatTile icon={IconPercent} label={dict.trafego.metaDaSemanaLabel} value={fmtMoeda(resumoSemana.meta)} hint={dict.trafego.somaUltimos7DiasHint} />
         <StatTile
           icon={IconLock}
           label={dict.trafego.semanasPendentesStat}
@@ -176,9 +176,9 @@ export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, cliente
                       {semana.semanaFim.split("-").reverse().join("/")}
                     </p>
                     <p className="text-xs text-ink-muted">
-                      {dict.trafego.receitaPalavra} {fmtBRL(semana.receitaBrutaTotal)} · {dict.trafego.investimentoPalavra}{" "}
-                      {fmtBRL(semana.investimentoTotal)}
-                      {semana.fechamento && ` · ${dict.trafego.reembolsosPalavra} ${fmtBRL(semana.fechamento.reembolsos)}`}
+                      {dict.trafego.receitaPalavra} {fmtMoeda(semana.receitaBrutaTotal)} · {dict.trafego.investimentoPalavra}{" "}
+                      {fmtMoeda(semana.investimentoTotal)}
+                      {semana.fechamento && ` · ${dict.trafego.reembolsosPalavra} ${fmtMoeda(semana.fechamento.reembolsos)}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -186,7 +186,7 @@ export function Dashboard7Dias({ anuncios, metasCalendario, fechamentos, cliente
                       <p className="text-xs text-ink-muted">
                         {semana.fechamento ? dict.trafego.lucroLiquidoRealLabel : dict.trafego.lucroBrutoLabel}
                       </p>
-                      <p className={`text-sm font-semibold ${lucro >= 0 ? "text-status-good" : "text-status-critical"}`}>{fmtBRL(lucro)}</p>
+                      <p className={`text-sm font-semibold ${lucro >= 0 ? "text-status-good" : "text-status-critical"}`}>{fmtMoeda(lucro)}</p>
                     </div>
                     <Badge tone={statusMeta.tone} label={statusMeta.label} />
                     <Button variant="ghost" onClick={() => setSemanaAbrindoFechamento(semana)} className="px-3 py-1.5 text-xs">

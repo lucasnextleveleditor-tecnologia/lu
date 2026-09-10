@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { HistoricoMensalPonto } from "@/app/admin/financeiro/data";
 import { fmtMesCurto } from "@/lib/utils/financeiro";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { useValoresVisiveis } from "@/lib/valores-visiveis/ValoresVisiveisProvider";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -49,11 +49,11 @@ function tetoArredondado(valor: number): number {
  * do Mês" (ver `page.tsx`) já cobre o número exato do mês corrente.
  */
 export function GraficoReceitaDespesa({ dados }: GraficoReceitaDespesaProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const { visivel } = useValoresVisiveis();
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
-  const fmt = (v: number) => (visivel ? fmtBRL(v) : "••••");
+  const fmt = (v: number) => (visivel ? fmtMoeda(v) : "••••");
 
   const maxValor = useMemo(
     () => tetoArredondado(Math.max(1, ...dados.flatMap((d) => [d.receitas, d.despesas]))),

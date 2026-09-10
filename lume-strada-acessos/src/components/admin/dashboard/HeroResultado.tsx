@@ -1,4 +1,4 @@
-import { fmtBRL } from "@/lib/utils/format";
+
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
 import { getDictionary } from "@/lib/i18n/getDictionary";
@@ -18,7 +18,7 @@ import { BalancoDoMes } from "./BalancoDoMes";
  * do dado mais sensível da tela, e por isso ninguém achava.
  */
 export async function HeroResultado({ receitas, despesas }: { receitas: number; despesas: number }) {
-  const { dict } = await getDictionary();
+  const { dict, fmtMoeda } = await getDictionary();
   const t = dict.dashboard;
 
   const resultado = receitas - despesas;
@@ -36,7 +36,7 @@ export async function HeroResultado({ receitas, despesas }: { receitas: number; 
           só o corpo da fonte — é o cartão maior, o espaço em volta e o fato
           de os outros números viverem atrás de um divisor. */}
       <p className="mt-2 text-[30px] font-semibold leading-none tracking-tight text-ink-primary sm:text-4xl">
-        <ValorPrivado valor={fmtBRL(resultado)} />
+        <ValorPrivado valor={fmtMoeda(resultado)} />
       </p>
       <p className="mt-2 text-xs text-ink-muted">{t.heroResultadoHint}</p>
 

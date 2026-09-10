@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import type { CartaoComLimite, ContaComSaldo } from "@/lib/types/financeiro";
 import { removerCartao } from "@/app/admin/financeiro/actions";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtPercent } from "@/lib/utils/format";
 import { toneLimiteCartao } from "@/lib/utils/financeiro";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -21,7 +21,7 @@ interface CartoesCardProps {
 }
 
 export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [modalAberto, setModalAberto] = useState(false);
   const [cartaoEditando, setCartaoEditando] = useState<CartaoComLimite | null>(null);
   const [cartaoFatura, setCartaoFatura] = useState<CartaoComLimite | null>(null);
@@ -110,8 +110,8 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
                 <div className="mb-1 flex items-center justify-between text-xs text-ink-secondary">
                   <span>
                     {dict.financeiro.usadoLabel}{" "}
-                    <ValorPrivado valor={fmtBRL(cartao.limite_consumido)} className="font-medium text-ink-primary" />{" "}
-                    {dict.financeiro.deLabel} <ValorPrivado valor={fmtBRL(cartao.limite)} className="text-ink-secondary" />
+                    <ValorPrivado valor={fmtMoeda(cartao.limite_consumido)} className="font-medium text-ink-primary" />{" "}
+                    {dict.financeiro.deLabel} <ValorPrivado valor={fmtMoeda(cartao.limite)} className="text-ink-secondary" />
                   </span>
                   <ValorPrivado valor={fmtPercent(pct)} className="font-medium text-ink-primary" />
                 </div>
@@ -120,7 +120,7 @@ export function CartoesCard({ cartoes, contas, referencia }: CartoesCardProps) {
                 <div className="mt-2.5 flex items-center justify-between">
                   <span className="text-xs text-ink-secondary">
                     {dict.financeiro.disponivelLabel}{" "}
-                    <ValorPrivado valor={fmtBRL(cartao.limite_disponivel)} className="font-medium text-ink-primary" />
+                    <ValorPrivado valor={fmtMoeda(cartao.limite_disponivel)} className="font-medium text-ink-primary" />
                   </span>
                   <Button
                     variant="ghost"

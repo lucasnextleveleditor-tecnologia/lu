@@ -1,6 +1,6 @@
 import type { PerfilOrcamento } from "@/lib/types/orcamentos";
 import { BANCO_DE_MODELOS, type ModeloContratoServico } from "./index";
-import { fmtBRL } from "@/lib/utils/format";
+import type { FormatadorMoeda } from "@/lib/types/moeda";
 
 /**
  * Ponte entre os dados já conhecidos pelo banco (cliente, empresa, orçamento
@@ -29,6 +29,8 @@ export interface ContextoAutoPreenchimento {
   valorTotal?: number;
   condicoesPagamento?: string | null;
   dataAssinatura?: string;
+  /** Formatador já amarrado na moeda da empresa — vem de quem chama (`useLocale()`), porque uma lib pura não lê configuração. */
+  fmtMoeda: FormatadorMoeda;
 }
 
 /**
@@ -54,7 +56,9 @@ export function montarValoresAutoPreenchiveis(ctx: ContextoAutoPreenchimento): R
   if (ctx.empresa?.cpfCnpj) valores.CPF_CNPJ_CONTRATADO = ctx.empresa.cpfCnpj;
   if (ctx.empresa?.endereco) valores.ENDERECO_CONTRATADO = ctx.empresa.endereco;
 
-  if (typeof ctx.valorTotal === "number" && ctx.valorTotal > 0) valores["VALOR_DO_SERVIÇO"] = fmtBRL(ctx.valorTotal);
+  // O formatador vem de fora porque a moeda é da empresa e esta função é
+  // uma lib pura — não tem como (nem deve) ler configuração sozinha.
+  if (typeof ctx.valorTotal === "number" && ctx.valorTotal > 0) valores["VALOR_DO_SERVIÇO"] = ctx.fmtMoeda(ctx.valorTotal);
   if (ctx.condicoesPagamento) valores.CONDICOES_DE_PAGAMENTO = ctx.condicoesPagamento;
 
   valores.DATA_ASSINATURA = ctx.dataAssinatura || new Date().toLocaleDateString("pt-BR");

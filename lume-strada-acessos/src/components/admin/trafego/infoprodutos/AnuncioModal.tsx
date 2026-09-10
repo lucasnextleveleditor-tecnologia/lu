@@ -5,7 +5,7 @@ import type { AnuncioComRelacoes, CriativoRow, TaxaPadraoRow } from "@/lib/types
 import type { ProdutoRow } from "@/lib/types/infoprodutos";
 import { criarAnuncio, atualizarAnuncio, type OrderBumpVendaInput } from "@/app/admin/trafego/infoprodutos-actions";
 import { calcularReceitaBruta, calcularReceitaLiquida } from "@/lib/utils/infoprodutos";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -31,7 +31,7 @@ interface OrderBumpLinhaForm {
 }
 
 export function AnuncioModal({ anuncio, produtos, criativos, clienteCadastroId, dataPadrao, taxaPadrao, onClose }: AnuncioModalProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const principais = produtos.filter((p) => p.tipo === "principal");
   const orderBumps = produtos.filter((p) => p.tipo === "order_bump");
 
@@ -337,7 +337,7 @@ export function AnuncioModal({ anuncio, produtos, criativos, clienteCadastroId, 
           <div className="rounded-xl border border-base-700 bg-base-950/60 p-3">
             <p className="text-xs uppercase tracking-wide text-ink-muted">{dict.trafego.receitaLiquidaLabel}</p>
             <p className={`mt-0.5 text-lg font-semibold ${receitaLiquida >= 0 ? "text-status-good" : "text-status-critical"}`}>
-              {fmtBRL(receitaLiquida)}
+              {fmtMoeda(receitaLiquida)}
             </p>
           </div>
 

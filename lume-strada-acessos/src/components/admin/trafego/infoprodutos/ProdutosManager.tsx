@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import type { ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import { alternarAtivoProduto, removerProduto } from "@/app/admin/trafego/infoprodutos-actions";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -18,7 +18,7 @@ interface ProdutosManagerProps {
 }
 
 export function ProdutosManager({ produtos, clienteCadastroId, taxaPadrao }: ProdutosManagerProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [modalAberto, setModalAberto] = useState(false);
   const [produtoEditando, setProdutoEditando] = useState<ProdutoRow | null>(null);
   const [confirmandoExclusao, setConfirmandoExclusao] = useState<string | null>(null);
@@ -79,7 +79,7 @@ export function ProdutosManager({ produtos, clienteCadastroId, taxaPadrao }: Pro
                       <p className="text-sm font-medium text-ink-primary">{produto.nome}</p>
                     </td>
                     <td className="py-3 pr-4">
-                      <span className="text-sm text-ink-secondary">{fmtBRL(produto.valor)}</span>
+                      <span className="text-sm text-ink-secondary">{fmtMoeda(produto.valor)}</span>
                     </td>
                     <td className="py-3 pr-4">
                       <Badge tone={produto.ativo ? "good" : "neutral"} label={produto.ativo ? dict.common.ativo : dict.common.inativo} />

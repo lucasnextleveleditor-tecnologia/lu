@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { LeadComRelacoes } from "@/lib/types/comercial";
 import { STATUS_LEAD_META, STATUS_LEAD_ORDEM, isFollowUpAtrasado } from "@/lib/utils/comercial";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
@@ -45,7 +45,7 @@ function origemLabel(dict: ComercialDict, origem: OrigemLead): string {
 }
 
 export function ListaLeads({ leads, onAbrirLead }: ListaLeadsProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
 
@@ -132,7 +132,7 @@ export function ListaLeads({ leads, onAbrirLead }: ListaLeadsProps) {
                       </span>
                     </td>
                     <td className="py-3 pr-4 text-right">
-                      <span className="text-xs text-ink-secondary">{l.valor_estimado != null ? fmtBRL(l.valor_estimado) : "—"}</span>
+                      <span className="text-xs text-ink-secondary">{l.valor_estimado != null ? fmtMoeda(l.valor_estimado) : "—"}</span>
                     </td>
                     <td className="py-3 text-right">
                       <Badge tone={statusMeta.tone} label={etapaLabel(dict.comercial, l.status)} />

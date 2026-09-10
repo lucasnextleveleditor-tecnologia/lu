@@ -60,9 +60,10 @@ export function fmtDataExtensa(iso: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-export function fmtBRL(valor: number): string {
-  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
-}
+// `fmtBRL` foi removida de propósito: ela travava o sistema inteiro em real.
+// Dinheiro agora sai por `fmtMoeda`, que vem do `useLocale()` nos componentes
+// cliente e do `getDictionary()` nos server components — os dois já amarrados
+// na moeda da empresa e no idioma de quem está lendo (ver `lib/types/moeda.ts`).
 
 /** Formata um valor em moeda estrangeira (USD/EUR) — usado só pra EXIBIR o valor original de uma transação convertida (ver `fin_transacoes.valor_original`); nunca participa de soma nenhuma. */
 export function fmtMoedaEstrangeira(valor: number, moeda: "USD" | "EUR"): string {

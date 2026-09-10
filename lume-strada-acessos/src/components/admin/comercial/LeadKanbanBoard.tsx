@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd";
 import type { LeadComRelacoes, StatusLead } from "@/lib/types/comercial";
 import { STATUS_LEAD_ORDEM } from "@/lib/utils/comercial";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { moverStatusLead } from "@/app/admin/comercial/actions";
 import { LeadCard } from "@/components/admin/comercial/LeadCard";
 import { cn } from "@/lib/utils/cn";
@@ -36,7 +36,7 @@ function etapaLabel(dict: ComercialDict, status: StatusLead): string {
  * drag-and-drop por baixo).
  */
 export function LeadKanbanBoard({ leads, onAbrirLead }: LeadKanbanBoardProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [leadsLocais, setLeadsLocais] = useState(leads);
   const [, startTransition] = useTransition();
 
@@ -78,7 +78,7 @@ export function LeadKanbanBoard({ leads, onAbrirLead }: LeadKanbanBoardProps) {
                       {leadsDaColuna.length}
                     </span>
                   </div>
-                  {totalColuna > 0 && <p className="mb-2.5 px-1 text-[11px] text-ink-muted">{fmtBRL(totalColuna)}</p>}
+                  {totalColuna > 0 && <p className="mb-2.5 px-1 text-[11px] text-ink-muted">{fmtMoeda(totalColuna)}</p>}
 
                   <div className="flex min-h-[80px] flex-1 flex-col gap-2.5">
                     {leadsDaColuna.map((lead, index) => (

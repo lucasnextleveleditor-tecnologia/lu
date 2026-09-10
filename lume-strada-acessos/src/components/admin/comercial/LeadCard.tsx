@@ -2,7 +2,7 @@
 
 import type { LeadComRelacoes } from "@/lib/types/comercial";
 import { isFollowUpAtrasado } from "@/lib/utils/comercial";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -14,7 +14,7 @@ interface LeadCardProps {
 }
 
 export function LeadCard({ lead, onClick, className }: LeadCardProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const atrasado = isFollowUpAtrasado(lead);
 
   return (
@@ -33,7 +33,7 @@ export function LeadCard({ lead, onClick, className }: LeadCardProps) {
 
       {lead.tipo_servico_nome && <p className="mb-1 truncate text-xs text-ink-secondary">{lead.tipo_servico_nome}</p>}
 
-      {lead.valor_estimado != null && <p className="text-sm font-semibold text-ink-primary">{fmtBRL(lead.valor_estimado)}</p>}
+      {lead.valor_estimado != null && <p className="text-sm font-semibold text-ink-primary">{fmtMoeda(lead.valor_estimado)}</p>}
 
       <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
         {lead.proximo_contato_em && (

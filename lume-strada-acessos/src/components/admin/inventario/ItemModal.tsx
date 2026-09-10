@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import type { CategoriaInventarioRow, ItemInventarioRow, StatusItemInventario } from "@/lib/types/database";
 import { criarItem, atualizarItem, type ItemInput } from "@/app/admin/inventario/actions";
 import { STATUS_ITEM_META, STATUS_ITEM_OPCOES, calcularDepreciacao } from "@/lib/utils/inventario";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtPercent } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -19,7 +19,7 @@ interface ItemModalProps {
 }
 
 export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [codigoEtiqueta, setCodigoEtiqueta] = useState(item?.codigo_etiqueta ?? "");
   const [categoriaId, setCategoriaId] = useState(item?.categoria_id ?? categorias[0]?.id ?? "");
   const [nomeItem, setNomeItem] = useState(item?.nome_item ?? "");
@@ -174,7 +174,7 @@ export function ItemModal({ item, categorias, onClose }: ItemModalProps) {
                 </span>
                 <Badge
                   tone={depreciacaoPreview.apreciou ? "good" : "neutral"}
-                  label={`${depreciacaoPreview.apreciou ? "+" : "-"}${fmtBRL(Math.abs(depreciacaoPreview.delta))} (${fmtPercent(Math.abs(depreciacaoPreview.percentual))})`}
+                  label={`${depreciacaoPreview.apreciou ? "+" : "-"}${fmtMoeda(Math.abs(depreciacaoPreview.delta))} (${fmtPercent(Math.abs(depreciacaoPreview.percentual))})`}
                 />
               </div>
             )}

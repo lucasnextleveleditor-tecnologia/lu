@@ -18,7 +18,7 @@ interface PageProps {
  */
 export default async function PortalClientePage({ params }: PageProps) {
   const { token } = await params;
-  const { dict } = await getDictionary();
+  const { dict, fmtMoeda } = await getDictionary();
   const data = await buscarPortalPorToken(token);
 
   if (!data) {
@@ -40,7 +40,7 @@ export default async function PortalClientePage({ params }: PageProps) {
       <div className="fixed right-4 top-4 z-30">
         <ThemeToggle />
       </div>
-      <ClientePortalView data={data} dict={dict} />
+      <ClientePortalView data={data} dict={dict} fmtMoeda={fmtMoeda} />
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { ContaEmAtencao, DestaqueVencimento } from "@/app/admin/financeiro/data";
-import { fmtBRL, fmtDataCurta, todayISO } from "@/lib/utils/format";
+import { fmtDataCurta, todayISO } from "@/lib/utils/format";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { IconAlertTriangle, IconCreditCard, IconX, IconChevronRight } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -30,7 +30,7 @@ export function LembreteVencimentos({
   contas: ContaEmAtencao[];
   contexto: string;
 }) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const t = dict.financeiro;
   const [fechado, setFechado] = useState(false);
   if (fechado) return null;
@@ -70,7 +70,7 @@ export function LembreteVencimentos({
             {contas.length > 0 && (
               <>
                 {" · "}
-                <ValorPrivado valor={fmtBRL(total)} />
+                <ValorPrivado valor={fmtMoeda(total)} />
               </>
             )}
           </p>
@@ -113,7 +113,7 @@ export function LembreteVencimentos({
                     </span>
                   </span>
                   <span className="shrink-0 text-sm font-semibold tabular-nums text-ink-primary">
-                    <ValorPrivado valor={fmtBRL(conta.valor)} />
+                    <ValorPrivado valor={fmtMoeda(conta.valor)} />
                   </span>
                   <IconChevronRight className="h-4 w-4 shrink-0 text-ink-muted transition group-hover:text-ink-secondary" />
                 </Link>

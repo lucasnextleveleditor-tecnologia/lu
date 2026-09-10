@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { ContratoRow, ContratoItemRow } from "@/lib/types/contratos";
 import { calcularTotalContrato } from "@/lib/types/contratos";
 import { ContratoPdfDocument } from "@/lib/pdf/ContratoPdfDocument";
+import { criarFormatador, moedaDe } from "@/lib/types/moeda";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -23,7 +24,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
   const { token } = await params;
   const admin = createAdminClient();
 
-  const { data: contrato } = await admin.from("contratos").select("*, companies(nome)").eq("token", token).single<ContratoRow & { companies: { nome: string } | null }>();
+  const { data: contrato } = await admin.from("contratos").select("*, companies(nome, moeda)").eq("token", token).single<ContratoRow & { companies: { nome: string; moeda: string | null } | null }>();
   if (!contrato) {
     return NextResponse.json({ error: "Contrato não encontrado." }, { status: 404 });
   }
@@ -31,8 +32,14 @@ export async function GET(_req: Request, { params }: RouteParams) {
   const { data: itens } = await admin.from("contratos_itens").select("*").eq("contrato_id", contrato.id).order("ordem").overrideTypes<ContratoItemRow[], { merge: false }>();
   const itensResolvidos = itens ?? [];
 
+  // Sem sessão aqui: a moeda vem da empresa DONA do contrato, não do
+  // padrão do sistema. Senão o cliente abriria a proposta em real de uma
+  // agência que trabalha em euro.
+  const fmtMoeda = criarFormatador(moedaDe(contrato.companies?.moeda), "pt");
+
   const buffer = await renderToBuffer(
     <ContratoPdfDocument
+      fmtMoeda={fmtMoeda}
       empresaNome={contrato.companies?.nome ?? "Empresa"}
       titulo={contrato.titulo}
       nomeCliente={contrato.nome_cliente}

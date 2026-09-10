@@ -2,8 +2,9 @@
 
 import { useValoresVisiveis } from "@/lib/valores-visiveis/ValoresVisiveisProvider";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface Props {
   receitas: number;
@@ -26,6 +27,7 @@ interface Props {
  * fechar o olho não faz a página inteira pular.
  */
 export function BalancoDoMes({ receitas, despesas, labelEntradas, labelSaidas, labelNoVermelho }: Props) {
+  const { fmtMoeda } = useLocale();
   const { visivel } = useValoresVisiveis();
 
   const resultado = receitas - despesas;
@@ -66,14 +68,14 @@ export function BalancoDoMes({ receitas, despesas, labelEntradas, labelSaidas, l
           <span className="h-2 w-2 rounded-full bg-status-good" />
           {labelEntradas}
           <span className="font-medium text-ink-primary">
-            <ValorPrivado valor={fmtBRL(receitas)} />
+            <ValorPrivado valor={fmtMoeda(receitas)} />
           </span>
         </span>
         <span className="flex items-center gap-2 text-xs text-ink-secondary">
           <span className="h-2 w-2 rounded-full bg-status-critical" />
           {labelSaidas}
           <span className="font-medium text-ink-primary">
-            <ValorPrivado valor={fmtBRL(despesas)} />
+            <ValorPrivado valor={fmtMoeda(despesas)} />
           </span>
         </span>
         {/* Um resultado negativo é informação, não decoração: vem escrito,
@@ -81,7 +83,7 @@ export function BalancoDoMes({ receitas, despesas, labelEntradas, labelSaidas, l
             justamente o jeito mais rápido de vazar. */}
         {visivel && resultado < 0 && (
           <span className="text-xs font-medium text-danger">
-            {fmtBRL(Math.abs(resultado))} {labelNoVermelho}
+            {fmtMoeda(Math.abs(resultado))} {labelNoVermelho}
           </span>
         )}
       </div>

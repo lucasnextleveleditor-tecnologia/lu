@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { CaixinhaComSaldo } from "@/lib/types/financeiro";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtPercent } from "@/lib/utils/format";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { ProgressRing } from "@/components/admin/financeiro/caixinhas/ProgressRing";
 import { IconPiggyBank, IconTarget } from "@/components/ui/icons";
@@ -23,7 +23,7 @@ interface CaixinhaCardProps {
  * histórico isolado da caixinha (`/admin/financeiro/caixinhas/[id]`).
  */
 export function CaixinhaCard({ caixinha }: CaixinhaCardProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const t = dict.financeiro.caixinhas;
   const temMeta = caixinha.valor_meta != null && caixinha.valor_meta > 0;
   const pct = temMeta ? caixinha.saldo_atual / (caixinha.valor_meta as number) : 0;
@@ -67,13 +67,13 @@ export function CaixinhaCard({ caixinha }: CaixinhaCardProps) {
 
       <div className="mt-5">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t.saldoAtualLabel}</p>
-        <ValorPrivado valor={fmtBRL(caixinha.saldo_atual)} className="mt-1 block text-2xl font-bold tracking-tight text-ink-primary" />
+        <ValorPrivado valor={fmtMoeda(caixinha.saldo_atual)} className="mt-1 block text-2xl font-bold tracking-tight text-ink-primary" />
       </div>
 
       {temMeta && (
         <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-secondary">
           <IconTarget className="h-3.5 w-3.5 shrink-0 text-ink-muted" />
-          {t.metaLabel} <ValorPrivado valor={fmtBRL(caixinha.valor_meta as number)} className="font-medium text-ink-primary" />
+          {t.metaLabel} <ValorPrivado valor={fmtMoeda(caixinha.valor_meta as number)} className="font-medium text-ink-primary" />
         </p>
       )}
 

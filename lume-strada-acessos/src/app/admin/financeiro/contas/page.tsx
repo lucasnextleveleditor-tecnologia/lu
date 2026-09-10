@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { StatTile } from "@/components/ui/StatTile";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
@@ -20,7 +20,7 @@ const BASE_PATH = "/admin/financeiro/contas";
 
 /** Aberta ao clicar no StatTile "Saldo em Contas" da página principal do Financeiro. */
 export default async function ContasPage({ searchParams }: PageProps) {
-  const { dict } = await getDictionary();
+  const { dict, fmtMoeda } = await getDictionary();
   const params = await searchParams;
   const { referencia, contexto, mesParamStr, contasFiltradas, saldoTotal } = await buscarDadosFinanceiro(params);
 
@@ -51,7 +51,7 @@ export default async function ContasPage({ searchParams }: PageProps) {
         <StatTile
           icon={IconWallet}
           label={dict.financeiro.statSaldoContas}
-          value={<ValorPrivado valor={fmtBRL(saldoTotal)} />}
+          value={<ValorPrivado valor={fmtMoeda(saldoTotal)} />}
           hint={dict.financeiro.hintContasQtd.replace("{n}", String(contasFiltradas.length))}
         />
       </div>

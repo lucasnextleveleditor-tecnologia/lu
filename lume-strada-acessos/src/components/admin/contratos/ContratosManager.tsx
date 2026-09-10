@@ -5,7 +5,7 @@ import { useMemo, useState, useTransition } from "react";
 import type { ContratoRow, StatusContrato } from "@/lib/types/contratos";
 import { removerContrato } from "@/app/admin/contratos/actions";
 import { STATUS_CONTRATO_TONE } from "@/lib/utils/contratos";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -19,7 +19,7 @@ type ContratoDaLista = ContratoRow & { cliente_nome: string | null; orcamento_ti
 const TODOS = "todos";
 
 export function ContratosManager({ contratos }: { contratos: ContratoDaLista[] }) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
   const [confirmando, setConfirmando] = useState<string | null>(null);
@@ -132,7 +132,7 @@ export function ContratosManager({ contratos }: { contratos: ContratoDaLista[] }
                     <Badge tone={STATUS_CONTRATO_TONE[c.status]} label={STATUS_LABEL[c.status]} />
                   </td>
                   <td className="py-3 pr-4 text-right">
-                    <span className="text-sm font-semibold text-ink-primary">{fmtBRL(c.total)}</span>
+                    <span className="text-sm font-semibold text-ink-primary">{fmtMoeda(c.total)}</span>
                   </td>
                   <td className="py-3 text-right">
                     {confirmando === c.id ? (

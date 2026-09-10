@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import type { AnuncioComRelacoes, CriativoRow, ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import { removerAnuncio } from "@/app/admin/trafego/infoprodutos-actions";
 import { calcularReceitaLiquida } from "@/lib/utils/infoprodutos";
-import { fmtBRL, fmtDataExtensa, addDaysISO, todayISO } from "@/lib/utils/format";
+import { fmtDataExtensa, addDaysISO, todayISO } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CriativoUploader } from "@/components/admin/trafego/infoprodutos/CriativoUploader";
@@ -26,7 +26,7 @@ function receitaLiquidaDoAnuncio(a: AnuncioComRelacoes): number {
 }
 
 export function AnunciosManager({ anuncios, produtos, criativos, clienteCadastroId, taxaPadrao }: AnunciosManagerProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [dataSelecionada, setDataSelecionada] = useState(todayISO());
   const [modalAberto, setModalAberto] = useState(false);
   const [anuncioEditando, setAnuncioEditando] = useState<AnuncioComRelacoes | null>(null);
@@ -104,20 +104,20 @@ export function AnunciosManager({ anuncios, produtos, criativos, clienteCadastro
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card className="p-4">
           <p className="text-xs text-ink-muted">{dict.trafego.investimentoDoDiaCard}</p>
-          <p className="mt-1 text-xl font-semibold text-ink-primary">{fmtBRL(resumoDoDia.investimento)}</p>
+          <p className="mt-1 text-xl font-semibold text-ink-primary">{fmtMoeda(resumoDoDia.investimento)}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs text-ink-muted">{dict.trafego.receitaBrutaDoDiaCard}</p>
-          <p className="mt-1 text-xl font-semibold text-ink-primary">{fmtBRL(resumoDoDia.receita)}</p>
+          <p className="mt-1 text-xl font-semibold text-ink-primary">{fmtMoeda(resumoDoDia.receita)}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs text-ink-muted">{dict.trafego.receitaLiquidaDoDiaCard}</p>
-          <p className="mt-1 text-xl font-semibold text-ink-primary">{fmtBRL(resumoDoDia.receitaLiquida)}</p>
+          <p className="mt-1 text-xl font-semibold text-ink-primary">{fmtMoeda(resumoDoDia.receitaLiquida)}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs text-ink-muted">{dict.trafego.lucroBrutoDoDiaCard}</p>
           <p className={`mt-1 text-xl font-semibold ${resumoDoDia.lucro >= 0 ? "text-status-good" : "text-status-critical"}`}>
-            {fmtBRL(resumoDoDia.lucro)}
+            {fmtMoeda(resumoDoDia.lucro)}
           </p>
         </Card>
       </div>
@@ -155,13 +155,13 @@ export function AnunciosManager({ anuncios, produtos, criativos, clienteCadastro
 
                 <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
                   <p className="text-ink-muted">
-                    {dict.trafego.investAbrevLabel} <span className="text-ink-primary">{fmtBRL(anuncio.investimento)}</span>
+                    {dict.trafego.investAbrevLabel} <span className="text-ink-primary">{fmtMoeda(anuncio.investimento)}</span>
                   </p>
                   <p className="text-ink-muted">
-                    {dict.trafego.receitaAbrevLabel} <span className="text-ink-primary">{fmtBRL(anuncio.receita_bruta)}</span>
+                    {dict.trafego.receitaAbrevLabel} <span className="text-ink-primary">{fmtMoeda(anuncio.receita_bruta)}</span>
                   </p>
                   <p className="text-ink-muted">
-                    {dict.trafego.receitaLiquidaAbrevLabel} <span className="text-ink-primary">{fmtBRL(receitaLiquida)}</span>
+                    {dict.trafego.receitaLiquidaAbrevLabel} <span className="text-ink-primary">{fmtMoeda(receitaLiquida)}</span>
                   </p>
                   <p className="text-ink-muted">
                     {dict.trafego.viewsAbrevLabel} <span className="text-ink-primary">{anuncio.visualizacoes}</span>
@@ -179,7 +179,7 @@ export function AnunciosManager({ anuncios, produtos, criativos, clienteCadastro
 
                 <div className="mt-3 flex items-center justify-between border-t border-base-800 pt-3">
                   <p className="text-xs text-ink-muted">
-                    {dict.trafego.lucroAbrevLabel} <span className={lucro >= 0 ? "text-status-good" : "text-status-critical"}>{fmtBRL(lucro)}</span>
+                    {dict.trafego.lucroAbrevLabel} <span className={lucro >= 0 ? "text-status-good" : "text-status-critical"}>{fmtMoeda(lucro)}</span>
                   </p>
                   {confirmandoExclusao === anuncio.id ? (
                     <div className="flex gap-2">

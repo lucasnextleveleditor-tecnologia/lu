@@ -1,7 +1,7 @@
 "use client";
 
 import type { CaixinhaTransacaoRow } from "@/lib/types/financeiro";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { IconArrowRightLeft, IconTrendingUp } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
@@ -19,7 +19,7 @@ function fmtDataHora(iso: string): string {
 
 /** Histórico isolado da caixinha (ledger completo) — página de detalhe. */
 export function CaixinhaHistorico({ historico }: { historico: CaixinhaTransacaoRow[] }) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const t = dict.financeiro.caixinhas;
 
   if (historico.length === 0) {
@@ -45,7 +45,7 @@ export function CaixinhaHistorico({ historico }: { historico: CaixinhaTransacaoR
               </div>
             </div>
             <ValorPrivado
-              valor={`${meta.sinal} ${fmtBRL(mov.valor)}`}
+              valor={`${meta.sinal} ${fmtMoeda(mov.valor)}`}
               className={cn("shrink-0 text-sm font-semibold", meta.corTexto)}
             />
           </div>

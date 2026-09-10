@@ -1,7 +1,7 @@
 "use client";
 
 import type { FluxoDiarioLinha } from "@/app/admin/financeiro/fluxo-caixa/data";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { useValoresVisiveis } from "@/lib/valores-visiveis/ValoresVisiveisProvider";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -30,9 +30,9 @@ function corSaldo(v: number): string {
  * contas daqui pra frente, não sobre entradas/saídas passadas do mês).
  */
 export function FluxoDiarioTable({ diario }: FluxoDiarioTableProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const { visivel } = useValoresVisiveis();
-  const fmt = (v: number) => (visivel ? fmtBRL(v) : "••••");
+  const fmt = (v: number) => (visivel ? fmtMoeda(v) : "••••");
   const t = dict.financeiro.fluxoCaixa;
 
   if (diario.length === 0) {

@@ -11,6 +11,13 @@ export const configuracoes: ConfiguracoesDict = {
 
   empresaCardTitulo: "Empresa",
   empresaCardDescricao: "El nombre que aparece arriba del menú y en el portal de tus clientes. Se edita en Apariencia.",
+  moedaIdiomaTitulo: "Moneda e idioma",
+  moedaIdiomaDescricao: "La unidad en que la empresa mide su facturación y el idioma con el que abre el sistema.",
+  moedaLabel: "Moneda del sistema",
+  moedaAviso: "Vale para todo el equipo. Cambiar la moneda cambia el símbolo y el formato de los números — ningún valor ya registrado se convierte, porque la cotización de cada día era otra.",
+  idiomaPadraoLabel: "Idioma de partida",
+  idiomaPadraoAviso: "Es el idioma con el que el sistema abre para quien todavía no eligió. Cada persona sigue cambiando el idioma en la esquina de la pantalla, y su elección vale por encima de esta.",
+  moedaIdiomaSalvo: "Guardado. El cambio ya vale en todas las pantallas.",
   empresaMembrosAtivos: "miembros con acceso",
   empresaSemAcessoTitulo: "Solo el administrador ve esta pestaña",
   empresaSemAcessoDescricao: "Quién accede a qué lo decide quien administra la cuenta.",

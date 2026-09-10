@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { CaixinhaComSaldo, CaixinhaTransacaoRow, ContaComSaldo } from "@/lib/types/financeiro";
 import { arquivarCaixinha } from "@/app/admin/financeiro/caixinhas/actions";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
@@ -27,7 +27,7 @@ const RISCO_LABEL: Record<string, string> = { baixo: "riscoBaixo", medio: "risco
 const LIQUIDEZ_LABEL: Record<string, string> = { imediata: "liquidezImediata", curto_prazo: "liquidezCurtoPrazo", longo_prazo: "liquidezLongoPrazo" };
 
 export function CaixinhaDetalhe({ caixinha, contas, historico }: CaixinhaDetalheProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const t = dict.financeiro.caixinhas;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -69,7 +69,7 @@ export function CaixinhaDetalhe({ caixinha, contas, historico }: CaixinhaDetalhe
 
             <div className="mt-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t.saldoAtualLabel}</p>
-              <ValorPrivado valor={fmtBRL(caixinha.saldo_atual)} className="mt-1 block text-4xl font-bold tracking-tight text-ink-primary" />
+              <ValorPrivado valor={fmtMoeda(caixinha.saldo_atual)} className="mt-1 block text-4xl font-bold tracking-tight text-ink-primary" />
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-1.5">
@@ -95,7 +95,7 @@ export function CaixinhaDetalhe({ caixinha, contas, historico }: CaixinhaDetalhe
                 <span className="text-xl font-bold text-ink-primary">{Math.round(Math.min(1, pct) * 100)}%</span>
                 <span className="mt-0.5 flex items-center gap-1 text-[10px] text-ink-muted">
                   <IconTarget className="h-3 w-3" />
-                  <ValorPrivado valor={fmtBRL(caixinha.valor_meta as number)} />
+                  <ValorPrivado valor={fmtMoeda(caixinha.valor_meta as number)} />
                 </span>
               </div>
             </div>

@@ -10,10 +10,12 @@ import type {
   OrcItemEntregaRow,
   OrcColunaInvestimentoRow,
 } from "@/lib/types/orcamentos";
+import { moedaDe } from "@/lib/types/moeda";
 
 const BUCKET_ORCAMENTOS_MIDIA = "orcamentos-midia";
 
 interface EmpresaPublicaRow {
+  moeda: string | null;
   nome: string | null;
   nome_app: string | null;
   cpf_cnpj: string | null;
@@ -90,7 +92,7 @@ export async function buscarOrcamentoPublicoPorToken(token: string) {
   const { data: orcamento } = await admin
     .from("orcamentos")
     .select(
-      "*, companies(nome, nome_app, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_rodape_path, orc_texto_institucional, orc_clientes_atendidos, orc_texto_encerramento, orc_clientes_logos_paths, orc_logos_tamanho_px, orc_email_comercial, orc_site_comercial)"
+      "*, companies(nome, moeda, nome_app, cpf_cnpj, endereco, orc_logo_path, orc_banner_path, orc_rodape_path, orc_texto_institucional, orc_clientes_atendidos, orc_texto_encerramento, orc_clientes_logos_paths, orc_logos_tamanho_px, orc_email_comercial, orc_site_comercial)"
     )
     .eq("token", token)
     .single<OrcamentoRow & { companies: EmpresaPublicaRow | null }>();
@@ -143,6 +145,7 @@ export async function buscarOrcamentoPublicoPorToken(token: string) {
     .map((item) => ({ ...item, url: admin.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl }));
 
   return {
+    moeda: moedaDe(orcamento.companies?.moeda),
     ...orcamento,
     empresaNome: orcamento.companies?.nome ?? null,
     institucional: montarInstitucional(admin, orcamento.companies),

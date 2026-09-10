@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { CategoriaRow, TransacaoComRelacoes } from "@/lib/types/financeiro";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtPercent } from "@/lib/utils/format";
 import { useValoresVisiveis } from "@/lib/valores-visiveis/ValoresVisiveisProvider";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -33,10 +33,10 @@ const CIRCUNFERENCIA = 2 * Math.PI * RAIO;
  * mouse.
  */
 export function GraficoDespesasPorCategoria({ transacoes, categorias }: GraficoDespesasPorCategoriaProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const { visivel } = useValoresVisiveis();
   const [hoverId, setHoverId] = useState<string | null>(null);
-  const fmt = (v: number) => (visivel ? fmtBRL(v) : "••••");
+  const fmt = (v: number) => (visivel ? fmtMoeda(v) : "••••");
 
   const { fatias, total } = useMemo(() => {
     const mapa = new Map<string, number>();

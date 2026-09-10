@@ -5,7 +5,7 @@ import { useMemo, useState, useTransition } from "react";
 import type { OrcamentoRow, StatusOrcamento } from "@/lib/types/orcamentos";
 import { duplicarOrcamento, removerOrcamento } from "@/app/admin/orcamentos/actions";
 import { STATUS_ORCAMENTO_TONE } from "@/lib/utils/orcamentos";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -23,7 +23,7 @@ const TODOS = "todos";
 
 /** `visao` agora vem de fora (controlada pela aba ativa do hub Comercial, ver `/admin/comercial/page.tsx`) em vez de um toggle interno — Funil e Propostas viraram abas de primeiro nível do hub, então não fazia sentido ter DOIS jeitos de trocar entre elas (aba + um segmented control repetindo a mesma escolha aqui dentro). */
 export function OrcamentosManager({ orcamentos, visao }: { orcamentos: OrcamentoDaLista[]; visao: Visao }) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const router = useRouter();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
@@ -152,7 +152,7 @@ export function OrcamentosManager({ orcamentos, visao }: { orcamentos: Orcamento
                     <span className="text-xs text-ink-muted">{o.data_expiracao ? fmtDataCurta(o.data_expiracao) : "—"}</span>
                   </td>
                   <td className="py-3 pr-4 text-right">
-                    <span className="text-sm font-semibold text-ink-primary">{fmtBRL(o.total)}</span>
+                    <span className="text-sm font-semibold text-ink-primary">{fmtMoeda(o.total)}</span>
                   </td>
                   <td className="py-3 text-right">
                     {confirmando === o.id ? (

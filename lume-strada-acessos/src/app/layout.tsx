@@ -46,14 +46,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // aninhados dentro deste layout raiz. Tema (cookie `lsf_theme`, mesmo
   // padrão — ver `src/lib/theme/`) resolvido do mesmo jeito, na classe da
   // própria tag `<html>`, pra nunca ter flash do tema errado.
-  const { locale, dict } = await getDictionary();
+  const { locale, dict, moeda } = await getDictionary();
   const theme = await getTheme();
 
   return (
     <html lang={locale} className={theme}>
       {/* Fundo liso/sólido — sem textura de grão (era um efeito "cinematográfico" antigo, removido a pedido). */}
       <body className="min-h-screen bg-base-950 text-ink-primary antialiased">
-        <LocaleProvider locale={locale} dict={dict}>
+        <LocaleProvider locale={locale} dict={dict} moeda={moeda}>
           <ThemeProvider theme={theme}>{children}</ThemeProvider>
         </LocaleProvider>
       </body>

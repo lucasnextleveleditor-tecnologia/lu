@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { StatusContrato } from "@/lib/types/contratos";
 import type { buscarContratoPublicoPorToken } from "@/app/contrato/data";
 import { assinarContratoPublico, recusarContratoPublico } from "@/app/contrato/actions";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -15,7 +15,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 type ContratoPublico = NonNullable<Awaited<ReturnType<typeof buscarContratoPublicoPorToken>>>;
 
 export function ContratoPublicoView({ contrato, token }: { contrato: ContratoPublico; token: string }) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [error, setError] = useState<string | null>(null);
 
   const [dialogAssinar, setDialogAssinar] = useState(false);
@@ -125,7 +125,7 @@ export function ContratoPublicoView({ contrato, token }: { contrato: ContratoPub
                   </div>
                   <p className="shrink-0 text-sm font-medium text-ink-primary">
                     {item.quantidade > 1 && `${item.quantidade}x `}
-                    {fmtBRL(item.quantidade * item.valor_unitario)}
+                    {fmtMoeda(item.quantidade * item.valor_unitario)}
                   </p>
                 </div>
               ))}
@@ -136,7 +136,7 @@ export function ContratoPublicoView({ contrato, token }: { contrato: ContratoPub
         <div className="ml-auto max-w-xs border-t border-base-800 pt-1.5 text-base font-semibold text-ink-primary">
           <div className="flex justify-between">
             <span>{dict.orcamentos.totalLabel}</span>
-            <span>{fmtBRL(contrato.total)}</span>
+            <span>{fmtMoeda(contrato.total)}</span>
           </div>
         </div>
 

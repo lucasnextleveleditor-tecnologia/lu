@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import type { CartaoComLimite, ContaComSaldo } from "@/lib/types/financeiro";
 import { pagarFatura } from "@/app/admin/financeiro/actions";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
@@ -19,7 +19,7 @@ interface PagarFaturaModalProps {
 
 /** Pagar Fatura — soma tudo que está em aberto no cartão e debita de UMA conta escolhida, atomicamente (ver `pagar_fatura()` no schema). */
 export function PagarFaturaModal({ cartao, contas, referencia, onClose }: PagarFaturaModalProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const { visivel } = useValoresVisiveis();
   const contasDoContexto = contas.filter((c) => c.contexto === cartao.contexto);
   const [contaPagamentoId, setContaPagamentoId] = useState(contasDoContexto[0]?.id ?? "");
@@ -63,7 +63,7 @@ export function PagarFaturaModal({ cartao, contas, referencia, onClose }: PagarF
 
         <div className="mb-4 rounded-xl border border-base-700 bg-base-950/60 p-4">
           <p className="text-xs text-ink-secondary">{dict.financeiro.valorEmAbertoLabel}</p>
-          <ValorPrivado valor={fmtBRL(cartao.limite_consumido)} className="mt-1 block text-2xl font-bold text-ink-primary" />
+          <ValorPrivado valor={fmtMoeda(cartao.limite_consumido)} className="mt-1 block text-2xl font-bold text-ink-primary" />
         </div>
 
         {contasDoContexto.length === 0 ? (
@@ -80,7 +80,7 @@ export function PagarFaturaModal({ cartao, contas, referencia, onClose }: PagarF
               <Select required value={contaPagamentoId} onChange={(e) => setContaPagamentoId(e.target.value)}>
                 {contasDoContexto.map((conta) => (
                   <option key={conta.id} value={conta.id}>
-                    {conta.nome} ({visivel ? fmtBRL(conta.saldo_atual) : "••••"})
+                    {conta.nome} ({visivel ? fmtMoeda(conta.saldo_atual) : "••••"})
                   </option>
                 ))}
               </Select>

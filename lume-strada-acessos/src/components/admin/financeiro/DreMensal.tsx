@@ -1,7 +1,7 @@
 "use client";
 
 import type { DreCategoriaLinha, DreMensal as DreMensalData } from "@/app/admin/financeiro/fluxo-caixa/data";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { useValoresVisiveis } from "@/lib/valores-visiveis/ValoresVisiveisProvider";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -25,9 +25,9 @@ const COR_NEUTRO = "#8a8783";
  * cadastro de categorias hoje (só `tipo: receita | despesa`).
  */
 export function DreMensal({ dre }: DreMensalProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const { visivel } = useValoresVisiveis();
-  const fmt = (v: number) => (visivel ? fmtBRL(v) : "••••");
+  const fmt = (v: number) => (visivel ? fmtMoeda(v) : "••••");
   const t = dict.financeiro.fluxoCaixa;
 
   const semDados = dre.receitaBruta === 0 && dre.despesaTotal === 0;

@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import type { MetaCalendarioRow } from "@/lib/types/infoprodutos";
 import { addMeses, fmtMesAno, gradeDoMes } from "@/lib/utils/infoprodutos";
-import { fmtBRL, todayISO } from "@/lib/utils/format";
+import { todayISO } from "@/lib/utils/format";
 import { salvarMetaCalendario } from "@/app/admin/trafego/infoprodutos-actions";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -19,7 +19,7 @@ interface CalendarioMetasProps {
 
 /** Calendário interativo pra digitar a Meta de Lucro Líquido de cada dia — clica no dia, digita, salva. */
 export function CalendarioMetas({ metasCalendario, clienteCadastroId }: CalendarioMetasProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const DIAS_SEMANA = dict.trafego.diasSemanaAbrev;
   const [referencia, setReferencia] = useState(() => {
     const hoje = new Date();
@@ -118,7 +118,7 @@ export function CalendarioMetas({ metasCalendario, clienteCadastroId }: Calendar
                     )}
                   >
                     <p className="text-xs text-ink-secondary">{Number(dia.slice(-2))}</p>
-                    {meta != null && meta > 0 && <p className="mt-1 truncate text-[10px] font-medium text-ink-primary">{fmtBRL(meta)}</p>}
+                    {meta != null && meta > 0 && <p className="mt-1 truncate text-[10px] font-medium text-ink-primary">{fmtMoeda(meta)}</p>}
                   </button>
                 );
               })}

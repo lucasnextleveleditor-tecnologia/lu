@@ -3,7 +3,7 @@ import type { StatusSessaoWhatsapp } from "@/lib/types/whatsapp";
 import { STATUS_SESSAO_META } from "@/lib/utils/whatsapp";
 import { hojeISO } from "@/lib/utils/dashboard";
 import type { Tone } from "@/lib/utils/tone";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { StatTile } from "@/components/ui/StatTile";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
@@ -78,7 +78,7 @@ export async function VisaoGeral({
   whatsapp,
   agendaHoje,
 }: VisaoGeralProps) {
-  const { dict } = await getDictionary();
+  const { dict, fmtMoeda } = await getDictionary();
   const mostrarProducao = captacoesHoje !== null || entregasHoje !== null || tarefasAtrasadas !== null || entregasAguardandoAprovacao !== null;
   const mostrarComercial = leadsEmAberto !== null || followUpsAtrasados !== null || valorPropostasAbertas !== null;
   const mostrarFinanceiro = saldoConsolidado !== null || contasVencidas !== null || contasVencendoHoje !== null || financeiroDoMes !== null;
@@ -162,13 +162,13 @@ export async function VisaoGeral({
       chave: "propostas",
       icon: IconDollarSign,
       label: dict.dashboard.propostasAbertasLabel,
-      value: fmtBRL(valorPropostasAbertas),
+      value: fmtMoeda(valorPropostasAbertas),
     },
     saldoConsolidado !== null && {
       chave: "saldo",
       icon: IconWallet,
       label: dict.dashboard.saldoConsolidadoLabel,
-      value: <ValorPrivado valor={fmtBRL(saldoConsolidado)} />,
+      value: <ValorPrivado valor={fmtMoeda(saldoConsolidado)} />,
     },
     resumoInventario !== null && {
       chave: "inventario",
@@ -181,7 +181,7 @@ export async function VisaoGeral({
       chave: "trafego",
       icon: IconTrendingUp,
       label: dict.dashboard.investidoAdsHojeLabel,
-      value: fmtBRL(resumoTrafegoHoje.totalInvestido),
+      value: fmtMoeda(resumoTrafegoHoje.totalInvestido),
       hint: dict.dashboard.leadsGeradosHoje.replace("{n}", String(resumoTrafegoHoje.totalLeads)),
     },
     whatsapp !== null && {

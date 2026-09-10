@@ -2,6 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ContratoRow, ContratoItemRow } from "@/lib/types/contratos";
 import { calcularTotalContrato } from "@/lib/types/contratos";
+import { moedaDe } from "@/lib/types/moeda";
 
 /** Mesmo bucket da marca das propostas — ver `admin/contratos/data.ts`. */
 const BUCKET_ORCAMENTOS_MIDIA = "orcamentos-midia";
@@ -21,7 +22,7 @@ const BUCKET_ORCAMENTOS_MIDIA = "orcamentos-midia";
 export async function buscarContratoPublicoPorToken(token: string) {
   const admin = createAdminClient();
 
-  const { data: contrato } = await admin.from("contratos").select("*, companies(nome, contrato_logo_path)").eq("token", token).single<ContratoRow & { companies: { nome: string; contrato_logo_path: string | null } | null }>();
+  const { data: contrato } = await admin.from("contratos").select("*, companies(nome, contrato_logo_path, moeda)").eq("token", token).single<ContratoRow & { companies: { nome: string; contrato_logo_path: string | null; moeda: string | null } | null }>();
   if (!contrato) return null;
 
   const { data: itens } = await admin.from("contratos_itens").select("*").eq("contrato_id", contrato.id).order("ordem").overrideTypes<ContratoItemRow[], { merge: false }>();
@@ -34,6 +35,7 @@ export async function buscarContratoPublicoPorToken(token: string) {
 
   return {
     ...contrato,
+    moeda: moedaDe(contrato.companies?.moeda),
     empresaNome: contrato.companies?.nome ?? null,
     logoUrl: contrato.companies?.contrato_logo_path
       ? admin.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(contrato.companies.contrato_logo_path).data.publicUrl

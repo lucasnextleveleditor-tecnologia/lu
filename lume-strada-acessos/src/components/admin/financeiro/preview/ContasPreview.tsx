@@ -1,9 +1,10 @@
 "use client";
 
 import { CONTAS_PREVIEW } from "@/lib/utils/financeiro-preview-mock";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { Card } from "@/components/ui/Card";
 import { IconPlus } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface ContasPreviewProps {
   onAdicionarDespesa: (contaId: string) => void;
@@ -11,6 +12,7 @@ interface ContasPreviewProps {
 
 /** Grade de contas ao estilo Mobills — card "+ Nova Conta" tracejado sempre no fim da grade. */
 export function ContasPreview({ onAdicionarDespesa }: ContasPreviewProps) {
+  const { fmtMoeda } = useLocale();
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {CONTAS_PREVIEW.map((conta) => {
@@ -31,13 +33,13 @@ export function ContasPreview({ onAdicionarDespesa }: ContasPreviewProps) {
               <div>
                 <p className="text-xs text-ink-muted">Saldo Atual</p>
                 <p className={`mt-0.5 text-lg font-semibold ${conta.saldoAtual < 0 ? "text-danger" : "text-ink-primary"}`}>
-                  {fmtBRL(conta.saldoAtual)}
+                  {fmtMoeda(conta.saldoAtual)}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-ink-muted">Saldo Previsto</p>
                 <p className={`mt-0.5 text-lg font-semibold ${conta.saldoPrevisto < 0 ? "text-danger" : "text-ink-secondary"}`}>
-                  {fmtBRL(conta.saldoPrevisto)}
+                  {fmtMoeda(conta.saldoPrevisto)}
                 </p>
               </div>
             </div>

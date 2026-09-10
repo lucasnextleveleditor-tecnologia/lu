@@ -11,6 +11,13 @@ export const configuracoes: ConfiguracoesDict = {
 
   empresaCardTitulo: "Company",
   empresaCardDescricao: "The name shown at the top of the menu and in your client portal. Edit it under Appearance.",
+  moedaIdiomaTitulo: "Currency and language",
+  moedaIdiomaDescricao: "The unit the company measures revenue in, and the language the system opens in.",
+  moedaLabel: "System currency",
+  moedaAviso: "Applies to the whole team. Changing the currency changes the symbol and number format — no recorded amount is converted, because each day had its own exchange rate.",
+  idiomaPadraoLabel: "Starting language",
+  idiomaPadraoAviso: "This is the language the system opens in for anyone who hasn't picked one. Each person can still switch languages in the corner of the screen, and their choice wins over this.",
+  moedaIdiomaSalvo: "Saved. The change is already live on every screen.",
   empresaMembrosAtivos: "members with access",
   empresaSemAcessoTitulo: "Only the administrator sees this tab",
   empresaSemAcessoDescricao: "Who can access what is decided by whoever administers the account.",

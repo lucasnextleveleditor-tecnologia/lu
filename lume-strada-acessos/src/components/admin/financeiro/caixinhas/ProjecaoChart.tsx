@@ -2,7 +2,7 @@
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { projetarJurosCompostos, type CaixinhaTaxaPeriodo } from "@/lib/types/financeiro";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { CHART_AXIS_STYLE, CHART_CORES, CHART_TOOLTIP_STYLE } from "@/components/admin/relatorios/chartTheme";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -30,7 +30,7 @@ interface ProjecaoChartProps {
  * como uma segunda linha aqui.
  */
 export function ProjecaoChart({ saldoAtual, taxaRendimento, taxaRendimentoPeriodo }: ProjecaoChartProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const pontos = projetarJurosCompostos(saldoAtual, taxaRendimento, taxaRendimentoPeriodo, 12);
   const dados = pontos.map((p) => ({
     label: p.mes === 0 ? dict.financeiro.caixinhas.projecaoHoje : MESES_ABREV[new Date(`${p.data}T00:00:00Z`).getUTCMonth()],
@@ -58,7 +58,7 @@ export function ProjecaoChart({ saldoAtual, taxaRendimento, taxaRendimentoPeriod
           <CartesianGrid strokeDasharray="3 3" stroke={CHART_CORES.grade} vertical={false} />
           <XAxis dataKey="label" {...CHART_AXIS_STYLE} interval={1} />
           <YAxis {...CHART_AXIS_STYLE} width={64} tickFormatter={fmtBRLCompacto} />
-          <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(valor: number) => [fmtBRL(valor), dict.financeiro.caixinhas.projecaoTooltipLabel]} />
+          <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(valor: number) => [fmtMoeda(valor), dict.financeiro.caixinhas.projecaoTooltipLabel]} />
           <Area type="monotone" dataKey="valor" stroke={CHART_CORES.bom} strokeWidth={2} fill="url(#gradProjecaoCaixinha)" dot={false} activeDot={{ r: 4, fill: CHART_CORES.bom, stroke: CHART_CORES.tooltipFundo, strokeWidth: 2 }} />
         </AreaChart>
       </ResponsiveContainer>

@@ -2,7 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { RelatorioInventarioData } from "@/lib/types/relatorios";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtPercent } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
 import { Card } from "@/components/ui/Card";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
@@ -18,7 +18,7 @@ interface InventarioReportProps {
 }
 
 export function InventarioReport({ data, carregando, erro }: InventarioReportProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   if (erro) return <RelatorioEmptyState titulo={dict.relatorios.inventarioErroTitulo} descricao={erro} />;
   if (carregando || !data) return <RelatorioSkeleton />;
   if (data.itensConsiderados === 0) {
@@ -55,14 +55,14 @@ export function InventarioReport({ data, carregando, erro }: InventarioReportPro
           <StatTile
             icon={IconWallet}
             label={dict.relatorios.inventarioStatTotalInvestido}
-            value={fmtBRL(data.totalInvestido)}
+            value={fmtMoeda(data.totalInvestido)}
             hint={dict.relatorios.inventarioStatTotalInvestidoHint.replace("{n}", String(data.itensConsiderados))}
           />
-          <StatTile icon={IconBox} label={dict.relatorios.inventarioStatPatrimonioAtual} value={fmtBRL(data.patrimonioAtual)} />
+          <StatTile icon={IconBox} label={dict.relatorios.inventarioStatPatrimonioAtual} value={fmtMoeda(data.patrimonioAtual)} />
           <StatTile
             icon={IconTrendingDown}
             label={dict.relatorios.inventarioStatDepreciacaoTotal}
-            value={fmtBRL(data.depreciacaoTotal)}
+            value={fmtMoeda(data.depreciacaoTotal)}
             tone={data.depreciacaoTotal > 0 ? "warning" : "good"}
             hint={
               data.depreciacaoTotal < 0
@@ -84,9 +84,9 @@ export function InventarioReport({ data, carregando, erro }: InventarioReportPro
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.distribuicao} layout="vertical" margin={{ top: 4, right: 24, left: 8, bottom: 0 }}>
                 <CartesianGrid stroke={CHART_CORES.grade} strokeDasharray="3 5" horizontal={false} />
-                <XAxis type="number" tickFormatter={(v: number) => fmtBRL(v).replace(",00", "")} {...CHART_AXIS_STYLE} />
+                <XAxis type="number" tickFormatter={(v: number) => fmtMoeda(v).replace(",00", "")} {...CHART_AXIS_STYLE} />
                 <YAxis type="category" dataKey="categoriaNome" width={150} {...CHART_AXIS_STYLE} />
-                <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(valor: number) => [fmtBRL(valor), dict.relatorios.inventarioTooltipValorAtual]} />
+                <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(valor: number) => [fmtMoeda(valor), dict.relatorios.inventarioTooltipValorAtual]} />
                 <Bar dataKey="valorAtual" radius={[0, 4, 4, 0]} maxBarSize={22}>
                   {data.distribuicao.map((_, i) => (
                     <Cell key={i} fill={PALETA_CHART_CATEGORICA[i % PALETA_CHART_CATEGORICA.length]} />

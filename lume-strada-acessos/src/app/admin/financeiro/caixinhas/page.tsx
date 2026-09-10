@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { StatTile } from "@/components/ui/StatTile";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 /** Página principal do sub-módulo Caixinhas & Investimentos, dentro do Financeiro. */
 export default async function CaixinhasPage() {
-  const { dict } = await getDictionary();
+  const { dict, fmtMoeda } = await getDictionary();
   const t = dict.financeiro.caixinhas;
   const { caixinhas, contas } = await buscarCaixinhas();
 
@@ -39,7 +39,7 @@ export default async function CaixinhasPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={IconPiggyBank} label={t.statSaldoTotal} value={<ValorPrivado valor={fmtBRL(saldoTotal)} />} hint={t.hintCaixinhasQtd.replace("{n}", String(caixinhas.length))} />
+        <StatTile icon={IconPiggyBank} label={t.statSaldoTotal} value={<ValorPrivado valor={fmtMoeda(saldoTotal)} />} hint={t.hintCaixinhasQtd.replace("{n}", String(caixinhas.length))} />
         <StatTile icon={IconLayers} label={t.statComMeta} value={totalMetas} hint={t.hintComMetaDescricao} />
       </div>
 

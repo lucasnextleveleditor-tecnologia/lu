@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import type { DadosInstitucionaisOrcamento } from "@/lib/types/orcamentos";
+import type { FormatadorMoeda } from "@/lib/types/moeda";
 
 // ============================================================================
 // PDF de TEXTO REAL (não é print-to-image) — mesmo approach de
@@ -70,6 +71,8 @@ export interface OrcamentoPdfPortfolioItem {
 }
 
 export interface OrcamentoPdfProps {
+  /** Formatador na moeda da empresa — o PDF é montado no servidor, onde não existe contexto de React. */
+  fmtMoeda: FormatadorMoeda;
   institucional: DadosInstitucionaisOrcamento;
   titulo: string;
   nomeDestinatario: string;
@@ -92,6 +95,7 @@ export interface OrcamentoPdfProps {
 }
 
 export function OrcamentoPdfDocument({
+  fmtMoeda,
   institucional,
   titulo,
   nomeDestinatario,
@@ -202,7 +206,7 @@ export function OrcamentoPdfDocument({
                   </Text>
                   {item.descricao && <Text style={styles.itemDescricao}>{item.descricao}</Text>}
                 </View>
-                <Text style={styles.itemValor}>{fmtBRL(item.quantidade * item.valorUnitario)}</Text>
+                <Text style={styles.itemValor}>{fmtMoeda(item.quantidade * item.valorUnitario)}</Text>
               </View>
             ))}
           </View>
@@ -221,7 +225,7 @@ export function OrcamentoPdfDocument({
                   </Text>
                   {item.descricao && <Text style={styles.itemDescricao}>{item.descricao}</Text>}
                 </View>
-                <Text style={styles.itemValor}>{fmtBRL(item.quantidade * item.valorUnitario)}</Text>
+                <Text style={styles.itemValor}>{fmtMoeda(item.quantidade * item.valorUnitario)}</Text>
               </View>
             ))}
           </View>
@@ -230,17 +234,17 @@ export function OrcamentoPdfDocument({
         <View style={styles.totaisBox}>
           <View style={styles.totalLinha}>
             <Text style={styles.totalLinhaLabel}>Subtotal</Text>
-            <Text style={styles.totalLinhaLabel}>{fmtBRL(subtotal)}</Text>
+            <Text style={styles.totalLinhaLabel}>{fmtMoeda(subtotal)}</Text>
           </View>
           {desconto > 0 && (
             <View style={styles.totalLinha}>
               <Text style={styles.totalLinhaLabel}>Desconto</Text>
-              <Text style={styles.totalLinhaLabel}>−{fmtBRL(desconto)}</Text>
+              <Text style={styles.totalLinhaLabel}>−{fmtMoeda(desconto)}</Text>
             </View>
           )}
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalLabel}>{fmtBRL(total)}</Text>
+            <Text style={styles.totalLabel}>{fmtMoeda(total)}</Text>
           </View>
         </View>
 

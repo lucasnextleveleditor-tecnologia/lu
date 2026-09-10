@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import type { ContaComSaldo, TransacaoComRelacoes } from "@/lib/types/financeiro";
 import { marcarPago } from "@/app/admin/financeiro/actions";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -27,7 +27,7 @@ interface DarBaixaModalProps {
  * instantâneo, sem perguntar de novo.
  */
 export function DarBaixaModal({ transacao, contas, onConfirmado, onClose }: DarBaixaModalProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const { visivel } = useValoresVisiveis();
   const contasDoContexto = contas.filter((c) => c.contexto === transacao.contexto);
   const [contaId, setContaId] = useState(contasDoContexto[0]?.id ?? "");
@@ -61,7 +61,7 @@ export function DarBaixaModal({ transacao, contas, onConfirmado, onClose }: DarB
         </div>
 
         <p className="mb-4 text-sm text-ink-secondary">
-          {dict.financeiro.darBaixaDescricao.replace("{descricao}", transacao.descricao).replace("{valor}", fmtBRL(transacao.valor))}
+          {dict.financeiro.darBaixaDescricao.replace("{descricao}", transacao.descricao).replace("{valor}", fmtMoeda(transacao.valor))}
         </p>
 
         {contasDoContexto.length === 0 ? (
@@ -73,7 +73,7 @@ export function DarBaixaModal({ transacao, contas, onConfirmado, onClose }: DarB
               <Select required value={contaId} onChange={(e) => setContaId(e.target.value)}>
                 {contasDoContexto.map((conta) => (
                   <option key={conta.id} value={conta.id}>
-                    {conta.nome} ({visivel ? fmtBRL(conta.saldo_atual) : "••••"})
+                    {conta.nome} ({visivel ? fmtMoeda(conta.saldo_atual) : "••••"})
                   </option>
                 ))}
               </Select>

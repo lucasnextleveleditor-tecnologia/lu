@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { addMeses, mesParam } from "@/lib/utils/financeiro";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { StatTile } from "@/components/ui/StatTile";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
@@ -26,7 +26,7 @@ interface CategoriaTransacaoPageProps {
  * duplicar a lógica de listagem/edição de transação que já existe.
  */
 export async function CategoriaTransacaoPage({ tipo, searchParams }: CategoriaTransacaoPageProps) {
-  const { dict } = await getDictionary();
+  const { dict, fmtMoeda } = await getDictionary();
   const dados = await buscarDadosFinanceiro(searchParams);
   const {
     referencia,
@@ -84,10 +84,10 @@ export async function CategoriaTransacaoPage({ tipo, searchParams }: CategoriaTr
         <StatTile
           icon={Icon}
           label={statLabel}
-          value={<ValorPrivado valor={fmtBRL(totalDoMes)} />}
+          value={<ValorPrivado valor={fmtMoeda(totalDoMes)} />}
           tone={tipo === "receita" ? "good" : "neutral"}
         />
-        <StatTile icon={Icon} label={dict.financeiro.statMesAnterior} value={<ValorPrivado valor={fmtBRL(totalMesAnterior)} />} />
+        <StatTile icon={Icon} label={dict.financeiro.statMesAnterior} value={<ValorPrivado valor={fmtMoeda(totalMesAnterior)} />} />
       </div>
 
       <TransacoesManager

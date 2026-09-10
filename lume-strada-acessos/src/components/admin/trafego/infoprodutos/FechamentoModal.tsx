@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { FechamentoSemanalRow } from "@/lib/types/infoprodutos";
 import { fecharSemana } from "@/app/admin/trafego/infoprodutos-actions";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -39,7 +39,7 @@ export function FechamentoModal({
   clienteCadastroId,
   onClose,
 }: FechamentoModalProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [reembolsos, setReembolsos] = useState(String(fechamentoExistente?.reembolsos ?? "0"));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,19 +76,19 @@ export function FechamentoModal({
         <div className="mb-4 space-y-2 rounded-xl border border-base-800 bg-base-950/40 p-4 text-sm">
           <div className="flex justify-between">
             <span className="text-ink-muted">{dict.trafego.receitaBrutaTotalLabel}</span>
-            <span className="text-ink-primary">{fmtBRL(receitaBrutaTotal)}</span>
+            <span className="text-ink-primary">{fmtMoeda(receitaBrutaTotal)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-ink-muted">{dict.trafego.receitaLiquidaTotalLabel}</span>
-            <span className="text-ink-primary">{fmtBRL(receitaLiquidaTotal)}</span>
+            <span className="text-ink-primary">{fmtMoeda(receitaLiquidaTotal)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-ink-muted">{dict.trafego.investimentoTotalLabel}</span>
-            <span className="text-ink-primary">− {fmtBRL(investimentoTotal)}</span>
+            <span className="text-ink-primary">− {fmtMoeda(investimentoTotal)}</span>
           </div>
           <div className="flex justify-between border-t border-base-800 pt-2">
             <span className="text-ink-muted">{dict.trafego.lucroBrutoLabel}</span>
-            <span className="font-medium text-ink-primary">{fmtBRL(lucroBruto)}</span>
+            <span className="font-medium text-ink-primary">{fmtMoeda(lucroBruto)}</span>
           </div>
         </div>
 
@@ -108,7 +108,7 @@ export function FechamentoModal({
         <div className="mb-5 rounded-xl border border-base-700 bg-base-950/60 p-4">
           <p className="text-xs uppercase tracking-wide text-ink-muted">{dict.trafego.lucroLiquidoRealLabel}</p>
           <p className={`mt-1 text-2xl font-bold ${lucroLiquidoPrevisto >= 0 ? "text-status-good" : "text-status-critical"}`}>
-            {fmtBRL(lucroLiquidoPrevisto)}
+            {fmtMoeda(lucroLiquidoPrevisto)}
           </p>
         </div>
 

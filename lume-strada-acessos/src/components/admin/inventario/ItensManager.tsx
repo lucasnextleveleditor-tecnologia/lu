@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import type { CategoriaInventarioRow, ItemInventarioComCategoria } from "@/lib/types/database";
 import { removerItem } from "@/app/admin/inventario/actions";
 import { STATUS_ITEM_META, STATUS_ITEM_OPCOES, calcularDepreciacao } from "@/lib/utils/inventario";
-import { fmtBRL, fmtPercent, fmtDataCurta } from "@/lib/utils/format";
+import { fmtPercent, fmtDataCurta } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -21,7 +21,7 @@ interface ItensManagerProps {
 const TODOS = "todos";
 
 export function ItensManager({ itens, categorias }: ItensManagerProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
   const [filtroCategoria, setFiltroCategoria] = useState<string>(TODOS);
@@ -178,8 +178,8 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
                     <td className="py-3 pr-4">
                       {item.valor_pago != null || item.valor_atual != null ? (
                         <span className="text-xs text-ink-secondary">
-                          {item.valor_pago != null ? fmtBRL(item.valor_pago) : "—"} /{" "}
-                          {item.valor_atual != null ? fmtBRL(item.valor_atual) : "—"}
+                          {item.valor_pago != null ? fmtMoeda(item.valor_pago) : "—"} /{" "}
+                          {item.valor_atual != null ? fmtMoeda(item.valor_atual) : "—"}
                         </span>
                       ) : (
                         <span className="text-xs text-ink-muted">—</span>
@@ -189,7 +189,7 @@ export function ItensManager({ itens, categorias }: ItensManagerProps) {
                       {depreciacao ? (
                         <Badge
                           tone={depreciacao.apreciou ? "good" : "neutral"}
-                          label={`${depreciacao.apreciou ? "+" : "-"}${fmtBRL(Math.abs(depreciacao.delta))} (${fmtPercent(Math.abs(depreciacao.percentual))})`}
+                          label={`${depreciacao.apreciou ? "+" : "-"}${fmtMoeda(Math.abs(depreciacao.delta))} (${fmtPercent(Math.abs(depreciacao.percentual))})`}
                         />
                       ) : (
                         <span className="text-xs text-ink-muted">{dict.inventario.semDados}</span>

@@ -9,14 +9,14 @@ import { Badge } from "@/components/ui/Badge";
 import { IconPlus, IconPencil, IconTrash, IconLayers, IconEye, IconEyeOff } from "@/components/ui/icons";
 import { CategoriaModal } from "@/components/admin/orcamentos/CategoriaModal";
 import { ServicoModal } from "@/components/admin/orcamentos/ServicoModal";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils/cn";
 
 const UNIDADE_KEY = { unico: "unidadeUnico", hora: "unidadeHora", dia: "unidadeDia", mes: "unidadeMes", pacote: "unidadePacote" } as const;
 
 export function CatalogoManager({ categorias, servicosComCategoria }: { categorias: OrcCategoriaRow[]; servicosComCategoria: ServicoComCategoria[] }) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -136,7 +136,7 @@ export function CatalogoManager({ categorias, servicosComCategoria }: { categori
                       </div>
                       <div className="flex shrink-0 items-center gap-4">
                         <div className="text-right">
-                          <p className="text-sm font-semibold text-ink-primary">{fmtBRL(servico.valor_padrao)}</p>
+                          <p className="text-sm font-semibold text-ink-primary">{fmtMoeda(servico.valor_padrao)}</p>
                           <p className="text-[11px] text-ink-muted">{dict.orcamentos[UNIDADE_KEY[servico.unidade]]}</p>
                           {servico.custo_padrao > 0 && servico.valor_padrao > 0 && (
                             <p className="text-[11px] text-ink-muted">

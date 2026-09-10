@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/Switch";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { IconPlus, IconTrash, IconSearch, IconDollarSign, IconWallet, IconTrendingUp, IconPercent, IconBox, IconAlertTriangle, IconDownload } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { cn } from "@/lib/utils/cn";
 
 /** Uma linha de custo — serve tanto pra Serviços quanto pra Equipamentos (mesmo formato, duas listas separadas). */
@@ -55,7 +55,7 @@ interface CalculadoraMargemProps {
  * em `OrcamentoBuilder.tsx`.
  */
 export function CalculadoraMargem({ categorias, servicosComCategoria, equipamentos, custoFixoMensalEstimado }: CalculadoraMargemProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const router = useRouter();
 
   const [itensServico, setItensServico] = useState<ItemCusto[]>([]);
@@ -241,10 +241,10 @@ export function CalculadoraMargem({ categorias, servicosComCategoria, equipament
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile icon={IconDollarSign} label={dict.orcamentos.calcValorFinalLabel} value={fmtBRL(valorFinalDoProjeto)} tone={toneMargem} />
-        <StatTile icon={IconWallet} label={dict.orcamentos.calcCustoOperacionalLabel} value={fmtBRL(custoOperacionalTotal)} />
-        <StatTile icon={IconPercent} label={dict.orcamentos.calcImpostoEstimadoLabel} value={fmtBRL(impostoValor)} />
-        <StatTile icon={IconTrendingUp} label={dict.orcamentos.calcStatLucro} value={fmtBRL(lucroEstimado)} tone={toneMargem} />
+        <StatTile icon={IconDollarSign} label={dict.orcamentos.calcValorFinalLabel} value={fmtMoeda(valorFinalDoProjeto)} tone={toneMargem} />
+        <StatTile icon={IconWallet} label={dict.orcamentos.calcCustoOperacionalLabel} value={fmtMoeda(custoOperacionalTotal)} />
+        <StatTile icon={IconPercent} label={dict.orcamentos.calcImpostoEstimadoLabel} value={fmtMoeda(impostoValor)} />
+        <StatTile icon={IconTrendingUp} label={dict.orcamentos.calcStatLucro} value={fmtMoeda(lucroEstimado)} tone={toneMargem} />
       </div>
 
       {excedeLimite && (
@@ -294,7 +294,7 @@ export function CalculadoraMargem({ categorias, servicosComCategoria, equipament
             <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border border-base-800 px-3 py-2">
               <div className="min-w-0">
                 <p className="truncate text-sm text-ink-primary">{s.nome}</p>
-                <p className="text-xs text-ink-muted">{fmtBRL(s.custo_padrao)}</p>
+                <p className="text-xs text-ink-muted">{fmtMoeda(s.custo_padrao)}</p>
               </div>
               <Button variant="ghost" className="shrink-0 gap-1 px-2.5 py-1 text-xs" onClick={() => handleAdicionarServicoCatalogo(s)}>
                 <IconPlus className="h-3.5 w-3.5" />
@@ -342,7 +342,7 @@ export function CalculadoraMargem({ categorias, servicosComCategoria, equipament
         {itensServico.length === 0 && <p className="mt-4 rounded-lg border border-dashed border-base-700 p-4 text-center text-xs text-ink-muted">{dict.orcamentos.calcItensVazio}</p>}
 
         <p className="mt-3 text-right text-sm text-ink-secondary">
-          {dict.orcamentos.subtotalLabel}: <span className="font-semibold text-ink-primary">{fmtBRL(custoServicos)}</span>
+          {dict.orcamentos.subtotalLabel}: <span className="font-semibold text-ink-primary">{fmtMoeda(custoServicos)}</span>
         </p>
       </Card>
 
@@ -353,7 +353,7 @@ export function CalculadoraMargem({ categorias, servicosComCategoria, equipament
             <IconBox className="h-4 w-4 text-ink-muted" />
             {dict.orcamentos.calcBlocoEquipamentosTitulo}
           </h2>
-          <span className="text-sm font-semibold text-ink-primary">{fmtBRL(custoEquipamentos)}</span>
+          <span className="text-sm font-semibold text-ink-primary">{fmtMoeda(custoEquipamentos)}</span>
         </div>
 
         {itensEquipamento.length === 0 && <p className="mb-3 text-xs text-ink-muted">{dict.orcamentos.calcEquipamentoVazio}</p>}
@@ -375,7 +375,7 @@ export function CalculadoraMargem({ categorias, servicosComCategoria, equipament
           <option value="">{dict.orcamentos.calcEquipamentoPlaceholder}</option>
           {equipamentos.map((eq) => (
             <option key={eq.id} value={eq.id}>
-              {eq.nome} — {fmtBRL(eq.valorReferencia)}
+              {eq.nome} — {fmtMoeda(eq.valorReferencia)}
             </option>
           ))}
         </Select>
@@ -471,19 +471,19 @@ export function CalculadoraMargem({ categorias, servicosComCategoria, equipament
         <div className="space-y-1.5 text-sm">
           <div className="flex justify-between text-ink-secondary">
             <span>{dict.orcamentos.calcValorFinalLabel}</span>
-            <span>+{fmtBRL(valorFinalDoProjeto)}</span>
+            <span>+{fmtMoeda(valorFinalDoProjeto)}</span>
           </div>
           <div className="flex justify-between text-ink-secondary">
             <span>{dict.orcamentos.calcCustoOperacionalLabel}</span>
-            <span>−{fmtBRL(custoOperacionalTotal)}</span>
+            <span>−{fmtMoeda(custoOperacionalTotal)}</span>
           </div>
           <div className="flex justify-between text-ink-secondary">
             <span>{dict.orcamentos.calcImpostoEstimadoLabel}</span>
-            <span>−{fmtBRL(impostoValor)}</span>
+            <span>−{fmtMoeda(impostoValor)}</span>
           </div>
           <div className="flex justify-between border-t border-base-800 pt-1.5 font-semibold text-ink-primary">
             <span>{dict.orcamentos.calcStatLucro}</span>
-            <span>={fmtBRL(lucroEstimado)}</span>
+            <span>={fmtMoeda(lucroEstimado)}</span>
           </div>
         </div>
       </Card>
@@ -526,6 +526,7 @@ function ItemCustoRow({
   onChange: (patch: Partial<ItemCusto>) => void;
   onRemover: () => void;
 }) {
+  const { fmtMoeda } = useLocale();
   return (
     <div className="rounded-lg border border-base-800 p-3">
       <div className="mb-2 flex items-start justify-between gap-2">
@@ -544,7 +545,7 @@ function ItemCustoRow({
           <CurrencyInput value={item.custoUnitario} onChange={(v) => onChange({ custoUnitario: v })} className="py-1" />
         </div>
       </div>
-      <p className="mt-2 text-right text-sm font-semibold text-ink-primary">{fmtBRL(item.quantidade * item.custoUnitario)}</p>
+      <p className="mt-2 text-right text-sm font-semibold text-ink-primary">{fmtMoeda(item.quantidade * item.custoUnitario)}</p>
     </div>
   );
 }

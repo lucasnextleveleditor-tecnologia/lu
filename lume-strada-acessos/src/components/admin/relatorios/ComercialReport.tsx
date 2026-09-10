@@ -2,7 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { RelatorioComercialData } from "@/lib/types/relatorios";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtPercent } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
 import { Card } from "@/components/ui/Card";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
@@ -18,7 +18,7 @@ interface ComercialReportProps {
 }
 
 export function ComercialReport({ data, carregando, erro }: ComercialReportProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   if (erro) return <RelatorioEmptyState titulo={dict.relatorios.comercialErroTitulo} descricao={erro} />;
   if (carregando || !data) return <RelatorioSkeleton />;
   if (data.totalLeadsNoPeriodo === 0) {
@@ -63,7 +63,7 @@ export function ComercialReport({ data, carregando, erro }: ComercialReportProps
             value={data.tempoMedioFechamentoDias !== null ? `${Math.round(data.tempoMedioFechamentoDias)} ${dict.relatorios.diasSufixo}` : "—"}
             hint={dict.relatorios.comercialStatTempoFechamentoHint}
           />
-          <StatTile icon={IconTrendingUp} label={dict.relatorios.comercialStatValorFechado} value={fmtBRL(data.valorFechadoNoPeriodo)} tone="good" />
+          <StatTile icon={IconTrendingUp} label={dict.relatorios.comercialStatValorFechado} value={fmtMoeda(data.valorFechadoNoPeriodo)} tone="good" />
         </div>
 
         <Card>

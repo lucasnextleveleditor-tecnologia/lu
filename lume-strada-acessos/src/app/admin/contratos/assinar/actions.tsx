@@ -10,6 +10,7 @@ import { ContratoPdfDocument } from "@/lib/pdf/ContratoPdfDocument";
 import { hashDeBytes } from "@/lib/pdf/carimbarAssinaturas";
 import { calcularTotalContrato } from "@/lib/types/contratos";
 import type { ContratoRow, ContratoItemRow } from "@/lib/types/contratos";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 /**
  * Pega um contrato montado aqui dentro e o transforma num documento de
@@ -51,8 +52,11 @@ export async function prepararContratoParaAssinatura(
     // `assinatura` vai vazia de proposito: quem vai assinar e o editor de
     // campos, e duas assinaturas na mesma folha — uma impressa pelo sistema,
     // outra desenhada por quem assinou — so confundiriam quem le depois.
+    const { fmtMoeda } = await getDictionary();
+
     const buffer = await renderToBuffer(
       <ContratoPdfDocument
+      fmtMoeda={fmtMoeda}
         empresaNome={nomeApp}
         logoUrl={logoUrl}
         titulo={contrato.titulo}

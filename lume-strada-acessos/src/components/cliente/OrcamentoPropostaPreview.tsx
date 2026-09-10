@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { DadosInstitucionaisOrcamento, PortfolioItemComUrl } from "@/lib/types/orcamentos";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { buildPropostaAccentVars } from "@/lib/utils/color";
 import { IconFilm, IconImage, IconBriefcase, IconTarget, IconBuilding, IconHeart, IconCalendar, IconUsers, IconClipboardList, IconLayers, IconMail, IconGlobe, IconQrCode, IconFileText } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -126,7 +126,7 @@ export function OrcamentoPropostaPreview({
   modoExemplo = false,
   linkPublico,
 }: OrcamentoPropostaPreviewProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const exemplo = dict.orcamentos.exemplo;
   const capaDeFundo = capaUrl || institucional.bannerUrl;
   const temHero = !!capaDeFundo;
@@ -326,7 +326,7 @@ export function OrcamentoPropostaPreview({
                   </div>
                   <p className="shrink-0 text-sm font-medium text-ink-primary">
                     {item.quantidade > 1 && `${item.quantidade}x `}
-                    {fmtBRL(item.quantidade * item.valorUnitario)}
+                    {fmtMoeda(item.quantidade * item.valorUnitario)}
                   </p>
                 </div>
               ))}
@@ -366,7 +366,7 @@ export function OrcamentoPropostaPreview({
                 const valor = (
                   <p className={`shrink-0 text-sm font-medium ${item.selecionado ? "text-ink-primary" : "text-ink-muted line-through"}`}>
                     {item.quantidade > 1 && `${item.quantidade}x `}
-                    {fmtBRL(item.quantidade * item.valorUnitario)}
+                    {fmtMoeda(item.quantidade * item.valorUnitario)}
                   </p>
                 );
                 return interactive ? (
@@ -420,17 +420,17 @@ export function OrcamentoPropostaPreview({
         <div className="ml-auto max-w-xs space-y-1.5 text-sm">
           <div className="flex justify-between text-ink-secondary">
             <span>{dict.orcamentos.subtotalLabel}</span>
-            <span>{fmtBRL(subtotal)}</span>
+            <span>{fmtMoeda(subtotal)}</span>
           </div>
           {temDesconto && (
             <div className="flex justify-between text-ink-secondary">
               <span>{dict.orcamentos.descontoLabel}</span>
-              <span>−{fmtBRL(desconto)}</span>
+              <span>−{fmtMoeda(desconto)}</span>
             </div>
           )}
           <div className="flex justify-between border-t border-base-800 pt-1.5 text-base font-semibold text-ink-primary">
             <span>{dict.orcamentos.totalLabel}</span>
-            <span className="bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">{fmtBRL(total)}</span>
+            <span className="bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">{fmtMoeda(total)}</span>
           </div>
         </div>
 

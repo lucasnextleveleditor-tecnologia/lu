@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type { TransacaoPreview } from "@/lib/utils/financeiro-preview-mock";
 import { categoriaPorId, contaPorId } from "@/lib/utils/financeiro-preview-mock";
 import { addMeses, fmtMesAno, limitesDoMes } from "@/lib/utils/financeiro";
-import { fmtBRL, todayISO } from "@/lib/utils/format";
+import { todayISO } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -16,6 +16,7 @@ import {
   IconTrendingDown,
   IconTrendingUp,
 } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface TransacoesPreviewProps {
   transacoes: TransacaoPreview[];
@@ -49,6 +50,7 @@ function fmtDiaExtenso(iso: string): string {
 
 /** Página de Transações ao estilo Mobills: toggle Receitas/Despesas, totalizadores e lista agrupada por dia com subtotal. */
 export function TransacoesPreview({ transacoes, referencia, onMudarReferencia }: TransacoesPreviewProps) {
+  const { fmtMoeda } = useLocale();
   const [aba, setAba] = useState<Aba>("despesas");
   const tipoAba = aba === "despesas" ? "despesa" : "receita";
 
@@ -126,15 +128,15 @@ export function TransacoesPreview({ transacoes, referencia, onMudarReferencia }:
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="p-4">
           <p className="text-xs text-ink-muted">{aba === "despesas" ? "Despesas Pendentes" : "Receitas Pendentes"}</p>
-          <p className="mt-1 text-xl font-semibold text-status-neutral">{fmtBRL(pendentes)}</p>
+          <p className="mt-1 text-xl font-semibold text-status-neutral">{fmtMoeda(pendentes)}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs text-ink-muted">{aba === "despesas" ? "Despesas Pagas" : "Receitas Recebidas"}</p>
-          <p className="mt-1 text-xl font-semibold text-status-good">{fmtBRL(pagas)}</p>
+          <p className="mt-1 text-xl font-semibold text-status-good">{fmtMoeda(pagas)}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs text-ink-muted">Total do Mês</p>
-          <p className="mt-1 text-xl font-semibold text-ink-primary">{fmtBRL(totalMes)}</p>
+          <p className="mt-1 text-xl font-semibold text-ink-primary">{fmtMoeda(totalMes)}</p>
         </Card>
       </div>
 
@@ -147,7 +149,7 @@ export function TransacoesPreview({ transacoes, referencia, onMudarReferencia }:
               <div className="flex items-center justify-between bg-base-950/40 px-5 py-2">
                 <p className="text-xs font-medium text-ink-secondary">{fmtDiaExtenso(grupo.data)}</p>
                 <p className="text-xs text-ink-muted">
-                  Neste dia você {verbo} <span className="font-medium text-ink-secondary">{fmtBRL(grupo.subtotal)}</span>
+                  Neste dia você {verbo} <span className="font-medium text-ink-secondary">{fmtMoeda(grupo.subtotal)}</span>
                 </p>
               </div>
 
@@ -175,7 +177,7 @@ export function TransacoesPreview({ transacoes, referencia, onMudarReferencia }:
                       <p className="hidden shrink-0 whitespace-nowrap text-xs text-ink-muted md:block">{conta.nome}</p>
                       <p className={cn("shrink-0 text-right text-sm font-semibold", aba === "despesas" ? "text-ink-primary" : "text-status-good")}>
                         {aba === "despesas" ? "-" : "+"}
-                        {fmtBRL(t.valor)}
+                        {fmtMoeda(t.valor)}
                       </p>
                     </div>
                   );

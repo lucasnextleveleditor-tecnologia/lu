@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import { fmtBRL } from "@/lib/utils/format";
+import type { FormatadorMoeda } from "@/lib/types/moeda";
 
 // ============================================================================
 // PDF de TEXTO REAL da simulação da Calculadora de Margem (mesmo motor de
@@ -87,6 +87,8 @@ export interface CalculadoraPdfItem {
 }
 
 export interface CalculadoraPdfProps {
+  /** Formatador na moeda da empresa — o PDF é montado no servidor, onde não existe contexto de React. */
+  fmtMoeda: FormatadorMoeda;
   nomeApp: string;
   geradoEm: string;
   itensServico: CalculadoraPdfItem[];
@@ -107,7 +109,7 @@ export interface CalculadoraPdfProps {
 }
 
 /** Uma tabela de itens — mesma forma para Serviços e Equipamentos. */
-function TabelaDeItens({ itens, vazio }: { itens: CalculadoraPdfItem[]; vazio: string }) {
+function TabelaDeItens({ itens, vazio, fmtMoeda }: { itens: CalculadoraPdfItem[]; vazio: string; fmtMoeda: FormatadorMoeda }) {
   if (itens.length === 0) return <Text style={styles.vazio}>{vazio}</Text>;
   return (
     <View>
@@ -126,8 +128,8 @@ function TabelaDeItens({ itens, vazio }: { itens: CalculadoraPdfItem[]; vazio: s
         <View key={`${item.nome}-${i}`} style={styles.linha} wrap={false}>
           <Text style={[styles.celulaNome, styles.colNome]}>{item.nome}</Text>
           <Text style={[styles.celula, styles.colQtd]}>{item.quantidade}</Text>
-          <Text style={[styles.celula, styles.colUnit]}>{fmtBRL(item.custoUnitario)}</Text>
-          <Text style={[styles.celula, styles.colTotal]}>{fmtBRL(item.quantidade * item.custoUnitario)}</Text>
+          <Text style={[styles.celula, styles.colUnit]}>{fmtMoeda(item.custoUnitario)}</Text>
+          <Text style={[styles.celula, styles.colTotal]}>{fmtMoeda(item.quantidade * item.custoUnitario)}</Text>
         </View>
       ))}
     </View>
@@ -150,28 +152,28 @@ export function CalculadoraPdfDocument(p: CalculadoraPdfProps) {
           <View style={styles.resumoBox}>
             <View style={styles.resumoCaixa}>
               <Text style={styles.resumoLabel}>Valor final do projeto</Text>
-              <Text style={styles.resumoValor}>{fmtBRL(p.valorFinalDoProjeto)}</Text>
+              <Text style={styles.resumoValor}>{p.fmtMoeda(p.valorFinalDoProjeto)}</Text>
               <Text style={styles.resumoHint}>Cobre custo, imposto e a margem escolhida.</Text>
             </View>
           </View>
           <View style={styles.resumoBox}>
             <View style={styles.resumoCaixa}>
               <Text style={styles.resumoLabel}>Lucro estimado</Text>
-              <Text style={styles.resumoValor}>{fmtBRL(p.lucroEstimado)}</Text>
+              <Text style={styles.resumoValor}>{p.fmtMoeda(p.lucroEstimado)}</Text>
               <Text style={styles.resumoHint}>Margem desejada de {pct(p.margemDesejada)}.</Text>
             </View>
           </View>
           <View style={styles.resumoBox}>
             <View style={styles.resumoCaixa}>
               <Text style={styles.resumoLabel}>Custo operacional total</Text>
-              <Text style={styles.resumoValor}>{fmtBRL(p.custoOperacionalTotal)}</Text>
+              <Text style={styles.resumoValor}>{p.fmtMoeda(p.custoOperacionalTotal)}</Text>
               <Text style={styles.resumoHint}>Serviços + equipamentos + custo fixo rateado.</Text>
             </View>
           </View>
           <View style={styles.resumoBox}>
             <View style={styles.resumoCaixa}>
               <Text style={styles.resumoLabel}>Imposto estimado</Text>
-              <Text style={styles.resumoValor}>{fmtBRL(p.impostoValor)}</Text>
+              <Text style={styles.resumoValor}>{p.fmtMoeda(p.impostoValor)}</Text>
               <Text style={styles.resumoHint}>
                 {p.impostosAtivo ? `Alíquota de ${pct(p.aliquotaImposto)}.` : "Impostos desligados nesta simulação."}
               </Text>
@@ -180,20 +182,20 @@ export function CalculadoraPdfDocument(p: CalculadoraPdfProps) {
         </View>
 
         <Text style={styles.sectionTitle}>Serviços (mão de obra)</Text>
-        <TabelaDeItens itens={p.itensServico} vazio="Nenhum serviço lançado nesta simulação." />
+        <TabelaDeItens itens={p.itensServico} vazio="Nenhum serviço lançado nesta simulação." fmtMoeda={p.fmtMoeda} />
         {p.itensServico.length > 0 && (
           <View style={styles.subtotalLinha}>
             <Text style={styles.subtotalLabel}>Subtotal de serviços</Text>
-            <Text style={styles.subtotalValor}>{fmtBRL(p.custoServicos)}</Text>
+            <Text style={styles.subtotalValor}>{p.fmtMoeda(p.custoServicos)}</Text>
           </View>
         )}
 
         <Text style={styles.sectionTitle}>Equipamentos</Text>
-        <TabelaDeItens itens={p.itensEquipamento} vazio="Nenhum equipamento lançado nesta simulação." />
+        <TabelaDeItens itens={p.itensEquipamento} vazio="Nenhum equipamento lançado nesta simulação." fmtMoeda={p.fmtMoeda} />
         {p.itensEquipamento.length > 0 && (
           <View style={styles.subtotalLinha}>
             <Text style={styles.subtotalLabel}>Subtotal de equipamentos</Text>
-            <Text style={styles.subtotalValor}>{fmtBRL(p.custoEquipamentos)}</Text>
+            <Text style={styles.subtotalValor}>{p.fmtMoeda(p.custoEquipamentos)}</Text>
           </View>
         )}
 
@@ -210,13 +212,13 @@ export function CalculadoraPdfDocument(p: CalculadoraPdfProps) {
           <View style={styles.paramLinha}>
             <Text style={styles.paramLabel}>Custo fixo / fee</Text>
             <Text style={styles.paramValor}>
-              {p.custoFixoAtivo ? `${pct(p.custoFixoPercentual)} de ${fmtBRL(p.custoFixoBase)}/mês` : "Desligado"}
+              {p.custoFixoAtivo ? `${pct(p.custoFixoPercentual)} de ${p.fmtMoeda(p.custoFixoBase)}/mês` : "Desligado"}
             </Text>
           </View>
           {p.custoFixoAtivo && (
             <View style={styles.paramLinha}>
               <Text style={styles.paramLabel}>Custo fixo rateado para este projeto</Text>
-              <Text style={styles.paramValor}>{fmtBRL(p.custoFixoRateado)}</Text>
+              <Text style={styles.paramValor}>{p.fmtMoeda(p.custoFixoRateado)}</Text>
             </View>
           )}
         </View>
@@ -227,31 +229,31 @@ export function CalculadoraPdfDocument(p: CalculadoraPdfProps) {
           <Text style={styles.sectionTitle}>Demonstrativo de cálculo</Text>
           <View style={styles.demoLinha}>
             <Text style={styles.demoLabel}>Custo de serviços</Text>
-            <Text style={styles.demoValor}>{fmtBRL(p.custoServicos)}</Text>
+            <Text style={styles.demoValor}>{p.fmtMoeda(p.custoServicos)}</Text>
           </View>
           <View style={styles.demoLinha}>
             <Text style={styles.demoLabel}>Custo de equipamentos</Text>
-            <Text style={styles.demoValor}>{fmtBRL(p.custoEquipamentos)}</Text>
+            <Text style={styles.demoValor}>{p.fmtMoeda(p.custoEquipamentos)}</Text>
           </View>
           <View style={styles.demoLinha}>
             <Text style={styles.demoLabel}>Custo fixo rateado</Text>
-            <Text style={styles.demoValor}>{fmtBRL(p.custoFixoRateado)}</Text>
+            <Text style={styles.demoValor}>{p.fmtMoeda(p.custoFixoRateado)}</Text>
           </View>
           <View style={[styles.demoLinha, { borderTop: `0.5pt solid ${LINHA}`, paddingTop: 5, marginTop: 2 }]}>
             <Text style={[styles.demoLabel, { fontFamily: "Helvetica-Bold" }]}>Custo operacional total</Text>
-            <Text style={[styles.demoValor, { fontFamily: "Helvetica-Bold" }]}>{fmtBRL(p.custoOperacionalTotal)}</Text>
+            <Text style={[styles.demoValor, { fontFamily: "Helvetica-Bold" }]}>{p.fmtMoeda(p.custoOperacionalTotal)}</Text>
           </View>
           <View style={styles.demoLinha}>
             <Text style={styles.demoLabel}>+ Imposto sobre o valor final{p.impostosAtivo ? ` (${pct(p.aliquotaImposto)})` : ""}</Text>
-            <Text style={styles.demoValor}>{fmtBRL(p.impostoValor)}</Text>
+            <Text style={styles.demoValor}>{p.fmtMoeda(p.impostoValor)}</Text>
           </View>
           <View style={styles.demoLinha}>
             <Text style={styles.demoLabel}>+ Lucro na margem de {pct(p.margemDesejada)}</Text>
-            <Text style={styles.demoValor}>{fmtBRL(p.lucroEstimado)}</Text>
+            <Text style={styles.demoValor}>{p.fmtMoeda(p.lucroEstimado)}</Text>
           </View>
           <View style={styles.demoTotal}>
             <Text style={styles.demoTotalLabel}>Valor final do projeto</Text>
-            <Text style={styles.demoTotalValor}>{fmtBRL(p.valorFinalDoProjeto)}</Text>
+            <Text style={styles.demoTotalValor}>{p.fmtMoeda(p.valorFinalDoProjeto)}</Text>
           </View>
         </View>
 

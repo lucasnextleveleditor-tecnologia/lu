@@ -3,7 +3,7 @@ import { StatTile } from "@/components/ui/StatTile";
 import { Button } from "@/components/ui/Button";
 import { IconClipboardList, IconCheckCircle, IconPercent, IconPlus, IconFileText, IconChevronLeft } from "@/components/ui/icons";
 import { ContratosManager } from "@/components/admin/contratos/ContratosManager";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtPercent } from "@/lib/utils/format";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { buscarDadosContratos } from "@/app/admin/contratos/data";
 
@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
  * quem já escolheu criar.
  */
 export default async function ContratosListaPage() {
-  const { dict } = await getDictionary();
+  const { dict, fmtMoeda } = await getDictionary();
   const { contratos, valorAguardandoAssinatura, valorAssinadoMes, totalAguardando, taxaAssinatura } = await buscarDadosContratos({});
 
   return (
@@ -56,10 +56,10 @@ export default async function ContratosListaPage() {
         <StatTile
           icon={IconClipboardList}
           label={dict.contratos.statAguardandoAssinatura}
-          value={fmtBRL(valorAguardandoAssinatura)}
+          value={fmtMoeda(valorAguardandoAssinatura)}
           hint={dict.contratos.hintAguardandoAssinatura.replace("{n}", String(totalAguardando))}
         />
-        <StatTile icon={IconCheckCircle} label={dict.contratos.statAssinadoMes} value={fmtBRL(valorAssinadoMes)} tone="good" hint={dict.contratos.hintAssinadoMes} />
+        <StatTile icon={IconCheckCircle} label={dict.contratos.statAssinadoMes} value={fmtMoeda(valorAssinadoMes)} tone="good" hint={dict.contratos.hintAssinadoMes} />
         <StatTile icon={IconPercent} label={dict.contratos.statTaxaAssinatura} value={fmtPercent(taxaAssinatura)} hint={dict.contratos.hintTaxaAssinatura} />
       </div>
 

@@ -12,7 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { IconPlus, IconTrash } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { cn } from "@/lib/utils/cn";
 
 interface ItemLocal {
@@ -48,7 +48,7 @@ interface TiposOrcamentoManagerProps {
 
 /** Um modelo (cabeçalho + itens padrão) por perfil profissional — pré-preenche o construtor de orçamento quando aquele tipo é escolhido num orçamento novo (ver `OrcamentoBuilder.tsx`). */
 export function TiposOrcamentoManager({ tipos, servicosComCategoria }: TiposOrcamentoManagerProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [perfilSelecionado, setPerfilSelecionado] = useState<PerfilOrcamento>(CATEGORIAS_PORTFOLIO[0]);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -179,7 +179,7 @@ export function TiposOrcamentoManager({ tipos, servicosComCategoria }: TiposOrca
               <option value="">{dict.orcamentos.buscarServicoPlaceholder}</option>
               {servicosComCategoria.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.nome} — {fmtBRL(s.valor_padrao)}
+                  {s.nome} — {fmtMoeda(s.valor_padrao)}
                 </option>
               ))}
             </Select>

@@ -12,7 +12,7 @@ import type {
 import { marcarPago, removerTransacao, removerTransacaoComEscopo, type EscopoExclusaoRecorrencia } from "@/app/admin/financeiro/actions";
 import { calcularStatusTransacao } from "@/lib/types/financeiro";
 import { STATUS_TRANSACAO_META } from "@/lib/utils/financeiro";
-import { fmtBRL, fmtMoedaEstrangeira, fmtDataCurta } from "@/lib/utils/format";
+import { fmtMoedaEstrangeira, fmtDataCurta } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -41,7 +41,7 @@ interface TransacoesManagerProps {
 const TODOS = "todos";
 
 export function TransacoesManager({ transacoes, contas, cartoes, categorias, fornecedores, contexto, tipoFixo, foco }: TransacoesManagerProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
   const [filtroTipo, setFiltroTipo] = useState<string>(tipoFixo ?? TODOS);
@@ -264,7 +264,7 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, for
                     </td>
                     <td className="py-3 pr-4 text-right">
                       <ValorPrivado
-                        valor={`${valorSinal}${fmtBRL(t.valor)}`}
+                        valor={`${valorSinal}${fmtMoeda(t.valor)}`}
                         className={
                           t.tipo === "receita"
                             ? "text-sm font-semibold text-status-good"

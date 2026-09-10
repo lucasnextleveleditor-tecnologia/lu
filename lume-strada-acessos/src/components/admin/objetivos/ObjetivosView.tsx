@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { DadosObjetivos } from "@/app/admin/objetivos/data";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtPercent } from "@/lib/utils/format";
 import { fmtMesAno } from "@/lib/utils/financeiro";
 import { TONE_META, type Tone } from "@/lib/utils/tone";
 import { ProgressRing } from "@/components/admin/financeiro/caixinhas/ProgressRing";
@@ -63,6 +63,7 @@ function MetaCard({
   dict: ObjetivosDict;
   onConfigurar: () => void;
 }) {
+  const { fmtMoeda } = useLocale();
   const temMeta = meta != null && meta > 0;
   const atingida = temMeta && pct >= 1;
 
@@ -95,15 +96,15 @@ function MetaCard({
         <div className="mt-5 space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-ink-muted">{dict.metaLabel}</span>
-            <ValorPrivado valor={fmtBRL(meta)} className="font-medium text-ink-primary" />
+            <ValorPrivado valor={fmtMoeda(meta)} className="font-medium text-ink-primary" />
           </div>
           <div className="flex items-center justify-between">
             <span className="text-ink-muted">{dict.faturadoLabel}</span>
-            <ValorPrivado valor={fmtBRL(faturado)} className="font-medium text-status-good" />
+            <ValorPrivado valor={fmtMoeda(faturado)} className="font-medium text-status-good" />
           </div>
           <div className="flex items-center justify-between border-t border-base-800 pt-2">
             <span className="text-ink-muted">{atingida ? dict.metaBatidaLabel : dict.faltaLabel}</span>
-            {!atingida && <ValorPrivado valor={fmtBRL(restante ?? 0)} className="font-semibold text-ink-primary" />}
+            {!atingida && <ValorPrivado valor={fmtMoeda(restante ?? 0)} className="font-semibold text-ink-primary" />}
           </div>
         </div>
       ) : (
@@ -128,6 +129,7 @@ function MetaCard({
  * — dá pra ver de cara quais meses ficaram acima ou abaixo dela.
  */
 function RitmoAnoCard({ dados, dict }: { dados: DadosObjetivos; dict: ObjetivosDict }) {
+  const { fmtMoeda } = useLocale();
   const { mesesDoAno, metaMensalPorMes } = dados;
   const maiorValor = Math.max(...mesesDoAno.map((m) => m.receita), metaMensalPorMes ?? 0, 1);
 
@@ -153,7 +155,7 @@ function RitmoAnoCard({ dados, dict }: { dados: DadosObjetivos; dict: ObjetivosD
             return (
               <div key={idx} className="flex h-full flex-1 flex-col items-center justify-end">
                 <div
-                  title={ponto.futuro ? dict.ritmoMesFuturoHint : fmtBRL(ponto.receita)}
+                  title={ponto.futuro ? dict.ritmoMesFuturoHint : fmtMoeda(ponto.receita)}
                   className={cn(
                     "w-full rounded-t-md transition-[height]",
                     ponto.futuro ? "border border-dashed border-base-600 bg-transparent" : bateuMedia ? "bg-status-good" : "bg-accent",
@@ -177,7 +179,7 @@ function RitmoAnoCard({ dados, dict }: { dados: DadosObjetivos; dict: ObjetivosD
       {metaMensalPorMes != null ? (
         <p className="mt-4 flex items-center gap-1.5 text-[11px] text-ink-muted">
           <span className="inline-block h-0 w-3 border-t border-dashed border-ink-muted/70" />
-          {dict.ritmoLegendaMedia}: <ValorPrivado valor={fmtBRL(metaMensalPorMes)} className="font-medium text-ink-secondary" />
+          {dict.ritmoLegendaMedia}: <ValorPrivado valor={fmtMoeda(metaMensalPorMes)} className="font-medium text-ink-secondary" />
         </p>
       ) : (
         <p className="mt-4 text-[11px] text-ink-muted">{dict.ritmoSemDados}</p>
@@ -187,6 +189,7 @@ function RitmoAnoCard({ dados, dict }: { dados: DadosObjetivos; dict: ObjetivosD
 }
 
 function TendenciaCard({ dados, dict }: { dados: DadosObjetivos; dict: ObjetivosDict }) {
+  const { fmtMoeda } = useLocale();
   const { mesesDoAno, mesAtualIdx, ano, projecaoMes, projecaoAno, metaMensal, metaAnual, pctMes, pctAno, diaDoMes, totalDiasMes, diaDoAno, totalDiasAno } = dados;
 
   const nomeMes = mesesDoAno[mesAtualIdx]!.mes.toLocaleDateString("pt-BR", { month: "long", timeZone: "UTC" });
@@ -204,7 +207,7 @@ function TendenciaCard({ dados, dict }: { dados: DadosObjetivos; dict: Objetivos
       <div className="mt-4 space-y-4">
         <div className="flex items-start justify-between gap-3 border-t border-base-800 pt-3">
           <p className="text-sm text-ink-secondary">
-            {dict.tendenciaMesTexto.replace("{mes}", nomeMes).replace("{valor}", fmtBRL(projecaoMes))}
+            {dict.tendenciaMesTexto.replace("{mes}", nomeMes).replace("{valor}", fmtMoeda(projecaoMes))}
             {metaMensal != null && metaMensal > 0 && (
               <span className="ml-1.5 text-ink-muted">— {dict.tendenciaPctMeta.replace("{pct}", fmtPercent(projecaoMes / metaMensal))}</span>
             )}
@@ -213,7 +216,7 @@ function TendenciaCard({ dados, dict }: { dados: DadosObjetivos; dict: Objetivos
         </div>
         <div className="flex items-start justify-between gap-3 border-t border-base-800 pt-3">
           <p className="text-sm text-ink-secondary">
-            {dict.tendenciaAnoTexto.replace("{ano}", String(ano)).replace("{valor}", fmtBRL(projecaoAno))}
+            {dict.tendenciaAnoTexto.replace("{ano}", String(ano)).replace("{valor}", fmtMoeda(projecaoAno))}
             {metaAnual != null && metaAnual > 0 && (
               <span className="ml-1.5 text-ink-muted">— {dict.tendenciaPctMeta.replace("{pct}", fmtPercent(projecaoAno / metaAnual))}</span>
             )}
@@ -226,7 +229,7 @@ function TendenciaCard({ dados, dict }: { dados: DadosObjetivos; dict: Objetivos
 }
 
 export function ObjetivosView({ dados }: ObjetivosViewProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [modalAberto, setModalAberto] = useState(false);
   const mesReferencia = dados.mesesDoAno[dados.mesAtualIdx]!.mes;
 

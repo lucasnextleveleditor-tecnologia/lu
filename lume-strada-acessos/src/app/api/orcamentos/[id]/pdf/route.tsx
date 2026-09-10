@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { buscarOrcamentoPorId, buscarDadosInstitucionaisEmpresa } from "@/app/admin/orcamentos/data";
 import { OrcamentoPdfDocument, type OrcamentoPdfItem, type OrcamentoPdfPortfolioItem } from "@/lib/pdf/OrcamentoPdfDocument";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -38,8 +39,11 @@ export async function GET(_req: Request, { params }: RouteParams) {
     .slice(0, 9)
     .map((item) => ({ url: item.url, titulo: item.titulo }));
 
+  const { fmtMoeda } = await getDictionary();
+
   const buffer = await renderToBuffer(
     <OrcamentoPdfDocument
+      fmtMoeda={fmtMoeda}
       institucional={institucional}
       titulo={orcamento.titulo}
       nomeDestinatario={orcamento.nome_destinatario}

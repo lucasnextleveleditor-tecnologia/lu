@@ -4,6 +4,7 @@ import { buscarContratoPorId, buscarLogoDoContrato } from "@/app/admin/contratos
 import { calcularTotalContrato } from "@/lib/types/contratos";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
 import { ContratoPdfDocument } from "@/lib/pdf/ContratoPdfDocument";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -23,8 +24,11 @@ export async function GET(_req: Request, { params }: RouteParams) {
   const { id } = await params;
   const [contrato, nomeEmpresa, logoUrl] = await Promise.all([buscarContratoPorId(id), getNomeApp(), buscarLogoDoContrato()]);
 
+  const { fmtMoeda } = await getDictionary();
+
   const buffer = await renderToBuffer(
     <ContratoPdfDocument
+      fmtMoeda={fmtMoeda}
       empresaNome={nomeEmpresa}
       logoUrl={logoUrl}
       titulo={contrato.titulo}

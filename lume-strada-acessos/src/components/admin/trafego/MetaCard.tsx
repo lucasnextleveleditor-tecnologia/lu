@@ -4,7 +4,7 @@ import React, { useState, useTransition } from "react";
 import type { MetaDiariaRow, TipoResultadoTrafego, TrafegoRegistroRow } from "@/lib/types/database";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import { calcularResumoTrafego, STATUS_TRAFEGO_META } from "@/lib/utils/trafego";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtPercent } from "@/lib/utils/format";
 import { salvarMeta, adicionarRegistro, removerRegistro } from "@/app/admin/trafego/actions";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -32,7 +32,7 @@ const EMPTY_REGISTRO = {
 };
 
 export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const [valorMeta, setValorMeta] = useState(String(meta?.valor_investido_meta ?? 0));
   const [leadsMeta, setLeadsMeta] = useState(meta?.leads_meta != null ? String(meta.leads_meta) : "");
   const [objetivo, setObjetivo] = useState(meta?.objetivo ?? "");
@@ -146,11 +146,11 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
       <div className="mb-5 rounded-xl border border-base-700/70 bg-gradient-to-b from-base-800/40 to-base-950/60 p-4 shadow-[inset_0_1px_0_0_rgb(var(--glow-rgb) / 0.05)]">
         <div className="flex items-center justify-between mb-2 text-xs text-ink-secondary">
           <span>
-            {dict.trafego.investidoLabel} <span className="font-medium text-ink-primary">{fmtBRL(resumo.totalInvestido)}</span>
+            {dict.trafego.investidoLabel} <span className="font-medium text-ink-primary">{fmtMoeda(resumo.totalInvestido)}</span>
             {meta && meta.valor_investido_meta > 0 && (
               <>
                 {" "}
-                {dict.trafego.deTexto} {fmtBRL(meta.valor_investido_meta)}
+                {dict.trafego.deTexto} {fmtMoeda(meta.valor_investido_meta)}
               </>
             )}
           </span>
@@ -191,12 +191,12 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
           )}
           {resumo.custoPorLead !== null && (
             <span>
-              {dict.trafego.custoPorLeadLabel} <span className="font-medium text-ink-primary">{fmtBRL(resumo.custoPorLead)}</span>
+              {dict.trafego.custoPorLeadLabel} <span className="font-medium text-ink-primary">{fmtMoeda(resumo.custoPorLead)}</span>
             </span>
           )}
           {resumo.custoPorVenda !== null && (
             <span>
-              {dict.trafego.custoPorVendaLabel} <span className="font-medium text-ink-primary">{fmtBRL(resumo.custoPorVenda)}</span>
+              {dict.trafego.custoPorVendaLabel} <span className="font-medium text-ink-primary">{fmtMoeda(resumo.custoPorVenda)}</span>
             </span>
           )}
         </div>
@@ -215,7 +215,7 @@ export function MetaCard({ cliente, data, meta, registros }: MetaCardProps) {
                 <div className="min-w-0">
                   <p className="truncate font-medium">{r.nome_campanha || dict.trafego.lancamentoSemNome}</p>
                   <p className="text-xs text-ink-muted">
-                    {fmtBRL(r.valor_investido)} · {r.quantidade_resultado}{" "}
+                    {fmtMoeda(r.valor_investido)} · {r.quantidade_resultado}{" "}
                     {r.tipo_resultado === "vendas" ? dict.trafego.vendasSufixo : dict.trafego.leadsSufixo}
                     {(r.cliques > 0 || r.visualizacoes > 0) && " · "}
                     {r.cliques > 0 && `${r.cliques} ${dict.trafego.cliquesAbrevLabel.replace(":", "").toLowerCase()}`}

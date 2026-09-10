@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { Input } from "@/components/ui/Input";
 import { prepararContratoParaAssinatura } from "@/app/admin/contratos/assinar/actions";
 import {
@@ -13,6 +13,7 @@ import {
   IconLoader,
   IconSearch,
 } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface ContratoEscolhivel {
   id: string;
@@ -32,6 +33,7 @@ interface ContratoEscolhivel {
  * quem chega não veio buscar.
  */
 export function EscolherOrigemAssinatura({ contratos }: { contratos: ContratoEscolhivel[] }) {
+  const { fmtMoeda } = useLocale();
   const router = useRouter();
   const [escolhendo, setEscolhendo] = useState(false);
   const [busca, setBusca] = useState("");
@@ -149,7 +151,7 @@ export function EscolherOrigemAssinatura({ contratos }: { contratos: ContratoEsc
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink-primary">{c.titulo}</p>
                   <p className="mt-0.5 truncate text-xs text-ink-muted">
-                    {c.cliente} · {fmtBRL(c.total)} · {fmtDataCurta(c.criadoEm)}
+                    {c.cliente} · {fmtMoeda(c.total)} · {fmtDataCurta(c.criadoEm)}
                   </p>
                 </div>
                 {gerando === c.id ? (

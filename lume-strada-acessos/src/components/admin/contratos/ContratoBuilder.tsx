@@ -30,7 +30,7 @@ import { Select } from "@/components/ui/Select";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { IconPlus, IconTrash } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { cn } from "@/lib/utils/cn";
 
 type ContratoParaEditar = Awaited<ReturnType<typeof buscarContratoPorId>>;
@@ -90,7 +90,7 @@ export function ContratoBuilder({
   orcamentoIdInicial,
   aoCriarComSucesso,
 }: ContratoBuilderProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const router = useRouter();
   const editando = !!contratoParaEditar;
 
@@ -183,6 +183,7 @@ export function ContratoBuilder({
   /** Valores que o sistema já sabe (cliente, empresa, total, data) — recalculados na hora de cada montagem. */
   function valoresConhecidos() {
     return montarValoresAutoPreenchiveis({
+      fmtMoeda,
       cliente: clientes.find((c) => c.id === clienteId) ?? null,
       nomeDestinatario: nomeCliente,
       empresa,
@@ -652,7 +653,7 @@ export function ContratoBuilder({
                     />
                     <CurrencyInput value={item.valorUnitario} onChange={(v) => atualizarItem(item.key, { valorUnitario: v })} className="py-1" />
                   </div>
-                  <p className="mt-2 text-right text-sm font-semibold text-ink-primary">{fmtBRL(item.quantidade * item.valorUnitario)}</p>
+                  <p className="mt-2 text-right text-sm font-semibold text-ink-primary">{fmtMoeda(item.quantidade * item.valorUnitario)}</p>
                 </div>
               ))}
             </div>
@@ -671,7 +672,7 @@ export function ContratoBuilder({
         <Card>
           <div className="flex justify-between border-t-0 pt-0 text-base font-semibold text-ink-primary">
             <span>{dict.orcamentos.totalLabel}</span>
-            <span>{fmtBRL(total)}</span>
+            <span>{fmtMoeda(total)}</span>
           </div>
 
           {error && <p className="mt-3 text-xs text-danger">{error}</p>}

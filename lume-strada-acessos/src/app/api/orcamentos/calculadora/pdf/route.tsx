@@ -3,6 +3,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { requireModulo } from "@/lib/auth/requireAdmin";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
 import { CalculadoraPdfDocument, type CalculadoraPdfItem } from "@/lib/pdf/CalculadoraPdfDocument";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -60,8 +61,11 @@ export async function POST(req: Request) {
   const nomeApp = await getNomeApp();
   const geradoEm = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 
+  const { fmtMoeda } = await getDictionary();
+
   const buffer = await renderToBuffer(
     <CalculadoraPdfDocument
+      fmtMoeda={fmtMoeda}
       nomeApp={nomeApp}
       geradoEm={geradoEm}
       itensServico={itens(corpo.itensServico)}

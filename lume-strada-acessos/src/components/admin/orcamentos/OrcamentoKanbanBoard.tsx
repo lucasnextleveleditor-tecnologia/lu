@@ -6,7 +6,7 @@ import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-p
 import type { StatusOrcamento } from "@/lib/types/orcamentos";
 import { STATUS_ORCAMENTO_ORDEM } from "@/lib/utils/orcamentos";
 import { enviarOrcamento, marcarStatusManual } from "@/app/admin/orcamentos/actions";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { OrcamentoKanbanCard, type OrcamentoDoKanban } from "@/components/admin/orcamentos/OrcamentoKanbanCard";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -36,7 +36,7 @@ const COLUNAS_SOMENTE_LEITURA: StatusOrcamento[] = ["visualizado", "expirado"];
  * cima na mesma coluna "Enviado".
  */
 export function OrcamentoKanbanBoard({ orcamentos }: OrcamentoKanbanBoardProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const router = useRouter();
   const [itensLocais, setItensLocais] = useState(orcamentos);
   const [erro, setErro] = useState<string | null>(null);
@@ -114,7 +114,7 @@ export function OrcamentoKanbanBoard({ orcamentos }: OrcamentoKanbanBoardProps) 
                       <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{STATUS_LABEL[status]}</p>
                       <span className="rounded-full bg-base-800 px-2 py-0.5 text-[11px] font-medium text-ink-secondary">{itensDaColuna.length}</span>
                     </div>
-                    {totalColuna > 0 && <p className="mb-1 px-1 text-[11px] text-ink-muted">{fmtBRL(totalColuna)}</p>}
+                    {totalColuna > 0 && <p className="mb-1 px-1 text-[11px] text-ink-muted">{fmtMoeda(totalColuna)}</p>}
                     {somenteLeitura && <p className="mb-2.5 px-1 text-[10px] text-ink-muted/70">{dict.orcamentos.funilColunaAutomatica}</p>}
 
                     <div className="flex min-h-[80px] flex-1 flex-col gap-2.5">

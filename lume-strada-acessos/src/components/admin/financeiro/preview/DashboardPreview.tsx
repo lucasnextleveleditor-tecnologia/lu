@@ -4,12 +4,13 @@ import { useMemo } from "react";
 import type { TransacaoPreview } from "@/lib/utils/financeiro-preview-mock";
 import { CARTOES_PREVIEW, CATEGORIAS_PREVIEW, CONTAS_PREVIEW } from "@/lib/utils/financeiro-preview-mock";
 import { addMeses, fmtMesAno, limitesDoMes, toneLimiteCartao } from "@/lib/utils/financeiro";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { StatTile } from "@/components/ui/StatTile";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { DonutChartCategorias, type FatiaDonut } from "@/components/admin/financeiro/preview/DonutChartCategorias";
 import { IconChevronLeft, IconChevronRight, IconCreditCard, IconTrendingDown, IconTrendingUp, IconWallet } from "@/components/ui/icons";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface DashboardPreviewProps {
   transacoes: TransacaoPreview[];
@@ -18,6 +19,7 @@ interface DashboardPreviewProps {
 }
 
 export function DashboardPreview({ transacoes, referencia, onMudarReferencia }: DashboardPreviewProps) {
+  const { fmtMoeda } = useLocale();
   const { inicio, fim } = limitesDoMes(referencia);
   const doMes = useMemo(() => transacoes.filter((t) => t.data >= inicio && t.data <= fim), [transacoes, inicio, fim]);
 
@@ -68,13 +70,13 @@ export function DashboardPreview({ transacoes, referencia, onMudarReferencia }: 
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={IconWallet} label="Saldo Atual" value={fmtBRL(saldoAtual)} hint="Soma de todas as contas" />
-        <StatTile icon={IconTrendingUp} label="Receitas" value={fmtBRL(receitas)} tone="good" hint="No mês selecionado" />
-        <StatTile icon={IconTrendingDown} label="Despesas" value={fmtBRL(despesas)} tone="warning" hint="No mês selecionado" />
+        <StatTile icon={IconWallet} label="Saldo Atual" value={fmtMoeda(saldoAtual)} hint="Soma de todas as contas" />
+        <StatTile icon={IconTrendingUp} label="Receitas" value={fmtMoeda(receitas)} tone="good" hint="No mês selecionado" />
+        <StatTile icon={IconTrendingDown} label="Despesas" value={fmtMoeda(despesas)} tone="warning" hint="No mês selecionado" />
         <StatTile
           icon={IconCreditCard}
           label="Cartões de Crédito"
-          value={fmtBRL(cartoesTotal)}
+          value={fmtMoeda(cartoesTotal)}
           tone={toneLimiteCartao(cartoesTotal, limiteTotal)}
           hint="Faturas em aberto"
         />
@@ -100,11 +102,11 @@ export function DashboardPreview({ transacoes, referencia, onMudarReferencia }: 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs text-ink-muted">Fatura Aberta</p>
-                    <p className="mt-0.5 text-base font-semibold text-ink-primary">{fmtBRL(cartao.faturaAberta)}</p>
+                    <p className="mt-0.5 text-base font-semibold text-ink-primary">{fmtMoeda(cartao.faturaAberta)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-ink-muted">Fatura Fechada</p>
-                    <p className="mt-0.5 text-base font-semibold text-ink-primary">{fmtBRL(cartao.faturaFechadaValor)}</p>
+                    <p className="mt-0.5 text-base font-semibold text-ink-primary">{fmtMoeda(cartao.faturaFechadaValor)}</p>
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-base-800 pt-3">

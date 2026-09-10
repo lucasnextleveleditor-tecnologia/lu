@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { fmtMesAno } from "@/lib/utils/financeiro";
 import { StatTile } from "@/components/ui/StatTile";
 import { Card } from "@/components/ui/Card";
@@ -30,7 +30,7 @@ interface FluxoCaixaPageProps {
  * precisa nem abrir essa tela, o link fica só no cabeçalho da principal.
  */
 export default async function FluxoCaixaPage({ searchParams }: FluxoCaixaPageProps) {
-  const { dict } = await getDictionary();
+  const { dict, fmtMoeda } = await getDictionary();
   const t = dict.financeiro.fluxoCaixa;
   const params = await searchParams;
   // Independentes entre si — a projeção (`dias`, daqui pra frente) e a
@@ -79,18 +79,18 @@ export default async function FluxoCaixaPage({ searchParams }: FluxoCaixaPagePro
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-        <StatTile icon={IconWallet} label={t.statSaldoAtual} value={<ValorPrivado valor={fmtBRL(saldoInicial)} />} />
+        <StatTile icon={IconWallet} label={t.statSaldoAtual} value={<ValorPrivado valor={fmtMoeda(saldoInicial)} />} />
         <StatTile
           icon={saldoFinal >= saldoInicial ? IconActivity : IconTrendingDown}
           label={t.statSaldoProjetado}
-          value={<ValorPrivado valor={fmtBRL(saldoFinal)} />}
+          value={<ValorPrivado valor={fmtMoeda(saldoFinal)} />}
           tone={saldoFinal < 0 ? "critical" : saldoFinal < saldoInicial ? "warning" : "good"}
           hint={t.hintSaldoProjetadoFim.replace("{data}", pontos.at(-1) ? fmtDataCurta(pontos.at(-1)!.data) : "")}
         />
         <StatTile
           icon={IconAlertTriangle}
           label={t.statMenorSaldo}
-          value={<ValorPrivado valor={fmtBRL(pontoMaisBaixo.saldoProjetado)} />}
+          value={<ValorPrivado valor={fmtMoeda(pontoMaisBaixo.saldoProjetado)} />}
           tone={pontoMaisBaixo.saldoProjetado < 0 ? "critical" : "neutral"}
           hint={pontoMaisBaixo.data ? t.hintMenorSaldoData.replace("{data}", fmtDataCurta(pontoMaisBaixo.data)) : undefined}
         />

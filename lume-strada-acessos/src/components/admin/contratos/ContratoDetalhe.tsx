@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { ContratoComRelacoes, StatusContrato } from "@/lib/types/contratos";
 import { STATUS_CONTRATO_TONE, urlPublicaContrato } from "@/lib/utils/contratos";
 import { enviarContrato, marcarStatusManualContrato, removerContrato } from "@/app/admin/contratos/actions";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -14,7 +14,7 @@ import { IconCopy, IconDownload, IconSend, IconCheckCircle } from "@/components/
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function ContratoDetalhe({ contrato }: { contrato: ContratoComRelacoes & { total: number } }) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -167,7 +167,7 @@ export function ContratoDetalhe({ contrato }: { contrato: ContratoComRelacoes & 
                   </div>
                   <p className="shrink-0 text-sm font-medium text-ink-primary">
                     {item.quantidade > 1 && `${item.quantidade}x `}
-                    {fmtBRL(item.quantidade * item.valor_unitario)}
+                    {fmtMoeda(item.quantidade * item.valor_unitario)}
                   </p>
                 </div>
               ))}
@@ -178,7 +178,7 @@ export function ContratoDetalhe({ contrato }: { contrato: ContratoComRelacoes & 
         <div className="ml-auto max-w-xs border-t border-base-800 pt-1.5 text-base font-semibold text-ink-primary">
           <div className="flex justify-between">
             <span>{dict.orcamentos.totalLabel}</span>
-            <span>{fmtBRL(contrato.total)}</span>
+            <span>{fmtMoeda(contrato.total)}</span>
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
-import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getDictionary, getConfigDaEmpresa } from "@/lib/i18n/getDictionary";
 import type { ProfileRow } from "@/lib/types/database";
 import type { CargoRow, DepartamentoRow, EquipeMembroRow } from "@/lib/types/cadastros";
 import { AparenciaForm } from "@/components/admin/aparencia/AparenciaForm";
@@ -11,6 +11,7 @@ import { EquipeManager } from "@/components/admin/cadastros/EquipeManager";
 import { ConfiguracoesTabs, type AbaConfiguracoes, type ItemAbaConfiguracoes } from "@/components/admin/configuracoes/ConfiguracoesTabs";
 import { CorDaMarcaCard } from "@/components/admin/configuracoes/CorDaMarcaCard";
 import { EmpresaCard } from "@/components/admin/configuracoes/EmpresaCard";
+import { MoedaEIdiomaCard } from "@/components/admin/configuracoes/MoedaEIdiomaCard";
 import { MinhaContaForm } from "@/components/admin/configuracoes/MinhaContaForm";
 import { AssinaturaCard } from "@/components/admin/configuracoes/AssinaturaCard";
 import { IconBuilding, IconUsers, IconPalette, IconCreditCard, IconMegaphone } from "@/components/ui/icons";
@@ -66,6 +67,7 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
 
   const souAdmin = perfil.role === "admin";
   const { locale, dict } = await getDictionary();
+  const { moeda, idiomaPadrao } = await getConfigDaEmpresa();
   const t = dict.configuracoes;
 
   const { aba: abaParam } = await searchParams;
@@ -107,6 +109,10 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
     conteudoEmpresa = (
       <div className="space-y-5">
         <EmpresaCard nomeApp={nomeApp} membrosComAcesso={equipeMembros.filter((m) => m.profile_id).length} dict={t} />
+        {/* Moeda e idioma ficam na aba Empresa, e não em Aparência: não são
+            enfeite, são a unidade em que o dinheiro é medido e a língua com
+            que a conta abre. Só admin chega aqui (ver o guard acima). */}
+        <MoedaEIdiomaCard moedaAtual={moeda} idiomaAtual={idiomaPadrao ?? locale} />
         <EquipeManager
           equipeMembros={equipeMembros}
           profilesPorId={Object.fromEntries(profiles.map((p) => [p.id, p]))}

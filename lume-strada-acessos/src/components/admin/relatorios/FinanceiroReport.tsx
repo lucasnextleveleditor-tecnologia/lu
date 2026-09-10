@@ -2,7 +2,7 @@
 
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { RelatorioFinanceiroData } from "@/lib/types/relatorios";
-import { fmtBRL, fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
 import { Card } from "@/components/ui/Card";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
@@ -18,7 +18,7 @@ interface FinanceiroReportProps {
 }
 
 export function FinanceiroReport({ data, carregando, erro }: FinanceiroReportProps) {
-  const { dict } = useLocale();
+  const { dict, fmtMoeda } = useLocale();
   if (erro) return <RelatorioEmptyState titulo={dict.relatorios.financeiroErroTitulo} descricao={erro} />;
   if (carregando || !data) return <RelatorioSkeleton />;
   if (data.qtdTransacoes === 0) {
@@ -54,12 +54,12 @@ export function FinanceiroReport({ data, carregando, erro }: FinanceiroReportPro
 
       <div id="relatorio-financeiro-export" className="space-y-5 rounded-2xl bg-base-950 p-1">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatTile icon={IconTrendingUp} label={dict.relatorios.financeiroStatReceitas} value={fmtBRL(data.totalReceitas)} tone="good" />
-          <StatTile icon={IconAlertTriangle} label={dict.relatorios.financeiroStatDespesas} value={fmtBRL(data.totalDespesas)} />
+          <StatTile icon={IconTrendingUp} label={dict.relatorios.financeiroStatReceitas} value={fmtMoeda(data.totalReceitas)} tone="good" />
+          <StatTile icon={IconAlertTriangle} label={dict.relatorios.financeiroStatDespesas} value={fmtMoeda(data.totalDespesas)} />
           <StatTile
             icon={IconDollarSign}
             label={dict.relatorios.financeiroStatResultado}
-            value={fmtBRL(data.resultado)}
+            value={fmtMoeda(data.resultado)}
             tone={data.resultado >= 0 ? "good" : "critical"}
             hint={dict.relatorios.financeiroStatResultadoHint}
           />
@@ -83,11 +83,11 @@ export function FinanceiroReport({ data, carregando, erro }: FinanceiroReportPro
                 </defs>
                 <CartesianGrid stroke={CHART_CORES.grade} strokeDasharray="3 5" vertical={false} />
                 <XAxis dataKey="data" tickFormatter={fmtDataCurta} {...CHART_AXIS_STYLE} minTickGap={28} />
-                <YAxis tickFormatter={(v: number) => fmtBRL(v).replace(",00", "")} {...CHART_AXIS_STYLE} width={72} />
+                <YAxis tickFormatter={(v: number) => fmtMoeda(v).replace(",00", "")} {...CHART_AXIS_STYLE} width={72} />
                 <Tooltip
                   {...CHART_TOOLTIP_STYLE}
                   labelFormatter={(v) => fmtDataCurta(String(v))}
-                  formatter={(valor: number, nome: string) => [fmtBRL(valor), nome === "receitas" ? dict.relatorios.financeiroLegendaReceitas : dict.relatorios.financeiroLegendaDespesas]}
+                  formatter={(valor: number, nome: string) => [fmtMoeda(valor), nome === "receitas" ? dict.relatorios.financeiroLegendaReceitas : dict.relatorios.financeiroLegendaDespesas]}
                 />
                 <Area type="monotone" dataKey="receitas" stroke={CHART_CORES.receita} strokeWidth={2} fill="url(#gradReceita)" />
                 <Area type="monotone" dataKey="despesas" stroke={CHART_CORES.despesa} strokeWidth={2} fill="url(#gradDespesa)" />
@@ -111,7 +111,7 @@ export function FinanceiroReport({ data, carregando, erro }: FinanceiroReportPro
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.porCategoria} layout="vertical" margin={{ top: 4, right: 24, left: 8, bottom: 0 }}>
                   <CartesianGrid stroke={CHART_CORES.grade} strokeDasharray="3 5" horizontal={false} />
-                  <XAxis type="number" tickFormatter={(v: number) => fmtBRL(v).replace(",00", "")} {...CHART_AXIS_STYLE} />
+                  <XAxis type="number" tickFormatter={(v: number) => fmtMoeda(v).replace(",00", "")} {...CHART_AXIS_STYLE} />
                   <YAxis
                     type="category"
                     dataKey="nome"
@@ -119,7 +119,7 @@ export function FinanceiroReport({ data, carregando, erro }: FinanceiroReportPro
                     tickFormatter={(nome: string, i: number) => (data.porCategoria[i]?.emoji ? `${data.porCategoria[i]!.emoji} ${nome}` : nome)}
                     {...CHART_AXIS_STYLE}
                   />
-                  <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(valor: number) => [fmtBRL(valor), dict.relatorios.financeiroTooltipDespesa]} />
+                  <Tooltip {...CHART_TOOLTIP_STYLE} formatter={(valor: number) => [fmtMoeda(valor), dict.relatorios.financeiroTooltipDespesa]} />
                   <Bar dataKey="valor" radius={[0, 4, 4, 0]} maxBarSize={22}>
                     {data.porCategoria.map((c, i) => (
                       <Cell key={i} fill={c.cor} />

@@ -1,4 +1,4 @@
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtPercent } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
 import { Card } from "@/components/ui/Card";
 import { IconWallet, IconBarChart2, IconTrendingDown, IconTrendingUp } from "@/components/ui/icons";
@@ -40,7 +40,7 @@ export async function DashboardPatrimonio({
   itensExcluidos,
   distribuicao,
 }: DashboardPatrimonioProps) {
-  const { dict } = await getDictionary();
+  const { dict, fmtMoeda } = await getDictionary();
   const apreciou = depreciacaoTotal < 0;
   const maiorValor = distribuicao.reduce((max, d) => Math.max(max, d.valorAtual), 0);
 
@@ -54,7 +54,7 @@ export async function DashboardPatrimonio({
         <StatTile
           icon={IconWallet}
           label={dict.inventario.statValorInvestido}
-          value={fmtBRL(totalInvestido)}
+          value={fmtMoeda(totalInvestido)}
           hint={dict.inventario.hintValorInvestido
             .replace("{count}", String(itensConsiderados))
             .replace("{itemLabel}", itemLabelInvestido)}
@@ -62,13 +62,13 @@ export async function DashboardPatrimonio({
         <StatTile
           icon={IconBarChart2}
           label={dict.inventario.statPatrimonioAtual}
-          value={fmtBRL(patrimonioAtual)}
+          value={fmtMoeda(patrimonioAtual)}
           hint={dict.inventario.hintPatrimonioAtual}
         />
         <StatTile
           icon={apreciou ? IconTrendingUp : IconTrendingDown}
           label={apreciou ? dict.inventario.valorizacaoTotal : dict.inventario.depreciacaoTotalLabel}
-          value={fmtBRL(Math.abs(depreciacaoTotal))}
+          value={fmtMoeda(Math.abs(depreciacaoTotal))}
           tone={apreciou ? "good" : "neutral"}
           hint={`${apreciou ? "+" : "-"}${fmtPercent(Math.abs(percentualMedio))} ${dict.inventario.sufixoDesvalorizacaoMedia}`}
         />
@@ -96,10 +96,10 @@ export async function DashboardPatrimonio({
               // o rótulo com nome + valor ao lado é quem identifica cada barra.
               const opacidade = Math.max(0.35, 1 - i * 0.12);
               return (
-                <div key={d.categoriaId} title={`${d.categoriaNome}: ${fmtBRL(d.valorAtual)}`}>
+                <div key={d.categoriaId} title={`${d.categoriaNome}: ${fmtMoeda(d.valorAtual)}`}>
                   <div className="mb-1 flex items-center justify-between gap-3">
                     <span className="truncate text-xs font-medium text-ink-secondary">{d.categoriaNome}</span>
-                    <span className="shrink-0 text-xs text-ink-muted">{fmtBRL(d.valorAtual)}</span>
+                    <span className="shrink-0 text-xs text-ink-muted">{fmtMoeda(d.valorAtual)}</span>
                   </div>
                   <div className="h-2.5 w-full overflow-hidden rounded-full bg-base-800">
                     <div

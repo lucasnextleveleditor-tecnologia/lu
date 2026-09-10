@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fmtBRL } from "@/lib/utils/format";
+
 import { StatTile } from "@/components/ui/StatTile";
 import { ValorPrivado } from "@/components/ui/ValorPrivado";
 import { OlhoValoresToggle } from "@/components/ui/OlhoValoresToggle";
@@ -20,7 +20,7 @@ const BASE_PATH = "/admin/financeiro/cartoes";
 
 /** Aberta ao clicar no StatTile "Limite Disponível" da página principal do Financeiro. */
 export default async function CartoesPage({ searchParams }: PageProps) {
-  const { dict } = await getDictionary();
+  const { dict, fmtMoeda } = await getDictionary();
   const params = await searchParams;
   const { referencia, contexto, mesParamStr, contasComSaldo, cartoesFiltrados, limiteDisponivelTotal } =
     await buscarDadosFinanceiro(params);
@@ -52,7 +52,7 @@ export default async function CartoesPage({ searchParams }: PageProps) {
         <StatTile
           icon={IconCreditCard}
           label={dict.financeiro.statLimiteDisponivel}
-          value={<ValorPrivado valor={fmtBRL(limiteDisponivelTotal)} />}
+          value={<ValorPrivado valor={fmtMoeda(limiteDisponivelTotal)} />}
           hint={dict.financeiro.hintCartoesQtd.replace("{n}", String(cartoesFiltrados.length))}
         />
       </div>
