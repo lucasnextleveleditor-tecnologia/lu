@@ -91,6 +91,48 @@ export interface ArmazenamentoDict {
     leiaMeNome: string;
     /** `{data}` = data do backup; `{pastas}` = lista das pastas, uma por linha. */
     leiaMeCorpo: string;
+
+    abaBaixar: string;
+    abaApagar: string;
+  };
+
+  apagar: {
+    intro: string;
+    /** Fica SEMPRE visível, marcado ou não — é o fato que não muda. */
+    avisoPermanente: string;
+    registroContinua: string;
+    baixeAntes: string;
+
+    carregando: string;
+    semArquivos: string;
+    marcarTudo: string;
+    verArquivos: string;
+    /** `{n}` arquivos, `{tamanho}` no total. */
+    resumoDaArea: string;
+    /** `{n}` arquivos, `{tamanho}` a liberar. */
+    selecionado: string;
+    nenhumSelecionado: string;
+
+    avisoContratosTitulo: string;
+    avisoContratosTexto: string;
+    avisoContratosCheck: string;
+
+    botaoApagar: string;
+    confirmarTitulo: string;
+    /** `{n}` arquivos, `{tamanho}` a liberar. */
+    confirmarTexto: string;
+    /** `{palavra}` = a palavra que precisa ser digitada. */
+    confirmarDigite: string;
+    palavraConfirmacao: string;
+    confirmarBotao: string;
+    voltar: string;
+
+    /** `{n}` de `{total}`. */
+    apagando: string;
+    /** `{n}` arquivos, `{tamanho}` liberados. */
+    concluido: string;
+    erroParcial: string;
+    erro: string;
   };
 }
 
@@ -211,7 +253,44 @@ export const armazenamento: ArmazenamentoDict = {
     avisoNaoFeche: "Não feche esta aba enquanto o download não terminar.",
     nomeDoZip: "arquivos-{data}",
     leiaMeNome: "LEIA-ME.txt",
+    abaBaixar: "Baixar",
+    abaApagar: "Apagar",
     leiaMeCorpo:
       "Cópia dos arquivos do sistema — {data}\n\nCada pasta abaixo é uma área do sistema, e os arquivos vêm com o mesmo nome que têm lá dentro.\n\n{pastas}\n\nPara guardar no Drive: extraia este ZIP e arraste as pastas para a mesma pasta de sempre. Na próxima vez que você baixar, os nomes serão os mesmos e a cópia nova simplesmente atualiza a antiga, sem criar duplicata.\n\nOs PDFs de assinatura estão aqui como cópia de segurança. Eles continuam no sistema também: é lá que fica a prova com a data, o IP e o registro de quem assinou.\n",
+  },
+
+  apagar: {
+    intro:
+      "Marque o que já não precisa ficar aqui e apague de uma vez. Baixe antes: o que sai daqui não volta.",
+    avisoPermanente: "Não é possível recuperar arquivos apagados. Não existe lixeira — o que for apagado some para sempre.",
+    registroContinua:
+      "O registro continua no sistema: quem assinou, quando, de qual IP e o histórico de cada documento seguem no painel. O que some é o arquivo em si — e o botão de baixar dele para de funcionar.",
+    baixeAntes: "Ainda não baixou? Use a aba “Baixar” antes de apagar qualquer coisa.",
+
+    carregando: "Carregando os arquivos…",
+    semArquivos: "Não há arquivos nesta conta.",
+    marcarTudo: "Marcar todos",
+    verArquivos: "Ver arquivos",
+    resumoDaArea: "{n} arquivos · {tamanho}",
+    selecionado: "{n} marcados · {tamanho} a liberar",
+    nenhumSelecionado: "Nada marcado ainda",
+
+    avisoContratosTitulo: "Tem certeza? Você marcou documentos assinados.",
+    avisoContratosTexto:
+      "A folha de comprovação (IP, data, navegador) fica dentro do PDF assinado, e o hash impresso nela só serve se você ainda tiver o arquivo original para comparar. Apagando os dois daqui, a única cópia que existe passa a ser a sua — se ela se perder, a prova se perde junto. Contratos também são os arquivos mais leves da conta: apagá-los quase não libera espaço.",
+    avisoContratosCheck: "Já baixei estes documentos e entendo que estou apagando a única cópia do sistema.",
+
+    botaoApagar: "Apagar marcados",
+    confirmarTitulo: "Confirmar exclusão",
+    confirmarTexto: "Você vai apagar {n} arquivos e liberar {tamanho}. Isso é definitivo.",
+    confirmarDigite: "Digite {palavra} para confirmar",
+    palavraConfirmacao: "APAGAR",
+    confirmarBotao: "Apagar definitivamente",
+    voltar: "Voltar",
+
+    apagando: "Apagando {n} de {total}…",
+    concluido: "{n} arquivos apagados — {tamanho} liberados.",
+    erroParcial: "Alguns arquivos não puderam ser apagados:",
+    erro: "Não consegui apagar os arquivos.",
   },
 };

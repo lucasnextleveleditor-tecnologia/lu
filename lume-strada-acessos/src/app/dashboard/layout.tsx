@@ -45,21 +45,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
           `supabase/branding-por-empresa.sql`). */}
       <BrandingAccentStyle primaryColor={branding.primary_color} accentColor={branding.accent_color} />
 
-      {/* Fixo no canto superior direito da viewport — mesma posição em toda
-          tela do sistema (login, painel admin e portal do cliente). */}
-      <div className="fixed right-4 top-4 z-30 flex items-center gap-2">
-        <ThemeToggle />
-        <LanguageSwitcher />
-      </div>
-
       <header className="border-b border-base-800">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2.5">
             <BrandingLogo logoUrl={branding.logo_dark_url ?? branding.logo_url} sizeClassName="h-8" />
             <p className="text-sm font-semibold tracking-tight">{nomeApp}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-ink-muted">{profile?.full_name || profile?.email}</span>
+          {/* Tema e idioma moram DENTRO da barra, junto do nome e do sair.
+              Flutuando no canto (`fixed`), eles caíam exatamente por cima
+              deste grupo — dois controles disputando o mesmo pedaço de tela. */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageSwitcher />
+            <span className="ml-1 hidden text-xs text-ink-muted sm:inline">
+              {profile?.full_name || profile?.email}
+            </span>
             <LogoutButton />
           </div>
         </div>

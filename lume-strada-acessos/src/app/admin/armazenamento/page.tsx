@@ -9,7 +9,7 @@ import { substituir } from "@/lib/utils/texto";
 import { fmtDataCurta } from "@/lib/utils/format";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils/cn";
-import { BackupDeArquivos } from "@/components/admin/armazenamento/BackupDeArquivos";
+import { OtimizarEspaco } from "@/components/admin/armazenamento/OtimizarEspaco";
 import type { AreaTextoDict } from "@/lib/i18n/dictionaries/pt/armazenamento";
 import {
   IconChevronRight,
@@ -18,7 +18,7 @@ import {
   IconMinimize,
   IconTrash,
   IconExternalLink,
-  IconDownload,
+  IconLayers,
 } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
@@ -171,6 +171,33 @@ export default async function ArmazenamentoPage() {
       </Card>
 
       {/* ---------------------------------------------------------------- */}
+      {/* OTIMIZAR ESPAÇO — SÓ ADMIN                                        */}
+      {/* ---------------------------------------------------------------- */}
+      {/*
+        Vem logo depois de "onde está indo" porque é a resposta dela: a pessoa
+        acabou de ver quem come o espaço, e a saída está à mão. O diagnóstico
+        detalhado (maiores arquivos, dicas) segue abaixo, para quem quiser
+        entender antes de agir.
+
+        Fora do alcance de funcionário mesmo com a tela aberta: o backup leva
+        junto contrato assinado e comprovante do financeiro, e apagar é
+        definitivo. Nenhuma das duas coisas é de quem tem permissão só de um
+        módulo. As actions conferem de novo no servidor — isto aqui é só a
+        tela.
+      */}
+      {perfil.role === "admin" && areasParaBackup.length > 0 && (
+        <Card>
+          <p className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+            <IconLayers className="h-3.5 w-3.5" />
+            {t.backup.titulo}
+          </p>
+          <div className="mt-3">
+            <OtimizarEspaco areas={areasParaBackup} />
+          </div>
+        </Card>
+      )}
+
+      {/* ---------------------------------------------------------------- */}
       {/* OS MAIORES                                                        */}
       {/* ---------------------------------------------------------------- */}
       {detalhe && detalhe.maiores.length > 0 && (
@@ -227,26 +254,6 @@ export default async function ArmazenamentoPage() {
         </p>
       </Card>
 
-      {/* ---------------------------------------------------------------- */}
-      {/* BACKUP — SÓ ADMIN                                                 */}
-      {/* ---------------------------------------------------------------- */}
-      {/*
-        Fora do alcance de funcionário mesmo com a tela aberta: um backup leva
-        junto contrato assinado e comprovante do financeiro, que só quem tem
-        acesso a esses módulos deveria conseguir levar embora num arquivo só.
-        A própria action confere de novo no servidor — isto aqui é só a tela.
-      */}
-      {perfil.role === "admin" && areasParaBackup.length > 0 && (
-        <Card>
-          <p className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
-            <IconDownload className="h-3.5 w-3.5" />
-            {t.backup.titulo}
-          </p>
-          <div className="mt-3">
-            <BackupDeArquivos areas={areasParaBackup} />
-          </div>
-        </Card>
-      )}
     </div>
   );
 }

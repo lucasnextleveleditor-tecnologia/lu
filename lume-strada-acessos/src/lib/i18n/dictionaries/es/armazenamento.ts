@@ -118,7 +118,44 @@ export const armazenamento: ArmazenamentoDict = {
     avisoNaoFeche: "No cierres esta pestaña hasta que termine la descarga.",
     nomeDoZip: "archivos-{data}",
     leiaMeNome: "LEEME.txt",
+    abaBaixar: "Descargar",
+    abaApagar: "Borrar",
     leiaMeCorpo:
       "Copia de los archivos del sistema — {data}\n\nCada carpeta de abajo es un área del sistema, y los archivos vienen con el mismo nombre que tienen allí dentro.\n\n{pastas}\n\nPara guardar en Drive: extrae este ZIP y arrastra las carpetas a la misma carpeta de siempre. La próxima vez que descargues, los nombres serán los mismos y la copia nueva simplemente actualiza la anterior, sin crear duplicados.\n\nLos PDFs de firma están aquí como copia de seguridad. También siguen en el sistema: allí está la prueba, con la fecha, el IP y el registro de quién firmó.\n",
+  },
+
+  apagar: {
+    intro:
+      "Marca lo que ya no necesita quedarse aquí y bórralo de una vez. Descárgalo antes: lo que sale de aquí no vuelve.",
+    avisoPermanente: "No se pueden recuperar los archivos borrados. No hay papelera — lo que borres desaparece para siempre.",
+    registroContinua:
+      "El registro sigue en el sistema: quién firmó, cuándo, desde qué IP y el historial de cada documento continúan en el panel. Lo que desaparece es el archivo en sí — y su botón de descarga deja de funcionar.",
+    baixeAntes: "¿Todavía no descargaste? Usa la pestaña “Descargar” antes de borrar nada.",
+
+    carregando: "Cargando los archivos…",
+    semArquivos: "No hay archivos en esta cuenta.",
+    marcarTudo: "Marcar todos",
+    verArquivos: "Ver archivos",
+    resumoDaArea: "{n} archivos · {tamanho}",
+    selecionado: "{n} marcados · {tamanho} a liberar",
+    nenhumSelecionado: "Nada marcado todavía",
+
+    avisoContratosTitulo: "¿Estás seguro? Marcaste documentos firmados.",
+    avisoContratosTexto:
+      "La hoja de comprobación (IP, fecha, navegador) va dentro del PDF firmado, y el hash impreso en ella solo sirve si todavía tienes el archivo original para comparar. Si borras los dos de aquí, la única copia que queda es la tuya — y si esa se pierde, la prueba se pierde con ella. Los contratos son además los archivos más livianos de la cuenta: borrarlos casi no libera espacio.",
+    avisoContratosCheck: "Ya descargué estos documentos y entiendo que estoy borrando la única copia del sistema.",
+
+    botaoApagar: "Borrar marcados",
+    confirmarTitulo: "Confirmar borrado",
+    confirmarTexto: "Vas a borrar {n} archivos y liberar {tamanho}. Esto es definitivo.",
+    confirmarDigite: "Escribe {palavra} para confirmar",
+    palavraConfirmacao: "BORRAR",
+    confirmarBotao: "Borrar definitivamente",
+    voltar: "Volver",
+
+    apagando: "Borrando {n} de {total}…",
+    concluido: "{n} archivos borrados — {tamanho} liberados.",
+    erroParcial: "Algunos archivos no se pudieron borrar:",
+    erro: "No pude borrar los archivos.",
   },
 };

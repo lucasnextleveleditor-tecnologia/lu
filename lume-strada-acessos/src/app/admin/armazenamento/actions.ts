@@ -133,3 +133,70 @@ export async function assinarArquivosDoBackup(
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }
 }
+
+/* ==================================================================== */
+/* APAGAR                                                               */
+/* ==================================================================== */
+
+const POR_LOTE_DE_EXCLUSAO = 100;
+
+export type ExclusaoFeita =
+  | { ok: true; apagados: number; falhas: string[] }
+  | { ok: false; error: string };
+
+/**
+ * Apaga arquivos do Storage. Definitivo — não há lixeira no Supabase Storage.
+ *
+ * Só as linhas do banco sobrevivem, e isso é de propósito: quem assinou um
+ * documento, quando e de qual IP continua registrado em
+ * `assinatura_signatarios` e `assinatura_eventos` mesmo depois de o PDF
+ * sumir. O que se perde é o arquivo — e com ele a possibilidade de conferir
+ * o hash contra o original. Quem apaga precisa ter baixado antes; a tela diz
+ * isso, e é por isso que a aba de baixar vem primeiro.
+ *
+ * Cada caminho é conferido contra o id da empresa de quem pediu, igual à
+ * assinatura de links: é essa checagem, e não a RLS, que impede alguém de
+ * apagar arquivo de outra empresa mandando um caminho inventado. Uma ação
+ * destrutiva com Service Role não pode depender de nada mais frouxo que isso.
+ */
+export async function apagarArquivosDoAcervo(
+  itens: { bucket: string; caminho: string }[]
+): Promise<ExclusaoFeita> {
+  try {
+    const { companyId } = await requireAdmin();
+    if (!companyId) return { ok: false, error: "Conta sem empresa vinculada." };
+    if (itens.length === 0) return { ok: true, apagados: 0, falhas: [] };
+    if (itens.length > POR_LOTE_DE_EXCLUSAO) {
+      return { ok: false, error: `Apague no máximo ${POR_LOTE_DE_EXCLUSAO} arquivos por vez.` };
+    }
+
+    const prefixo = `${companyId}/`;
+    if (itens.some((i) => !i.caminho.startsWith(prefixo) || i.caminho.includes("..")))
+      return { ok: false, error: "Caminho fora da sua empresa." };
+
+    const admin = createAdminClient();
+    const porBucket = new Map<string, string[]>();
+    for (const item of itens) {
+      const lista = porBucket.get(item.bucket);
+      if (lista) lista.push(item.caminho);
+      else porBucket.set(item.bucket, [item.caminho]);
+    }
+
+    let apagados = 0;
+    const falhas: string[] = [];
+    for (const [bucket, caminhos] of porBucket) {
+      const { data, error } = await admin.storage.from(bucket).remove(caminhos);
+      if (error) {
+        // Um bucket que falha não cancela os outros: melhor liberar o que dá
+        // e dizer o que sobrou do que não apagar nada.
+        falhas.push(`${bucket}: ${error.message}`);
+        continue;
+      }
+      apagados += (data ?? []).length;
+    }
+
+    return { ok: true, apagados, falhas };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}

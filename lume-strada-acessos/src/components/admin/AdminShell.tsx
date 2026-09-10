@@ -413,36 +413,49 @@ export function AdminShell({
         </div>
       </aside>
 
-      {/* Fixo no canto superior direito da VIEWPORT (não da sidebar/main), pra
-          ficar sempre no mesmo lugar em toda tela do painel — mesmo padrão de
-          posição usado na tela de login e no portal do cliente. */}
-      <div className="fixed right-4 top-4 z-30 flex items-center gap-2">
-        {/* O sino vem antes do tema e do idioma porque é o único dos três que
-            MUDA sozinho: os outros dois a pessoa procura quando quer, este
-            precisa ser encontrado sem procurar. */}
-        <SinoDeNotificacoes />
-        <ThemeToggle />
-        <LanguageSwitcher />
-
-        {/* Por último, na ponta direita da tela — é a posição de "quem está
-            aqui" em quase todo painel, e é onde o olho vai procurar. Some
-            abaixo de `sm` para não brigar por espaço com os três controles
-            numa tela estreita. */}
-        <Link
-          href="/admin/configuracoes?aba=conta"
-          title={email}
-          className="hidden items-center gap-2 rounded-full border border-base-700 bg-base-900/80 py-1.5 pl-1.5 pr-3.5 backdrop-blur-sm transition hover:border-base-600 hover:bg-base-900 sm:flex"
-        >
-          <Avatar nome={nome || email} fotoUrl={fotoUrl} className="h-6 w-6" tamanhoTexto="text-[10px]" />
-          <span className="max-w-[14rem] truncate text-sm text-ink-primary">{nome || email}</span>
-        </Link>
-      </div>
-
       {/* padding-left travado na largura RECOLHIDA de propósito — a sidebar
           expande por cima (fixed) ao passar o mouse, sem empurrar/redimensionar
           o conteúdo, então o `main` nunca precisa reagir ao hover. */}
       <main className="admin-bg-grid min-h-screen pl-[72px]">
-        <div className="mx-auto max-w-6xl px-6 py-8">
+        {/*
+          Barra de controles do topo — sino, tema, idioma e conta.
+
+          Ela OCUPA ESPAÇO no fluxo (`sticky`, com altura própria), e não
+          flutua por cima como antes (`fixed`). Flutuando, ela cobria o canto
+          superior direito de todas as telas, que é justamente onde quase toda
+          página do painel põe o seu botão principal — exportar em Relatórios,
+          "Ordem de Externa" em Produção. O resultado era um botão por baixo do
+          outro, mudando de página pra página conforme o cabeçalho de cada tela.
+          Reservando a faixa, nenhuma página precisa saber que esses controles
+          existem: o conteúdo simplesmente começa abaixo deles.
+
+          `sticky` e não estática pra continuar acessível ao rolar; o fundo
+          translúcido com desfoque existe por causa disso — sem ele, o conteúdo
+          passaria por trás dos botões durante a rolagem.
+        */}
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-end gap-2 border-b border-base-800/50 bg-base-950/75 px-4 backdrop-blur-md sm:px-6">
+          {/* O sino vem antes do tema e do idioma porque é o único dos três
+              que MUDA sozinho: os outros dois a pessoa procura quando quer,
+              este precisa ser encontrado sem procurar. */}
+          <SinoDeNotificacoes />
+          <ThemeToggle />
+          <LanguageSwitcher />
+
+          {/* Por último, na ponta direita — é a posição de "quem está aqui" em
+              quase todo painel, e é onde o olho vai procurar. Some abaixo de
+              `sm` para não brigar por espaço com os três controles numa tela
+              estreita. */}
+          <Link
+            href="/admin/configuracoes?aba=conta"
+            title={email}
+            className="hidden items-center gap-2 rounded-full border border-base-700 bg-base-900/80 py-1.5 pl-1.5 pr-3.5 transition hover:border-base-600 hover:bg-base-900 sm:flex"
+          >
+            <Avatar nome={nome || email} fotoUrl={fotoUrl} className="h-6 w-6" tamanhoTexto="text-[10px]" />
+            <span className="max-w-[14rem] truncate text-sm text-ink-primary">{nome || email}</span>
+          </Link>
+        </header>
+
+        <div className="mx-auto max-w-6xl px-6 pb-10 pt-6">
           {banner && <AnnouncementBanner {...banner} className="mb-6" />}
           {children}
         </div>

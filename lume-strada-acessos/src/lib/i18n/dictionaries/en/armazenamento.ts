@@ -118,7 +118,44 @@ export const armazenamento: ArmazenamentoDict = {
     avisoNaoFeche: "Don't close this tab until the download finishes.",
     nomeDoZip: "files-{data}",
     leiaMeNome: "README.txt",
+    abaBaixar: "Download",
+    abaApagar: "Delete",
     leiaMeCorpo:
       "Copy of the system's files — {data}\n\nEach folder below is an area of the system, and the files come with the same names they have in there.\n\n{pastas}\n\nTo keep this on Drive: unzip it and drag the folders into the same folder you always use. Next time you download, the names will be the same and the new copy simply updates the old one, without creating duplicates.\n\nThe signature PDFs are here as a safety copy. They also stay in the system: that's where the proof lives, with the date, the IP and the record of who signed.\n",
+  },
+
+  apagar: {
+    intro:
+      "Tick what no longer needs to live here and delete it in one go. Download it first: what leaves here doesn't come back.",
+    avisoPermanente: "Deleted files cannot be recovered. There is no bin — whatever you delete is gone for good.",
+    registroContinua:
+      "The record stays in the system: who signed, when, from which IP and each document's history remain in the panel. What disappears is the file itself — and its download button stops working.",
+    baixeAntes: "Haven't downloaded yet? Use the “Download” tab before deleting anything.",
+
+    carregando: "Loading the files…",
+    semArquivos: "There are no files in this account.",
+    marcarTudo: "Select all",
+    verArquivos: "See files",
+    resumoDaArea: "{n} files · {tamanho}",
+    selecionado: "{n} selected · {tamanho} to free up",
+    nenhumSelecionado: "Nothing selected yet",
+
+    avisoContratosTitulo: "Are you sure? You've selected signed documents.",
+    avisoContratosTexto:
+      "The proof sheet (IP, date, browser) sits inside the signed PDF, and the hash printed on it only helps if you still have the original file to compare against. Delete both from here and the only copy left is yours — if that one is lost, the proof is lost with it. Contracts are also the lightest files in the account: deleting them frees up almost nothing.",
+    avisoContratosCheck: "I've already downloaded these documents and understand I'm deleting the system's only copy.",
+
+    botaoApagar: "Delete selected",
+    confirmarTitulo: "Confirm deletion",
+    confirmarTexto: "You are about to delete {n} files and free up {tamanho}. This is permanent.",
+    confirmarDigite: "Type {palavra} to confirm",
+    palavraConfirmacao: "DELETE",
+    confirmarBotao: "Delete permanently",
+    voltar: "Back",
+
+    apagando: "Deleting {n} of {total}…",
+    concluido: "{n} files deleted — {tamanho} freed up.",
+    erroParcial: "Some files could not be deleted:",
+    erro: "I couldn't delete the files.",
   },
 };

@@ -18,12 +18,6 @@ export default async function SuperAdminLayout({ children }: { children: React.R
 
   return (
     <div className="min-h-screen bg-base-950 text-ink-primary">
-      {/* Sem `LanguageSwitcher` aqui de propósito (este painel não tem i18n —
-          ver comentário acima), mas o modo escuro/claro é preferência
-          pessoal e vale em toda tela do sistema, sem exceção. */}
-      <div className="fixed right-4 top-4 z-30">
-        <ThemeToggle />
-      </div>
       <header className="border-b border-base-800 bg-base-900/60 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2.5">
@@ -35,8 +29,14 @@ export default async function SuperAdminLayout({ children }: { children: React.R
               <p className="text-xs leading-tight text-ink-muted">Gestão de licenças do SaaS</p>
             </div>
           </div>
+          {/* Sem `LanguageSwitcher` aqui de propósito (este painel não tem
+              i18n — ver comentário acima), mas o modo escuro/claro é
+              preferência pessoal e vale em toda tela do sistema. Ele fica na
+              barra, e não flutuando no canto: flutuando, caía por cima do
+              menu e do botão de sair. */}
           <div className="flex items-center gap-3">
             <SuperAdminNav />
+            <ThemeToggle />
             <LogoutButton />
           </div>
         </div>
