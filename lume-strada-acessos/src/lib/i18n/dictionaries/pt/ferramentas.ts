@@ -49,6 +49,10 @@ export interface FerramentasDict {
   comprimirDescricao: string;
   comprimirMeta: string;
 
+  linkWhatsappTitulo: string;
+  linkWhatsappDescricao: string;
+  linkWhatsappMeta: string;
+
   comprimir: {
     subtitulo: string;
     arrasteAqui: string;
@@ -92,6 +96,41 @@ export interface FerramentasDict {
 
     /** Tudo que as três estratégias de compressão podem mostrar. */
     motor: TextosDoCompressor;
+  };
+
+  linkWhatsapp: {
+    subtitulo: string;
+    paisLabel: string;
+    numeroLabel: string;
+    numeroPlaceholder: string;
+    mensagemLabel: string;
+    mensagemPlaceholder: string;
+    mensagemDica: string;
+    sugestoesLabel: string;
+    sugestao1: string;
+    sugestao2: string;
+    sugestao3: string;
+
+    gerar: string;
+    seuLink: string;
+    copiar: string;
+    copiado: string;
+    abrir: string;
+    baixarQr: string;
+    qrLegenda: string;
+    limpar: string;
+
+    avisoDdiRepetido: string;
+    avisoZeroRemovido: string;
+    avisoNonoDigito: string;
+    avisoCurto: string;
+    avisoLongo: string;
+    numeroInvalido: string;
+
+    comoUsarTitulo: string;
+    comoUsar1: string;
+    comoUsar2: string;
+    comoUsar3: string;
   };
 }
 
@@ -138,6 +177,11 @@ export const ferramentas: FerramentasDict = {
   comprimirDescricao:
     "Vídeo, PDF ou imagem grande demais para mandar? Escolha o tamanho final e a conversão acontece aqui mesmo, no seu navegador.",
   comprimirMeta: "Não gasta armazenamento da conta",
+
+  linkWhatsappTitulo: "Gerador de Link do WhatsApp",
+  linkWhatsappDescricao:
+    "Um link que abre a conversa com a mensagem já escrita. Cole na bio, no site, no anúncio — quem clica só aperta enviar.",
+  linkWhatsappMeta: "Pronto em dez segundos",
 
   comprimir: {
     subtitulo:
@@ -243,5 +287,43 @@ export const ferramentas: FerramentasDict = {
         "A resolução caiu para {altura}p — no tamanho que você pediu, manter a original deixaria a imagem quadriculada.",
       avisoVideoJaComprimido: "O vídeo original já estava bem comprimido; recomprimir não ganhou espaço.",
     },
+  },
+
+  linkWhatsapp: {
+    subtitulo:
+      "Escolha o número, escreva a mensagem que a pessoa vai mandar e pegue o link. Quem clicar já abre a conversa com o texto digitado — só falta apertar enviar.",
+    paisLabel: "País",
+    numeroLabel: "Número com DDD",
+    numeroPlaceholder: "11 99999-9999",
+    mensagemLabel: "Mensagem que já vem escrita",
+    mensagemPlaceholder: "Vim pelo seu site",
+    mensagemDica: "Opcional. Sem mensagem, o link só abre a conversa em branco.",
+    sugestoesLabel: "Exemplos",
+    sugestao1: "Vim pelo seu site",
+    sugestao2: "Olá! Gostaria de um orçamento.",
+    sugestao3: "Vi seu trabalho no Instagram e queria conversar.",
+
+    gerar: "Gerar link",
+    seuLink: "Seu link",
+    copiar: "Copiar",
+    copiado: "Copiado!",
+    abrir: "Testar",
+    baixarQr: "Baixar QR Code",
+    qrLegenda: "Aponte a câmera e a conversa abre. Serve em cartão, flyer e no fim de um vídeo.",
+    limpar: "Limpar",
+
+    avisoDdiRepetido:
+      "Esse número já vinha com o código do país. Tirei o que estava repetido para o link não sair errado.",
+    avisoZeroRemovido: "Tirei o zero do DDD — ele é de ligação interurbana e não existe em número internacional.",
+    avisoNonoDigito:
+      "Este número tem 8 dígitos depois do DDD. Se for celular, falta o nono dígito (o 9 na frente); se for fixo, está certo assim.",
+    avisoCurto: "Esse número parece curto demais. Confira se o DDD está aí.",
+    avisoLongo: "Esse número passou de 15 dígitos, o máximo que existe no mundo. Confira se não repetiu o DDI.",
+    numeroInvalido: "Digite o número com DDD para gerar o link.",
+
+    comoUsarTitulo: "Onde colar",
+    comoUsar1: "Na bio do Instagram e do TikTok — é o botão de contato que não depende do algoritmo.",
+    comoUsar2: "No botão “Fale conosco” do site, no lugar de um formulário que ninguém responde.",
+    comoUsar3: "No QR Code impresso: cartão, orçamento em PDF, adesivo na câmera, final de vídeo.",
   },
 };

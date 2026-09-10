@@ -44,6 +44,11 @@ export const ferramentas: FerramentasDict = {
     "¿Video, PDF o imagen demasiado grande para enviar? Elige el tamaño final y la conversión ocurre aquí mismo, en tu navegador.",
   comprimirMeta: "No gasta almacenamiento de la cuenta",
 
+  linkWhatsappTitulo: "Generador de Enlace de WhatsApp",
+  linkWhatsappDescricao:
+    "Un enlace que abre la conversación con el mensaje ya escrito. Ponlo en la bio, en el sitio, en un anuncio — quien hace clic solo aprieta enviar.",
+  linkWhatsappMeta: "Listo en diez segundos",
+
   comprimir: {
     subtitulo:
       "Elige el archivo y el tamaño que necesita tener. La conversión ocurre en tu propio navegador — nada se envía a internet y nada ocupa el almacenamiento de tu cuenta.",
@@ -146,5 +151,42 @@ export const ferramentas: FerramentasDict = {
         "La resolución bajó a {altura}p — en el tamaño que pediste, mantener la original habría dejado la imagen cuadriculada.",
       avisoVideoJaComprimido: "El video original ya estaba bien comprimido; recomprimir no ganó espacio.",
     },
+  },
+
+  linkWhatsapp: {
+    subtitulo:
+      "Elige el número, escribe el mensaje que la persona va a mandar y toma el enlace. Quien haga clic entra a la conversación con el texto ya escrito — solo falta apretar enviar.",
+    paisLabel: "País",
+    numeroLabel: "Número con código de área",
+    numeroPlaceholder: "11 99999-9999",
+    mensagemLabel: "Mensaje que ya viene escrito",
+    mensagemPlaceholder: "Vine desde tu sitio",
+    mensagemDica: "Opcional. Sin mensaje, el enlace solo abre la conversación en blanco.",
+    sugestoesLabel: "Ejemplos",
+    sugestao1: "Vine desde tu sitio",
+    sugestao2: "¡Hola! Me gustaría un presupuesto.",
+    sugestao3: "Vi tu trabajo en Instagram y quería conversar.",
+
+    gerar: "Generar enlace",
+    seuLink: "Tu enlace",
+    copiar: "Copiar",
+    copiado: "¡Copiado!",
+    abrir: "Probar",
+    baixarQr: "Descargar código QR",
+    qrLegenda: "Apunta la cámara y se abre la conversación. Sirve en tarjeta, folleto y al final de un video.",
+    limpar: "Limpiar",
+
+    avisoDdiRepetido: "Ese número ya traía el código de país. Quité el repetido para que el enlace no salga mal.",
+    avisoZeroRemovido: "Quité el cero del código de área — es de llamada interurbana y no existe en un número internacional.",
+    avisoNonoDigito:
+      "Este número tiene 8 dígitos después del código de área. Si es celular, falta el noveno dígito (el 9 adelante); si es fijo, está bien así.",
+    avisoCurto: "Ese número parece demasiado corto. Revisa que esté el código de área.",
+    avisoLongo: "Ese número pasó de 15 dígitos, el máximo que existe en el mundo. Revisa que no hayas repetido el código de país.",
+    numeroInvalido: "Escribe el número con código de área para generar el enlace.",
+
+    comoUsarTitulo: "Dónde pegarlo",
+    comoUsar1: "En la bio de Instagram y TikTok — el botón de contacto que no depende del algoritmo.",
+    comoUsar2: "En el botón “Contáctanos” del sitio, en lugar de un formulario que nadie responde.",
+    comoUsar3: "En el código QR impreso: tarjeta, presupuesto en PDF, calcomanía en la cámara, final de un video.",
   },
 };

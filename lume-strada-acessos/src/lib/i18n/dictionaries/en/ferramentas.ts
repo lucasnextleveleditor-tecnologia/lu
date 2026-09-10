@@ -44,6 +44,11 @@ export const ferramentas: FerramentasDict = {
     "Video, PDF or image too big to send? Pick the final size and the conversion happens right here, in your browser.",
   comprimirMeta: "Uses none of your storage",
 
+  linkWhatsappTitulo: "WhatsApp Link Generator",
+  linkWhatsappDescricao:
+    "A link that opens the chat with the message already typed. Put it in your bio, your site, an ad — whoever clicks just hits send.",
+  linkWhatsappMeta: "Ready in ten seconds",
+
   comprimir: {
     subtitulo:
       "Pick the file and the size it needs to be. The conversion runs in your own browser — nothing is sent to the internet and nothing takes up your account's storage.",
@@ -146,5 +151,42 @@ export const ferramentas: FerramentasDict = {
         "Resolution dropped to {altura}p — at the size you asked for, keeping the original would have left the picture blocky.",
       avisoVideoJaComprimido: "The original video was already well compressed; recompressing gained no space.",
     },
+  },
+
+  linkWhatsapp: {
+    subtitulo:
+      "Pick the number, write the message the person will send, and take the link. Whoever clicks lands in the chat with the text already typed — all that's left is hitting send.",
+    paisLabel: "Country",
+    numeroLabel: "Number with area code",
+    numeroPlaceholder: "11 99999-9999",
+    mensagemLabel: "Message that comes pre-typed",
+    mensagemPlaceholder: "I came from your website",
+    mensagemDica: "Optional. With no message, the link just opens an empty chat.",
+    sugestoesLabel: "Examples",
+    sugestao1: "I came from your website",
+    sugestao2: "Hi! I'd like a quote.",
+    sugestao3: "I saw your work on Instagram and wanted to talk.",
+
+    gerar: "Generate link",
+    seuLink: "Your link",
+    copiar: "Copy",
+    copiado: "Copied!",
+    abrir: "Test it",
+    baixarQr: "Download QR code",
+    qrLegenda: "Point a camera at it and the chat opens. Works on a card, a flyer, the end of a video.",
+    limpar: "Clear",
+
+    avisoDdiRepetido: "That number already had the country code in it. I removed the duplicate so the link doesn't come out wrong.",
+    avisoZeroRemovido: "I dropped the leading zero from the area code — it's for domestic long distance and doesn't exist in an international number.",
+    avisoNonoDigito:
+      "This number has 8 digits after the area code. If it's a mobile, the ninth digit (a leading 9) is missing; if it's a landline, it's fine as is.",
+    avisoCurto: "That number looks too short. Check that the area code is there.",
+    avisoLongo: "That number went past 15 digits, the worldwide maximum. Check you didn't repeat the country code.",
+    numeroInvalido: "Type the number with its area code to generate the link.",
+
+    comoUsarTitulo: "Where to paste it",
+    comoUsar1: "In your Instagram and TikTok bio — the contact button that doesn't depend on the algorithm.",
+    comoUsar2: "On your site's “Contact us” button, instead of a form nobody answers.",
+    comoUsar3: "On a printed QR code: business card, PDF quote, sticker on the camera, end of a video.",
   },
 };
