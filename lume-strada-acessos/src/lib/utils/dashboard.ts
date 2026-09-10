@@ -7,8 +7,11 @@
 // um acidente. Matemática de data genérica, que não tem nada a ver com o
 // domínio de nenhum módulo, continua duplicada como sempre.
 
+import { todayISO } from "@/lib/utils/format";
+
+/** Delegado: o "hoje" do sistema mora em `todayISO` e respeita o fuso da agencia. */
 export function hojeISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayISO();
 }
 
 export function addMeses(referencia: Date, delta: number): Date {

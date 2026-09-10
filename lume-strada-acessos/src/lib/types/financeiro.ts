@@ -1,3 +1,4 @@
+import { todayISO } from "@/lib/utils/format";
 export type FinContexto = "pessoal" | "profissional";
 export type FinTipoTransacao = "receita" | "despesa" | "transferencia";
 export type FinRecorrencia = "semanal" | "mensal" | "anual";
@@ -157,7 +158,7 @@ export type StatusTransacao = "pendente" | "paga" | "vencida";
 
 export function calcularStatusTransacao(t: Pick<TransacaoRow, "pago" | "data_vencimento">): StatusTransacao {
   if (t.pago) return "paga";
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = todayISO();
   if (t.data_vencimento < hoje) return "vencida";
   return "pendente";
 }

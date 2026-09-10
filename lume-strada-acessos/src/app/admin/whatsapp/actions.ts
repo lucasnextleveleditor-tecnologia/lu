@@ -124,16 +124,30 @@ export async function desconectarSessao(): Promise<ActionResult> {
 // Inbox — contatos e mensagens
 // ----------------------------------------------------------------------------
 
-/** Mensagens de UM contato, mais antigas primeiro — buscadas sob demanda quando o atendente abre a conversa (nunca todo o histórico de todo mundo de uma vez). */
+/** Quantas mensagens da conversa vêm por vez. Bem abaixo do teto de 1000 linhas do PostgREST, para o corte nunca ser o dele. */
+const TETO_MENSAGENS = 300;
+
+/**
+ * Mensagens de UM contato, mais antigas primeiro — buscadas sob demanda
+ * quando o atendente abre a conversa (nunca todo o histórico de todo mundo
+ * de uma vez).
+ *
+ * A busca é feita da MAIS NOVA para a mais velha e invertida aqui. Antes
+ * era crescente e sem teto: passando de 1000 mensagens, o PostgREST cortava
+ * sozinho e o que sobrevivia eram as 1000 mais ANTIGAS — a conversa
+ * congelava meses atrás e a mensagem que acabara de chegar não aparecia,
+ * sem erro nenhum na tela.
+ */
 export async function listarMensagens(contatoId: string): Promise<MensagemWhatsappRow[]> {
   const { supabase } = await requireModulo("whatsapp");
   const { data } = await supabase
     .from("whatsapp_mensagens")
     .select("id, contato_id, direcao, tipo, conteudo, midia_url, status_entrega, external_message_id, enviado_por, created_at")
     .eq("contato_id", contatoId)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
+    .limit(TETO_MENSAGENS)
     .overrideTypes<MensagemWhatsappRow[], { merge: false }>();
-  return data ?? [];
+  return (data ?? []).slice().reverse();
 }
 
 export async function enviarMensagem(contatoId: string, conteudo: string): Promise<ActionResult> {

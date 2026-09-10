@@ -1,3 +1,4 @@
+import { todayISO } from "@/lib/utils/format";
 export type OrcCategoriaRow = {
   id: string;
   nome: string;
@@ -147,7 +148,7 @@ export function calcularTotalOrcamento(
 export function calcularStatusExibicao(o: Pick<OrcamentoRow, "status" | "data_expiracao">): StatusOrcamento {
   const jaDecidido = o.status === "aprovado" || o.status === "recusado";
   if (jaDecidido || o.status === "rascunho") return o.status;
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = todayISO();
   if (o.data_expiracao && o.data_expiracao < hoje) return "expirado";
   return o.status;
 }

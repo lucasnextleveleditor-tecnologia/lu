@@ -21,7 +21,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { IconPlus } from "@/components/ui/icons";
 import { NovoFornecedorModal } from "@/components/admin/financeiro/NovoFornecedorModal";
 import { AnexosTransacaoSection } from "@/components/admin/financeiro/AnexosTransacaoSection";
-import { fmtBRL, fmtMoedaEstrangeira } from "@/lib/utils/format";
+import { fmtBRL, fmtMoedaEstrangeira, todayISO } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -79,7 +79,7 @@ export function TransacaoModal({
   const [fornecedorModalAberto, setFornecedorModalAberto] = useState(false);
   const [recorrente, setRecorrente] = useState(editando?.recorrente ?? false);
   const [recorrenciaIntervalo, setRecorrenciaIntervalo] = useState<FinRecorrencia>(editando?.recorrencia_intervalo ?? "mensal");
-  const [dataVencimento, setDataVencimento] = useState(editando?.data_vencimento ?? new Date().toISOString().slice(0, 10));
+  const [dataVencimento, setDataVencimento] = useState(editando?.data_vencimento ?? todayISO());
   const [jaPaga, setJaPaga] = useState(editando?.pago ?? true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -1,5 +1,6 @@
 import type { PrioridadeTarefa, StatusAprovacaoVersao, StatusTarefa, SubtarefaRow, TarefaRow } from "@/lib/types/producao";
 import type { Tone } from "@/lib/utils/tone";
+import { todayISO } from "@/lib/utils/format";
 
 /**
  * Limite de tamanho pra upload de versão de entrega — só um AVISO pro
@@ -49,7 +50,7 @@ export const STATUS_APROVACAO_META: Record<StatusAprovacaoVersao, { label: strin
 
 export function isTarefaAtrasada(tarefa: Pick<TarefaRow, "data_entrega" | "status">): boolean {
   if (!tarefa.data_entrega || tarefa.status === "concluida") return false;
-  return tarefa.data_entrega < new Date().toISOString().slice(0, 10);
+  return tarefa.data_entrega < todayISO();
 }
 
 export function calcularProgressoSubtarefas(subtarefas: Pick<SubtarefaRow, "concluida">[]): {

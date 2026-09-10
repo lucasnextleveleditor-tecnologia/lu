@@ -1,8 +1,25 @@
-/** Data de hoje em ISO (yyyy-mm-dd), respeitando o fuso local do servidor/navegador. */
+/**
+ * O fuso em que o sistema pensa. Datas como vencimento, entrega e
+ * expiracao sao dias de calendario da agencia, nao instantes.
+ */
+export const FUSO_APP = "America/Sao_Paulo";
+
+/**
+ * Data de hoje (yyyy-mm-dd) no fuso da agencia — nao no fuso do processo.
+ *
+ * A versao anterior usava o fuso local, e o servidor roda em UTC: das 21h a
+ * meia-noite no Brasil, "hoje" no servidor ja era amanha. Isso marcava
+ * orcamento como expirado 3 horas antes da hora e datava lancamento
+ * financeiro no dia seguinte. `en-CA` porque e o locale que formata
+ * exatamente como yyyy-mm-dd.
+ */
 export function todayISO(): string {
-  const d = new Date();
-  const tz = d.getTimezoneOffset() * 60000;
-  return new Date(d.getTime() - tz).toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: FUSO_APP,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
 
 export function addDaysISO(iso: string, delta: number): string {

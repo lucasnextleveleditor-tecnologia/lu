@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -14,7 +15,9 @@ export const dynamic = "force-dynamic";
  *   Configuration -> Webhook). Precisa responder com o valor de
  *   `hub.challenge` se `hub.verify_token` bater com
  *   `WHATSAPP_CLOUD_API_VERIFY_TOKEN`.
- * - POST: eventos de verdade (mensagem recebida, status de entrega/leitura).
+ * - POST: eventos de verdade (mensagem recebida, status de entrega/leitura),
+ *   ASSINADOS pela Meta em `X-Hub-Signature-256` (HMAC-SHA256 do corpo cru
+ *   com o App Secret). Sem assinatura válida, recusa.
  *
  * MULTI-TENANT (mesma limitação de propósito documentada em
  * `src/lib/whatsapp/provider.ts`): a Cloud API está implementada hoje como
@@ -25,6 +28,33 @@ export const dynamic = "force-dynamic";
  */
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Confere que o evento veio mesmo da Meta.
+ *
+ * O `?company_id=` da URL NÃO é segredo: ele é o primeiro segmento do
+ * caminho dos buckets públicos (logo da tela de login, imagens de
+ * portfólio numa proposta pública), então qualquer um consegue lê-lo. Sem
+ * esta checagem, bastava esse UUID para injetar contatos e "mensagens
+ * recebidas" falsas no inbox da agência — o golpe óbvio sendo uma mensagem
+ * que parece vir do cliente real pedindo para trocar a conta de depósito.
+ *
+ * A Meta assina o CORPO CRU com HMAC-SHA256; por isso o corpo é lido como
+ * texto e só depois convertido em JSON — reserializar mudaria os bytes e
+ * a assinatura nunca bateria. Falha fechado: sem App Secret configurado,
+ * recusa tudo, nunca abre em aberto.
+ */
+function assinaturaConfere(corpoCru: string, cabecalho: string | null): boolean {
+  const segredo = process.env.WHATSAPP_CLOUD_API_APP_SECRET;
+  if (!segredo || !cabecalho?.startsWith("sha256=")) return false;
+
+  const esperado = createHmac("sha256", segredo).update(corpoCru, "utf8").digest();
+  const recebido = Buffer.from(cabecalho.slice("sha256=".length), "hex");
+  // Comparação de tamanho tem de vir antes: `timingSafeEqual` lança quando
+  // os buffers têm comprimentos diferentes.
+  if (recebido.length !== esperado.length) return false;
+  return timingSafeEqual(recebido, esperado);
+}
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -52,9 +82,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "URL do webhook sem ?company_id= válido." }, { status: 400 });
   }
 
+  const corpoCru = await req.text();
+  if (!assinaturaConfere(corpoCru, req.headers.get("x-hub-signature-256"))) {
+    return NextResponse.json({ error: "Assinatura inválida." }, { status: 401 });
+  }
+
   let payload: unknown;
   try {
-    payload = await req.json();
+    payload = JSON.parse(corpoCru);
   } catch {
     return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
   }

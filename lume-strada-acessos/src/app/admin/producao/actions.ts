@@ -354,7 +354,16 @@ export async function confirmarVersaoArquivo(
   input: { path: string; versao: number; nomeArquivo: string; tamanhoBytes: number; tipoMime: string | null }
 ): Promise<UploadResult> {
   try {
-    const { supabase, user } = await requireModulo("producao");
+    const { supabase, user, companyId } = await requireModulo("producao");
+
+    // O caminho volta do NAVEGADOR entre os dois passos, então tem de ser
+    // conferido de novo. Só o download da equipe passa pela policy do
+    // bucket (que exige a pasta da empresa); o portal do cliente assina a
+    // URL com Service Role, ignorando a RLS — um caminho de outra empresa
+    // gravado aqui viraria download liberado lá.
+    if (!input.path.startsWith(`${companyId}/`)) {
+      return { ok: false, error: "Caminho de arquivo inválido." };
+    }
 
     const { data, error } = await supabase
       .from("prod_entrega_versoes")

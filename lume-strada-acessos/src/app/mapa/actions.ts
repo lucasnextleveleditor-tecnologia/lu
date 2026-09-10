@@ -117,15 +117,24 @@ export async function restaurarNosPublico(token: string, nos: Record<string, unk
   const { admin, mapa } = aberto;
   if (nos.length === 0) return { ok: true };
 
+  // Os pais que o navegador manda precisam ser nós DESTE mapa. As irmãs
+  // (`adicionarNoPublico`, `salvarNoPublico`) já conferiam; esta não, e um
+  // `pai_id` de outro mapa pendurava o nó restaurado numa árvore alheia —
+  // ou servia para sondar quais ids existem, pela diferença de erro.
+  const { data: existentes } = await admin.from("mapa_nos").select("id").eq("mapa_id", mapa.id);
+  const daCasa = new Set((existentes ?? []).map((n) => n.id as string));
+  for (const no of nos) if (typeof no.id === "string") daCasa.add(no.id);
+
   for (const no of nos) {
     const permitidos = Object.fromEntries(
       Object.entries(no).filter(([chave]) => (CAMPOS_NO as readonly string[]).includes(chave))
     );
+    const pai = typeof no.pai_id === "string" && daCasa.has(no.pai_id) ? no.pai_id : null;
     const { error } = await admin.from("mapa_nos").insert({
       id: no.id,
       mapa_id: mapa.id,
       company_id: mapa.company_id,
-      pai_id: no.pai_id ?? null,
+      pai_id: pai,
       ...permitidos,
     });
     if (error && error.code !== "23505") return { ok: false, error: error.message };

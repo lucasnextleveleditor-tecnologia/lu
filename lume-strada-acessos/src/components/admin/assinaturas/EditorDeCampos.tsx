@@ -155,12 +155,25 @@ export function EditorDeCampos({
     arrastando.current = null;
     if (!d) return;
     const campo = campos.find((c) => c.id === d.campoId);
-    if (campo) void moverCampo(doc.id, campo.id, { x: campo.x, y: campo.y });
+    if (!campo) return;
+    // A falha PRECISA aparecer. A tela já moveu o campo (otimista); se o
+    // servidor recusar em silêncio, o admin manda o documento acreditando
+    // que a assinatura está no rodapé, e o PDF sai com ela no lugar antigo.
+    void moverCampo(doc.id, campo.id, { x: campo.x, y: campo.y }).then((r) => {
+      if (!r.ok) setErro(r.error);
+    });
   }
 
   function apagarCampo(id: string) {
+    const removido = campos.find((c) => c.id === id);
     setCampos((atual) => atual.filter((c) => c.id !== id));
-    void removerCampo(doc.id, id);
+    void removerCampo(doc.id, id).then((r) => {
+      if (r.ok || !removido) return;
+      // Campo que sumiu da tela mas continua no banco volta a ser assinável
+      // no link público — devolve o campo e conta o que aconteceu.
+      setErro(r.error);
+      setCampos((atual) => (atual.some((c) => c.id === id) ? atual : [...atual, removido]));
+    });
   }
 
   const paginas = Array.from({ length: Math.max(1, doc.paginas) }, (_, i) => i);

@@ -4,7 +4,7 @@ import { requireQualquerModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import type { AnotacaoRow, LeadComRelacoes, LeadRow } from "@/lib/types/comercial";
 import type { TipoServicoRow } from "@/lib/types/producao";
 import { leadEstaAberto } from "@/lib/utils/comercial";
-import { fmtBRL, fmtPercent } from "@/lib/utils/format";
+import { fmtBRL, fmtPercent, todayISO } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
 import { Button } from "@/components/ui/Button";
 import { IconTarget, IconTrendingUp, IconCheckCircle, IconAlertTriangle, IconClipboardList, IconPercent, IconColumns, IconList, IconShieldCheck, IconPlus } from "@/components/ui/icons";
@@ -114,9 +114,11 @@ export default async function ComercialHubPage({ searchParams }: { searchParams:
     const perdidos = leadsComRelacoes.filter((l) => l.status === "perdido");
     const taxaConversao = fechados.length + perdidos.length > 0 ? fechados.length / (fechados.length + perdidos.length) : null;
 
-    const inicioMes = new Date();
-    inicioMes.setDate(1);
-    const inicioMesIso = inicioMes.toISOString().slice(0, 10);
+    // Dia 1 derivado de `todayISO()`, sem passar por `Date`: a versão anterior
+    // mexia no calendário local com `setDate(1)` e reconvertia para UTC com
+    // `toISOString()`, o que jogava o corte para o dia 2 e descartava os leads
+    // ganhos no dia 1º.
+    const inicioMesIso = `${todayISO().slice(0, 7)}-01`;
     const fechadosNoMes = fechados.filter((l) => l.updated_at.slice(0, 10) >= inicioMesIso);
 
     dadosLeads = {
@@ -126,7 +128,7 @@ export default async function ComercialHubPage({ searchParams }: { searchParams:
       totalEmNegociacao,
       taxaConversao,
       fechadosNoMesCount: fechadosNoMes.length,
-      followupsAtrasadosCount: leadsAbertos.filter((l) => l.proximo_contato_em && l.proximo_contato_em < new Date().toISOString().slice(0, 10)).length,
+      followupsAtrasadosCount: leadsAbertos.filter((l) => l.proximo_contato_em && l.proximo_contato_em < todayISO()).length,
       leadsAbertosCount: leadsAbertos.length,
       ganhosCount: fechados.length,
       perdidosCount: perdidos.length,

@@ -36,10 +36,19 @@ export const STATUS_TRANSACAO_META: Record<StatusTransacao, { label: string; ton
  */
 export const PALETA_CATEGORIAS = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9"] as const;
 
-/** Primeiro e último dia (ISO) do mês de um `Date` — usado na navegação mensal do dashboard. */
+/**
+ * Primeiro e último dia (ISO) do mês de um `Date` — usado na navegação
+ * mensal do dashboard.
+ *
+ * Lê a referência em UTC, e não no fuso local, porque é assim que ela nasce:
+ * `parseMesParam`, `addMeses` e `gradeDoMes` montam todas com `Date.UTC`, e
+ * `fmtMesAno` a imprime com `timeZone: "UTC"`. Lendo com `getMonth()` local,
+ * num fuso atrás de UTC o mês voltava um: o cabeçalho dizia "agosto" e os
+ * totais embaixo eram de julho.
+ */
 export function limitesDoMes(referencia: Date): { inicio: string; fim: string } {
-  const ano = referencia.getFullYear();
-  const mes = referencia.getMonth();
+  const ano = referencia.getUTCFullYear();
+  const mes = referencia.getUTCMonth();
   const inicio = new Date(Date.UTC(ano, mes, 1)).toISOString().slice(0, 10);
   const fim = new Date(Date.UTC(ano, mes + 1, 0)).toISOString().slice(0, 10);
   return { inicio, fim };
@@ -47,7 +56,7 @@ export function limitesDoMes(referencia: Date): { inicio: string; fim: string } 
 
 /** Primeiro e último dia (ISO) do ano de um `Date` — mesmo espírito de `limitesDoMes`, usado pra agregar o faturamento anual do módulo Objetivos. */
 export function limitesDoAno(referencia: Date): { inicio: string; fim: string } {
-  const ano = referencia.getFullYear();
+  const ano = referencia.getUTCFullYear();
   const inicio = new Date(Date.UTC(ano, 0, 1)).toISOString().slice(0, 10);
   const fim = new Date(Date.UTC(ano, 11, 31)).toISOString().slice(0, 10);
   return { inicio, fim };

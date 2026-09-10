@@ -7,9 +7,11 @@
 import type { ComponentType, SVGProps } from "react";
 import type { TipoCompromisso } from "@/lib/types/agenda";
 import { IconCamera, IconUsers, IconExternalLink, IconDollarSign } from "@/components/ui/icons";
+import { todayISO } from "@/lib/utils/format";
 
+/** Delegado: o "hoje" do sistema mora em `todayISO` e respeita o fuso da agencia. */
 export function hojeISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayISO();
 }
 
 export function addMeses(referencia: Date, delta: number): Date {

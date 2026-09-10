@@ -12,6 +12,7 @@ import { IconChevronLeft, IconChevronRight, IconExternalLink } from "@/component
 import { DiaTarefasModal } from "@/components/admin/producao/DiaTarefasModal";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { todayISO } from "@/lib/utils/format";
 
 interface CalendarioTarefasProps {
   tarefas: TarefaComRelacoes[];
@@ -40,7 +41,7 @@ export function CalendarioTarefas({ tarefas, compromissosAgenda, onAbrirTarefa, 
   });
   const [diaExpandido, setDiaExpandido] = useState<string | null>(null);
 
-  const hojeIso = new Date().toISOString().slice(0, 10);
+  const hojeIso = todayISO();
   const semanas = gradeDoMes(referencia);
 
   const tarefasPorDia = new Map<string, TarefaComRelacoes[]>();

@@ -17,6 +17,42 @@ import type {
 
 export type RelatorioResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
+/**
+ * Traz TODAS as linhas de uma consulta, em páginas.
+ *
+ * O PostgREST devolve no máximo 1000 linhas e NÃO avisa que cortou. Num
+ * relatório isso é o pior tipo de erro: o número sai menor e plausível.
+ * Uma agência com mais de mil tarefas via "83 concluídas" onde foram 140 —
+ * e usava isso para avaliar a equipe.
+ *
+ * Recebe uma função que monta a consulta para cada faixa, porque um
+ * construtor do supabase-js só pode ser executado uma vez.
+ */
+const PAGINA = 1000;
+/** Teto de sanidade: passar disto é sinal de consulta sem filtro, não de relatório grande. */
+const TETO_LINHAS = 100_000;
+
+async function todasAsLinhas<T>(
+  faixa: (de: number, ate: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>
+): Promise<{ data: T[]; error: { message: string } | null }> {
+  const tudo: T[] = [];
+  for (let de = 0; de < TETO_LINHAS; de += PAGINA) {
+    const { data, error } = await faixa(de, de + PAGINA - 1);
+    if (error) return { data: tudo, error };
+    const lote = data ?? [];
+    tudo.push(...lote);
+    if (lote.length < PAGINA) break;
+  }
+  return { data: tudo, error: null };
+}
+
+/** Quebra uma lista de ids em lotes para o filtro `in` — milhares de UUIDs numa query string viram `414 URI Too Long`, e o erro é engolido. */
+function emLotes<T>(itens: T[], tamanho = 200): T[][] {
+  const lotes: T[][] = [];
+  for (let i = 0; i < itens.length; i += tamanho) lotes.push(itens.slice(i, i + tamanho));
+  return lotes;
+}
+
 /** Todos os dias ISO entre `inicio` e `fim` (inclusive) — usado pra preencher com zero os dias sem lançamento, senão o gráfico de linha "pula" no eixo X em vez de mostrar o vale. */
 function todosOsDiasEntre(inicio: string, fim: string): string[] {
   const dias: string[] = [];
@@ -49,14 +85,17 @@ export async function buscarRelatorioFinanceiro(dataInicio: string, dataFim: str
     const { supabase } = await requireModulo("financeiro");
 
     const [transacoesRes, categoriasRes] = await Promise.all([
-      supabase
-        .from("fin_transacoes")
-        .select("tipo, valor, data_vencimento, categoria_id")
-        .eq("contexto", "profissional")
-        .in("tipo", ["receita", "despesa"])
-        .gte("data_vencimento", dataInicio)
-        .lte("data_vencimento", dataFim)
-        .overrideTypes<{ tipo: "receita" | "despesa"; valor: number; data_vencimento: string; categoria_id: string | null }[], { merge: false }>(),
+      todasAsLinhas((de, ate) =>
+        supabase
+          .from("fin_transacoes")
+          .select("tipo, valor, data_vencimento, categoria_id")
+          .eq("contexto", "profissional")
+          .in("tipo", ["receita", "despesa"])
+          .gte("data_vencimento", dataInicio)
+          .lte("data_vencimento", dataFim)
+          .range(de, ate)
+          .overrideTypes<{ tipo: "receita" | "despesa"; valor: number; data_vencimento: string; categoria_id: string | null }[], { merge: false }>()
+      ),
       supabase.from("fin_categorias").select("id, nome, cor, emoji").overrideTypes<{ id: string; nome: string; cor: string | null; emoji: string | null }[], { merge: false }>(),
     ]);
 
@@ -128,12 +167,15 @@ export async function buscarRelatorioComercial(dataInicio: string, dataFim: stri
     const { supabase } = await requireModulo("comercial");
 
     const fimExclusivo = `${dataFim}T23:59:59.999`;
-    const { data, error } = await supabase
-      .from("crm_leads")
-      .select("id, status, valor_estimado, created_at, convertido_em")
-      .gte("created_at", `${dataInicio}T00:00:00`)
-      .lte("created_at", fimExclusivo)
-      .overrideTypes<{ id: string; status: StatusLead; valor_estimado: number | null; created_at: string; convertido_em: string | null }[], { merge: false }>();
+    const { data, error } = await todasAsLinhas((de, ate) =>
+      supabase
+        .from("crm_leads")
+        .select("id, status, valor_estimado, created_at, convertido_em")
+        .gte("created_at", `${dataInicio}T00:00:00`)
+        .lte("created_at", fimExclusivo)
+        .range(de, ate)
+        .overrideTypes<{ id: string; status: StatusLead; valor_estimado: number | null; created_at: string; convertido_em: string | null }[], { merge: false }>()
+    );
 
     if (error) return { ok: false, error: error.message };
 
@@ -188,13 +230,16 @@ export async function buscarRelatorioProducao(dataInicio: string, dataFim: strin
     const { supabase } = await requireModulo("producao");
 
     const [tarefasRes, funcionariosRes] = await Promise.all([
-      supabase
-        .from("prod_tarefas")
-        .select("id, status, responsavel_id, data_entrega, created_at, updated_at")
-        .overrideTypes<
-          { id: string; status: StatusTarefa; responsavel_id: string | null; data_entrega: string | null; created_at: string; updated_at: string }[],
-          { merge: false }
-        >(),
+      todasAsLinhas((de, ate) =>
+        supabase
+          .from("prod_tarefas")
+          .select("id, status, responsavel_id, data_entrega, created_at, updated_at")
+          .range(de, ate)
+          .overrideTypes<
+            { id: string; status: StatusTarefa; responsavel_id: string | null; data_entrega: string | null; created_at: string; updated_at: string }[],
+            { merge: false }
+          >()
+      ),
       supabase.from("prod_funcionarios").select("id, nome").overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
     ]);
 
@@ -260,11 +305,13 @@ export async function buscarRelatorioTrafego(dataInicio: string, dataFim: string
     const { supabase } = await requireModulo("trafego");
 
     const [anunciosRes, fechamentosRes, clientesRes] = await Promise.all([
-      supabase
+      todasAsLinhas((de, ate) =>
+        supabase
         .from("anuncios_tracking")
         .select("data, investimento, receita_bruta, taxa_percentual, taxa_fixa, vendas_principal, vendas_order_bump")
         .gte("data", dataInicio)
         .lte("data", dataFim)
+        .range(de, ate)
         .overrideTypes<
           {
             data: string;
@@ -276,7 +323,8 @@ export async function buscarRelatorioTrafego(dataInicio: string, dataFim: string
             vendas_order_bump: number;
           }[],
           { merge: false }
-        >(),
+        >()
+      ),
       supabase
         .from("fechamentos_semanais")
         .select("semana_inicio, semana_fim, reembolsos, lucro_liquido_real")
@@ -320,29 +368,43 @@ export async function buscarRelatorioTrafego(dataInicio: string, dataFim: string
     // duas idas só (metas primeiro, registros depois, filtrando pelos ids
     // das metas encontradas), mesmo padrão de duas idas usado no Dashboard.
     const clienteIds = clientes.map((c) => c.id);
-    const { data: metas } = clienteIds.length
-      ? await supabase
+    // Em lotes, e paginado: um relatório de doze meses com trinta clientes
+    // chega a milhares de ids num filtro `in`, o que estoura o tamanho da
+    // URL (`414`) — e o erro era engolido, deixando o bloco "investimento
+    // por cliente" vazio como se ninguém tivesse investido nada.
+    const metas: { id: string; cliente_id: string }[] = [];
+    for (const lote of emLotes(clienteIds)) {
+      const { data } = await todasAsLinhas((de, ate) =>
+        supabase
           .from("metas_diarias")
           .select("id, cliente_id")
           .gte("data", dataInicio)
           .lte("data", dataFim)
-          .in("cliente_id", clienteIds)
+          .in("cliente_id", lote)
+          .range(de, ate)
           .overrideTypes<{ id: string; cliente_id: string }[], { merge: false }>()
-      : { data: [] as { id: string; cliente_id: string }[] };
+      );
+      metas.push(...data);
+    }
 
-    const clientePorMeta = new Map((metas ?? []).map((m) => [m.id, m.cliente_id]));
-    const metaIds = (metas ?? []).map((m) => m.id);
+    const clientePorMeta = new Map(metas.map((m) => [m.id, m.cliente_id]));
+    const metaIds = metas.map((m) => m.id);
 
-    const { data: registros } = metaIds.length
-      ? await supabase
+    const registros: { meta_id: string; valor_investido: number; leads_gerados: number }[] = [];
+    for (const lote of emLotes(metaIds)) {
+      const { data } = await todasAsLinhas((de, ate) =>
+        supabase
           .from("trafego_registros")
           .select("meta_id, valor_investido, leads_gerados")
-          .in("meta_id", metaIds)
+          .in("meta_id", lote)
+          .range(de, ate)
           .overrideTypes<{ meta_id: string; valor_investido: number; leads_gerados: number }[], { merge: false }>()
-      : { data: [] as { meta_id: string; valor_investido: number; leads_gerados: number }[] };
+      );
+      registros.push(...data);
+    }
 
     const porCliente = new Map<string, { investido: number; leads: number }>();
-    for (const r of registros ?? []) {
+    for (const r of registros) {
       const clienteId = clientePorMeta.get(r.meta_id);
       if (!clienteId) continue;
       const atual = porCliente.get(clienteId) ?? { investido: 0, leads: 0 };
@@ -391,13 +453,16 @@ export async function buscarRelatorioInventario(): Promise<RelatorioResult<Relat
   try {
     const { supabase } = await requireModulo("inventario");
 
-    const { data, error } = await supabase
-      .from("itens_inventario")
-      .select("id, categoria_id, status, valor_pago, valor_atual, categorias_inventario(nome)")
-      .overrideTypes<
-        { id: string; categoria_id: string; status: string; valor_pago: number | null; valor_atual: number | null; categorias_inventario: { nome: string } | null }[],
-        { merge: false }
-      >();
+    const { data, error } = await todasAsLinhas((de, ate) =>
+      supabase
+        .from("itens_inventario")
+        .select("id, categoria_id, status, valor_pago, valor_atual, categorias_inventario(nome)")
+        .range(de, ate)
+        .overrideTypes<
+          { id: string; categoria_id: string; status: string; valor_pago: number | null; valor_atual: number | null; categorias_inventario: { nome: string } | null }[],
+          { merge: false }
+        >()
+    );
 
     if (error) return { ok: false, error: error.message };
 

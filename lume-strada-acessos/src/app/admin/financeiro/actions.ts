@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
 import type { FinContexto, FinRecorrencia, FinTipoTransacao, MoedaEstrangeira, TipoAnexoTransacao, TransacaoAnexoRow } from "@/lib/types/financeiro";
-import { addDaysISO, addMonthsISO } from "@/lib/utils/format";
+import { addDaysISO, addMonthsISO, todayISO } from "@/lib/utils/format";
 import { ehExtensaoPerigosaParaEntrega } from "@/lib/utils/upload";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -656,7 +656,7 @@ export async function buscarCotacao(moeda: MoedaEstrangeira): Promise<CotacaoRes
     const dados = (await resposta.json()) as { rates?: Record<string, number>; date?: string };
     const taxa = dados.rates?.BRL;
     if (typeof taxa !== "number") return { ok: false, error: "Cotação indisponível no momento." };
-    return { ok: true, taxa, dataCotacao: dados.date ?? new Date().toISOString().slice(0, 10) };
+    return { ok: true, taxa, dataCotacao: dados.date ?? todayISO() };
   } catch {
     return { ok: false, error: "Não foi possível buscar a cotação — verifique sua conexão e tente de novo." };
   }
@@ -815,7 +815,14 @@ export async function confirmarAnexoTransacao(
   input: { path: string; nomeArquivo: string; tamanhoBytes: number; tipoMime: string | null }
 ): Promise<ActionResultId> {
   try {
-    const { supabase, user } = await requireModulo("financeiro");
+    const { supabase, user, companyId } = await requireModulo("financeiro");
+
+    // Mesmo cuidado de `confirmarVersaoArquivo`: o caminho volta do
+    // navegador entre os dois passos do upload e precisa ser reconferido.
+    if (!input.path.startsWith(`${companyId}/`)) {
+      return { ok: false, error: "Caminho de arquivo inválido." };
+    }
+
     const { data, error } = await supabase
       .from("fin_transacao_anexos")
       .insert({

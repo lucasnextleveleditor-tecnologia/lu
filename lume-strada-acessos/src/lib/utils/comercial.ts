@@ -1,5 +1,6 @@
 import type { LeadRow, OrigemLead, StatusLead } from "@/lib/types/comercial";
 import type { Tone } from "@/lib/utils/tone";
+import { todayISO } from "@/lib/utils/format";
 
 /** Ordem fixa das colunas do funil (Kanban). */
 export const STATUS_LEAD_ORDEM: StatusLead[] = [
@@ -37,7 +38,7 @@ export function leadEstaAberto(lead: Pick<LeadRow, "status">): boolean {
 
 export function isFollowUpAtrasado(lead: Pick<LeadRow, "proximo_contato_em" | "status">): boolean {
   if (!lead.proximo_contato_em || !leadEstaAberto(lead)) return false;
-  return lead.proximo_contato_em < new Date().toISOString().slice(0, 10);
+  return lead.proximo_contato_em < todayISO();
 }
 
 // ----------------------------------------------------------------------------
