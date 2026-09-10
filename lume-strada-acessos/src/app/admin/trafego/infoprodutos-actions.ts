@@ -5,6 +5,7 @@ import { requireModulo } from "@/lib/auth/requireAdmin";
 import { segundaFeiraISO, domingoISO, calcularReceitaLiquida } from "@/lib/utils/infoprodutos";
 import { ehImagemPermitida, ehVideoPermitido } from "@/lib/utils/upload";
 import type { TipoProduto } from "@/lib/types/infoprodutos";
+import { resolverMidiaDeLink, SERVICOS_ACEITOS } from "@/lib/utils/midia-link";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
@@ -374,6 +375,37 @@ export async function confirmarCriativo(anuncioId: string, input: { path: string
   }
 }
 
+/**
+ * O criativo por LINK, no lugar do arquivo.
+ *
+ * Um MP4 de anúncio é o arquivo mais pesado que passa pelo sistema, e é o
+ * que menos precisa estar aqui: ele já vive no Drive ou no YouTube de quem
+ * fez. Guardamos o endereço e apagamos o arquivo antigo, se havia — deixar
+ * os dois seria pagar armazenamento por algo que ninguém mais mostra.
+ */
+export async function definirCriativoLink(anuncioId: string, url: string): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("trafego");
+    const link = url.trim();
+    if (!link) return { ok: false, error: "Cole um link." };
+    if (!resolverMidiaDeLink(link)) return { ok: false, error: `Link não reconhecido. Aceitamos ${SERVICOS_ACEITOS}.` };
+
+    const { data: anuncio } = await supabase.from("anuncios_tracking").select("criativo_path").eq("id", anuncioId).single();
+    if (anuncio?.criativo_path) await supabase.storage.from(BUCKET).remove([anuncio.criativo_path]);
+
+    const { error } = await supabase
+      .from("anuncios_tracking")
+      .update({ criativo_link: link, criativo_path: null, criativo_tipo: null })
+      .eq("id", anuncioId);
+    if (error) return { ok: false, error: error.message };
+
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
 export async function removerCriativo(anuncioId: string): Promise<ActionResult> {
   try {
     const { supabase } = await requireModulo("trafego");
@@ -385,7 +417,7 @@ export async function removerCriativo(anuncioId: string): Promise<ActionResult> 
 
     const { error } = await supabase
       .from("anuncios_tracking")
-      .update({ criativo_path: null, criativo_tipo: null })
+      .update({ criativo_path: null, criativo_tipo: null, criativo_link: null })
       .eq("id", anuncioId);
     if (error) return { ok: false, error: error.message };
 

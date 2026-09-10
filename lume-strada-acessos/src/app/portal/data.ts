@@ -77,7 +77,11 @@ export async function buscarPortalPorToken(token: string): Promise<PortalCliente
     .map((link) => link.orc_portfolio_itens)
     .filter((item): item is PortfolioItemRow => !!item)
     .filter((item) => (vistos.has(item.id) ? false : (vistos.add(item.id), true)))
-    .map((item) => ({ ...item, url: admin.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl }));
+    .map((item) => ({
+      ...item,
+      url: item.path ? admin.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl : (item.link_url ?? ""),
+      ehLink: !item.path && Boolean(item.link_url),
+    }));
 
   const timeline: TimelineEventoPortal[] = [];
   for (const o of orcamentosResolvidos) {

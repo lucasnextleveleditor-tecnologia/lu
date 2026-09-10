@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { IconFileText, IconShieldCheck, IconImage, IconActivity, IconExternalLink, IconDownload } from "@/components/ui/icons";
 import type { FormatadorMoeda } from "@/lib/types/moeda";
+import { PlayerDeMidia } from "@/components/ui/PlayerDeMidia";
 
 /**
  * View da Fase 4 (Portal do Cliente) — server component puro (sem "use
@@ -137,7 +138,11 @@ export function ClientePortalView({ data, dict, fmtMoeda }: { data: PortalClient
             {data.portfolio.map((item) => (
               <div key={item.id} className="relative aspect-video overflow-hidden rounded-lg border border-base-800" title={item.titulo}>
                 {item.tipo_midia === "video" ? (
+                  item.ehLink ? (
+                  <PlayerDeMidia url={item.url} mostrarLink={false} className="h-full" />
+                ) : (
                   <video src={item.url} className="h-full w-full object-cover" muted controls />
+                )
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={item.url} alt={item.titulo} className="h-full w-full object-cover" />

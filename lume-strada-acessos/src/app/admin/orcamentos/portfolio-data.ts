@@ -24,7 +24,8 @@ export async function buscarDadosPortfolio() {
 
   const itens: PortfolioItemComUrl[] = (data ?? []).map((item) => ({
     ...item,
-    url: supabase.storage.from(BUCKET).getPublicUrl(item.path).data.publicUrl,
+    url: item.path ? supabase.storage.from(BUCKET).getPublicUrl(item.path).data.publicUrl : (item.link_url ?? ""),
+    ehLink: !item.path && Boolean(item.link_url),
   }));
 
   return { itens };

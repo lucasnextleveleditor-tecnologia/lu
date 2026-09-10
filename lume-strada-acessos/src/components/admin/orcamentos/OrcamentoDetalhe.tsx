@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { IconCopy, IconPrinter, IconDownload, IconSend, IconCheckCircle, IconFilm, IconImage } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { PlayerDeMidia } from "@/components/ui/PlayerDeMidia";
 
 type OrcamentoDetalheProps = {
   orcamento: OrcamentoComRelacoes & {
@@ -237,7 +238,11 @@ export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
                 {orcamento.portfolio.map((item) => (
                   <div key={item.id} className="relative aspect-video overflow-hidden rounded-lg border border-base-800" title={item.titulo}>
                     {item.tipo_midia === "video" ? (
-                      <video src={item.url} className="h-full w-full object-cover" muted />
+                      item.ehLink ? (
+                        <PlayerDeMidia url={item.url} mostrarLink={false} className="h-full" />
+                      ) : (
+                        <video src={item.url} className="h-full w-full object-cover" muted />
+                      )
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={item.url} alt={item.titulo} className="h-full w-full object-cover" />

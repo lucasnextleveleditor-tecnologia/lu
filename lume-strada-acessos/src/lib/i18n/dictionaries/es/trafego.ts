@@ -133,6 +133,8 @@ export const trafego: TrafegoDict = {
   enviandoTexto: "Subiendo...",
   enviarPrintOuMp4: "Subir Captura o MP4",
   criativoAltTexto: "Creativo del anuncio",
+  criativoPorLink: "o pega el enlace del video",
+  criativoLinkHint: "YouTube, Vimeo, Loom, Streamable, Instagram, TikTok, Drive o Dropbox. El video por enlace no ocupa el almacenamiento de la cuenta.",
 
   metaDeLucroLabel: "Meta de Ganancia",
   lucroGeradoLabel: "Ganancia Generada",

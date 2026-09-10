@@ -24,6 +24,7 @@ import { IconPlus, IconTrash, IconSearch, IconImage, IconFilm, IconEye, IconAler
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 import { cn } from "@/lib/utils/cn";
+import { PlayerDeMidia } from "@/components/ui/PlayerDeMidia";
 
 type OrcamentoParaEditar = Awaited<ReturnType<typeof buscarOrcamentoPorId>>;
 interface ClienteOpcao {
@@ -811,7 +812,11 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
                     title={item.titulo}
                   >
                     {item.tipo_midia === "video" ? (
-                      <video src={item.url} className="h-full w-full object-cover" muted />
+                      item.ehLink ? (
+                        <PlayerDeMidia url={item.url} mostrarLink={false} className="h-full" />
+                      ) : (
+                        <video src={item.url} className="h-full w-full object-cover" muted />
+                      )
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={item.url} alt={item.titulo} className="h-full w-full object-cover" />

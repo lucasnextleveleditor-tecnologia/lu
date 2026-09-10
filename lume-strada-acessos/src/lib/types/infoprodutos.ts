@@ -56,6 +56,8 @@ export interface AnuncioTrackingRow {
   nome_anuncio: string | null;
   criativo_id: string | null; // uuid -> criativos.id — obrigatório na tela pra lançamentos novos (ver AnuncioModal)
   criativo_path: string | null; // caminho no bucket "infoprodutos"
+  /** Criativo hospedado fora (YouTube, Drive, Loom...). Alternativa a `criativo_path`: vídeo não ocupa nosso armazenamento. */
+  criativo_link: string | null;
   criativo_tipo: TipoCriativo | null;
   produto_principal_id: string | null;
   order_bump_id: string | null;

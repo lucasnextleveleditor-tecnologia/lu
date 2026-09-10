@@ -167,7 +167,8 @@ export async function buscarDadosConstrutor() {
 
   const portfolioItens: PortfolioItemComUrl[] = (portfolioRes.data ?? []).map((item) => ({
     ...item,
-    url: supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl,
+    url: item.path ? supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl : (item.link_url ?? ""),
+    ehLink: !item.path && Boolean(item.link_url),
   }));
 
   return { categorias, servicosComCategoria: enriquecerServicos(servicos, categorias), clientes: clientesRes.data ?? [], tiposOrcamento, portfolioItens, institucional };
@@ -217,7 +218,11 @@ export async function buscarOrcamentoPorId(id: string) {
   const portfolio: PortfolioItemComUrl[] = (portfolioLinks ?? [])
     .map((link) => link.orc_portfolio_itens)
     .filter((item): item is PortfolioItemRow => !!item)
-    .map((item) => ({ ...item, url: supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl }));
+    .map((item) => ({
+      ...item,
+      url: item.path ? supabase.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl : (item.link_url ?? ""),
+      ehLink: !item.path && Boolean(item.link_url),
+    }));
 
   const [{ data: itensEntrega }, { data: colunasInvestimento }] = await Promise.all([
     supabase.from("orc_itens_entrega").select("*").eq("orcamento_id", id).order("ordem").overrideTypes<OrcItemEntregaRow[], { merge: false }>(),

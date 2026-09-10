@@ -139,7 +139,12 @@ export function AnunciosManager({ anuncios, produtos, criativos, clienteCadastro
             const lucro = receitaLiquida - Number(anuncio.investimento);
             return (
               <Card key={anuncio.id} className="p-4">
-                <CriativoUploader anuncioId={anuncio.id} criativoUrl={anuncio.criativo_url} criativoTipo={anuncio.criativo_tipo} />
+                <CriativoUploader
+                  anuncioId={anuncio.id}
+                  criativoUrl={anuncio.criativo_url}
+                  criativoTipo={anuncio.criativo_tipo}
+                  criativoLink={anuncio.criativo_link}
+                />
 
                 <div className="mt-3 mb-3">
                   <p className="truncate text-sm font-medium text-ink-primary">

@@ -154,6 +154,8 @@ export interface TrafegoDict {
   enviandoTexto: string;
   enviarPrintOuMp4: string;
   criativoAltTexto: string;
+  criativoPorLink: string;
+  criativoLinkHint: string;
 
   // Dashboard dos últimos 7 dias (`Dashboard7Dias.tsx`).
   metaDeLucroLabel: string;
@@ -375,6 +377,8 @@ export const trafego: TrafegoDict = {
   enviandoTexto: "Enviando...",
   enviarPrintOuMp4: "Enviar Print ou MP4",
   criativoAltTexto: "Criativo do anúncio",
+  criativoPorLink: "ou cole o link do vídeo",
+  criativoLinkHint: "YouTube, Vimeo, Loom, Streamable, Instagram, TikTok, Drive ou Dropbox. Vídeo por link não ocupa o armazenamento da conta.",
 
   metaDeLucroLabel: "Meta de Lucro",
   lucroGeradoLabel: "Lucro Gerado",

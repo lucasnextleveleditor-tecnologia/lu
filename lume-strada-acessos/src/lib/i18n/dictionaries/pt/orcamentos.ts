@@ -211,6 +211,10 @@ export interface OrcamentosDict {
   portfolioTitulo: string;
   portfolioSubtitulo: string;
   portfolioAdicionarBtn: string;
+  portfolioLinkBtn: string;
+  portfolioLinkTitulo: string;
+  portfolioLinkTituloPlaceholder: string;
+  portfolioLinkHint: string;
   portfolioEnviando: string;
   portfolioVazioTitulo: string;
   portfolioVazioDescricao: string;
@@ -601,6 +605,10 @@ export const orcamentos: OrcamentosDict = {
   portfolioTitulo: "Itens de Portfólio",
   portfolioSubtitulo: "Fotos e vídeos dos seus trabalhos, reutilizáveis em vários orçamentos.",
   portfolioAdicionarBtn: "Adicionar Item",
+  portfolioLinkBtn: "Vídeo por link",
+  portfolioLinkTitulo: "Cole o link do vídeo",
+  portfolioLinkTituloPlaceholder: "Título (opcional)",
+  portfolioLinkHint: "Aceita YouTube, Vimeo, Loom, Streamable, Instagram, TikTok, Google Drive, Dropbox ou link direto do arquivo. Vídeo por link não ocupa o armazenamento da sua conta — prefira este caminho.",
   portfolioEnviando: "Enviando...",
   portfolioVazioTitulo: "Nenhum item de portfólio ainda.",
   portfolioVazioDescricao: "Envie fotos ou vídeos dos seus trabalhos — eles ficam disponíveis pra anexar em qualquer orçamento.",

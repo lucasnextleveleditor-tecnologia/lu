@@ -162,16 +162,25 @@ export interface PortfolioItemRow {
   id: string;
   titulo: string;
   tipo_midia: TipoMidiaPortfolio;
-  /** Path dentro do bucket "orcamentos-midia" — a URL pública é resolvida no data.ts, nunca gravada no banco. */
-  path: string;
+  /** Path dentro do bucket "orcamentos-midia" — a URL pública é resolvida no data.ts, nunca gravada no banco. `null` quando o item é por link. */
+  path: string | null;
+  /** Link de um vídeo hospedado fora (YouTube, Vimeo, Loom, Drive...). Alternativa a `path`: não ocupa nosso armazenamento nem nossa cota de tráfego. */
+  link_url: string | null;
   categoria_profissao: string | null;
   ordem: number;
   created_at: string;
   updated_at: string;
 }
 
-/** Item de portfólio já com a URL pública resolvida (bucket público) — o que os componentes de fato usam pra `<img>`/`<video src>`. */
-export type PortfolioItemComUrl = PortfolioItemRow & { url: string };
+/**
+ * Item de portfólio com o endereço já resolvido.
+ *
+ * `url` é a URL pública do bucket quando o item é arquivo, e o próprio link
+ * colado quando é link — quem desenha não precisa saber de onde veio.
+ * `ehLink` existe porque o player é diferente: arquivo vai em `<video>`,
+ * link vai no player do serviço (ver `PlayerDeMidia`).
+ */
+export type PortfolioItemComUrl = PortfolioItemRow & { url: string; ehLink: boolean };
 
 /** `companies.orc_logo_path`/`orc_banner_path`/`orc_rodape_path` já resolvidos pra URL pública — mesmo raciocínio de `PortfolioItemComUrl`. */
 export interface MarcaOrcamentoComUrls {

@@ -5,6 +5,7 @@ import { requireModulo, requireAdmin } from "@/lib/auth/requireAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ehImagemPermitida, ehVideoPermitido } from "@/lib/utils/upload";
 import type { TipoMidiaPortfolio } from "@/lib/types/orcamentos";
+import { resolverMidiaDeLink, SERVICOS_ACEITOS } from "@/lib/utils/midia-link";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
@@ -57,7 +58,9 @@ export async function criarUploadAssinadoPortfolio(nomeArquivo: string, contentT
 /** Passo 2/2 — depois que o navegador já subiu o arquivo, cria a linha do item de portfólio. */
 export async function confirmarPortfolioItem(input: {
   titulo: string;
-  path: string;
+  /** Um OU outro: arquivo no nosso bucket, ou link de um serviço de fora. */
+  path?: string | null;
+  linkUrl?: string | null;
   tipo: TipoMidiaPortfolio;
   categoriaProfissao: string | null;
 }): Promise<ActionResultId> {
@@ -65,12 +68,23 @@ export async function confirmarPortfolioItem(input: {
     const { supabase, companyId } = await requireModulo("orcamentos");
     if (!input.titulo.trim()) return { ok: false, error: "Dê um título pro item antes de salvar." };
 
+    const link = input.linkUrl?.trim() || null;
+    if (!input.path && !link) return { ok: false, error: "Envie um arquivo ou cole um link." };
+    // Link tem de ser de um serviço que a gente sabe mostrar — senão vira um
+    // card que nunca abre. `resolverMidiaDeLink` é a mesma lista usada pelo
+    // player, então o que passa aqui é exatamente o que a tela consegue
+    // desenhar.
+    if (link && !resolverMidiaDeLink(link)) {
+      return { ok: false, error: `Link não reconhecido. Aceitamos ${SERVICOS_ACEITOS}.` };
+    }
+
     const { data, error } = await supabase
       .from("orc_portfolio_itens")
       .insert({
         titulo: input.titulo.trim(),
         tipo_midia: input.tipo,
-        path: input.path,
+        path: input.path ?? null,
+        link_url: link,
         categoria_profissao: input.categoriaProfissao,
       })
       .select("id")

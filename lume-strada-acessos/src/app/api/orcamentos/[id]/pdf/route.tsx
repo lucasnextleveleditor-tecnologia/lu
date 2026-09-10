@@ -32,10 +32,13 @@ export async function GET(_req: Request, { params }: RouteParams) {
     .filter((i) => i.opcional && i.selecionado)
     .map((i) => ({ nome: i.nome, descricao: i.descricao, quantidade: i.quantidade, valorUnitario: i.valor_unitario }));
 
-  // Só imagens (vídeo não embute em PDF) — limitado a 9 pra não estourar a
-  // página da capa (grid de 100x75pt cada, ver `OrcamentoPdfDocument.tsx`).
+  // Só imagens NOSSAS. Vídeo não embute em PDF, e item por link também
+  // fica de fora: o gerador teria de baixar de um domínio de terceiro no
+  // meio da renderização, e uma falha ali derruba o PDF inteiro — um
+  // orçamento não sai por causa de um item de portfólio. Limitado a 9 pra
+  // não estourar a capa (grid de 100x75pt, ver `OrcamentoPdfDocument.tsx`).
   const portfolio: OrcamentoPdfPortfolioItem[] = orcamento.portfolio
-    .filter((item) => item.tipo_midia !== "video")
+    .filter((item) => item.tipo_midia !== "video" && !item.ehLink)
     .slice(0, 9)
     .map((item) => ({ url: item.url, titulo: item.titulo }));
 

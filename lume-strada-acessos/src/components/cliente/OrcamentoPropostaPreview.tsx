@@ -7,6 +7,7 @@ import { buildPropostaAccentVars } from "@/lib/utils/color";
 import { IconFilm, IconImage, IconBriefcase, IconTarget, IconBuilding, IconHeart, IconCalendar, IconUsers, IconClipboardList, IconLayers, IconMail, IconGlobe, IconQrCode, IconFileText } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils/cn";
+import { PlayerDeMidia } from "@/components/ui/PlayerDeMidia";
 
 /** Forma mínima de item que o preview precisa — `OrcamentoPublicoView` mapeia `OrcItemRow` (banco) e `OrcamentoBuilder` mapeia `ItemLocal` (rascunho em memória) pra isso, cada um com seus próprios nomes de campo. */
 export interface ItemPreview {
@@ -403,7 +404,11 @@ export function OrcamentoPropostaPreview({
                     <div key={item.id} className="relative aspect-video overflow-hidden rounded-xl border border-base-800" title={item.titulo}>
                       {item.tipo_midia === "video" ? (
                         // No link público (interativo) o vídeo pode tocar de verdade; no PDF/print e no preview do construtor fica só a capa parada.
-                        <video src={item.url} className="h-full w-full object-cover" muted loop playsInline autoPlay={interactive} controls={interactive} />
+                        item.ehLink ? (
+                          <PlayerDeMidia url={item.url} mostrarLink={false} className="h-full" />
+                        ) : (
+                          <video src={item.url} className="h-full w-full object-cover" muted loop playsInline autoPlay={interactive} controls={interactive} />
+                        )
                       ) : (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={item.url} alt={item.titulo} className="h-full w-full object-cover" />

@@ -142,7 +142,11 @@ export async function buscarOrcamentoPublicoPorToken(token: string) {
   const portfolio: PortfolioItemComUrl[] = (portfolioLinks ?? [])
     .map((link) => link.orc_portfolio_itens)
     .filter((item): item is PortfolioItemRow => !!item)
-    .map((item) => ({ ...item, url: admin.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl }));
+    .map((item) => ({
+      ...item,
+      url: item.path ? admin.storage.from(BUCKET_ORCAMENTOS_MIDIA).getPublicUrl(item.path).data.publicUrl : (item.link_url ?? ""),
+      ehLink: !item.path && Boolean(item.link_url),
+    }));
 
   return {
     moeda: moedaDe(orcamento.companies?.moeda),
