@@ -1,0 +1,82 @@
+import type { PlanejamentoDict } from "../pt/planejamento";
+
+export const planejamento: PlanejamentoDict = {
+  abaPlanejamento: "Planificación",
+  subtituloPagina: "El ciclo de trabajo con este cliente: alcance, presupuesto y fechas.",
+
+  colCliente: "Cliente",
+  colCiclo: "Ciclo",
+  colVencimento: "Vencimiento",
+  colStatus: "Estado",
+  semClientes: "Registra un cliente para armar la primera planificación.",
+  semCicloAtivo: "Sin ciclo activo",
+  criarCiclo: "Crear ciclo",
+  criando: "Creando…",
+  abrir: "Abrir",
+  resumoAtivos: "{n} de {total} clientes con ciclo activo.",
+  ciclosEncerrados: { um: "{n} ciclo en el historial", muitos: "{n} ciclos en el historial" },
+  periodo: "{inicio} a {fim}",
+  faltamDias: { um: "falta {n} día", muitos: "faltan {n} días" },
+  venceHoje: "vence hoy",
+  venceu: "venció",
+
+  statusRascunho: "Borrador",
+  statusAtivo: "Activo",
+  statusEncerrado: "Cerrado",
+  statusCancelado: "Cancelado",
+
+  voltar: "Volver a Planificación",
+  tituloCiclo: "Ciclo de planificación",
+  baixarPdf: "Imprimir / PDF",
+
+  blocoResumo: "Resumen del ciclo",
+  blocoResumoDescricao: "Cuánto dura, cuándo empieza y hacia dónde apunta.",
+  duracao: "Duración",
+  duracaoMeses: { um: "{n} mes", muitos: "{n} meses" },
+  dataInicio: "Fecha de inicio",
+  dataFim: "Fecha de término",
+  dataFimDica: "Calculada a partir del inicio y la duración — es la que el sistema usa para avisar al equipo.",
+  focoEstrategico: "Foco estratégico del ciclo",
+  focoEstrategicoPlaceholder: "Lo que este ciclo necesita probar o destrabar",
+  orcamentoMidia: "Presupuesto de medios del ciclo",
+
+  blocoEscopo: "Alcance de entregas",
+  blocoEscopoDescricao: "Lo acordado para el ciclo entero, no por mes.",
+  postsSocial: "Posts de redes sociales",
+  campanhasTrafego: "Campañas de tráfico",
+  pecasExtras: "Piezas extra",
+  pecasExtrasPlaceholder: "Ej.: 1 video institucional",
+  adicionar: "Agregar",
+  escopoObservacoes: "Observaciones del alcance",
+  escopoObservacoesPlaceholder: "Qué queda fuera, qué depende del cliente, qué quedó abierto",
+
+  blocoCronograma: "Cronograma",
+  blocoCronogramaDescricao: "Las fechas que el equipo y el cliente acordaron. Deja en blanco lo que aún no está marcado.",
+  dataLimitePautas: "Límite para los guiones",
+  dataLimiteArtes: "Límite para las artes",
+  dataGoLive: "Go live",
+  dataReuniaoResultados: "Reunión de resultados",
+
+  salvar: "Guardar",
+  salvando: "Guardando…",
+  salvoAgora: "Guardado",
+  ativarCiclo: "Activar ciclo",
+  encerrarCiclo: "Cerrar ciclo",
+  cancelarCiclo: "Cancelar ciclo",
+  excluir: "Eliminar",
+  confirmarExcluir: "¿Eliminar este ciclo? No se puede recuperar.",
+  jaExisteAtivo: "Este cliente ya tiene un ciclo activo. Cierra el actual antes de activar otro.",
+  erroTabelaAusente: "El módulo de planificación aún no está instalado en la base. Ejecuta la migración e inténtalo de nuevo.",
+
+  reguaTitulo: "Avisos automáticos",
+  reguaTexto:
+    "Con el ciclo activo, el equipo recibe aviso en la campana cuando falten 20, 15, 10, 5, 4, 3, 2 y 1 día para el final.",
+  proximoAviso: "Próximo aviso cuando falten {n} días.",
+  semMaisAvisos: "Todos los avisos de este ciclo ya fueron enviados.",
+
+  historicoTitulo: "Ciclos de este cliente",
+  semHistorico: "Este es el primer ciclo de este cliente.",
+
+  pdfEyebrow: "Planificación estratégica",
+  pdfRodape: "{app} — generado el {data}",
+};

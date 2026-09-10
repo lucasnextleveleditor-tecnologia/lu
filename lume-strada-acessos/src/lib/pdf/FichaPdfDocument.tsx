@@ -1,15 +1,19 @@
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 
 // ============================================================================
-// PDF de TEXTO REAL do briefing de onboarding — mesmo motor de
+// PDF de TEXTO REAL de uma FICHA — mesmo motor de
 // `TarefaPdfDocument`/`ContratoPdfDocument` (`@react-pdf/renderer`, sem
 // Chromium). Texto de verdade e não foto de tela: dá pra buscar uma palavra,
 // copiar o tom de voz e colar no roteiro, e o arquivo pesa uns 30 KB.
 //
-// Este componente NÃO SABE o que é onboarding. Ele recebe seções e pares
+// Este componente NÃO SABE o que está imprimindo. Ele recebe seções e pares
 // rótulo/valor prontos, e isso é de propósito: assim quem monta o conteúdo é
 // a rota, que tem o dicionário na mão, e o PDF sai no idioma de quem clicou
 // sem o componente precisar de uma linha de i18n.
+//
+// Por isso o nome deixou de ser `OnboardingPdfDocument`: o briefing do
+// onboarding e o ciclo de planejamento imprimem pelo MESMO componente, e um
+// nome que cita um dos dois faz o outro parecer gambiarra.
 // ============================================================================
 
 const styles = StyleSheet.create({
@@ -99,7 +103,7 @@ export interface SecaoPdf {
   campos: CampoPdf[];
 }
 
-export interface OnboardingPdfProps {
+export interface FichaPdfProps {
   clienteNome: string;
   eyebrow: string;
   subtitulo: string;
@@ -110,7 +114,7 @@ export interface OnboardingPdfProps {
   textoVazio: string;
 }
 
-export function OnboardingPdfDocument({
+export function FichaPdfDocument({
   clienteNome,
   eyebrow,
   subtitulo,
@@ -118,7 +122,7 @@ export function OnboardingPdfDocument({
   secoes,
   rodape,
   textoVazio,
-}: OnboardingPdfProps) {
+}: FichaPdfProps) {
   // Seções sem nenhum campo preenchido não entram. Um briefing impresso com
   // sete títulos e nada embaixo parece documento quebrado; o que a pessoa
   // quer ver é o que existe.

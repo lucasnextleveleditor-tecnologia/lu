@@ -4,7 +4,7 @@ import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
 import { substituir } from "@/lib/utils/texto";
-import { OnboardingPdfDocument, type SecaoPdf } from "@/lib/pdf/OnboardingPdfDocument";
+import { FichaPdfDocument, type SecaoPdf } from "@/lib/pdf/FichaPdfDocument";
 import { CANAIS_COMUNICACAO, OBJETIVOS_ONBOARDING, REDES_SOCIAIS, type OnboardingRow } from "@/lib/types/onboarding";
 
 export const dynamic = "force-dynamic";
@@ -147,7 +147,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ cliente
   meta.push({ rotulo: t.colAtualizado, valor: data(o?.updated_at ?? null) ?? "—" });
 
   const buffer = await renderToBuffer(
-    <OnboardingPdfDocument
+    <FichaPdfDocument
       clienteNome={clienteRes.data.nome}
       eyebrow={t.tituloPagina}
       subtitulo={t.subtituloPagina}

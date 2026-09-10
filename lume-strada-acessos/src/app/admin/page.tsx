@@ -4,10 +4,12 @@ import { getDictionary } from "@/lib/i18n/getDictionary";
 import type { ProfileRow } from "@/lib/types/database";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { OnboardingRow } from "@/lib/types/onboarding";
+import type { PlanoRow } from "@/lib/types/planejamento";
 import { CadastrosWorkspace } from "@/components/admin/cadastros/CadastrosWorkspace";
 import { PainelOnboarding } from "@/components/admin/onboarding/PainelOnboarding";
+import { PainelPlanejamento } from "@/components/admin/planejamento/PainelPlanejamento";
 import { cn } from "@/lib/utils/cn";
-import { IconUsers, IconClipboardList } from "@/components/ui/icons";
+import { IconUsers, IconClipboardList, IconCalendar } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +35,7 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
   const { supabase, user } = await requireModuloOuRedirect("clientes");
   const { dict } = await getDictionary();
   const { aba } = await searchParams;
-  const abaAtiva = aba === "onboarding" ? "onboarding" : "clientes";
+  const abaAtiva = aba === "onboarding" ? "onboarding" : aba === "planejamento" ? "planejamento" : "clientes";
   const t = dict.onboarding;
 
   const [perfilRes, clientesRes] = await Promise.all([
@@ -58,9 +60,25 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
       ? (await supabase.from("cliente_onboarding").select("*").overrideTypes<OnboardingRow[], { merge: false }>()).data ?? []
       : [];
 
+  // A lista de planejamento precisa dos ciclos ENCERRADOS também (é o que
+  // vira "3 ciclos no histórico" embaixo do nome), então não dá para filtrar
+  // por `status = 'ativo'` na consulta. A RLS já limita à empresa, e a
+  // separação entre ativo e histórico acontece no painel.
+  const planos =
+    abaAtiva === "planejamento"
+      ? (
+          await supabase
+            .from("planos_estrategicos")
+            .select("*")
+            .order("data_inicio", { ascending: false })
+            .overrideTypes<PlanoRow[], { merge: false }>()
+        ).data ?? []
+      : [];
+
   const abas = [
     { valor: "clientes", label: t.abaClientes, icone: IconUsers },
     { valor: "onboarding", label: t.abaOnboarding, icone: IconClipboardList },
+    { valor: "planejamento", label: dict.planejamento.abaPlanejamento, icone: IconCalendar },
   ] as const;
 
   return (
@@ -91,8 +109,10 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
 
       {abaAtiva === "clientes" ? (
         <CadastrosWorkspace clientes={clientes} profilesPorId={profilesPorId} souAdmin={souAdmin} />
-      ) : (
+      ) : abaAtiva === "onboarding" ? (
         <PainelOnboarding clientes={clientes} onboardings={onboardings} />
+      ) : (
+        <PainelPlanejamento clientes={clientes} planos={planos} />
       )}
     </div>
   );

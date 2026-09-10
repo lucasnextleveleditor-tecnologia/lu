@@ -23,6 +23,7 @@ import { mapaMental, type MapaMentalDict } from "./mapaMental";
 import { ferramentas, type FerramentasDict } from "./ferramentas";
 import { armazenamento, type ArmazenamentoDict } from "./armazenamento";
 import { onboarding, type OnboardingDict } from "./onboarding";
+import { planejamento, type PlanejamentoDict } from "./planejamento";
 
 /**
  * Formato COMPLETO do dicionário — cada idioma (`en/index.ts`, `es/index.ts`)
@@ -57,6 +58,7 @@ export interface Dictionary {
   ferramentas: FerramentasDict;
   armazenamento: ArmazenamentoDict;
   onboarding: OnboardingDict;
+  planejamento: PlanejamentoDict;
 }
 
 export const pt: Dictionary = {
@@ -85,6 +87,7 @@ export const pt: Dictionary = {
   ferramentas,
   armazenamento,
   onboarding,
+  planejamento,
 };
 
 // ----------------------------------------------------------------------------

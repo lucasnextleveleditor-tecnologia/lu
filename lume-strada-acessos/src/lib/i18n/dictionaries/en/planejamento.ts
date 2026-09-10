@@ -1,0 +1,82 @@
+import type { PlanejamentoDict } from "../pt/planejamento";
+
+export const planejamento: PlanejamentoDict = {
+  abaPlanejamento: "Planning",
+  subtituloPagina: "The working cycle for this client: scope, budget and dates.",
+
+  colCliente: "Client",
+  colCiclo: "Cycle",
+  colVencimento: "Ends in",
+  colStatus: "Status",
+  semClientes: "Add a client to build the first plan.",
+  semCicloAtivo: "No active cycle",
+  criarCiclo: "New cycle",
+  criando: "Creating…",
+  abrir: "Open",
+  resumoAtivos: "{n} of {total} clients with an active cycle.",
+  ciclosEncerrados: { um: "{n} cycle in history", muitos: "{n} cycles in history" },
+  periodo: "{inicio} to {fim}",
+  faltamDias: { um: "{n} day left", muitos: "{n} days left" },
+  venceHoje: "ends today",
+  venceu: "ended",
+
+  statusRascunho: "Draft",
+  statusAtivo: "Active",
+  statusEncerrado: "Closed",
+  statusCancelado: "Cancelled",
+
+  voltar: "Back to Planning",
+  tituloCiclo: "Planning cycle",
+  baixarPdf: "Print / PDF",
+
+  blocoResumo: "Cycle summary",
+  blocoResumoDescricao: "How long it runs, when it starts and what it is aiming at.",
+  duracao: "Duration",
+  duracaoMeses: { um: "{n} month", muitos: "{n} months" },
+  dataInicio: "Start date",
+  dataFim: "End date",
+  dataFimDica: "Calculated from the start date and duration — this is what the system uses to alert the team.",
+  focoEstrategico: "Strategic focus of the cycle",
+  focoEstrategicoPlaceholder: "What this cycle needs to prove or unlock",
+  orcamentoMidia: "Media budget for the cycle",
+
+  blocoEscopo: "Deliverables",
+  blocoEscopoDescricao: "What was agreed for the whole cycle, not per month.",
+  postsSocial: "Social media posts",
+  campanhasTrafego: "Paid traffic campaigns",
+  pecasExtras: "Extra pieces",
+  pecasExtrasPlaceholder: "e.g. 1 brand video",
+  adicionar: "Add",
+  escopoObservacoes: "Scope notes",
+  escopoObservacoesPlaceholder: "What is out, what depends on the client, what is still open",
+
+  blocoCronograma: "Schedule",
+  blocoCronogramaDescricao: "The dates the team and the client agreed on. Leave blank whatever is not set yet.",
+  dataLimitePautas: "Copy deadline",
+  dataLimiteArtes: "Artwork deadline",
+  dataGoLive: "Go live",
+  dataReuniaoResultados: "Results meeting",
+
+  salvar: "Save",
+  salvando: "Saving…",
+  salvoAgora: "Saved",
+  ativarCiclo: "Activate cycle",
+  encerrarCiclo: "Close cycle",
+  cancelarCiclo: "Cancel cycle",
+  excluir: "Delete",
+  confirmarExcluir: "Delete this cycle? This cannot be undone.",
+  jaExisteAtivo: "This client already has an active cycle. Close the current one before activating another.",
+  erroTabelaAusente: "The planning module is not installed in the database yet. Run the migration and try again.",
+
+  reguaTitulo: "Automatic alerts",
+  reguaTexto:
+    "Once the cycle is active, the team is notified in the bell at 20, 15, 10, 5, 4, 3, 2 and 1 day before it ends.",
+  proximoAviso: "Next alert at {n} days left.",
+  semMaisAvisos: "Every alert for this cycle has already been sent.",
+
+  historicoTitulo: "Cycles for this client",
+  semHistorico: "This is the first cycle for this client.",
+
+  pdfEyebrow: "Strategic planning",
+  pdfRodape: "{app} — generated on {data}",
+};

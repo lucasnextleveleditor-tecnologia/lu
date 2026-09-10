@@ -24,6 +24,7 @@ import { mapaMental } from "./mapaMental";
 import { ferramentas } from "./ferramentas";
 import { armazenamento } from "./armazenamento";
 import { onboarding } from "./onboarding";
+import { planejamento } from "./planejamento";
 
 export const en: Dictionary = {
   common,
@@ -51,4 +52,5 @@ export const en: Dictionary = {
   ferramentas,
   armazenamento,
   onboarding,
+  planejamento,
 };
