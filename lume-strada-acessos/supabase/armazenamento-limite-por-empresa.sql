@@ -35,3 +35,39 @@ begin
       check (limite_armazenamento_mb is null or limite_armazenamento_mb > 0);
   end if;
 end $$;
+
+-- ============================================================================
+-- CORREÇÃO — a coluna passa a aceitar NULL
+-- ============================================================================
+--
+-- Sintoma: criar empresa no Super Admin sem preencher o limite falhava com
+-- "null value in column limite_armazenamento_mb violates not-null constraint".
+--
+-- Causa: a coluna nasceu `not null default 10240`, e o Super Admin manda NULL
+-- DE PROPÓSITO quando o campo fica em branco (ver `limiteEmMb` em
+-- `src/app/super-admin/actions.ts`). Um NULL explícito não cai no default da
+-- coluna — ele bate direto no `not null`. O default só vale quando a coluna é
+-- OMITIDA do insert, e não quando alguém escreve nulo nela.
+--
+-- O `default` sai junto, e isso é o mais importante da correção. Com
+-- `default 10240`, deixar em branco gravaria 10240 na linha — um número
+-- CONGELADO. A tela promete outra coisa: "em branco = 5 GB, o padrão do
+-- sistema, e acompanha o padrão se ele mudar". Quem cumpre essa promessa é o
+-- NULL, resolvido na leitura por `LIMITE_PADRAO_MB`
+-- (`src/lib/armazenamento/limites.ts`). Um número gravado ficaria para trás no
+-- dia em que o padrão mudasse — que é exatamente o que aconteceu quando o
+-- padrão caiu de 10 GB para 5 GB.
+--
+-- Linhas existentes NÃO são mexidas: empresa com valor gravado continua com
+-- ele. Zerá-las aqui seria cortar o espaço de um cliente por efeito colateral
+-- de uma migração. Para uma empresa passar a acompanhar o padrão, é limpar o
+-- campo no Super Admin.
+
+alter table public.companies
+  alter column limite_armazenamento_mb drop not null;
+
+alter table public.companies
+  alter column limite_armazenamento_mb drop default;
+
+comment on column public.companies.limite_armazenamento_mb is
+  'Limite em MB desta empresa. NULL = acompanha LIMITE_PADRAO_MB (lib/armazenamento/limites.ts), hoje 5 GB. Preenchido = valor fixo, vendido a este cliente.';
