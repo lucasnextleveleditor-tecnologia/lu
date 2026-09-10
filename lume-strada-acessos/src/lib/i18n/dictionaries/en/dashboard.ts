@@ -1,8 +1,8 @@
 import type { DashboardDict } from "../pt/dashboard";
 
 export const dashboard: DashboardDict = {
-  tituloPagina: "Overview",
-  kicker: "Agency panel",
+  tituloPagina: "Dashboard",
+  kicker: "Professional panel",
   saudacaoMadrugada: "Good night",
   saudacaoManha: "Good morning",
   saudacaoTarde: "Good afternoon",
@@ -20,7 +20,7 @@ export const dashboard: DashboardDict = {
   atencaoTudoEmDiaHint: "No overdue items and nothing due today.",
   maisNumeros: "More numbers",
   subtituloPagina: "Agency overview and shoot/delivery schedule.",
-  tabVisaoGeral: "Overview",
+  tabVisaoGeral: "Dashboard",
   tabCalendario: "Calendar",
   nadaAgendado: "Nothing scheduled for this day.",
   captacoes: "Shoots",

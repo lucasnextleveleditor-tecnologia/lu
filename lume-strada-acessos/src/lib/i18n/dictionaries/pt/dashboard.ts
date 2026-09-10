@@ -98,8 +98,8 @@ export interface DashboardDict {
 }
 
 export const dashboard: DashboardDict = {
-  tituloPagina: "Visão Geral",
-  kicker: "Painel da agência",
+  tituloPagina: "Dashboard",
+  kicker: "Painel Profissional",
   saudacaoMadrugada: "Boa madrugada",
   saudacaoManha: "Bom dia",
   saudacaoTarde: "Boa tarde",
@@ -117,7 +117,7 @@ export const dashboard: DashboardDict = {
   atencaoTudoEmDiaHint: "Sem atrasos nem vencimentos para hoje.",
   maisNumeros: "Mais números",
   subtituloPagina: "Visão geral da agência e agenda de captações e entregas.",
-  tabVisaoGeral: "Visão Geral",
+  tabVisaoGeral: "Dashboard",
   tabCalendario: "Calendário",
   nadaAgendado: "Nada agendado pra esse dia.",
   captacoes: "Captações",

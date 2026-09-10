@@ -1,8 +1,8 @@
 import type { DashboardDict } from "../pt/dashboard";
 
 export const dashboard: DashboardDict = {
-  tituloPagina: "Visión General",
-  kicker: "Panel de la agencia",
+  tituloPagina: "Dashboard",
+  kicker: "Panel Profesional",
   saudacaoMadrugada: "Buenas madrugadas",
   saudacaoManha: "Buenos días",
   saudacaoTarde: "Buenas tardes",
@@ -20,7 +20,7 @@ export const dashboard: DashboardDict = {
   atencaoTudoEmDiaHint: "Sin atrasos ni vencimientos para hoy.",
   maisNumeros: "Más números",
   subtituloPagina: "Visión general de la agencia y agenda de grabaciones y entregas.",
-  tabVisaoGeral: "Resumen",
+  tabVisaoGeral: "Dashboard",
   tabCalendario: "Calendario",
   nadaAgendado: "Nada programado para este día.",
   captacoes: "Grabaciones",
