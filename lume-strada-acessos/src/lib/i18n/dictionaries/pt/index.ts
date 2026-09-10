@@ -20,6 +20,7 @@ import { agenda, type AgendaDict } from "./agenda";
 import { objetivos, type ObjetivosDict } from "./objetivos";
 import { ordemDoDia, type OrdemDoDiaDict } from "./ordemDoDia";
 import { mapaMental, type MapaMentalDict } from "./mapaMental";
+import { ferramentas, type FerramentasDict } from "./ferramentas";
 
 /**
  * Formato COMPLETO do dicionário — cada idioma (`en/index.ts`, `es/index.ts`)
@@ -51,6 +52,7 @@ export interface Dictionary {
   objetivos: ObjetivosDict;
   ordemDoDia: OrdemDoDiaDict;
   mapaMental: MapaMentalDict;
+  ferramentas: FerramentasDict;
 }
 
 export const pt: Dictionary = {
@@ -76,6 +78,7 @@ export const pt: Dictionary = {
   objetivos,
   ordemDoDia,
   mapaMental,
+  ferramentas,
 };
 
 // ----------------------------------------------------------------------------

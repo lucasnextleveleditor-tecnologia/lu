@@ -4,6 +4,7 @@ import {
   respirar,
   type AoProgredir,
   type ResultadoCompressao,
+  type TextosDoCompressor,
 } from "./nucleo";
 
 /**
@@ -36,9 +37,10 @@ const DEGRAUS: ReadonlyArray<{ escala: number; qualidades: number[] }> = [
 export async function comprimirImagem(
   file: File,
   alvoBytes: number,
+  textos: TextosDoCompressor,
   aoProgredir: AoProgredir
 ): Promise<ResultadoCompressao> {
-  aoProgredir({ etapa: "Abrindo a imagem…", porcentagem: 5 });
+  aoProgredir({ etapa: textos.etapaAbrindoImagem, porcentagem: 5 });
 
   let bitmap: ImageBitmap;
   try {
@@ -46,9 +48,7 @@ export async function comprimirImagem(
   } catch {
     // HEIC do iPhone é o caso mais comum: o Chrome não decodifica, o Safari
     // sim. Dizer isso é mais útil do que "formato não suportado".
-    throw new Error(
-      "Não consegui abrir esta imagem neste navegador. Formatos como HEIC do iPhone só abrem no Safari — salve como JPG ou PNG e tente de novo."
-    );
+    throw new Error(textos.erroImagemNaoAbre);
   }
 
   const tinhaTransparencia = /png|webp|gif|avif/i.test(file.type || file.name);
@@ -61,19 +61,19 @@ export async function comprimirImagem(
       for (const qualidade of degrau.qualidades) {
         feitas++;
         aoProgredir({
-          etapa: "Testando o melhor equilíbrio entre tamanho e qualidade…",
+          etapa: textos.etapaTestandoQualidade,
           porcentagem: 5 + Math.round((feitas / total) * 90),
         });
         await respirar();
 
-        const tentativa = await bitmapParaJpeg(bitmap, degrau.escala, qualidade);
+        const tentativa = await bitmapParaJpeg(bitmap, degrau.escala, qualidade, textos);
         // Guarda a MENOR de todas, não a última: se nenhuma bater o alvo, é
         // ela que a pessoa recebe, junto com o aviso.
         if (!melhor || tentativa.blob.size < melhor.blob.size) melhor = tentativa;
         // Como as qualidades de cada degrau vão da maior pra menor, a
         // primeira que couber é a de melhor imagem que cabe. Pode parar.
         if (tentativa.blob.size <= alvoBytes) {
-          return montar(file, tentativa, alvoBytes, tinhaTransparencia);
+          return montar(file, tentativa, alvoBytes, tinhaTransparencia, textos);
         }
       }
     }
@@ -81,29 +81,25 @@ export async function comprimirImagem(
     bitmap.close();
   }
 
-  if (!melhor) throw new Error("Não consegui comprimir esta imagem.");
-  return montar(file, melhor, alvoBytes, tinhaTransparencia);
+  if (!melhor) throw new Error(textos.erroImagemGenerico);
+  return montar(file, melhor, alvoBytes, tinhaTransparencia, textos);
 }
 
 function montar(
   file: File,
   r: { blob: Blob; largura: number; altura: number },
   alvoBytes: number,
-  tinhaTransparencia: boolean
+  tinhaTransparencia: boolean,
+  textos: TextosDoCompressor
 ): ResultadoCompressao {
   const avisos: string[] = [];
-  if (r.blob.size > alvoBytes) {
-    avisos.push("Este foi o menor tamanho possível sem destruir a imagem — ficou acima do alvo que você pediu.");
-  }
-  if (tinhaTransparencia) {
-    avisos.push("A imagem virou JPG: se ela tinha fundo transparente, agora ele está branco.");
-  }
-  if (r.blob.size >= file.size) {
-    avisos.push("O arquivo original já estava bem otimizado — comprimir de novo não ganhou espaço.");
-  }
+  if (r.blob.size > alvoBytes) avisos.push(textos.avisoMenorPossivel);
+  if (tinhaTransparencia) avisos.push(textos.avisoVirouJpg);
+  if (r.blob.size >= file.size) avisos.push(textos.avisoJaOtimizado);
+
   return {
     blob: r.blob,
-    nome: nomeDeSaida(file.name, "jpg"),
+    nome: nomeDeSaida(file.name, "jpg", textos.sufixoArquivo),
     bytesAntes: file.size,
     bytesDepois: r.blob.size,
     aviso: avisos.length > 0 ? avisos.join(" ") : undefined,

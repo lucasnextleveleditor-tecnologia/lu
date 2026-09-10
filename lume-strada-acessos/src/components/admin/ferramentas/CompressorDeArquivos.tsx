@@ -13,14 +13,15 @@ import {
   IconX,
 } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import {
   AVISO_DE_PESO,
   LIMITES_DE_ENTRADA,
   MB,
-  ROTULO_DO_TIPO,
   alvosSugeridos,
   detectarTipo,
   fmtBytes,
+  substituir,
   type AoProgredir,
   type ProgressoCompressao,
   type ResultadoCompressao,
@@ -39,12 +40,20 @@ const ICONE_DO_TIPO = { video: IconFilm, pdf: IconFileText, imagem: IconImage } 
  * vitrine pagar esse download. Cada uma só é baixada quando o arquivo que a
  * pessoa escolheu é daquele tipo.
  *
+ * Nenhuma das três importa o dicionário: elas recebem `c.motor` como
+ * argumento (ver `TextosDoCompressor` em `nucleo.ts`). Assim o texto de cada
+ * etapa e de cada aviso sai traduzido sem que os módulos de cálculo saibam
+ * que existe i18n — e o `tsc` garante que nenhuma frase nova escape.
+ *
  * A tela é deliberadamente linear — escolher arquivo, escolher tamanho,
  * comprimir, baixar — porque o processo pode levar minutos e uma interface com
  * várias coisas acontecendo ao mesmo tempo deixa a pessoa sem saber se pode
  * fechar a aba. (Não pode: é a aba dela que está fazendo a conta.)
  */
 export function CompressorDeArquivos() {
+  const { dict, locale } = useLocale();
+  const c = dict.ferramentas.comprimir;
+
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [tipo, setTipo] = useState<TipoDeArquivo | null>(null);
   const [alvo, setAlvo] = useState<number | null>(null);
@@ -60,6 +69,10 @@ export function CompressorDeArquivos() {
   const inputRef = useRef<HTMLInputElement>(null);
   const urlDoResultado = useRef<string | null>(null);
 
+  const tam = useCallback((bytes: number) => fmtBytes(bytes, locale), [locale]);
+  const rotulo = (t: TipoDeArquivo | null) =>
+    t === "video" ? c.rotuloVideo : t === "pdf" ? c.rotuloPdf : t === "imagem" ? c.rotuloImagem : c.rotuloDesconhecido;
+
   // Revoga o endereço temporário do arquivo pronto quando ele é substituído
   // ou quando a pessoa sai da tela — um blob de 100 MB segurado por um URL
   // esquecido fica na memória até a aba fechar.
@@ -69,53 +82,57 @@ export function CompressorDeArquivos() {
     };
   }, []);
 
-  const escolher = useCallback((file: File | null) => {
-    if (urlDoResultado.current) {
-      URL.revokeObjectURL(urlDoResultado.current);
-      urlDoResultado.current = null;
-    }
-    setResultado(null);
-    setErro(null);
-    setProgresso(null);
-    setAlvoDigitado("");
+  const escolher = useCallback(
+    (file: File | null) => {
+      if (urlDoResultado.current) {
+        URL.revokeObjectURL(urlDoResultado.current);
+        urlDoResultado.current = null;
+      }
+      setResultado(null);
+      setErro(null);
+      setProgresso(null);
+      setAlvoDigitado("");
 
-    if (!file) {
-      setArquivo(null);
-      setTipo(null);
-      setAlvo(null);
-      return;
-    }
+      if (!file) {
+        setArquivo(null);
+        setTipo(null);
+        setAlvo(null);
+        return;
+      }
 
-    const t = detectarTipo(file);
-    setArquivo(file);
-    setTipo(t);
-    if (!t) {
-      setAlvo(null);
-      setErro("Não sei comprimir este tipo de arquivo. Por enquanto a ferramenta trata vídeo, PDF e imagem.");
-      return;
-    }
-    if (file.size > LIMITES_DE_ENTRADA[t]) {
-      setAlvo(null);
-      setErro(
-        `Este arquivo tem ${fmtBytes(file.size)} e o limite para ${ROTULO_DO_TIPO[t].toLowerCase()} é ${fmtBytes(
-          LIMITES_DE_ENTRADA[t]
-        )}. Acima disso a conta é feita na memória do navegador e a aba trava no meio do caminho.`
-      );
-      return;
-    }
-    // Pré-seleciona um alvo razoável: o maior dos sugeridos, que é o de
-    // menor perda. Assim quem só quer "diminuir um pouco" já pode clicar em
-    // Comprimir sem escolher nada.
-    const sugeridos = alvosSugeridos(t, file.size);
-    setAlvo(sugeridos[sugeridos.length - 1] ?? null);
-  }, []);
+      const t = detectarTipo(file);
+      setArquivo(file);
+      setTipo(t);
+      if (!t) {
+        setAlvo(null);
+        setErro(c.tipoDesconhecido);
+        return;
+      }
+      if (file.size > LIMITES_DE_ENTRADA[t]) {
+        setAlvo(null);
+        setErro(
+          substituir(c.acimaDoLimite, {
+            tamanho: fmtBytes(file.size, locale),
+            limite: fmtBytes(LIMITES_DE_ENTRADA[t], locale),
+          })
+        );
+        return;
+      }
+      // Pré-seleciona um alvo razoável: o maior dos sugeridos, que é o de
+      // menor perda. Assim quem só quer "diminuir um pouco" já pode clicar em
+      // Comprimir sem escolher nada.
+      const sugeridos = alvosSugeridos(t, file.size);
+      setAlvo(sugeridos[sugeridos.length - 1] ?? null);
+    },
+    [c, locale]
+  );
 
   async function comprimir() {
     if (!arquivo || !tipo || !alvo) return;
     setTrabalhando(true);
     setErro(null);
     setResultado(null);
-    setProgresso({ etapa: "Começando…", porcentagem: 0 });
+    setProgresso({ etapa: c.comprimindo, porcentagem: 0 });
 
     const aoProgredir: AoProgredir = (p) => setProgresso(p);
 
@@ -123,20 +140,20 @@ export function CompressorDeArquivos() {
       let r: ResultadoCompressao;
       if (tipo === "video") {
         const { comprimirVideo } = await import("@/lib/ferramentas/comprimir/video");
-        r = await comprimirVideo(arquivo, alvo, aoProgredir);
+        r = await comprimirVideo(arquivo, alvo, c.motor, aoProgredir);
       } else if (tipo === "pdf") {
         const { comprimirPdf } = await import("@/lib/ferramentas/comprimir/pdf");
-        r = await comprimirPdf(arquivo, alvo, estrategiaPdf, aoProgredir);
+        r = await comprimirPdf(arquivo, alvo, estrategiaPdf, c.motor, aoProgredir);
       } else {
         const { comprimirImagem } = await import("@/lib/ferramentas/comprimir/imagem");
-        r = await comprimirImagem(arquivo, alvo, aoProgredir);
+        r = await comprimirImagem(arquivo, alvo, c.motor, aoProgredir);
       }
       if (urlDoResultado.current) URL.revokeObjectURL(urlDoResultado.current);
       urlDoResultado.current = URL.createObjectURL(r.blob);
       setResultado(r);
       setProgresso(null);
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Não consegui comprimir este arquivo.");
+      setErro(e instanceof Error ? e.message : c.motor.erroImagemGenerico);
       setProgresso(null);
     } finally {
       setTrabalhando(false);
@@ -193,11 +210,11 @@ export function CompressorDeArquivos() {
             <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-base-700 bg-base-900 text-ink-muted">
               <IconUpload className="h-5 w-5" />
             </span>
-            <p className="text-sm text-ink-secondary">Arraste um arquivo aqui, ou</p>
+            <p className="text-sm text-ink-secondary">{c.arrasteAqui}</p>
             <Button variant="ghost" className="mt-3" onClick={() => inputRef.current?.click()}>
-              Escolher arquivo
+              {c.escolherArquivo}
             </Button>
-            <p className="mt-3 text-[11px] text-ink-muted">Vídeo até 500 MB · PDF até 150 MB · Imagem até 60 MB</p>
+            <p className="mt-3 text-[11px] text-ink-muted">{c.limitesAceitos}</p>
           </>
         ) : (
           <div className="flex items-center gap-3 text-left">
@@ -207,7 +224,7 @@ export function CompressorDeArquivos() {
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-ink-primary">{arquivo.name}</p>
               <p className="text-xs text-ink-muted">
-                {tipo ? ROTULO_DO_TIPO[tipo] : "Desconhecido"} · {fmtBytes(arquivo.size)}
+                {rotulo(tipo)} · {tam(arquivo.size)}
               </p>
             </div>
             {!trabalhando && (
@@ -215,7 +232,7 @@ export function CompressorDeArquivos() {
                 type="button"
                 onClick={() => escolher(null)}
                 className="shrink-0 rounded-lg p-1.5 text-ink-muted transition hover:text-ink-primary"
-                aria-label="Trocar de arquivo"
+                aria-label={c.trocarArquivo}
               >
                 <IconX className="h-4 w-4" />
               </button>
@@ -234,15 +251,14 @@ export function CompressorDeArquivos() {
       {pesado && !erro && (
         <p className="flex items-start gap-2 rounded-xl border border-status-warning/40 bg-status-warning/10 p-3 text-xs leading-relaxed text-ink-secondary">
           <IconAlertTriangle className="mt-px h-4 w-4 shrink-0 text-status-warning" />
-          Arquivo grande: a conversão pode levar vários minutos e a aba precisa ficar aberta o tempo todo. Para
-          vídeo, publicar por link (YouTube, Drive) costuma ser melhor do que comprimir.
+          {c.avisoArquivoPesado}
         </p>
       )}
 
       {/* 2 — o tamanho final */}
       {arquivo && tipo && !erro && (
         <div className="rounded-2xl border border-base-700 bg-base-900/40 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Tamanho final</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{c.tamanhoFinal}</p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {sugeridos.map((s) => (
               <button
@@ -260,7 +276,7 @@ export function CompressorDeArquivos() {
                     : "border-base-700 text-ink-secondary hover:border-base-600"
                 )}
               >
-                {fmtBytes(s)}
+                {tam(s)}
               </button>
             ))}
             <div className="flex items-center gap-1.5">
@@ -272,40 +288,38 @@ export function CompressorDeArquivos() {
                 value={alvoDigitado}
                 disabled={trabalhando}
                 onChange={(e) => aplicarAlvoDigitado(e.target.value)}
-                placeholder="outro"
+                placeholder={c.outroTamanho}
                 className="w-20 rounded-lg border border-base-700 bg-base-950 px-2.5 py-1.5 text-xs text-ink-primary outline-none transition placeholder:text-ink-muted focus:border-accent disabled:opacity-40"
               />
-              <span className="text-xs text-ink-muted">MB</span>
+              <span className="text-xs text-ink-muted">{c.unidadeMb}</span>
             </div>
           </div>
 
           {tipo === "pdf" && (
             <div className="mt-4 space-y-2 border-t border-base-800 pt-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Como reduzir</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{c.comoReduzir}</p>
               <OpcaoPdf
                 escolhida={estrategiaPdf === "preservar-texto"}
                 desabilitada={trabalhando}
                 onClick={() => setEstrategiaPdf("preservar-texto")}
-                titulo="Manter o texto do documento"
-                descricao="Encolhe só as imagens de dentro do PDF. Continua dando pra buscar e copiar o texto — é o certo para contrato, proposta e nota fiscal."
+                titulo={c.preservarTitulo}
+                descricao={c.preservarDescricao}
               />
               <OpcaoPdf
                 escolhida={estrategiaPdf === "rasterizar"}
                 desabilitada={trabalhando}
                 onClick={() => setEstrategiaPdf("rasterizar")}
-                titulo="Rasterizar as páginas"
-                descricao="Cada página vira uma foto. Reduz muito mais e funciona em qualquer PDF, mas o documento deixa de ter texto buscável — use em escaneados."
+                titulo={c.rasterizarTitulo}
+                descricao={c.rasterizarDescricao}
               />
             </div>
           )}
 
           <div className="mt-4 flex items-center gap-3">
             <Button onClick={comprimir} disabled={trabalhando || !alvo}>
-              {trabalhando ? "Comprimindo…" : "Comprimir"}
+              {trabalhando ? c.comprimindo : c.botaoComprimir}
             </Button>
-            <p className="text-[11px] leading-relaxed text-ink-muted">
-              O arquivo não sai do seu computador — a conversão acontece aqui no navegador.
-            </p>
+            <p className="text-[11px] leading-relaxed text-ink-muted">{c.naoSaiDoComputador}</p>
           </div>
         </div>
       )}
@@ -328,7 +342,7 @@ export function CompressorDeArquivos() {
               style={{ width: progresso.porcentagem === null ? "100%" : `${progresso.porcentagem}%` }}
             />
           </div>
-          <p className="mt-2 text-[11px] text-ink-muted">Não feche esta aba enquanto a barra não terminar.</p>
+          <p className="mt-2 text-[11px] text-ink-muted">{c.naoFecheAba}</p>
         </div>
       )}
 
@@ -340,9 +354,9 @@ export function CompressorDeArquivos() {
               <IconCheckCircle className="h-4 w-4" />
             </span>
             <div className="flex items-baseline gap-2 text-sm">
-              <span className="text-ink-muted line-through">{fmtBytes(resultado.bytesAntes)}</span>
+              <span className="text-ink-muted line-through">{tam(resultado.bytesAntes)}</span>
               <span className="text-ink-muted">→</span>
-              <span className="text-lg font-semibold text-ink-primary">{fmtBytes(resultado.bytesDepois)}</span>
+              <span className="text-lg font-semibold text-ink-primary">{tam(resultado.bytesDepois)}</span>
               {economia > 0 && <span className="text-xs font-medium text-status-good">−{economia}%</span>}
             </div>
             <a
@@ -351,7 +365,7 @@ export function CompressorDeArquivos() {
               className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-accent to-accent2 px-4 py-2 text-sm font-medium text-white transition hover:brightness-110"
             >
               <IconDownload className="h-4 w-4" />
-              Baixar
+              {c.baixar}
             </a>
           </div>
           <p className="mt-2 truncate text-xs text-ink-muted">{resultado.nome}</p>

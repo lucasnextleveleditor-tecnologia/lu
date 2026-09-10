@@ -3,8 +3,10 @@ import {
   bitmapParaJpeg,
   nomeDeSaida,
   respirar,
+  substituir,
   type AoProgredir,
   type ResultadoCompressao,
+  type TextosDoCompressor,
 } from "./nucleo";
 
 /**
@@ -35,12 +37,24 @@ export async function comprimirPdf(
   file: File,
   alvoBytes: number,
   estrategia: EstrategiaPdf,
+  textos: TextosDoCompressor,
   aoProgredir: AoProgredir
 ): Promise<ResultadoCompressao> {
   const bytes = new Uint8Array(await file.arrayBuffer());
   return estrategia === "rasterizar"
-    ? rasterizar(file, bytes, alvoBytes, aoProgredir)
-    : reencodarImagens(file, bytes, alvoBytes, aoProgredir);
+    ? rasterizar(file, bytes, alvoBytes, textos, aoProgredir)
+    : reencodarImagens(file, bytes, alvoBytes, textos, aoProgredir);
+}
+
+/** Devolve o arquivo como veio, com uma explicação — usado sempre que comprimir pioraria. */
+function intacto(file: File, bytes: Uint8Array, aviso: string): ResultadoCompressao {
+  return {
+    blob: new Blob([bytes.slice()], { type: "application/pdf" }),
+    nome: file.name,
+    bytesAntes: file.size,
+    bytesDepois: file.size,
+    aviso,
+  };
 }
 
 // --- Estratégia 1: mexer só nas imagens, mantendo o texto -------------------
@@ -60,9 +74,10 @@ async function reencodarImagens(
   file: File,
   bytes: Uint8Array,
   alvoBytes: number,
+  textos: TextosDoCompressor,
   aoProgredir: AoProgredir
 ): Promise<ResultadoCompressao> {
-  aoProgredir({ etapa: "Procurando as imagens dentro do PDF…", porcentagem: 6 });
+  aoProgredir({ etapa: textos.etapaProcurandoImagens, porcentagem: 6 });
 
   // `ignoreEncryption` deixa abrir PDF com dono/senha vazia (o caso comum de
   // arquivo exportado por scanner). Se tiver senha de verdade, o load falha
@@ -90,14 +105,7 @@ async function reencodarImagens(
   }
 
   if (candidatas.length === 0 || bytesEmImagens < file.size * 0.15) {
-    return {
-      blob: new Blob([bytes.slice()], { type: "application/pdf" }),
-      nome: file.name,
-      bytesAntes: file.size,
-      bytesDepois: file.size,
-      aviso:
-        "Este PDF é quase todo texto — não há imagem pesada pra encolher, então não dá pra reduzir sem transformar o texto em foto. Se você aceitar perder a busca dentro do documento, troque para “Rasterizar as páginas”.",
-    };
+    return intacto(file, bytes, textos.avisoPdfSoTexto);
   }
 
   // Quanto do peso do arquivo NÃO são as imagens: fonte, texto, estrutura.
@@ -105,13 +113,7 @@ async function reencodarImagens(
   const fixo = Math.max(0, file.size - bytesEmImagens);
   const alvoDasImagens = alvoBytes - fixo;
   if (alvoDasImagens <= bytesEmImagens * 0.03) {
-    return {
-      blob: new Blob([bytes.slice()], { type: "application/pdf" }),
-      nome: file.name,
-      bytesAntes: file.size,
-      bytesDepois: file.size,
-      aviso: `Esse alvo é impossível mantendo o texto: só a estrutura do documento já ocupa ${Math.round(fixo / 1024)} KB. Escolha um alvo maior ou use “Rasterizar as páginas”.`,
-    };
+    return intacto(file, bytes, substituir(textos.avisoAlvoImpossivelPdf, { kb: Math.round(fixo / 1024) }));
   }
 
   const { escala, qualidade } = degrauPara(alvoDasImagens / bytesEmImagens);
@@ -122,7 +124,7 @@ async function reencodarImagens(
     if (!candidata) continue;
     const { ref, stream } = candidata;
     aoProgredir({
-      etapa: `Recomprimindo imagem ${i + 1} de ${candidatas.length}…`,
+      etapa: substituir(textos.etapaRecomprimindoImagem, { n: i + 1, total: candidatas.length }),
       porcentagem: 8 + Math.round((i / candidatas.length) * 78),
     });
     await respirar();
@@ -132,7 +134,7 @@ async function reencodarImagens(
       // pdf-lib mexer no buffer original já rendeu arquivo corrompido.
       const original = stream.contents;
       const bitmap = await createImageBitmap(new Blob([original.slice()], { type: "image/jpeg" }));
-      const nova = await bitmapParaJpeg(bitmap, escala, qualidade);
+      const nova = await bitmapParaJpeg(bitmap, escala, qualidade, textos);
       bitmap.close();
 
       const conteudo = new Uint8Array(await nova.blob.arrayBuffer());
@@ -160,22 +162,19 @@ async function reencodarImagens(
     }
   }
 
-  aoProgredir({ etapa: "Remontando o PDF…", porcentagem: 92 });
+  aoProgredir({ etapa: textos.etapaRemontandoPdf, porcentagem: 92 });
   const saida = await doc.save({ useObjectStreams: true });
   const blob = new Blob([saida.slice()], { type: "application/pdf" });
 
   const avisos: string[] = [];
-  if (trocadas === 0) avisos.push("As imagens deste PDF já estavam no menor tamanho possível.");
-  if (blob.size > alvoBytes)
-    avisos.push(
-      "Não deu pra chegar no alvo mantendo o texto do documento. Se puder abrir mão da busca dentro do PDF, tente “Rasterizar as páginas”."
-    );
-  if (blob.size >= file.size)
-    avisos.push("O arquivo original já estava otimizado — devolvi o menor dos dois.");
+  if (trocadas === 0) avisos.push(textos.avisoImagensJaMinimas);
+  if (blob.size > alvoBytes) avisos.push(textos.avisoNaoChegouMantendoTexto);
+  if (blob.size >= file.size) avisos.push(textos.avisoDevolviMenor);
 
+  const ganhou = blob.size < file.size;
   return {
-    blob: blob.size < file.size ? blob : new Blob([bytes.slice()], { type: "application/pdf" }),
-    nome: blob.size < file.size ? nomeDeSaida(file.name, "pdf") : file.name,
+    blob: ganhou ? blob : new Blob([bytes.slice()], { type: "application/pdf" }),
+    nome: ganhou ? nomeDeSaida(file.name, "pdf", textos.sufixoArquivo) : file.name,
     bytesAntes: file.size,
     bytesDepois: Math.min(blob.size, file.size),
     aviso: avisos.length > 0 ? avisos.join(" ") : undefined,
@@ -209,13 +208,18 @@ async function carregarPdfjs() {
   return pdfjs;
 }
 
-async function desenharPagina(pagina: any, escala: number, qualidade: number): Promise<{ jpeg: Uint8Array; largura: number; altura: number }> {
+async function desenharPagina(
+  pagina: any,
+  escala: number,
+  qualidade: number,
+  textos: TextosDoCompressor
+): Promise<{ jpeg: Uint8Array; largura: number; altura: number }> {
   const viewport = pagina.getViewport({ scale: escala });
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.floor(viewport.width));
   canvas.height = Math.max(1, Math.floor(viewport.height));
   const ctx = canvas.getContext("2d", { alpha: false });
-  if (!ctx) throw new Error("Este navegador não conseguiu abrir a área de desenho.");
+  if (!ctx) throw new Error(textos.erroCanvas);
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -228,7 +232,7 @@ async function desenharPagina(pagina: any, escala: number, qualidade: number): P
   // esperar o coletor de lixo decidir sozinho estoura a aba.
   canvas.width = 0;
   canvas.height = 0;
-  if (!blob) throw new Error("Não consegui converter a página em imagem.");
+  if (!blob) throw new Error(textos.erroConverterPagina);
   return { jpeg: new Uint8Array(await blob.arrayBuffer()), largura, altura };
 }
 
@@ -236,9 +240,10 @@ async function rasterizar(
   file: File,
   bytes: Uint8Array,
   alvoBytes: number,
+  textos: TextosDoCompressor,
   aoProgredir: AoProgredir
 ): Promise<ResultadoCompressao> {
-  aoProgredir({ etapa: "Abrindo o documento…", porcentagem: 4 });
+  aoProgredir({ etapa: textos.etapaAbrindoDocumento, porcentagem: 4 });
   const pdfjs = await carregarPdfjs();
   // O pdf.js assume a posse do buffer que recebe (ele o transfere pro
   // worker), então vai uma cópia — o `bytes` original ainda é usado abaixo.
@@ -249,11 +254,11 @@ async function rasterizar(
   // 80 páginas seis vezes pra descobrir o degrau certo levaria minutos; uma
   // página em cada degrau leva segundos e erra pouco, porque páginas de um
   // mesmo documento costumam pesar parecido.
-  aoProgredir({ etapa: "Calculando a qualidade que cabe no alvo…", porcentagem: 8 });
+  aoProgredir({ etapa: textos.etapaCalculandoQualidade, porcentagem: 8 });
   const primeira = await doc.getPage(1);
   let escolhido = RASTER_MINIMO;
   for (const degrau of ESCADA_RASTER) {
-    const amostra = await desenharPagina(primeira, degrau.escala, degrau.qualidade);
+    const amostra = await desenharPagina(primeira, degrau.escala, degrau.qualidade, textos);
     // +6% de folga: estrutura do PDF e a variação entre páginas.
     if (amostra.jpeg.length * paginas * 1.06 + 3000 <= alvoBytes) {
       escolhido = degrau;
@@ -265,13 +270,13 @@ async function rasterizar(
   const saidaDoc = await PDFDocument.create();
   for (let n = 1; n <= paginas; n++) {
     aoProgredir({
-      etapa: `Convertendo página ${n} de ${paginas}…`,
+      etapa: substituir(textos.etapaConvertendoPagina, { n, total: paginas }),
       porcentagem: 12 + Math.round(((n - 1) / paginas) * 80),
     });
     await respirar();
 
     const pagina = n === 1 ? primeira : await doc.getPage(n);
-    const { jpeg } = await desenharPagina(pagina, escolhido.escala, escolhido.qualidade);
+    const { jpeg } = await desenharPagina(pagina, escolhido.escala, escolhido.qualidade, textos);
     const img = await saidaDoc.embedJpg(jpeg);
 
     // A página nova nasce do tamanho REAL da original em pontos (escala 1),
@@ -283,28 +288,19 @@ async function rasterizar(
     pagina.cleanup();
   }
 
-  aoProgredir({ etapa: "Montando o arquivo final…", porcentagem: 95 });
+  aoProgredir({ etapa: textos.etapaMontandoArquivo, porcentagem: 95 });
   const saida = await saidaDoc.save({ useObjectStreams: true });
   await doc.destroy();
   const blob = new Blob([saida.slice()], { type: "application/pdf" });
 
-  const avisos = ["O texto virou imagem: o PDF não pode mais ser buscado nem copiado."];
-  if (blob.size > alvoBytes)
-    avisos.push("Mesmo na menor qualidade utilizável o arquivo ficou acima do alvo pedido.");
-  if (blob.size >= file.size) {
-    return {
-      blob: new Blob([bytes.slice()], { type: "application/pdf" }),
-      nome: file.name,
-      bytesAntes: file.size,
-      bytesDepois: file.size,
-      aviso:
-        "Rasterizar deixaria este PDF MAIOR do que ele já é — é sinal de que ele é feito de texto, que ocupa muito menos espaço que foto. Devolvi o original intacto.",
-    };
-  }
+  if (blob.size >= file.size) return intacto(file, bytes, textos.avisoRasterizarPiora);
+
+  const avisos = [textos.avisoTextoVirouImagem];
+  if (blob.size > alvoBytes) avisos.push(textos.avisoAcimaDoAlvo);
 
   return {
     blob,
-    nome: nomeDeSaida(file.name, "pdf"),
+    nome: nomeDeSaida(file.name, "pdf", textos.sufixoArquivo),
     bytesAntes: file.size,
     bytesDepois: blob.size,
     aviso: avisos.join(" "),

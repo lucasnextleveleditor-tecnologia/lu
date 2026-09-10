@@ -21,6 +21,7 @@ import { agenda } from "./agenda";
 import { objetivos } from "./objetivos";
 import { ordemDoDia } from "./ordemDoDia";
 import { mapaMental } from "./mapaMental";
+import { ferramentas } from "./ferramentas";
 
 export const es: Dictionary = {
   common,
@@ -45,4 +46,5 @@ export const es: Dictionary = {
   objetivos,
   ordemDoDia,
   mapaMental,
+  ferramentas,
 };

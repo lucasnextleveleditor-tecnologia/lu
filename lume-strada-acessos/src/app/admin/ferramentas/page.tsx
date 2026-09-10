@@ -1,14 +1,15 @@
 import { requireEquipeOuRedirect, buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 import { buscarContagensDasFerramentas } from "./data";
 import { CartaoDeFerramenta } from "@/components/admin/ferramentas/CartaoDeFerramenta";
 import {
   IconCalculator,
   IconClipboardList,
   IconFilePlus,
+  IconMinimize,
   IconSignature,
   IconSitemap,
   IconTool,
-  IconMinimize,
 } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,8 @@ export const dynamic = "force-dynamic";
  */
 export default async function FerramentasPage() {
   const { supabase, user } = await requireEquipeOuRedirect();
+  const { dict, locale } = await getDictionary();
+  const t = dict.ferramentas;
   const [perfil, contagens] = await Promise.all([
     buscarPerfilComPermissoes(supabase, user.id),
     buscarContagensDasFerramentas(supabase),
@@ -42,8 +45,10 @@ export default async function FerramentasPage() {
   const pode = (chave: "producao" | "orcamentos" | null) =>
     chave === null || ehAdmin || perfil?.permissoes?.[chave] === true;
 
-  const plural = (n: number, um: string, muitos: string, nenhum: string) =>
-    n === 0 ? nenhum : n === 1 ? `1 ${um}` : `${n} ${muitos}`;
+  // Plural resolvido aqui, e não no dicionário: arquivo de tradução só pode
+  // conter dado puro (ver a trava de serialização em `pt/index.ts`).
+  const plural = (n: number, forma: { um: string; muitos: string; nenhum: string }) =>
+    n === 0 ? forma.nenhum : n === 1 ? forma.um : forma.muitos.replace("{n}", n.toLocaleString(locale));
 
   const ferramentas = [
     {
@@ -51,10 +56,9 @@ export default async function FerramentasPage() {
       href: "/admin/producao/ordem-do-dia",
       icone: IconClipboardList,
       cor: "#f59e0b",
-      titulo: "Ordem de Externa",
-      descricao:
-        "A folha que todo mundo recebe na véspera: onde é, a que horas, quem vai estar e o que vai ser gravado.",
-      meta: plural(contagens.ordensAtivas, "ordem ativa", "ordens ativas", "nenhuma ordem ativa"),
+      titulo: t.ordemExternaTitulo,
+      descricao: t.ordemExternaDescricao,
+      meta: plural(contagens.ordensAtivas, t.ordensAtivas),
       destaque: contagens.ordensAtivas > 0,
     },
     {
@@ -62,10 +66,9 @@ export default async function FerramentasPage() {
       href: "/admin/mapas",
       icone: IconSitemap,
       cor: "#8b5cf6",
-      titulo: "Mapa Mental",
-      descricao:
-        "Pensar em conjunto e ao vivo: ideias, roteiro e estrutura de projeto, com a equipe editando o mesmo mapa.",
-      meta: plural(contagens.mapas, "mapa", "mapas", "nenhum mapa ainda"),
+      titulo: t.mapaMentalTitulo,
+      descricao: t.mapaMentalDescricao,
+      meta: plural(contagens.mapas, t.mapasCriados),
       destaque: contagens.mapas > 0,
     },
     {
@@ -73,10 +76,9 @@ export default async function FerramentasPage() {
       href: "/admin/orcamentos/calculadora",
       icone: IconCalculator,
       cor: "#22d3a7",
-      titulo: "Calculadora de Orçamento",
-      descricao:
-        "Simule custo, imposto e margem antes de mandar o preço — o mesmo motor de cálculo usado nas propostas.",
-      meta: "Simulação livre, nada é salvo",
+      titulo: t.calculadoraTitulo,
+      descricao: t.calculadoraDescricao,
+      meta: t.calculadoraMeta,
       destaque: false,
     },
     {
@@ -84,15 +86,9 @@ export default async function FerramentasPage() {
       href: "/admin/contratos/novo",
       icone: IconFilePlus,
       cor: "#38bdf8",
-      titulo: "Criador de Contratos",
-      descricao:
-        "Monte o contrato cláusula a cláusula a partir dos modelos da sua profissão, com prévia paginada antes de enviar.",
-      meta: plural(
-        contagens.contratosAguardando,
-        "contrato aguardando assinatura",
-        "contratos aguardando assinatura",
-        "nenhum contrato aguardando"
-      ),
+      titulo: t.criadorContratosTitulo,
+      descricao: t.criadorContratosDescricao,
+      meta: plural(contagens.contratosAguardando, t.contratosAguardando),
       destaque: contagens.contratosAguardando > 0,
     },
     {
@@ -100,10 +96,9 @@ export default async function FerramentasPage() {
       href: "/admin/ferramentas/comprimir",
       icone: IconMinimize,
       cor: "#60a5fa",
-      titulo: "Comprimir Arquivo",
-      descricao:
-        "Vídeo, PDF ou imagem grande demais para mandar? Escolha o tamanho final e a conversão acontece aqui mesmo, no seu navegador.",
-      meta: "Não gasta armazenamento da conta",
+      titulo: t.comprimirTitulo,
+      descricao: t.comprimirDescricao,
+      meta: t.comprimirMeta,
       destaque: false,
     },
     {
@@ -111,15 +106,9 @@ export default async function FerramentasPage() {
       href: "/admin/assinaturas",
       icone: IconSignature,
       cor: "#f472b6",
-      titulo: "Assinatura de Contratos",
-      descricao:
-        "Suba um PDF pronto, marque onde cada pessoa assina e mande por link — com registro de IP, data e hash.",
-      meta: plural(
-        contagens.documentosAguardando,
-        "documento aguardando",
-        "documentos aguardando",
-        "nenhum documento aguardando"
-      ),
+      titulo: t.assinaturaTitulo,
+      descricao: t.assinaturaDescricao,
+      meta: plural(contagens.documentosAguardando, t.documentosAguardando),
       destaque: contagens.documentosAguardando > 0,
     },
   ].filter((f) => pode(f.chave));
@@ -131,10 +120,8 @@ export default async function FerramentasPage() {
           <IconTool className="h-5 w-5" />
         </span>
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">Ferramentas</h1>
-          <p className="mt-0.5 text-sm text-ink-muted">
-            O que você abre para fazer uma coisa e fechar em seguida — separado dos módulos que você acompanha.
-          </p>
+          <h1 className="text-lg font-semibold tracking-tight">{t.tituloPagina}</h1>
+          <p className="mt-0.5 text-sm text-ink-muted">{t.subtituloPagina}</p>
         </div>
       </div>
 

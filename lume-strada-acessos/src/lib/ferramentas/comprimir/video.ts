@@ -1,4 +1,4 @@
-import { nomeDeSaida, type AoProgredir, type ResultadoCompressao } from "./nucleo";
+import { nomeDeSaida, substituir, type AoProgredir, type ResultadoCompressao, type TextosDoCompressor } from "./nucleo";
 
 /**
  * Compressão de vídeo com o ffmpeg compilado para WebAssembly, rodando
@@ -35,12 +35,12 @@ let carregando: Promise<FFmpegInstancia> | null = null;
  * seguidos em "Comprimir" antes do fim do download começariam dois
  * carregamentos de 32 MB em paralelo.
  */
-async function carregarFFmpeg(aoProgredir: AoProgredir): Promise<FFmpegInstancia> {
+async function carregarFFmpeg(textos: TextosDoCompressor, aoProgredir: AoProgredir): Promise<FFmpegInstancia> {
   if (instancia) return instancia;
   if (carregando) return carregando;
 
   carregando = (async () => {
-    aoProgredir({ etapa: "Baixando o conversor de vídeo (só na primeira vez)…", porcentagem: null });
+    aoProgredir({ etapa: textos.etapaBaixandoConversor, porcentagem: null });
     const [{ FFmpeg }, { toBlobURL }] = await Promise.all([import("@ffmpeg/ffmpeg"), import("@ffmpeg/util")]);
 
     let ultimoErro: unknown = null;
@@ -60,9 +60,9 @@ async function carregarFFmpeg(aoProgredir: AoProgredir): Promise<FFmpegInstancia
       }
     }
     throw new Error(
-      `Não consegui baixar o conversor de vídeo. Verifique a conexão e tente de novo.${
-        ultimoErro instanceof Error ? ` (${ultimoErro.message})` : ""
-      }`
+      substituir(textos.erroBaixarConversor, {
+        detalhe: ultimoErro instanceof Error ? ` (${ultimoErro.message})` : "",
+      })
     );
   })();
 
@@ -81,7 +81,7 @@ async function carregarFFmpeg(aoProgredir: AoProgredir): Promise<FFmpegInstancia
  * milissegundos. E a duração é o número mais importante de todos: é dela que
  * sai o bitrate necessário pra bater o tamanho pedido.
  */
-function lerDuracao(file: File): Promise<{ duracao: number; altura: number }> {
+function lerDuracao(file: File, textos: TextosDoCompressor): Promise<{ duracao: number; altura: number }> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const v = document.createElement("video");
@@ -93,7 +93,7 @@ function lerDuracao(file: File): Promise<{ duracao: number; altura: number }> {
       const altura = v.videoHeight || 0;
       limpar();
       if (!Number.isFinite(duracao) || duracao <= 0) {
-        reject(new Error("Não consegui ler a duração deste vídeo."));
+        reject(new Error(textos.erroDuracao));
         return;
       }
       resolve({ duracao, altura });
@@ -102,11 +102,7 @@ function lerDuracao(file: File): Promise<{ duracao: number; altura: number }> {
       limpar();
       // Acontece com .mkv/.avi/.wmv, que o navegador não abre. O ffmpeg até
       // converteria, mas sem a duração não dá pra mirar num tamanho.
-      reject(
-        new Error(
-          "Este formato de vídeo não abre neste navegador. Converta para MP4 ou MOV antes de comprimir."
-        )
-      );
+      reject(new Error(textos.erroFormatoVideo));
     };
     v.src = url;
   });
@@ -124,10 +120,11 @@ function alturaPara(bitrateKbps: number): number {
 export async function comprimirVideo(
   file: File,
   alvoBytes: number,
+  textos: TextosDoCompressor,
   aoProgredir: AoProgredir
 ): Promise<ResultadoCompressao> {
-  const { duracao, altura: alturaOriginal } = await lerDuracao(file);
-  const ffmpeg = await carregarFFmpeg(aoProgredir);
+  const { duracao, altura: alturaOriginal } = await lerDuracao(file, textos);
+  const ffmpeg = await carregarFFmpeg(textos, aoProgredir);
   const { fetchFile } = await import("@ffmpeg/util");
 
   // Orçamento de bits: o arquivo inteiro tem `alvoBytes`; tira 4% pro
@@ -141,7 +138,10 @@ export async function comprimirVideo(
 
   if (kbpsVideo < 90) {
     throw new Error(
-      `${Math.round(alvoBytes / (1024 * 1024))} MB para ${Math.round(duracao / 60)} min de vídeo é pouco demais — sairia irreconhecível. Escolha um alvo maior.`
+      substituir(textos.erroAlvoImpossivelVideo, {
+        mb: Math.round(alvoBytes / (1024 * 1024)),
+        min: Math.max(1, Math.round(duracao / 60)),
+      })
     );
   }
 
@@ -152,15 +152,15 @@ export async function comprimirVideo(
   const aoProgressoDoFfmpeg = ({ progress }: { progress: number }) => {
     // O ffmpeg às vezes passa de 1 no fim (arredondamento do timestamp).
     const p = Math.max(0, Math.min(1, progress));
-    aoProgredir({ etapa: "Convertendo o vídeo…", porcentagem: 10 + Math.round(p * 82) });
+    aoProgredir({ etapa: textos.etapaConvertendoVideo, porcentagem: 10 + Math.round(p * 82) });
   };
 
-  aoProgredir({ etapa: "Preparando o arquivo…", porcentagem: 6 });
+  aoProgredir({ etapa: textos.etapaPreparandoArquivo, porcentagem: 6 });
   await ffmpeg.writeFile(entrada, await fetchFile(file));
   ffmpeg.on("progress", aoProgressoDoFfmpeg);
 
   try {
-    let resultado = await converter(ffmpeg, entrada, saida, kbpsVideo, kbpsAudio, altura, alturaOriginal);
+    let resultado = await converter(ffmpeg, entrada, saida, kbpsVideo, kbpsAudio, altura, alturaOriginal, textos);
 
     // Uma segunda passada quando erra feio pra cima. O libx264 mira no
     // bitrate médio, não no tamanho final: em vídeo com muito movimento ele
@@ -171,7 +171,7 @@ export async function comprimirVideo(
       const fator = (alvoBytes / resultado.length) * 0.94;
       const novoKbps = Math.max(90, Math.floor(kbpsVideo * fator));
       if (novoKbps < kbpsVideo * 0.97) {
-        aoProgredir({ etapa: "Ajustando pra caber no tamanho pedido…", porcentagem: 12 });
+        aoProgredir({ etapa: textos.etapaAjustando, porcentagem: 12 });
         kbpsVideo = novoKbps;
         resultado = await converter(
           ffmpeg,
@@ -180,25 +180,23 @@ export async function comprimirVideo(
           kbpsVideo,
           kbpsAudio,
           Math.min(alturaPara(kbpsVideo), alturaOriginal || 1080),
-          alturaOriginal
+          alturaOriginal,
+          textos
         );
       }
     }
 
-    aoProgredir({ etapa: "Finalizando…", porcentagem: 97 });
+    aoProgredir({ etapa: textos.etapaFinalizando, porcentagem: 97 });
     const blob = new Blob([resultado.slice()], { type: "video/mp4" });
 
     const avisos: string[] = [];
-    if (blob.size > alvoBytes * 1.06)
-      avisos.push("Ficou um pouco acima do alvo: é o mínimo que este vídeo aceita sem virar borrão.");
-    if (altura < (alturaOriginal || altura))
-      avisos.push(`A resolução caiu para ${altura}p — no tamanho que você pediu, manter a original deixaria a imagem quadriculada.`);
-    if (blob.size >= file.size)
-      avisos.push("O vídeo original já estava bem comprimido; recomprimir não ganhou espaço.");
+    if (blob.size > alvoBytes * 1.06) avisos.push(textos.avisoVideoAcimaDoAlvo);
+    if (altura < (alturaOriginal || altura)) avisos.push(substituir(textos.avisoResolucaoCaiu, { altura }));
+    if (blob.size >= file.size) avisos.push(textos.avisoVideoJaComprimido);
 
     return {
       blob,
-      nome: nomeDeSaida(file.name, "mp4"),
+      nome: nomeDeSaida(file.name, "mp4", textos.sufixoArquivo),
       bytesAntes: file.size,
       bytesDepois: blob.size,
       aviso: avisos.length > 0 ? avisos.join(" ") : undefined,
@@ -220,7 +218,8 @@ async function converter(
   kbpsVideo: number,
   kbpsAudio: number,
   altura: number,
-  alturaOriginal: number
+  alturaOriginal: number,
+  textos: TextosDoCompressor
 ): Promise<Uint8Array> {
   const args = [
     "-i", entrada,
@@ -250,10 +249,8 @@ async function converter(
   );
 
   const codigo = await ffmpeg.exec(args);
-  if (codigo !== 0) {
-    throw new Error("O conversor não conseguiu processar este vídeo. Ele pode estar corrompido ou num formato incomum.");
-  }
+  if (codigo !== 0) throw new Error(textos.erroConversor);
   const dados = await ffmpeg.readFile(saida);
-  if (typeof dados === "string") throw new Error("Resposta inesperada do conversor de vídeo.");
+  if (typeof dados === "string") throw new Error(textos.erroRespostaConversor);
   return dados;
 }

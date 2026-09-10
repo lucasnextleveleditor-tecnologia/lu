@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireEquipeOuRedirect } from "@/lib/auth/requireAdmin";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 import { CompressorDeArquivos } from "@/components/admin/ferramentas/CompressorDeArquivos";
 import { IconMinimize, IconChevronLeft } from "@/components/ui/icons";
 
@@ -20,6 +21,9 @@ export const dynamic = "force-dynamic";
  */
 export default async function ComprimirArquivosPage() {
   await requireEquipeOuRedirect();
+  const { dict } = await getDictionary();
+  const t = dict.ferramentas;
+  const c = t.comprimir;
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -28,7 +32,7 @@ export default async function ComprimirArquivosPage() {
         className="mb-5 inline-flex items-center gap-1 text-xs text-ink-muted transition hover:text-ink-secondary"
       >
         <IconChevronLeft className="h-3.5 w-3.5" />
-        Ferramentas
+        {t.voltar}
       </Link>
 
       <div className="mb-6 flex items-start gap-3">
@@ -36,35 +40,27 @@ export default async function ComprimirArquivosPage() {
           <IconMinimize className="h-5 w-5" />
         </span>
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">Comprimir Arquivo</h1>
-          <p className="mt-0.5 text-sm text-ink-muted">
-            Escolha o arquivo e o tamanho que ele precisa ter. A conversão acontece no seu próprio navegador — nada
-            é enviado para a internet e nada ocupa o armazenamento da sua conta.
-          </p>
+          <h1 className="text-lg font-semibold tracking-tight">{t.comprimirTitulo}</h1>
+          <p className="mt-0.5 text-sm text-ink-muted">{c.subtitulo}</p>
         </div>
       </div>
 
       <CompressorDeArquivos />
 
       <div className="mt-8 rounded-2xl border border-base-700 bg-base-900/40 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Quando vale a pena</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{c.quandoValeTitulo}</p>
         <ul className="mt-3 space-y-2 text-xs leading-relaxed text-ink-secondary">
           <li>
-            <span className="text-ink-primary">Vídeo</span> — comprimir serve para mandar por e-mail ou WhatsApp. Para
-            entregar ao cliente dentro do sistema, publicar no YouTube ou no Drive e colar o link continua sendo
-            melhor: não perde qualidade e não gasta armazenamento nenhum.
+            <span className="text-ink-primary">{c.dicaVideoLead}</span> — {c.dicaVideo}
           </li>
           <li>
-            <span className="text-ink-primary">PDF escaneado</span> — é o caso onde mais se ganha. Um contrato
-            digitalizado de 50 MB costuma sair com 5 a 10 MB sem atrapalhar a leitura.
+            <span className="text-ink-primary">{c.dicaPdfEscaneadoLead}</span> — {c.dicaPdfEscaneado}
           </li>
           <li>
-            <span className="text-ink-primary">PDF gerado por computador</span> — proposta, contrato e relatório feitos
-            aqui no sistema já são pequenos. Comprimir ganha pouco e pode custar a busca dentro do documento.
+            <span className="text-ink-primary">{c.dicaPdfTextoLead}</span> — {c.dicaPdfTexto}
           </li>
           <li>
-            <span className="text-ink-primary">Imagem</span> — foto de câmera ou print de 10 MB vira menos de 1 MB sem
-            diferença visível na tela.
+            <span className="text-ink-primary">{c.dicaImagemLead}</span> — {c.dicaImagem}
           </li>
         </ul>
       </div>

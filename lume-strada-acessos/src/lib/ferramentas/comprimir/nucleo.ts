@@ -38,6 +38,79 @@ export interface ResultadoCompressao {
   aviso?: string;
 }
 
+/**
+ * Todo texto que estas três estratégias podem mostrar — etapa da barra de
+ * progresso, aviso no resultado e mensagem de erro.
+ *
+ * Elas NÃO importam o dicionário: são módulos de cálculo, e o idioma de quem
+ * está olhando é decisão de quem chamou. Quem chama (`CompressorDeArquivos`)
+ * já tem o dicionário na mão via `useLocale()` e passa este objeto adiante.
+ * Assim as três funções continuam testáveis fora do app, e nenhuma frase
+ * escapa da tradução — se faltar uma chave aqui, o `tsc` para.
+ *
+ * `{...}` marca onde entra número: `substituir()` faz a troca.
+ */
+export interface TextosDoCompressor {
+  /** Sufixo do arquivo gerado: `contrato` + isto + `.pdf`. */
+  sufixoArquivo: string;
+
+  erroCanvas: string;
+  erroGerarImagem: string;
+
+  etapaAbrindoImagem: string;
+  etapaTestandoQualidade: string;
+  erroImagemNaoAbre: string;
+  erroImagemGenerico: string;
+  avisoMenorPossivel: string;
+  avisoVirouJpg: string;
+  avisoJaOtimizado: string;
+
+  etapaProcurandoImagens: string;
+  /** `{n}` = imagem atual, `{total}` = quantas ao todo. */
+  etapaRecomprimindoImagem: string;
+  etapaRemontandoPdf: string;
+  etapaAbrindoDocumento: string;
+  etapaCalculandoQualidade: string;
+  /** `{n}` = página atual, `{total}` = quantas ao todo. */
+  etapaConvertendoPagina: string;
+  etapaMontandoArquivo: string;
+  erroConverterPagina: string;
+  avisoPdfSoTexto: string;
+  /** `{kb}` = quanto a estrutura do PDF ocupa sozinha. */
+  avisoAlvoImpossivelPdf: string;
+  avisoImagensJaMinimas: string;
+  avisoNaoChegouMantendoTexto: string;
+  avisoDevolviMenor: string;
+  avisoTextoVirouImagem: string;
+  avisoAcimaDoAlvo: string;
+  avisoRasterizarPiora: string;
+
+  etapaBaixandoConversor: string;
+  etapaPreparandoArquivo: string;
+  etapaConvertendoVideo: string;
+  etapaAjustando: string;
+  etapaFinalizando: string;
+  /** `{detalhe}` = mensagem técnica da falha, entre parênteses ou vazia. */
+  erroBaixarConversor: string;
+  erroDuracao: string;
+  erroFormatoVideo: string;
+  /** `{mb}` = alvo pedido, `{min}` = duração do vídeo em minutos. */
+  erroAlvoImpossivelVideo: string;
+  erroConversor: string;
+  erroRespostaConversor: string;
+  avisoVideoAcimaDoAlvo: string;
+  /** `{altura}` = resolução final, em linhas (720, 1080…). */
+  avisoResolucaoCaiu: string;
+  avisoVideoJaComprimido: string;
+}
+
+/** Troca `{chave}` pelos valores dados. Sem chave correspondente, o texto passa intacto. */
+export function substituir(texto: string, valores: Record<string, string | number>): string {
+  return texto.replace(/\{(\w+)\}/g, (inteiro, chave: string) =>
+    chave in valores ? String(valores[chave]) : inteiro
+  );
+}
+
 /** Acima disto o navegador começa a ficar sem memória de verdade. */
 export const LIMITES_DE_ENTRADA: Record<TipoDeArquivo, number> = {
   video: 500 * 1024 * 1024,
@@ -81,17 +154,20 @@ export function detectarTipo(file: File): TipoDeArquivo | null {
   return null;
 }
 
-export const ROTULO_DO_TIPO: Record<TipoDeArquivo, string> = {
-  video: "Vídeo",
-  pdf: "PDF",
-  imagem: "Imagem",
-};
-
-export function fmtBytes(bytes: number): string {
+/**
+ * Tamanho de arquivo em texto curto.
+ *
+ * As unidades (B, KB, MB, GB) NÃO são traduzidas de propósito: são as mesmas
+ * nos três idiomas do app, e inventar variação regional aqui só criaria
+ * chance de erro. O separador decimal segue o locale.
+ */
+export function fmtBytes(bytes: number, locale = "pt-BR"): string {
+  const n = (valor: number, casas: number) =>
+    valor.toLocaleString(locale, { minimumFractionDigits: casas, maximumFractionDigits: casas });
   if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  if (bytes < 1024 * 1024) return `${n(bytes / 1024, 0)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${n(bytes / (1024 * 1024), 1)} MB`;
+  return `${n(bytes / (1024 * 1024 * 1024), 2)} GB`;
 }
 
 export const MB = 1024 * 1024;
@@ -119,11 +195,11 @@ export function alvosSugeridos(tipo: TipoDeArquivo, bytesOriginais: number): num
   return [Math.round(bytesOriginais / 2), Math.round(bytesOriginais / 3)].filter((a) => a > 20 * 1024);
 }
 
-/** `contrato.pdf` + sufixo `-menor` → `contrato-menor.pdf`, preservando a extensão nova quando ela muda. */
-export function nomeDeSaida(nomeOriginal: string, novaExtensao: string): string {
+/** `contrato.pdf` + sufixo do idioma → `contrato-menor.pdf`, com a extensão nova quando ela muda. */
+export function nomeDeSaida(nomeOriginal: string, novaExtensao: string, sufixo: string): string {
   const i = nomeOriginal.lastIndexOf(".");
   const base = i === -1 ? nomeOriginal : nomeOriginal.slice(0, i);
-  return `${base}-menor.${novaExtensao}`;
+  return `${base}${sufixo}.${novaExtensao}`;
 }
 
 /**
@@ -138,7 +214,8 @@ export function nomeDeSaida(nomeOriginal: string, novaExtensao: string): string 
 export async function bitmapParaJpeg(
   bitmap: ImageBitmap,
   escala: number,
-  qualidade: number
+  qualidade: number,
+  textos: TextosDoCompressor
 ): Promise<{ blob: Blob; largura: number; altura: number }> {
   const largura = Math.max(1, Math.round(bitmap.width * escala));
   const altura = Math.max(1, Math.round(bitmap.height * escala));
@@ -147,7 +224,7 @@ export async function bitmapParaJpeg(
   canvas.width = largura;
   canvas.height = altura;
   const ctx = canvas.getContext("2d", { alpha: false });
-  if (!ctx) throw new Error("Este navegador não conseguiu abrir a área de desenho.");
+  if (!ctx) throw new Error(textos.erroCanvas);
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, largura, altura);
   ctx.imageSmoothingQuality = "high";
@@ -158,7 +235,7 @@ export async function bitmapParaJpeg(
   // canvases pro coletor de lixo decidir quando limpar estoura a aba.
   canvas.width = 0;
   canvas.height = 0;
-  if (!blob) throw new Error("Não consegui gerar a imagem comprimida.");
+  if (!blob) throw new Error(textos.erroGerarImagem);
   return { blob, largura, altura };
 }
 
