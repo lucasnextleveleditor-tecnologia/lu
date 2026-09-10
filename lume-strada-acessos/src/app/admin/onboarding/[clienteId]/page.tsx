@@ -4,7 +4,7 @@ import { requireModuloOuRedirect } from "@/lib/auth/requireAdmin";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { OnboardingWizard } from "@/components/admin/onboarding/OnboardingWizard";
 import { LinkDoOnboarding } from "@/components/admin/onboarding/LinkDoOnboarding";
-import { IconChevronLeft, IconClipboardList } from "@/components/ui/icons";
+import { IconChevronLeft, IconClipboardList, IconPrinter } from "@/components/ui/icons";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { OnboardingRow } from "@/lib/types/onboarding";
 
@@ -53,10 +53,23 @@ export default async function OnboardingDoClientePage({ params }: { params: Prom
         <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-base-700 bg-base-900 text-accent">
           <IconClipboardList className="h-5 w-5" />
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 className="truncate text-lg font-semibold tracking-tight">{clienteRes.data.nome}</h1>
           <p className="mt-0.5 text-sm text-ink-muted">{t.subtituloPagina}</p>
         </div>
+
+        {/* `target="_blank"` e não download: o PDF abre na aba, que é onde se
+            aperta Ctrl+P. Quem quer o arquivo salva de lá; quem quer imprimir
+            não precisa baixar antes. */}
+        <a
+          href={`/api/onboarding/${clienteRes.data.id}/pdf`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-base-600 px-3 py-2 text-xs font-medium text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+        >
+          <IconPrinter className="h-3.5 w-3.5" />
+          {t.baixarPdf}
+        </a>
       </div>
 
       <LinkDoOnboarding

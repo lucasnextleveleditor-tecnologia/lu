@@ -19,6 +19,8 @@ export interface OnboardingDict {
   colAtualizado: string;
   abrir: string;
   comecar: string;
+  continuar: string;
+  editar: string;
   semClientes: string;
   statusNaoIniciado: string;
   statusEmAndamento: string;
@@ -134,6 +136,9 @@ export interface OnboardingDict {
   observacoesOperacionais: string;
   observacoesOperacionaisPlaceholder: string;
 
+  baixarPdf: string;
+  /** `{app}` e `{data}` */
+  pdfRodape: string;
   erroTabelaAusente: string;
   selecione: string;
   naoInformado: string;
@@ -180,6 +185,8 @@ export const onboarding: OnboardingDict = {
   colAtualizado: "Atualizado",
   abrir: "Abrir",
   comecar: "Começar",
+  continuar: "Continuar",
+  editar: "Editar",
   semClientes: "Nenhum cliente cadastrado ainda.",
   statusNaoIniciado: "Não iniciado",
   statusEmAndamento: "Em andamento",
@@ -284,6 +291,8 @@ export const onboarding: OnboardingDict = {
   observacoesOperacionais: "Combinados e restrições",
   observacoesOperacionaisPlaceholder: "Horário de resposta, prazo de aprovação, quem não pode ser acionado direto.",
 
+  baixarPdf: "Imprimir / PDF",
+  pdfRodape: "Briefing gerado por {app} em {data}",
   erroTabelaAusente:
     "O banco ainda não tem a tabela do onboarding. Rode supabase/cliente-onboarding.sql no editor SQL do Supabase — leva um minuto e é uma vez só.",
   selecione: "Selecione…",

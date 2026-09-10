@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils/cn";
 import { substituir } from "@/lib/utils/texto";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { fmtDataCurta } from "@/lib/utils/format";
-import { IconChevronRight, IconCheck } from "@/components/ui/icons";
+import { IconChevronRight, IconCheck, IconPencil } from "@/components/ui/icons";
 import { TOTAL_DE_ETAPAS, etapasPreenchidas, type OnboardingRow } from "@/lib/types/onboarding";
 import type { ClienteRow } from "@/lib/types/cadastros";
 
@@ -39,12 +39,19 @@ export async function PainelOnboarding({
         row,
         etapas: etapasPreenchidas(row),
         concluido: Boolean(row?.concluido_em),
+        // "Começado" é a EXISTÊNCIA da linha, não ter campo preenchido. Quem
+        // clicou em Começar e fechou a tela sem escrever nada começou — e
+        // continuar dizendo "não iniciado" ali faria a pessoa achar que o
+        // clique dela se perdeu. A barra de progresso, essa sim, mede
+        // conteúdo: são duas perguntas diferentes ("mexi nisso?" e "quanto
+        // já tem?") e cada coluna responde a uma.
+        comecado: row !== null,
       };
     })
     // Não iniciados primeiro, concluídos por último: a tela existe pra
     // mostrar o que falta, não pra celebrar o que já foi feito.
     .sort((a, b) => {
-      const peso = (x: typeof a) => (x.concluido ? 2 : x.etapas === 0 ? 0 : 1);
+      const peso = (x: typeof a) => (x.concluido ? 2 : x.comecado ? 1 : 0);
       const d = peso(a) - peso(b);
       return d !== 0 ? d : a.cliente.nome.localeCompare(b.cliente.nome, locale);
     });
@@ -77,7 +84,7 @@ export async function PainelOnboarding({
             </tr>
           </thead>
           <tbody>
-            {linhas.map(({ cliente, row, etapas, concluido }) => (
+            {linhas.map(({ cliente, row, etapas, concluido, comecado }) => (
               <tr key={cliente.id} className="border-b border-base-800 last:border-0">
                 <td className="max-w-[16rem] truncate px-4 py-3 text-sm text-ink-primary" title={cliente.nome}>
                   {cliente.nome}
@@ -104,8 +111,8 @@ export async function PainelOnboarding({
                       {t.statusConcluido}
                     </span>
                   ) : (
-                    <span className={cn("text-xs", etapas === 0 ? "text-ink-muted" : "text-ink-secondary")}>
-                      {etapas === 0 ? t.statusNaoIniciado : t.statusEmAndamento}
+                    <span className={cn("text-xs", comecado ? "text-ink-secondary" : "text-ink-muted")}>
+                      {comecado ? t.statusEmAndamento : t.statusNaoIniciado}
                     </span>
                   )}
                 </td>
@@ -115,12 +122,24 @@ export async function PainelOnboarding({
                 </td>
 
                 <td className="px-4 py-3 text-right">
+                  {/* Três estados, três convites diferentes. Um botão que diz
+                      sempre "Abrir" não conta nada; "Continuar" diz que há
+                      coisa começada esperando, e o lápis diz que um briefing
+                      fechado ainda pode ser corrigido — que é o que mais
+                      acontece: a marca muda o tom de voz, a meta do ano vira
+                      outra. */}
                   <Link
                     href={`/admin/onboarding/${cliente.id}`}
-                    className="inline-flex items-center gap-1 rounded-lg border border-base-600 px-3 py-1.5 text-xs font-medium text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition",
+                      concluido
+                        ? "border-base-700 text-ink-muted hover:border-base-600 hover:text-ink-secondary"
+                        : "border-base-600 text-ink-secondary hover:border-ink-muted hover:text-ink-primary"
+                    )}
                   >
-                    {etapas === 0 ? t.comecar : t.abrir}
-                    <IconChevronRight className="h-3.5 w-3.5" />
+                    {comecado && <IconPencil className="h-3.5 w-3.5" />}
+                    {concluido ? t.editar : comecado ? t.continuar : t.comecar}
+                    {!comecado && <IconChevronRight className="h-3.5 w-3.5" />}
                   </Link>
                 </td>
               </tr>

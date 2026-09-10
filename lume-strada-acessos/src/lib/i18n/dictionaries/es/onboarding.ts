@@ -12,6 +12,8 @@ export const onboarding: OnboardingDict = {
   colAtualizado: "Actualizado",
   abrir: "Abrir",
   comecar: "Empezar",
+  continuar: "Continuar",
+  editar: "Editar",
   semClientes: "Todavía no hay clientes registrados.",
   statusNaoIniciado: "Sin empezar",
   statusEmAndamento: "En curso",
@@ -116,6 +118,8 @@ export const onboarding: OnboardingDict = {
   observacoesOperacionais: "Acuerdos y restricciones",
   observacoesOperacionaisPlaceholder: "Horario de respuesta, plazo de aprobación, a quién no se puede contactar directo.",
 
+  baixarPdf: "Imprimir / PDF",
+  pdfRodape: "Briefing generado por {app} el {data}",
   erroTabelaAusente:
     "La base todavía no tiene la tabla del onboarding. Ejecuta supabase/cliente-onboarding.sql en el editor SQL de Supabase — lleva un minuto y es una sola vez.",
   selecione: "Selecciona…",
