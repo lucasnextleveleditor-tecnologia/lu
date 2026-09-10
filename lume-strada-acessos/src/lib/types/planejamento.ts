@@ -18,14 +18,51 @@ export const STATUS_DO_PLANO = ["rascunho", "ativo", "encerrado", "cancelado"] a
 export type StatusDoPlano = (typeof STATUS_DO_PLANO)[number];
 
 /**
- * A régua de avisos, igual à do banco.
+ * A régua com que um ciclo NOVO nasce — o mesmo default da coluna
+ * `dias_de_aviso` no banco.
  *
- * Aqui ela serve só para a tela CONTAR à pessoa quando o sino vai tocar. A
- * régua de verdade — a que dispara — mora na função `avisar_planos_vencendo()`
- * e no `check` de `plano_alertas.dias_restantes`. Se um dia mudar, muda nos
- * dois lugares: esta cópia é texto, aquela é comportamento.
+ * É só um ponto de partida: a régua de verdade é a de cada plano, escolhida
+ * na tela. Larga no começo (20, 15, 10) para dar tempo de pensar o próximo
+ * ciclo, apertada no fim (5, 4, 3, 2, 1) para não deixar passar.
  */
-export const MARCOS_DE_AVISO = [20, 15, 10, 5, 4, 3, 2, 1] as const;
+export const REGUA_PADRAO = [20, 15, 10, 5, 4, 3, 2, 1];
+
+/** Teto de marcos por ciclo, igual ao `check` do banco. */
+export const MAX_AVISOS = 12;
+
+/** Faixa aceita para um marco, igual ao `check` de `plano_alertas`. */
+export const MIN_DIAS_AVISO = 1;
+export const MAX_DIAS_AVISO = 365;
+
+/**
+ * A partir de quantos dias a lista pinta o ciclo como "vencendo".
+ *
+ * NÃO é a régua de avisos, e não deve virar ela: a régua é quando o sino
+ * toca, isto é quando a barrinha fica laranja. Amarrar as duas faria um ciclo
+ * com aviso de 45 dias aparecer em laranja um mês e meio antes do fim — a
+ * lista inteira em alerta o tempo todo, que é o mesmo que lista nenhuma.
+ */
+export const DIAS_ZONA_DE_ALERTA = 20;
+
+/**
+ * Arruma a régua digitada: só inteiros dentro da faixa, sem repetidos, do
+ * maior para o menor, no máximo `MAX_AVISOS`.
+ *
+ * Roda na tela E na action. Na tela é conveniência (a pessoa digita "10" duas
+ * vezes e não vê dois chips); na action é a tranca — quem chama a action não
+ * é obrigado a ser a tela.
+ */
+export function normalizarRegua(valores: readonly number[]): number[] {
+  const limpos = new Set<number>();
+  for (const v of valores) {
+    const n = Math.round(Number(v));
+    if (!Number.isFinite(n) || n < MIN_DIAS_AVISO || n > MAX_DIAS_AVISO) continue;
+    limpos.add(n);
+  }
+  return Array.from(limpos)
+    .sort((a, b) => b - a)
+    .slice(0, MAX_AVISOS);
+}
 
 export interface PlanoRow {
   id: string;
@@ -51,6 +88,9 @@ export interface PlanoRow {
   data_limite_artes: string | null;
   data_go_live: string | null;
   data_reuniao_resultados: string | null;
+
+  /** Quantos dias antes do fim avisar. Um número por aviso; vazio = nenhum. */
+  dias_de_aviso: number[];
 
   status: StatusDoPlano;
   criado_por: string | null;
@@ -101,6 +141,7 @@ export const CAMPOS_EDITAVEIS: readonly (keyof CamposDoPlano)[] = [
   "data_limite_artes",
   "data_go_live",
   "data_reuniao_resultados",
+  "dias_de_aviso",
 ];
 
 /**
@@ -176,15 +217,19 @@ export function progressoDoCiclo(inicioISO: string, fimISO: string): number {
   return Math.min(1, Math.max(0, decorrido / total));
 }
 
-/** O próximo dia em que o sino vai tocar, ou `null` se a régua já passou. */
-export function proximoAviso(diasRestantes: number): number | null {
-  for (const marco of MARCOS_DE_AVISO) {
-    if (marco <= diasRestantes) return marco;
-  }
-  return null;
+/**
+ * O próximo dia em que o sino vai tocar, ou `null` se não sobrou marco.
+ *
+ * Sobra é o que ainda não passou: um marco de 30 dias num ciclo que já está a
+ * 25 do fim não toca mais, porque o Cron compara o dia EXATO. É por isso que
+ * a tela marca esses como "já passou" em vez de fingir que vão sair.
+ */
+export function proximoAviso(diasRestantes: number, regua: readonly number[]): number | null {
+  const candidatos = regua.filter((d) => d <= diasRestantes).sort((a, b) => b - a);
+  return candidatos[0] ?? null;
 }
 
-/** Um ciclo que ainda não venceu e já entrou na zona de aviso. */
+/** Um ciclo que ainda não venceu e já entrou na zona visual de alerta. */
 export function estaVencendo(diasRestantes: number): boolean {
-  return diasRestantes <= MARCOS_DE_AVISO[0] && diasRestantes >= 0;
+  return diasRestantes <= DIAS_ZONA_DE_ALERTA && diasRestantes >= 0;
 }

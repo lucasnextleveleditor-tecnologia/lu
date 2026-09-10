@@ -15,9 +15,12 @@ import { IconCheck, IconPlus, IconX, IconBell, IconAlertTriangle } from "@/compo
 import {
   DURACOES_DO_CICLO,
   JA_EXISTE_ATIVO,
+  MAX_AVISOS,
+  REGUA_PADRAO,
   diasAte,
   estaVencendo,
   fimDoCiclo,
+  normalizarRegua,
   proximoAviso,
   type CamposDoPlano,
   type DuracaoDoCiclo,
@@ -64,7 +67,7 @@ export function FormularioDoPlano({ plano }: { plano: PlanoRow }) {
    */
   const fimPrevisto = campos.data_inicio ? fimDoCiclo(campos.data_inicio, campos.duracao_meses) : "";
   const dias = fimPrevisto ? diasAte(fimPrevisto) : 0;
-  const proximo = proximoAviso(dias);
+  const proximo = proximoAviso(dias, campos.dias_de_aviso);
 
   async function salvar() {
     setSalvando(true);
@@ -193,16 +196,21 @@ export function FormularioDoPlano({ plano }: { plano: PlanoRow }) {
         </div>
       </div>
 
-      {/* A régua de avisos, dita em palavras. O sino tocando sem que ninguém
-          soubesse que ele ia tocar é o tipo de automação que assusta em vez
-          de ajudar. */}
+      {/* A régua de avisos — escolhida aqui, ciclo a ciclo. */}
       <div className="mb-5 flex items-start gap-2.5 rounded-2xl border border-base-700 bg-base-900/40 p-4">
         <IconBell className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t.reguaTitulo}</p>
           <p className="mt-1 text-xs leading-relaxed text-ink-muted">{t.reguaTexto}</p>
-          {status === "ativo" && (
-            <p className="mt-1.5 text-xs text-ink-secondary">
+
+          <EditorDeAvisos
+            regua={campos.dias_de_aviso}
+            onChange={(v) => mudar("dias_de_aviso", v)}
+            diasRestantes={status === "ativo" && fimPrevisto ? dias : null}
+          />
+
+          {status === "ativo" && campos.dias_de_aviso.length > 0 && (
+            <p className="mt-2 text-xs text-ink-secondary">
               {proximo === null ? t.semMaisAvisos : substituir(t.proximoAviso, { n: proximo })}
             </p>
           )}
@@ -348,6 +356,139 @@ export function FormularioDoPlano({ plano }: { plano: PlanoRow }) {
   );
 }
 
+/**
+ * A régua de avisos deste ciclo: um chip por aviso, e um (+) para acrescentar.
+ *
+ * A régua era fixa (20/15/10/5/4/3/2/1) e virou escolha porque a régua boa
+ * depende do ciclo. Num ciclo de um mês, oito avisos fazem sentido; num de
+ * três, eles se amontoam nas últimas três semanas e falta justamente o aviso
+ * que se queria — o de 45 dias, para começar a conversa de renovação com
+ * folga. Quem sabe disso é quem monta o ciclo, não o sistema.
+ *
+ * Chips ORDENADOS do maior para o menor (`normalizarRegua`), que é a ordem em
+ * que os avisos vão acontecer — uma lista na ordem de digitação obrigaria a
+ * ler os oito números para saber qual é o primeiro.
+ *
+ * Marco maior que os dias restantes aparece riscado e com "já passou". O Cron
+ * compara o dia EXATO, então um aviso de 30 dias num ciclo que já está a 25 do
+ * fim nunca vai sair — e deixá-lo com cara de ativo seria uma promessa que a
+ * tela não pode cumprir.
+ */
+function EditorDeAvisos({
+  regua,
+  onChange,
+  diasRestantes,
+}: {
+  regua: number[];
+  onChange: (v: number[]) => void;
+  /** `null` quando o ciclo não está ativo — aí não há "já passou" a marcar. */
+  diasRestantes: number | null;
+}) {
+  const { dict } = useLocale();
+  const t = dict.planejamento;
+  const [novo, setNovo] = useState("");
+
+  const cheia = regua.length >= MAX_AVISOS;
+
+  function adicionar() {
+    const n = Number(novo);
+    if (!Number.isFinite(n) || n <= 0) {
+      setNovo("");
+      return;
+    }
+    onChange(normalizarRegua([...regua, n]));
+    setNovo("");
+  }
+
+  const ehPadrao =
+    regua.length === REGUA_PADRAO.length && regua.every((d, i) => d === REGUA_PADRAO[i]);
+
+  return (
+    <div className="mt-3">
+      {regua.length > 0 ? (
+        <ul className="flex flex-wrap gap-1.5">
+          {regua.map((marco) => {
+            const passou = diasRestantes !== null && marco > diasRestantes;
+            return (
+              <li
+                key={marco}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs",
+                  passou ? "border-base-700 text-ink-muted" : "border-base-600 text-ink-secondary"
+                )}
+              >
+                <span className={cn(passou && "line-through")}>
+                  {substituir(marco === 1 ? t.reguaChip.um : t.reguaChip.muitos, { n: marco })}
+                </span>
+                {passou && <span className="text-[10px] uppercase tracking-wide">{t.reguaJaPassou}</span>}
+                <button
+                  type="button"
+                  onClick={() => onChange(regua.filter((d) => d !== marco))}
+                  className="text-ink-muted transition hover:text-danger"
+                  aria-label={substituir(marco === 1 ? t.reguaChip.um : t.reguaChip.muitos, { n: marco })}
+                >
+                  <IconX className="h-3 w-3" />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="flex items-center gap-1.5 text-xs text-status-warning">
+          <IconAlertTriangle className="h-3.5 w-3.5 shrink-0" />
+          {t.reguaVazia}
+        </p>
+      )}
+
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        {cheia ? (
+          <p className="text-[11px] text-ink-muted">{t.reguaLimite}</p>
+        ) : (
+          <>
+            {/* A largura vai no invólucro, e não numa classe do próprio
+                campo: o `Input` da casa já nasce `w-full`, e o `cn()` daqui é
+                concatenação pura — sem `tailwind-merge`, um `w-24` no
+                `className` não vence o `w-full` de dentro, ele só vira uma
+                classe ignorada. */}
+            <div className="w-24 shrink-0">
+              <Input
+                type="number"
+                min={1}
+                max={365}
+                step="1"
+                inputMode="numeric"
+                value={novo}
+                placeholder={t.reguaPlaceholder}
+                onChange={(e) => setNovo(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    adicionar();
+                  }
+                }}
+              />
+            </div>
+            <Button type="button" variant="ghost" onClick={adicionar} className="shrink-0 px-3">
+              <IconPlus className="h-4 w-4" />
+              <span className="hidden sm:inline">{t.reguaAdicionar}</span>
+            </Button>
+          </>
+        )}
+
+        {!ehPadrao && (
+          <button
+            type="button"
+            onClick={() => onChange([...REGUA_PADRAO])}
+            className="text-[11px] text-ink-muted underline transition hover:text-ink-secondary"
+          >
+            {t.reguaPadrao}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Bloco({ titulo, descricao, children }: { titulo: string; descricao: string; children: ReactNode }) {
   return (
     <section className="rounded-2xl border border-base-700 bg-base-900/40 p-5">
@@ -465,5 +606,6 @@ function paraFormulario(row: PlanoRow): CamposDoPlano {
     data_limite_artes: row.data_limite_artes,
     data_go_live: row.data_go_live,
     data_reuniao_resultados: row.data_reuniao_resultados,
+    dias_de_aviso: normalizarRegua(row.dias_de_aviso ?? []),
   };
 }

@@ -70,7 +70,14 @@ export const planejamento: PlanejamentoDict = {
 
   reguaTitulo: "Avisos automáticos",
   reguaTexto:
-    "Con el ciclo activo, el equipo recibe aviso en la campana cuando falten 20, 15, 10, 5, 4, 3, 2 y 1 día para el final.",
+    "Elige cuántos días antes del final debe avisarse al equipo en la campana. Cada número es un aviso — los que quieras, hasta 12.",
+  reguaChip: { um: "faltando {n} día", muitos: "faltando {n} días" },
+  reguaVazia: "Ningún aviso configurado: este ciclo no notificará a nadie.",
+  reguaAdicionar: "Agregar aviso",
+  reguaPlaceholder: "días",
+  reguaLimite: "Máximo de 12 avisos por ciclo.",
+  reguaJaPassou: "ya pasó",
+  reguaPadrao: "Usar la regla estándar",
   proximoAviso: "Próximo aviso cuando falten {n} días.",
   semMaisAvisos: "Todos los avisos de este ciclo ya fueron enviados.",
 

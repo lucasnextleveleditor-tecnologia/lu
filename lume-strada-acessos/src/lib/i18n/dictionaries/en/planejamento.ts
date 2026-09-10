@@ -70,7 +70,14 @@ export const planejamento: PlanejamentoDict = {
 
   reguaTitulo: "Automatic alerts",
   reguaTexto:
-    "Once the cycle is active, the team is notified in the bell at 20, 15, 10, 5, 4, 3, 2 and 1 day before it ends.",
+    "Choose how many days before the end the team should be notified in the bell. Each number is one alert — as many as you like, up to 12.",
+  reguaChip: { um: "{n} day before", muitos: "{n} days before" },
+  reguaVazia: "No alerts set: this cycle will not notify anyone.",
+  reguaAdicionar: "Add alert",
+  reguaPlaceholder: "days",
+  reguaLimite: "Up to 12 alerts per cycle.",
+  reguaJaPassou: "already passed",
+  reguaPadrao: "Use the default set",
   proximoAviso: "Next alert at {n} days left.",
   semMaisAvisos: "Every alert for this cycle has already been sent.",
 

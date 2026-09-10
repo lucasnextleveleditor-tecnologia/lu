@@ -84,6 +84,14 @@ export interface PlanejamentoDict {
 
   reguaTitulo: string;
   reguaTexto: string;
+  /** Faltando `{n}` dia(s) — o texto de cada aviso configurado. */
+  reguaChip: { um: string; muitos: string };
+  reguaVazia: string;
+  reguaAdicionar: string;
+  reguaPlaceholder: string;
+  reguaLimite: string;
+  reguaJaPassou: string;
+  reguaPadrao: string;
   /** Próximo aviso quando faltarem `{n}` dias. */
   proximoAviso: string;
   semMaisAvisos: string;
@@ -167,7 +175,14 @@ export const planejamento: PlanejamentoDict = {
 
   reguaTitulo: "Avisos automáticos",
   reguaTexto:
-    "Com o ciclo ativo, a equipe é avisada no sino quando faltarem 20, 15, 10, 5, 4, 3, 2 e 1 dia para o fim.",
+    "Escolha quantos dias antes do fim a equipe deve ser avisada no sino. Cada número é um aviso — pode ter quantos quiser, até 12.",
+  reguaChip: { um: "faltando {n} dia", muitos: "faltando {n} dias" },
+  reguaVazia: "Nenhum aviso configurado: este ciclo não vai notificar ninguém.",
+  reguaAdicionar: "Adicionar aviso",
+  reguaPlaceholder: "dias",
+  reguaLimite: "Máximo de 12 avisos por ciclo.",
+  reguaJaPassou: "já passou",
+  reguaPadrao: "Usar a régua padrão",
   proximoAviso: "Próximo aviso quando faltarem {n} dias.",
   semMaisAvisos: "Todos os avisos deste ciclo já foram enviados.",
 

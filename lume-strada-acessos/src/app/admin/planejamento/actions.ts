@@ -6,6 +6,7 @@ import {
   CAMPOS_EDITAVEIS,
   JA_EXISTE_ATIVO,
   hojeISO,
+  normalizarRegua,
   type CamposDoPlano,
   type PlanoRow,
   type StatusDoPlano,
@@ -98,6 +99,16 @@ export async function salvarPlano(
     if (payload.qtd_posts_social === null) payload.qtd_posts_social = 0;
     if (payload.qtd_campanhas_trafego === null) payload.qtd_campanhas_trafego = 0;
     if (payload.pecas_extras === null) payload.pecas_extras = [];
+
+    // A régua é conferida AQUI, e não só na tela: nada impede alguém de
+    // chamar esta action direto com "faltando 9000 dias" ou com uma lista de
+    // duzentos marcos — e cada marco vira uma notificação por pessoa da
+    // equipe. `normalizarRegua` corta fora do intervalo, tira repetidos,
+    // ordena e limita a 12.
+    if ("dias_de_aviso" in payload) {
+      const bruto = payload.dias_de_aviso;
+      payload.dias_de_aviso = normalizarRegua(Array.isArray(bruto) ? (bruto as number[]) : []);
+    }
 
     payload.atualizado_por = user.id;
 

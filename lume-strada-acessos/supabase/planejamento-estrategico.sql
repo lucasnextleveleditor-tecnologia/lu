@@ -106,6 +106,26 @@ create table if not exists public.planos_estrategicos (
   data_reuniao_resultados date,
 
   -- --------------------------------------------------------------------------
+  -- Régua de avisos
+  -- --------------------------------------------------------------------------
+  -- Quantos dias antes do fim a equipe é avisada. UM NÚMERO POR AVISO, e a
+  -- régua é DESTE ciclo — não do sistema.
+  --
+  -- Começou fixa (20/15/10/5/4/3/2/1, embutida na função) e virou coluna
+  -- porque a régua boa depende do ciclo: num ciclo de um mês ela faz sentido,
+  -- num de três meses são oito avisos espremidos nas últimas três semanas —
+  -- ruído — e falta justamente o aviso que se queria, o de 45 dias, para
+  -- começar a conversa de renovação com folga.
+  --
+  -- `smallint[]` e não tabela filha: é uma lista de números que se lê inteira,
+  -- sempre junto com o plano, e nunca sozinha. Tabela filha custaria um join
+  -- em toda leitura para não ganhar nada.
+  --
+  -- Vazio é permitido de propósito — "não quero ser avisado deste ciclo" é uma
+  -- resposta legítima, e o jeito de dizer isso é apagar todos os marcos.
+  dias_de_aviso smallint[] not null default '{20,15,10,5,4,3,2,1}',
+
+  -- --------------------------------------------------------------------------
   -- Estado
   -- --------------------------------------------------------------------------
   -- `rascunho`  — em montagem, não vale e não gera aviso.
@@ -130,6 +150,15 @@ create table if not exists public.planos_estrategicos (
 -- alguém rodar um UPDATE pelo SQL Editor. Dois ciclos ativos ao mesmo tempo
 -- significam duas datas de vencimento e dois avisos contraditórios para o
 -- mesmo cliente.
+-- Até 12 marcos por ciclo. O limite não é capricho: cada marco vira uma
+-- notificação POR PESSOA da equipe, então uma régua de cem números numa
+-- agência de dez funcionários são mil linhas no sino, de uma vez.
+alter table public.planos_estrategicos
+  drop constraint if exists planos_estrategicos_dias_de_aviso_check;
+alter table public.planos_estrategicos
+  add constraint planos_estrategicos_dias_de_aviso_check
+  check (coalesce(array_length(dias_de_aviso, 1), 0) <= 12);
+
 create unique index if not exists planos_estrategicos_um_ativo_por_cliente
   on public.planos_estrategicos(cliente_id)
   where status = 'ativo';
@@ -182,11 +211,13 @@ create table if not exists public.plano_alertas (
 
   plano_id uuid not null references public.planos_estrategicos(id) on delete cascade,
 
-  -- Os marcos que o sistema avisa. A lista é fechada aqui também, e não só na
-  -- função: se um dia alguém inserir "faltam 7 dias" na mão, o banco recusa —
-  -- ou a régua de avisos passa a ser duas listas diferentes que ninguém
-  -- lembra de manter iguais.
-  dias_restantes smallint not null check (dias_restantes in (20, 15, 10, 5, 4, 3, 2, 1)),
+  -- Quantos dias faltavam quando este aviso saiu.
+  --
+  -- Já foi uma lista fechada (20/15/10/5/4/3/2/1). Deixou de ser quando a
+  -- régua passou a ser escolhida em cada plano: o que vale agora é a coluna
+  -- `dias_de_aviso` do ciclo. O limite de 1 a 365 continua aqui só para um
+  -- número absurdo não entrar por um caminho que não seja a tela.
+  dias_restantes smallint not null check (dias_restantes between 1 and 365),
 
   enviado_em timestamptz not null default now(),
 
@@ -274,20 +305,21 @@ begin
   -- --------------------------------------------------------------------------
   -- b) Avisa os que estão vencendo
   -- --------------------------------------------------------------------------
-  with marcos as (
-    -- A régua de avisos. Larga no começo (20, 15, 10) para dar tempo de
-    -- pensar o próximo ciclo, apertada no fim (5, 4, 3, 2, 1) para não deixar
-    -- passar. É a régua que o cliente pediu, sem interpretação.
-    select unnest(array[20, 15, 10, 5, 4, 3, 2, 1]::smallint[]) as dias
-  ),
-  vencendo as (
+  -- A régua vem DE CADA PLANO, e não de uma lista embutida aqui.
+  --
+  -- O `cross join lateral unnest` abre os números da régua daquele ciclo e
+  -- mantém só o que bate EXATAMENTE com os dias restantes. A comparação
+  -- exata (e não `<=`) é o que impede o pior caso: editar a régua de um
+  -- ciclo pela metade dispararia, de uma vez, todos os marcos já vencidos.
+  with vencendo as (
     select
       p.id         as plano_id,
       p.company_id as company_id,
-      m.dias       as dias
+      d            as dias
     from public.planos_estrategicos p
-    join marcos m on m.dias = (p.data_fim - current_date)
+    cross join lateral unnest(p.dias_de_aviso) as d
     where p.status = 'ativo'
+      and d = (p.data_fim - current_date)
   ),
   -- O cadeado: tenta registrar o alerta ANTES de notificar. `do nothing`
   -- engole a repetição em silêncio, e o `returning` devolve só o que era
@@ -366,7 +398,7 @@ revoke execute on function public.avisar_planos_vencendo() from anon;
 revoke execute on function public.avisar_planos_vencendo() from authenticated;
 
 comment on function public.avisar_planos_vencendo() is
-  'Chamada pelo pg_cron uma vez por dia: encerra ciclos vencidos e notifica a equipe em 20/15/10/5/4/3/2/1 dias do fim. Idempotente via plano_alertas.';
+  'Chamada pelo pg_cron uma vez por dia: encerra ciclos vencidos e notifica a equipe nos dias configurados em planos_estrategicos.dias_de_aviso. Idempotente via plano_alertas.';
 
 comment on table public.planos_estrategicos is
   'Ciclo de planejamento do cliente (1, 2 ou 3 meses). Histórico: várias linhas por cliente, no máximo uma ativa.';
