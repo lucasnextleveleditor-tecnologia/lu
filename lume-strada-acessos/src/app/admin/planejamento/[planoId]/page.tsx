@@ -6,8 +6,7 @@ import { fmtDataCurta } from "@/lib/utils/format";
 import { substituir } from "@/lib/utils/texto";
 import { cn } from "@/lib/utils/cn";
 import { FormularioDoPlano } from "@/components/admin/planejamento/FormularioDoPlano";
-import { CalendarioDeConteudo } from "@/components/admin/planejamento/CalendarioDeConteudo";
-import { IconChevronLeft, IconCalendar, IconPrinter } from "@/components/ui/icons";
+import { IconChevronLeft, IconChevronRight, IconCalendar, IconPrinter } from "@/components/ui/icons";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { PlanoRow, StatusDoPlano } from "@/lib/types/planejamento";
 import type { TarefaRow } from "@/lib/types/producao";
@@ -40,7 +39,7 @@ export default async function CicloDePlanejamentoPage({ params }: { params: Prom
 
   if (!plano) notFound();
 
-  const [clienteRes, irmaosRes, postsRes, funcionariosRes, tiposRes] = await Promise.all([
+  const [clienteRes, irmaosRes, postsRes] = await Promise.all([
     supabase.from("clientes").select("id, nome").eq("id", plano.cliente_id).maybeSingle<Pick<ClienteRow, "id" | "nome">>(),
     supabase
       .from("planos_estrategicos")
@@ -57,22 +56,6 @@ export default async function CicloDePlanejamentoPage({ params }: { params: Prom
       .eq("plano_id", planoId)
       .order("data_entrega", { ascending: true })
       .overrideTypes<TarefaRow[], { merge: false }>(),
-    // A mesma lista de pessoas que Produção usa (`prod_funcionarios`, que é
-    // espelho automático da Equipe) — para o responsável escolhido aqui ser
-    // exatamente o responsável que aparece lá.
-    supabase
-      .from("prod_funcionarios")
-      .select("id, nome")
-      .eq("ativo", true)
-      .order("nome")
-      .overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
-    // Os mesmos tipos de serviço de Produção — para o post já subir
-    // categorizado, e para a receita do formato ter o que preencher.
-    supabase
-      .from("prod_tipos_servico")
-      .select("id, nome")
-      .order("nome")
-      .overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
   ]);
 
   if (!clienteRes.data) notFound();
@@ -123,21 +106,27 @@ export default async function CicloDePlanejamentoPage({ params }: { params: Prom
 
       <FormularioDoPlano plano={plano} />
 
-      {/* O calendário vem DEPOIS do escopo, e não antes: o número de posts
-          vendidos está lá em cima, e é contra ele que o contador daqui se
-          compara ("9 de 12 posts pautados"). Ler o escopo e depois preencher é
-          a ordem em que a pessoa trabalha. */}
-      <div className="mt-5">
-        <CalendarioDeConteudo
-          planoId={plano.id}
-          inicio={plano.data_inicio}
-          fim={plano.data_fim}
-          meta={plano.qtd_posts_social}
-          pautaInicial={pauta}
-          produzindoInicial={produzindo}
-          funcionarios={funcionariosRes.data ?? []}
-          tiposServico={tiposRes.data ?? []}
-        />
+      {/* O calendário de conteúdo NÃO fica mais aqui — ele tem aba própria
+          (`/admin?aba=conteudo`). Quem monta o mês abre aquela tela todo dia,
+          enquanto este ciclo é preenchido uma vez a cada um a três meses;
+          obrigar a passar por escopo, verba e cronograma para chegar no lugar
+          de trabalho era um pedágio diário por uma decisão trimestral. O que
+          continua daqui são os NÚMEROS: o escopo acima é de onde os
+          indicadores do calendário descontam. */}
+      <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-base-700 bg-base-900/40 p-4">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t.conteudoTitulo}</p>
+          <p className="mt-1 text-xs text-ink-muted">
+            {substituir(t.conteudoResumoDoCiclo, { n: pauta.length + produzindo.length })}
+          </p>
+        </div>
+        <Link
+          href={`/admin?aba=conteudo&cliente=${plano.cliente_id}`}
+          className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-lg border border-base-600 px-3 py-1.5 text-xs font-medium text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
+        >
+          {t.abrirCalendario}
+          <IconChevronRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
 
       {/* O histórico fica no fim, e não numa tela própria: a pergunta "o que

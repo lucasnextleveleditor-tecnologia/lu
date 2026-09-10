@@ -138,6 +138,19 @@ export const planejamento: PlanejamentoDict = {
   inserirMarca: "Insertar la marca del cliente",
   campoOpcionalReceita: "En blanco, el estándar del formato lo completa al subir.",
 
+  tiposDePauta: { post: "Posts", campanha: "Campañas", extra: "Piezas extra" },
+  faltaUm: "falta {n}",
+  faltamVarios: "faltan {n}",
+  escopoCompleto: "alcance completo",
+  acimaDoEscopo: "{n} por encima del alcance",
+  escolhaCliente: "Cliente",
+  semClientesComCiclo: "Ningún cliente tiene ciclo todavía. Crea el primero en Planificación.",
+  semCicloParaConteudo: "Este cliente aún no tiene un ciclo. Crea uno en Planificación para armar el calendario.",
+  cicloEmEdicao: "Ciclo del {inicio} al {fim}",
+  irParaOCiclo: "Abrir el ciclo",
+
+  conteudoResumoDoCiclo: "{n} pautas en este ciclo. El calendario está en la pestaña Contenido.",
+  abrirCalendario: "Abrir el calendario",
   abaConteudo: "Contenido",
   receitasTitulo: "Estándares de producción por formato",
   receitasDescricao:

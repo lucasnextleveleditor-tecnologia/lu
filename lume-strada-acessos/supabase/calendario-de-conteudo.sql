@@ -94,3 +94,30 @@ comment on column public.prod_tarefas.post_formato is
 -- indireção em todo o módulo de produção — e o dia em que alguém escrever a
 -- sétima leitura, o comentário na coluna (`comment on column ... em_pauta`) é
 -- o que vai avisar, venha a consulta de onde vier.
+
+-- ============================================================================
+-- ADENDO — o tipo da pauta, e por que ele existe
+-- ============================================================================
+--
+-- O escopo de um ciclo promete TRÊS coisas contáveis: posts de social media,
+-- campanhas de tráfego e peças extras. O calendário nasceu sabendo contar só
+-- posts, e os indicadores do topo ("faltam 8 posts") não tinham como
+-- descontar campanha de campanha e peça de peça.
+--
+-- `post` como default porque toda pauta que já existia é post, e porque é o
+-- caso comum: quem abre o calendário está montando o mês de social media.
+alter table public.prod_tarefas
+  add column if not exists tipo_pauta text not null default 'post';
+
+alter table public.prod_tarefas drop constraint if exists prod_tarefas_tipo_pauta_check;
+alter table public.prod_tarefas add constraint prod_tarefas_tipo_pauta_check
+  check (tipo_pauta in ('post', 'campanha', 'extra'));
+
+comment on column public.prod_tarefas.tipo_pauta is
+  'O que a pauta e dentro do escopo do ciclo: post de social, campanha de trafego ou peca extra. Base dos indicadores do calendario de conteudo.';
+
+-- Uma nota sobre a CONTAGEM, que é uma decisão e não um detalhe: os
+-- indicadores contam pauta + produção. O que já subiu continua sendo entrega
+-- daquele ciclo. Contar só o que está em pauta faria o número andar PARA TRÁS
+-- toda vez que a social media soltasse o mês para a produção — como se subir a
+-- tarefa desfizesse o trabalho de tê-la escrito.

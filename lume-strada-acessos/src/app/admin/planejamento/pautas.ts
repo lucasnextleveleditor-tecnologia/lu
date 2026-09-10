@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
-import type { CanalDoPost, FormatoDoPost, TarefaRow } from "@/lib/types/producao";
+import type { CanalDoPost, FormatoDoPost, TarefaRow, TipoDePauta } from "@/lib/types/producao";
 
 /**
  * O calendário de conteúdo — os posts de um ciclo, antes de virarem trabalho.
@@ -28,6 +28,7 @@ export type ResultadoSimples = { ok: true } | { ok: false; error: string };
 
 export interface CamposDaPauta {
   titulo: string;
+  tipo_pauta: TipoDePauta;
   data_entrega: string | null;
   post_canal: CanalDoPost | null;
   post_formato: FormatoDoPost | null;
@@ -88,6 +89,7 @@ export async function criarPauta(
         status: "backlog",
         cliente_cadastro_id: plano.cliente_id,
         cliente_id: cliente?.profile_id ?? null,
+        tipo_pauta: campos.tipo_pauta ?? "post",
         data_entrega: campos.data_entrega || null,
         post_canal: campos.post_canal ?? null,
         post_formato: campos.post_formato ?? null,
@@ -124,6 +126,7 @@ export async function salvarPauta(
       if (!titulo) return { ok: false, error: "SEM_TITULO" };
       payload.titulo = titulo;
     }
+    if (campos.tipo_pauta !== undefined) payload.tipo_pauta = campos.tipo_pauta;
     if (campos.data_entrega !== undefined) payload.data_entrega = campos.data_entrega || null;
     if (campos.post_canal !== undefined) payload.post_canal = campos.post_canal ?? null;
     if (campos.post_formato !== undefined) payload.post_formato = campos.post_formato ?? null;

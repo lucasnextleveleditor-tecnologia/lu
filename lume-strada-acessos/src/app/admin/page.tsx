@@ -5,11 +5,13 @@ import type { ProfileRow } from "@/lib/types/database";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { OnboardingRow } from "@/lib/types/onboarding";
 import type { PlanoRow } from "@/lib/types/planejamento";
+import type { TarefaRow } from "@/lib/types/producao";
 import { CadastrosWorkspace } from "@/components/admin/cadastros/CadastrosWorkspace";
 import { PainelOnboarding } from "@/components/admin/onboarding/PainelOnboarding";
 import { PainelPlanejamento } from "@/components/admin/planejamento/PainelPlanejamento";
+import { PainelDeConteudo } from "@/components/admin/planejamento/PainelDeConteudo";
 import { cn } from "@/lib/utils/cn";
-import { IconUsers, IconClipboardList, IconCalendar } from "@/components/ui/icons";
+import { IconUsers, IconClipboardList, IconCalendar, IconLayers } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -31,11 +33,18 @@ export const dynamic = "force-dynamic";
  * tabela de clientes) não é lida quando se está no Onboarding, e os
  * briefings não são lidos quando se está em Clientes.
  */
-export default async function GestaoDeClientesPage({ searchParams }: { searchParams: Promise<{ aba?: string }> }) {
+export default async function GestaoDeClientesPage({ searchParams }: { searchParams: Promise<{ aba?: string; cliente?: string }> }) {
   const { supabase, user } = await requireModuloOuRedirect("clientes");
   const { dict } = await getDictionary();
-  const { aba } = await searchParams;
-  const abaAtiva = aba === "onboarding" ? "onboarding" : aba === "planejamento" ? "planejamento" : "clientes";
+  const { aba, cliente: clienteParam } = await searchParams;
+  const abaAtiva =
+    aba === "onboarding"
+      ? "onboarding"
+      : aba === "planejamento"
+        ? "planejamento"
+        : aba === "conteudo"
+          ? "conteudo"
+          : "clientes";
   const t = dict.onboarding;
 
   const [perfilRes, clientesRes] = await Promise.all([
@@ -75,10 +84,84 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
         ).data ?? []
       : [];
 
+  // --------------------------------------------------------------------------
+  // Conteúdo — o calendário de pautas, fora da página do ciclo.
+  //
+  // O ciclo escolhido é o ATIVO do cliente e, na falta dele, o rascunho mais
+  // recente. É a mesma regra da lista de Planejamento, e ela existe porque a
+  // social media começa a montar o mês antes de o ciclo ser ativado — negar o
+  // calendário até alguém clicar em "ativar" travaria o trabalho por uma
+  // formalidade.
+  // --------------------------------------------------------------------------
+  let dadosConteudo: {
+    clientes: { id: string; nome: string }[];
+    clienteAtual: string | null;
+    plano: PlanoRow | null;
+    posts: TarefaRow[];
+    funcionarios: { id: string; nome: string }[];
+    tiposServico: { id: string; nome: string }[];
+  } | null = null;
+
+  if (abaAtiva === "conteudo") {
+    const { data: todosOsPlanos } = await supabase
+      .from("planos_estrategicos")
+      .select("*")
+      .in("status", ["ativo", "rascunho"])
+      .order("data_inicio", { ascending: false })
+      .overrideTypes<PlanoRow[], { merge: false }>();
+
+    const planoPorCliente = new Map<string, PlanoRow>();
+    for (const p of todosOsPlanos ?? []) {
+      const atual = planoPorCliente.get(p.cliente_id);
+      // Ativo sempre ganha do rascunho, venha na ordem que vier.
+      if (!atual || (atual.status !== "ativo" && p.status === "ativo")) planoPorCliente.set(p.cliente_id, p);
+    }
+
+    const comCiclo = clientes
+      .filter((c) => planoPorCliente.has(c.id))
+      .map((c) => ({ id: c.id, nome: c.nome }));
+
+    const escolhido =
+      clienteParam && planoPorCliente.has(clienteParam) ? clienteParam : (comCiclo[0]?.id ?? null);
+    const plano = escolhido ? (planoPorCliente.get(escolhido) ?? null) : null;
+
+    const [postsRes, funcionariosRes, tiposRes] = await Promise.all([
+      plano
+        ? supabase
+            .from("prod_tarefas")
+            .select("*")
+            .eq("plano_id", plano.id)
+            .order("data_entrega", { ascending: true })
+            .overrideTypes<TarefaRow[], { merge: false }>()
+        : Promise.resolve({ data: [] as TarefaRow[] }),
+      supabase
+        .from("prod_funcionarios")
+        .select("id, nome")
+        .eq("ativo", true)
+        .order("nome")
+        .overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
+      supabase
+        .from("prod_tipos_servico")
+        .select("id, nome")
+        .order("nome")
+        .overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
+    ]);
+
+    dadosConteudo = {
+      clientes: comCiclo,
+      clienteAtual: escolhido,
+      plano,
+      posts: postsRes.data ?? [],
+      funcionarios: funcionariosRes.data ?? [],
+      tiposServico: tiposRes.data ?? [],
+    };
+  }
+
   const abas = [
     { valor: "clientes", label: t.abaClientes, icone: IconUsers },
     { valor: "onboarding", label: t.abaOnboarding, icone: IconClipboardList },
     { valor: "planejamento", label: dict.planejamento.abaPlanejamento, icone: IconCalendar },
+    { valor: "conteudo", label: dict.planejamento.abaConteudo, icone: IconLayers },
   ] as const;
 
   return (
@@ -111,9 +194,11 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
         <CadastrosWorkspace clientes={clientes} profilesPorId={profilesPorId} souAdmin={souAdmin} />
       ) : abaAtiva === "onboarding" ? (
         <PainelOnboarding clientes={clientes} onboardings={onboardings} />
-      ) : (
+      ) : abaAtiva === "planejamento" ? (
         <PainelPlanejamento clientes={clientes} planos={planos} />
-      )}
+      ) : dadosConteudo ? (
+        <PainelDeConteudo {...dadosConteudo} />
+      ) : null}
     </div>
   );
 }

@@ -27,9 +27,11 @@ import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
 import {
   CANAIS_DO_POST,
   FORMATOS_DO_POST,
+  TIPOS_DE_PAUTA,
   type CanalDoPost,
   type FormatoDoPost,
   type TarefaRow,
+  type TipoDePauta,
 } from "@/lib/types/producao";
 import {
   blocoDaMarca,
@@ -85,8 +87,12 @@ export function CalendarioDeConteudo({
   /** Limites do ciclo — o calendário não navega para fora deles. */
   inicio: string;
   fim: string;
-  /** `qtd_posts_social` do escopo. Zero = a agência não vendeu posts neste ciclo. */
-  meta: number;
+  /**
+   * O escopo vendido, vindo do bloco "Escopo de entregas" do ciclo. Zero em
+   * qualquer um deles = a agência não vendeu aquilo neste ciclo, e o indicador
+   * some em vez de mostrar "0 de 0".
+   */
+  meta: { posts: number; campanhas: number; extras: number };
   pautaInicial: TarefaRow[];
   /** Posts deste ciclo que já subiram — contam no total, mas não se editam aqui. */
   produzindoInicial: TarefaRow[];
@@ -111,6 +117,10 @@ export function CalendarioDeConteudo({
   // A linha nova, que é o coração do modo Lista.
   const [novaData, setNovaData] = useState(inicio);
   const [novoTitulo, setNovoTitulo] = useState("");
+  // O tipo do que ela está escrevendo AGORA. Fica no seletor entre uma linha e
+  // outra de propósito: quem está montando as campanhas do mês escreve as
+  // campanhas seguidas, e trocar o tipo a cada linha seria um clique por post.
+  const [novoTipo, setNovoTipo] = useState<TipoDePauta>("post");
 
   const [mes, setMes] = useState<Date>(() => primeiroDiaDoMes(inicio));
 
@@ -129,6 +139,24 @@ export function CalendarioDeConteudo({
     const r = await blocoDaMarca(planoId);
     setMarca(r.ok ? r.html : null);
   }
+
+  // Os indicadores contam PAUTA + PRODUÇÃO: o que já subiu continua sendo
+  // entrega daquele ciclo. Contar só o que está em pauta faria o número
+  // ANDAR PARA TRÁS toda vez que ela soltasse o mês para a produção — como se
+  // subir a tarefa desfizesse o trabalho de tê-la escrito.
+  const feitoPor = (tipo: TipoDePauta) =>
+    pauta.filter((p) => p.tipo_pauta === tipo).length + produzindo.filter((p) => p.tipo_pauta === tipo).length;
+
+  const indicadores = (
+    [
+      { tipo: "post", rotulo: t.tiposDePauta.post, feito: feitoPor("post"), total: meta.posts },
+      { tipo: "campanha", rotulo: t.tiposDePauta.campanha, feito: feitoPor("campanha"), total: meta.campanhas },
+      { tipo: "extra", rotulo: t.tiposDePauta.extra, feito: feitoPor("extra"), total: meta.extras },
+    ] satisfies { tipo: TipoDePauta; rotulo: string; feito: number; total: number }[]
+  )
+    // Indicador de algo que o ciclo não vendeu e que ninguém pautou não é
+    // informação, é uma caixa escrita "0 de 0" ocupando um terço da linha.
+    .filter((i) => i.total > 0 || i.feito > 0);
 
   const total = pauta.length + produzindo.length;
 
@@ -154,7 +182,7 @@ export function CalendarioDeConteudo({
     }
     setOcupado(true);
     setErro(null);
-    const r = await criarPauta(planoId, { titulo, data_entrega: novaData || null });
+    const r = await criarPauta(planoId, { titulo, tipo_pauta: novoTipo, data_entrega: novaData || null });
     setOcupado(false);
     if (!r.ok) {
       setErro(erroLegivel(r.error));
@@ -267,15 +295,6 @@ export function CalendarioDeConteudo({
           <p className="mt-0.5 text-xs text-ink-muted">{t.conteudoDescricao}</p>
         </div>
 
-        {/* O contador é o escopo cobrando o calendário: os 12 posts vendidos
-            no bloco de cima contra os que foram realmente pautados aqui. Some
-            quando o ciclo não vendeu post nenhum — aí não há o que cobrar. */}
-        <p className="shrink-0 text-xs tabular-nums text-ink-secondary">
-          {meta > 0
-            ? substituir(t.postsPautadosDe, { n: total, total: meta })
-            : substituir(total === 1 ? t.postsPautadosUm : t.postsPautados, { n: total })}
-        </p>
-
         <div className="flex shrink-0 overflow-hidden rounded-lg border border-base-600">
           {(["lista", "calendario"] as const).map((v) => (
             <button
@@ -295,12 +314,76 @@ export function CalendarioDeConteudo({
         </div>
       </div>
 
+      {/* Os indicadores são o escopo COBRANDO o calendário: o que foi vendido
+          no ciclo contra o que já foi pautado, descontando ao vivo. É a
+          pergunta que a pessoa faz enquanto monta o mês ("faltam quantos?"),
+          então ela fica no topo, e não num relatório em outro lugar. */}
+      {indicadores.length > 0 ? (
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          {indicadores.map((i) => {
+            const falta = Math.max(0, i.total - i.feito);
+            const passou = i.total > 0 && i.feito > i.total;
+            return (
+              <div key={i.tipo} className="rounded-xl border border-base-700 bg-base-950/40 p-3">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-ink-muted">{i.rotulo}</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums text-ink-primary">
+                  {i.feito}
+                  {i.total > 0 && <span className="text-sm font-normal text-ink-muted"> / {i.total}</span>}
+                </p>
+                {i.total > 0 && (
+                  <>
+                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-base-800">
+                      <div
+                        className={cn("h-full rounded-full", falta === 0 ? "bg-status-good" : "bg-accent/70")}
+                        style={{ width: `${Math.min(100, Math.round((i.feito / i.total) * 100))}%` }}
+                      />
+                    </div>
+                    <p
+                      className={cn(
+                        "mt-1 text-[11px]",
+                        passou ? "text-status-warning" : falta === 0 ? "text-status-good" : "text-ink-muted"
+                      )}
+                    >
+                      {passou
+                        ? substituir(t.acimaDoEscopo, { n: i.feito - i.total })
+                        : falta === 0
+                          ? t.escopoCompleto
+                          : substituir(falta === 1 ? t.faltaUm : t.faltamVarios, { n: falta })}
+                    </p>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="mt-4 text-xs text-ink-muted">
+          {substituir(total === 1 ? t.postsPautadosUm : t.postsPautados, { n: total })}
+        </p>
+      )}
+
       {visao === "lista" ? (
         <div className="mt-4">
           {/* A linha nova fica NO TOPO, e não no fim: numa lista de trinta
               posts, um campo no rodapé some da tela e obriga a rolar até o fim
               a cada ideia nova. */}
           <div className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-base-600 p-2.5">
+            <div className="flex shrink-0 overflow-hidden rounded-lg border border-base-600">
+              {TIPOS_DE_PAUTA.map((tipo) => (
+                <button
+                  key={tipo}
+                  type="button"
+                  onClick={() => setNovoTipo(tipo)}
+                  aria-pressed={novoTipo === tipo}
+                  className={cn(
+                    "px-2.5 py-1.5 text-[11px] font-medium transition",
+                    novoTipo === tipo ? "bg-base-800 text-ink-primary" : "text-ink-muted hover:text-ink-secondary"
+                  )}
+                >
+                  {t.tiposDePauta[tipo]}
+                </button>
+              ))}
+            </div>
             <div className="w-36 shrink-0">
               <DatePicker value={novaData} onChange={setNovaData} min={inicio} max={fim} />
             </div>
@@ -339,6 +422,14 @@ export function CalendarioDeConteudo({
                     className="h-4 w-4 shrink-0 accent-current text-accent"
                     aria-label={post.titulo}
                   />
+                  {/* Etiqueta só para o que NÃO é post: numa lista que é quase
+                      toda de posts, marcar todos seria ruído — o que precisa
+                      saltar é a campanha no meio deles. */}
+                  {post.tipo_pauta !== "post" && (
+                    <span className="shrink-0 rounded-full border border-base-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
+                      {t.tiposDePauta[post.tipo_pauta]}
+                    </span>
+                  )}
                   <div className="w-32 shrink-0">
                     <DatePicker
                       value={post.data_entrega ?? ""}

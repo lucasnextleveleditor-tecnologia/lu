@@ -1,4 +1,4 @@
-import type { CanalDoPost, FormatoDoPost } from "@/lib/types/producao";
+import type { CanalDoPost, FormatoDoPost, TipoDePauta } from "@/lib/types/producao";
 
 /**
  * Planejamento Estratégico e Cronograma.
@@ -143,6 +143,21 @@ export interface PlanejamentoDict {
   postBriefingPlaceholder: string;
   inserirMarca: string;
   campoOpcionalReceita: string;
+
+  // Indicadores do escopo
+  tiposDePauta: Record<TipoDePauta, string>;
+  faltaUm: string;
+  faltamVarios: string;
+  escopoCompleto: string;
+  acimaDoEscopo: string;
+  escolhaCliente: string;
+  semClientesComCiclo: string;
+  semCicloParaConteudo: string;
+  cicloEmEdicao: string;
+  irParaOCiclo: string;
+
+  conteudoResumoDoCiclo: string;
+  abrirCalendario: string;
 
   // Receita de produção por formato (Configurações → Conteúdo)
   abaConteudo: string;
@@ -300,6 +315,19 @@ export const planejamento: PlanejamentoDict = {
   inserirMarca: "Inserir a marca do cliente",
   campoOpcionalReceita: "Em branco, o padrão do formato preenche ao subir.",
 
+  tiposDePauta: { post: "Posts", campanha: "Campanhas", extra: "Peças extras" },
+  faltaUm: "falta {n}",
+  faltamVarios: "faltam {n}",
+  escopoCompleto: "escopo completo",
+  acimaDoEscopo: "{n} acima do escopo",
+  escolhaCliente: "Cliente",
+  semClientesComCiclo: "Nenhum cliente tem ciclo ainda. Crie o primeiro em Planejamento.",
+  semCicloParaConteudo: "Este cliente ainda não tem um ciclo. Crie um em Planejamento para montar o calendário.",
+  cicloEmEdicao: "Ciclo de {inicio} a {fim}",
+  irParaOCiclo: "Abrir o ciclo",
+
+  conteudoResumoDoCiclo: "{n} pautas neste ciclo. O calendário fica na aba Conteúdo.",
+  abrirCalendario: "Abrir o calendário",
   abaConteudo: "Conteúdo",
   receitasTitulo: "Padrões de produção por formato",
   receitasDescricao:

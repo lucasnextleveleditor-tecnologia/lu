@@ -138,6 +138,19 @@ export const planejamento: PlanejamentoDict = {
   inserirMarca: "Insert the client's brand",
   campoOpcionalReceita: "Left blank, the format's default fills it on send.",
 
+  tiposDePauta: { post: "Posts", campanha: "Campaigns", extra: "Extra pieces" },
+  faltaUm: "{n} to go",
+  faltamVarios: "{n} to go",
+  escopoCompleto: "scope complete",
+  acimaDoEscopo: "{n} over scope",
+  escolhaCliente: "Client",
+  semClientesComCiclo: "No client has a cycle yet. Create the first one in Planning.",
+  semCicloParaConteudo: "This client has no cycle yet. Create one in Planning to build the calendar.",
+  cicloEmEdicao: "Cycle from {inicio} to {fim}",
+  irParaOCiclo: "Open the cycle",
+
+  conteudoResumoDoCiclo: "{n} items planned in this cycle. The calendar lives in the Content tab.",
+  abrirCalendario: "Open the calendar",
   abaConteudo: "Content",
   receitasTitulo: "Production defaults per format",
   receitasDescricao:

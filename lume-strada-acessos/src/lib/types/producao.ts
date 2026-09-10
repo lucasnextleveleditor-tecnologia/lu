@@ -43,12 +43,22 @@ export interface TarefaRow {
   em_pauta: boolean;
   /** Ciclo que originou o post. `null` para tarefa criada direto em Produção. */
   plano_id: string | null;
+  /** O que a pauta é dentro do escopo vendido — base dos indicadores do calendário. */
+  tipo_pauta: TipoDePauta;
   post_canal: CanalDoPost | null;
   post_formato: FormatoDoPost | null;
 
   created_at: string;
   updated_at: string;
 }
+
+/**
+ * As três coisas contáveis que um ciclo vende: posts de social, campanhas de
+ * tráfego e peças extras. É por elas que os indicadores do calendário
+ * descontam o escopo.
+ */
+export const TIPOS_DE_PAUTA = ["post", "campanha", "extra"] as const;
+export type TipoDePauta = (typeof TIPOS_DE_PAUTA)[number];
 
 export const CANAIS_DO_POST = [
   "instagram",
