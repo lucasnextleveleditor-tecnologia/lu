@@ -166,6 +166,16 @@ export interface FinanceiroDict {
   receitaLabel: string;
   transferenciaLabel: string;
   vencimentoLabel: string;
+  /** Lembrete aberto pelo cartão "Precisa de atenção" do Dashboard. */
+  lembreteVencidasTitulo: string;
+  lembreteVencendoHojeTitulo: string;
+  lembreteVencidasHint: string;
+  lembreteVencendoHojeHint: string;
+  lembreteVerConta: string;
+  lembreteFechar: string;
+  lembreteAtrasoDias: string;
+  lembreteAtrasoUmDia: string;
+  lembreteNadaAqui: string;
   contaCartaoLabel: string;
   parcelaLabel: string;
   moedaOriginalLabel: string;
@@ -543,6 +553,15 @@ export const financeiro: FinanceiroDict = {
   receitaLabel: "Receita",
   transferenciaLabel: "Transferência",
   vencimentoLabel: "Vencimento",
+  lembreteVencidasTitulo: "Contas vencidas",
+  lembreteVencendoHojeTitulo: "Vencendo hoje",
+  lembreteVencidasHint: "Passaram do vencimento e continuam em aberto.",
+  lembreteVencendoHojeHint: "Vencem hoje e ainda não foram pagas.",
+  lembreteVerConta: "Ver conta",
+  lembreteFechar: "Fechar lembrete",
+  lembreteAtrasoDias: "{n} dias de atraso",
+  lembreteAtrasoUmDia: "1 dia de atraso",
+  lembreteNadaAqui: "Nada em aberto por aqui — as contas devem ter sido pagas.",
   contaCartaoLabel: "Conta/Cartão",
   parcelaLabel: "Parcela",
   moedaOriginalLabel: "Moeda Original",

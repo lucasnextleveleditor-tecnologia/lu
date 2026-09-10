@@ -27,7 +27,14 @@ import { TransacoesManager } from "@/components/admin/financeiro/TransacoesManag
 import { GraficoReceitaDespesa } from "@/components/admin/financeiro/GraficoReceitaDespesa";
 import { GraficoDespesasPorCategoria } from "@/components/admin/financeiro/GraficoDespesasPorCategoria";
 import { getDictionary } from "@/lib/i18n/getDictionary";
-import { buscarDadosFinanceiro, buscarHistoricoMensal, type FinanceiroSearchParams } from "@/app/admin/financeiro/data";
+import {
+  buscarContasEmAtencao,
+  buscarDadosFinanceiro,
+  buscarHistoricoMensal,
+  destaqueDe,
+  type FinanceiroSearchParams,
+} from "@/app/admin/financeiro/data";
+import { LembreteVencimentos } from "@/components/admin/financeiro/LembreteVencimentos";
 import { buscarResumoCaixinhas } from "@/app/admin/financeiro/caixinhas/data";
 
 export const dynamic = "force-dynamic";
@@ -41,10 +48,14 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
   const params = await searchParams;
   // As três buscas são independentes entre si — `Promise.all` evita uma
   // fila de 3 idas ao banco em série só porque estão no mesmo componente.
-  const [dadosFinanceiro, { saldoTotal: saldoCaixinhas, qtd: qtdCaixinhas }, historicoMensal] = await Promise.all([
+  // O lembrete só é buscado quando veio pelo cartão do Dashboard — abrir o
+  // Financeiro pelo menu não paga essa consulta.
+  const destaque = destaqueDe(params.destaque);
+  const [dadosFinanceiro, { saldoTotal: saldoCaixinhas, qtd: qtdCaixinhas }, historicoMensal, contasEmAtencao] = await Promise.all([
     buscarDadosFinanceiro(params),
     buscarResumoCaixinhas(),
     buscarHistoricoMensal(params),
+    destaque ? buscarContasEmAtencao(destaque) : Promise.resolve([]),
   ]);
   const {
     referencia,
@@ -78,6 +89,8 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
 
   return (
     <div className="space-y-6">
+      {destaque && <LembreteVencimentos destaque={destaque} contas={contasEmAtencao} contexto={contexto} />}
+
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold tracking-tight">{dict.financeiro.tituloPagina}</h1>
@@ -239,6 +252,7 @@ export default async function FinanceiroPage({ searchParams }: FinanceiroPagePro
           categorias={categorias}
           fornecedores={fornecedores}
           contexto={contexto}
+          foco={params.foco}
         />
       </div>
     </div>

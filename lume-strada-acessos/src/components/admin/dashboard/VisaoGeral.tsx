@@ -118,7 +118,11 @@ export async function VisaoGeral({
       rotulo: dict.dashboard.contasVencidasLabel,
       quantidade: contasVencidas,
       tone: "critical" as const,
-      href: "/admin/financeiro",
+      // `?destaque=` abre o Financeiro já com o lembrete de QUAIS contas são
+      // — o número aqui responde "quantas", e a pergunta seguinte é sempre
+      // "quais". Conta vencida costuma ser de mês passado, que nem aparece
+      // na lista do mês corrente; o lembrete leva cada uma ao seu mês.
+      href: "/admin/financeiro?destaque=vencidas",
     },
     contasVencendoHoje !== null && {
       chave: "contas-hoje",
@@ -126,7 +130,7 @@ export async function VisaoGeral({
       rotulo: dict.dashboard.contasVencendoHojeLabel,
       quantidade: contasVencendoHoje,
       tone: "warning" as const,
-      href: "/admin/financeiro",
+      href: "/admin/financeiro?destaque=vencendo-hoje",
     },
     followUpsAtrasados !== null && {
       chave: "follow-ups",

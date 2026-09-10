@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type {
   CartaoComLimite,
   CategoriaRow,
@@ -13,6 +13,7 @@ import { marcarPago, removerTransacao, removerTransacaoComEscopo, type EscopoExc
 import { calcularStatusTransacao } from "@/lib/types/financeiro";
 import { STATUS_TRANSACAO_META } from "@/lib/utils/financeiro";
 import { fmtBRL, fmtMoedaEstrangeira, fmtDataCurta } from "@/lib/utils/format";
+import { cn } from "@/lib/utils/cn";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -33,11 +34,13 @@ interface TransacoesManagerProps {
   contexto: "todos" | "pessoal" | "profissional";
   /** Presente nas telas de detalhe de Receitas/Despesas (`/admin/financeiro/receitas|despesas`) — trava o filtro nesse tipo (esconde o seletor de Tipo, já que a lista inteira é só daquele tipo) e pré-seleciona o mesmo tipo ao lançar uma transação nova. */
   tipoFixo?: "receita" | "despesa";
+  /** Id vindo do lembrete de vencimentos: rola a lista até essa linha e a destaca. */
+  foco?: string;
 }
 
 const TODOS = "todos";
 
-export function TransacoesManager({ transacoes, contas, cartoes, categorias, fornecedores, contexto, tipoFixo }: TransacoesManagerProps) {
+export function TransacoesManager({ transacoes, contas, cartoes, categorias, fornecedores, contexto, tipoFixo, foco }: TransacoesManagerProps) {
   const { dict } = useLocale();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>(TODOS);
@@ -64,6 +67,20 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, for
   }, [transacoes, filtroStatus, filtroTipo, busca]);
 
   const vencidas = transacoes.filter((t) => calcularStatusTransacao(t) === "vencida").length;
+
+  /**
+   * A conta que o lembrete mandou olhar.
+   *
+   * Rola até ela e mantém o destaque — sem piscar e sumir: a pessoa veio de
+   * outra tela e precisa reencontrar a linha com o olho, não adivinhar qual
+   * era depois que a animação acabou. Se um filtro esconder a linha, o
+   * destaque simplesmente não tem o que marcar.
+   */
+  const linhaFoco = useRef<HTMLTableRowElement | null>(null);
+  useEffect(() => {
+    if (!foco) return;
+    linhaFoco.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [foco]);
 
   /**
    * Dar Baixa numa despesa/receita paga com "Conta" que ainda não tem
@@ -198,7 +215,14 @@ export function TransacoesManager({ transacoes, contas, cartoes, categorias, for
                 const isTransferencia = t.tipo === "transferencia";
                 const valorSinal = t.tipo === "receita" ? "+" : t.tipo === "despesa" ? "-" : "";
                 return (
-                  <tr key={t.id} className="border-b border-base-800 last:border-0">
+                  <tr
+                    key={t.id}
+                    ref={t.id === foco ? linhaFoco : undefined}
+                    className={cn(
+                      "border-b border-base-800 last:border-0",
+                      t.id === foco && "bg-accent/10 ring-1 ring-inset ring-accent/50"
+                    )}
+                  >
                     <td className="py-3 pr-4">
                       <p className="flex items-center gap-1.5 text-sm font-medium text-ink-primary">
                         {isTransferencia && <IconArrowRightLeft className="h-3.5 w-3.5 shrink-0 text-ink-muted" />}

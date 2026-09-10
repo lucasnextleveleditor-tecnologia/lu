@@ -11,10 +11,99 @@ import type {
   TransacaoRow,
 } from "@/lib/types/financeiro";
 import { limitesDoMes, mesParam, parseMesParam, ultimosMeses } from "@/lib/utils/financeiro";
+import { todayISO } from "@/lib/utils/format";
 
 export interface FinanceiroSearchParams {
   mes?: string;
   contexto?: string;
+  /** Vem do cartão "Precisa de atenção" do Dashboard: abre o Financeiro já com o lembrete das contas vencidas ou vencendo hoje. */
+  destaque?: string;
+  /** Id da transação a destacar na lista — cada linha do lembrete aponta para a sua. */
+  foco?: string;
+}
+
+export type DestaqueVencimento = "vencidas" | "vencendo-hoje";
+
+export function destaqueDe(valor: string | undefined): DestaqueVencimento | null {
+  return valor === "vencidas" || valor === "vencendo-hoje" ? valor : null;
+}
+
+export interface ContaEmAtencao {
+  id: string;
+  descricao: string;
+  valor: number;
+  data_vencimento: string;
+  /** `?mes=` a que essa conta pertence — uma conta vencida pode ser de um mês que não é o que está aberto na tela. */
+  mesParam: string;
+  origem: string | null;
+}
+
+/**
+ * As contas por trás do número do Dashboard.
+ *
+ * O Dashboard conta SEM recorte de mês (`data_vencimento < hoje`), e o
+ * Financeiro mostra um mês por vez — então uma conta vencida em julho não
+ * apareceria na lista de setembro. Por isso esta busca é própria e ignora o
+ * mês: o lembrete precisa mostrar as MESMAS contas que o número prometeu.
+ *
+ * Mesmo filtro do Dashboard (`contexto = profissional`, `pago = false`) pelo
+ * mesmo motivo: dois lugares mostrando contagens diferentes da mesma coisa é
+ * pior do que não mostrar.
+ */
+export async function buscarContasEmAtencao(destaque: DestaqueVencimento): Promise<ContaEmAtencao[]> {
+  const { supabase } = await requireModuloOuRedirect("financeiro");
+  const hoje = todayISO();
+
+  const base = supabase
+    .from("fin_transacoes")
+    .select("id, descricao, valor, data_vencimento, fornecedor_id, categoria_id")
+    .eq("contexto", "profissional")
+    .eq("pago", false);
+
+  const { data } = await (destaque === "vencidas"
+    ? base.lt("data_vencimento", hoje).order("data_vencimento", { ascending: true })
+    : base.eq("data_vencimento", hoje).order("valor", { ascending: false })
+  )
+    .limit(50)
+    .overrideTypes<
+      { id: string; descricao: string; valor: number; data_vencimento: string; fornecedor_id: string | null; categoria_id: string | null }[],
+      { merge: false }
+    >();
+
+  const linhas = data ?? [];
+  if (linhas.length === 0) return [];
+
+  // Nomes só das relações que aparecem no lembrete — nada de trazer os
+  // cadastros inteiros para escrever cinco linhas.
+  const fornecedorIds = [...new Set(linhas.map((l) => l.fornecedor_id).filter(Boolean))] as string[];
+  const categoriaIds = [...new Set(linhas.map((l) => l.categoria_id).filter(Boolean))] as string[];
+  const [fornRes, catRes] = await Promise.all([
+    fornecedorIds.length
+      ? supabase.from("fin_fornecedores").select("id, nome").in("id", fornecedorIds).overrideTypes<{ id: string; nome: string }[], { merge: false }>()
+      : Promise.resolve({ data: [] as { id: string; nome: string }[] }),
+    categoriaIds.length
+      ? supabase
+          .from("fin_categorias")
+          .select("id, nome, emoji")
+          .in("id", categoriaIds)
+          .overrideTypes<{ id: string; nome: string; emoji: string | null }[], { merge: false }>()
+      : Promise.resolve({ data: [] as { id: string; nome: string; emoji: string | null }[] }),
+  ]);
+
+  const nomeFornecedor = new Map((fornRes.data ?? []).map((f) => [f.id, f.nome]));
+  const nomeCategoria = new Map((catRes.data ?? []).map((c) => [c.id, c.emoji ? `${c.emoji} ${c.nome}` : c.nome]));
+
+  return linhas.map((l) => ({
+    id: l.id,
+    descricao: l.descricao,
+    valor: l.valor,
+    data_vencimento: l.data_vencimento,
+    mesParam: l.data_vencimento.slice(0, 7),
+    origem:
+      (l.fornecedor_id ? nomeFornecedor.get(l.fornecedor_id) : null) ??
+      (l.categoria_id ? nomeCategoria.get(l.categoria_id) : null) ??
+      null,
+  }));
 }
 
 /**
