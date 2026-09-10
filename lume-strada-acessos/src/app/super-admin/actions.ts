@@ -340,6 +340,72 @@ export async function uploadFundoLogin(formData: FormData): Promise<{ ok: true; 
   }
 }
 
+/** Qual das duas versões da logo do login está sendo mexida. */
+export type VarianteLogoLogin = "escuro" | "claro";
+
+const COLUNA_LOGO: Record<VarianteLogoLogin, "login_logo_url" | "login_logo_light_url"> = {
+  escuro: "login_logo_url",
+  claro: "login_logo_light_url",
+};
+
+/**
+ * A logo da PLATAFORMA na tela de login.
+ *
+ * Colunas próprias (`login_logo_*`), nunca `logo_url` — aquela é a logo da
+ * agência dentro do painel dela. Se fossem a mesma, trocar a marca da
+ * própria agência mudaria a porta de entrada de todos os clientes junto.
+ *
+ * SVG continua barrado como no resto do sistema: é um documento executável,
+ * e um arquivo enviado ao bucket público não deve poder rodar script.
+ */
+export async function uploadLogoLogin(
+  formData: FormData,
+  variante: VarianteLogoLogin
+): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  try {
+    await requireSuperAdmin();
+    const file = formData.get("file");
+
+    if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Selecione um arquivo." };
+    if (file.size > TAMANHO_MAX_LOGIN_BG) return { ok: false, error: "Arquivo muito grande (máximo 3MB)." };
+    if (!ehImagemPermitida(file.type)) return { ok: false, error: "Envie um arquivo de imagem (PNG, JPG, WEBP ou GIF). SVG não é permitido." };
+
+    const coluna = COLUNA_LOGO[variante];
+    const companyId = await idEmpresaDonaDoSaas();
+    const admin = createAdminClient();
+    const extensao = file.name.split(".").pop()?.toLowerCase() || "png";
+    const caminho = `${companyId}/${coluna}/${Date.now()}.${extensao}`;
+
+    const { error: erroUpload } = await admin.storage.from(BUCKET_BRANDING).upload(caminho, file, { upsert: true, contentType: file.type });
+    if (erroUpload) return { ok: false, error: erroUpload.message };
+
+    const { data: urlData } = admin.storage.from(BUCKET_BRANDING).getPublicUrl(caminho);
+    const { error } = await admin.from("branding_config").update({ [coluna]: urlData.publicUrl }).eq("company_id", companyId);
+    if (error) return { ok: false, error: error.message };
+
+    revalidatePath("/", "layout");
+    return { ok: true, url: urlData.publicUrl };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+export async function removerLogoLogin(variante: VarianteLogoLogin): Promise<ActionResult> {
+  try {
+    await requireSuperAdmin();
+    const admin = createAdminClient();
+    const { error } = await admin
+      .from("branding_config")
+      .update({ [COLUNA_LOGO[variante]]: null })
+      .eq("company_id", await idEmpresaDonaDoSaas());
+    if (error) return { ok: false, error: error.message };
+    revalidatePath("/", "layout");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
 export async function removerFundoLogin(): Promise<ActionResult> {
   try {
     await requireSuperAdmin();

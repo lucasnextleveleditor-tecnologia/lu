@@ -6,7 +6,7 @@ import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
 import { getDictionary } from "@/lib/i18n/getDictionary";
-import { LOGIN_BG_PRESETS } from "@/lib/branding/constants";
+import { LOGIN_BG_PRESETS, LOGO_LOGIN_PADRAO, LOGO_LOGIN_PADRAO_CLARA } from "@/lib/branding/constants";
 import { cn } from "@/lib/utils/cn";
 
 const POSICAO_CLASSES = {
@@ -60,10 +60,18 @@ export default async function LoginPage() {
 
       <div className="relative w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          {/* Login é a única tela pública (pré-login) da plataforma — a logotipo
-              personalizada só é exibida na área de membros e no painel
-              admin, nunca aqui, então passamos sempre `null` (marca padrão). */}
-          <BrandingLogo logoUrl={null} sizeClassName="h-12" className="mb-4" />
+          {/* A marca aqui é a da PLATAFORMA, nunca a de uma agência: quem
+              chega ainda não foi identificado, então não há agência a
+              mostrar. Vem das colunas próprias `login_logo_*`, editadas só
+              no Super Admin — se viesse de `logo_url`, o dono do SaaS
+              trocaria a logo da própria agência e a porta de entrada de
+              todos os clientes mudaria junto. Vazio = losango padrão. */}
+          <BrandingLogo
+            logoUrl={branding.login_logo_url ?? LOGO_LOGIN_PADRAO}
+            logoLightUrl={branding.login_logo_light_url ?? (branding.login_logo_url ? null : LOGO_LOGIN_PADRAO_CLARA)}
+            sizeClassName="h-12"
+            className="mb-4"
+          />
           <h1 className="text-lg font-semibold tracking-tight">{branding.login_title}</h1>
           <p className="mt-1 text-xs text-ink-muted">{branding.login_subtitle}</p>
         </div>

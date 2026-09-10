@@ -200,7 +200,6 @@ const MODULO_COR: Record<string, string> = {
 interface AdminShellProps {
   logoUrl: string | null;
   /** Nome do APP mostrado no topo da sidebar (`companies.nome_app`, editável em Aparência) — nunca o nome literal de uma empresa específica. Default "App Gestão". */
-  nomeApp: string;
   nome: string;
   email: string;
   /** Não usado mais para o estado inicial da sidebar (ver `hover` abaixo) — mantido só pra não quebrar a assinatura de quem chama (`admin/layout.tsx`) e o campo em Aparência que ainda existe no banco. */
@@ -214,7 +213,6 @@ interface AdminShellProps {
 
 export function AdminShell({
   logoUrl,
-  nomeApp,
   nome,
   email,
   colapsadoPadrao: _colapsadoPadrao,
@@ -264,14 +262,16 @@ export function AdminShell({
           colapsado ? "w-[72px]" : "w-64 shadow-2xl"
         )}
       >
-        <div className={cn("flex items-center gap-2.5 border-b border-base-800 px-4 py-4", colapsado && "justify-center px-2")}>
-          <BrandingLogo logoUrl={logoUrl} sizeClassName="h-8" />
-          {!colapsado && (
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold tracking-tight">{nomeApp}</p>
-              <p className="truncate text-[11px] text-ink-muted">{dict.nav.painelAdministrativo}</p>
-            </div>
-          )}
+        {/* Só a marca, ocupando o bloco inteiro.
+            O nome da empresa e o "Painel Administrativo" saíram daqui: uma
+            logo já DIZ de quem é o painel, e o nome ao lado dela roubava a
+            largura da própria marca — a ponto de ser cortado num "...".
+            Recolhida, a sidebar tem 72px e a marca vira um quadrado no
+            centro; aberta, ela usa toda a faixa. `max-h` em vez de altura
+            fixa para uma logo larga crescer até a borda sem estourar a
+            altura do cabeçalho. */}
+        <div className={cn("flex items-center justify-center border-b border-base-800 px-4 py-3.5", colapsado && "px-2")}>
+          <BrandingLogo logoUrl={logoUrl} sizeClassName={colapsado ? "h-8" : "h-auto max-h-16"} larguraTotal={!colapsado} />
         </div>
 
         <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">

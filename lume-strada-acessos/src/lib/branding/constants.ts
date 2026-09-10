@@ -24,6 +24,8 @@ export const DEFAULT_BRANDING: BrandingConfigRow = {
   primary_color: "#4F7CFF",
   accent_color: "#22D3EE",
   login_bg_url: null,
+  login_logo_url: null,
+  login_logo_light_url: null,
   login_bg_preset: "grain",
   login_title: "App Gestão",
   login_subtitle: "Acesso a clientes e projetos",
@@ -82,6 +84,18 @@ export interface LoginBgPresetDef {
   label: string;
   className: string;
 }
+
+/**
+ * A marca padrão da plataforma na tela de login.
+ *
+ * Vive em `public/`, versionada no repositório, e não numa coluna do banco:
+ * é o arquivo que veste o produto quando ninguém subiu nada, então tem de
+ * existir antes de qualquer configuração — inclusive num banco recém-criado.
+ * Enviar uma logo no Super Admin grava a URL em `branding_config` e passa
+ * na frente destes; remover volta para cá.
+ */
+export const LOGO_LOGIN_PADRAO = "/marca-login.png";
+export const LOGO_LOGIN_PADRAO_CLARA = "/marca-login-clara.png";
 
 /** Padrões cinematográficos sem depender de upload — usados quando `login_bg_url` está vazio. */
 export const LOGIN_BG_PRESETS: LoginBgPresetDef[] = [

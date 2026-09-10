@@ -8,6 +8,8 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface LoginPreviewProps {
   logoUrl: string | null;
+  /** Versão para fundo claro — ver `BrandingLogo`. */
+  logoLightUrl?: string | null;
   titulo: string;
   subtitulo: string;
   posicao: LoginBoxPosition;
@@ -22,7 +24,7 @@ const POSICAO_CLASSES: Record<LoginBoxPosition, string> = {
 };
 
 /** Maquete em miniatura da tela de login — mesma lógica de fundo/posição/logo da página real (`app/login/page.tsx`), só que escalada pra caber num card de preview. */
-export function LoginPreview({ logoUrl, titulo, subtitulo, posicao, bgPreset, bgUrl }: LoginPreviewProps) {
+export function LoginPreview({ logoUrl, logoLightUrl, titulo, subtitulo, posicao, bgPreset, bgUrl }: LoginPreviewProps) {
   const { dict } = useLocale();
   const preset = LOGIN_BG_PRESETS.find((p) => p.key === bgPreset) ?? LOGIN_BG_PRESETS[0]!;
 
@@ -37,7 +39,7 @@ export function LoginPreview({ logoUrl, titulo, subtitulo, posicao, bgPreset, bg
     >
       {bgUrl && <div className="absolute inset-0 bg-base-950/70" />}
       <div className="relative w-32 rounded-lg border border-base-700 bg-base-900/90 p-2.5 text-center shadow-lg">
-        <BrandingLogo logoUrl={logoUrl} sizeClassName="h-5" className="mx-auto mb-1.5" />
+        <BrandingLogo logoUrl={logoUrl} logoLightUrl={logoLightUrl} sizeClassName="h-5" className="mx-auto mb-1.5" />
         <p className="truncate text-[10px] font-semibold leading-tight text-ink-primary">{titulo || dict.aparencia.previewTituloFallback}</p>
         <p className="mt-0.5 truncate text-[8px] text-ink-muted">{subtitulo || dict.aparencia.subtituloLabel}</p>
         <div className="mt-2 space-y-1">

@@ -172,6 +172,10 @@ export interface BrandingConfigRow {
   primary_color: string; // hex, ex: "#d4a24e"
   accent_color: string; // hex
   login_bg_url: string | null;
+  /** Logo da PLATAFORMA na tela de login (modo escuro). `null` = losango padrão. Não confundir com `logo_url`, que é a logo da agência dentro do painel dela. */
+  login_logo_url: string | null;
+  /** Versão da logo do login para fundo claro — uma logo branca sumiria nele. `null` = usa a mesma dos dois modos. */
+  login_logo_light_url: string | null;
   login_bg_preset: LoginBgPreset;
   login_title: string;
   login_subtitle: string;
