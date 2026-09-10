@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { PAPEIS_SIGNATARIO, papelDe } from "@/lib/types/assinatura";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
 import { gerarDocumentoAssinado } from "@/lib/pdf/gerarDocumentoAssinado";
+import { localizarIp } from "@/lib/assinatura/localizarIp";
 import { buscarPorToken, origemDaRequisicao } from "./acesso";
 
 export type Resultado = { ok: true } | { ok: false; error: string };
@@ -73,6 +74,10 @@ export async function assinar(
 
   const admin = createAdminClient();
   const { ip, userAgent } = await origemDaRequisicao();
+  // Onde a pessoa estava, lido do IP AGORA: daqui a um mês o mesmo endereço
+  // já é de outra pessoa, e a resposta seria outra. Falha aqui vira null e
+  // não impede a assinatura.
+  const local = await localizarIp(ip);
   const agora = new Date().toISOString();
 
   const { error } = await admin
@@ -81,6 +86,7 @@ export async function assinar(
       status: "assinado",
       assinado_em: agora,
       ip,
+      local_assinatura: local,
       user_agent: userAgent,
       nome_informado: input.nome.trim().slice(0, 120),
       cpf_informado: soDigitos(input.cpf).slice(0, 14) || null,

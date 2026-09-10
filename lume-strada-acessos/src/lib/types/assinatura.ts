@@ -37,6 +37,8 @@ export interface SignatarioRow {
   visualizado_em: string | null;
   assinado_em: string | null;
   ip: string | null;
+  /** Cidade/estado/país lidos do IP no ato de confirmar. Aproximado — o IP é o dado duro. */
+  local_assinatura: string | null;
   user_agent: string | null;
   nome_informado: string | null;
   cpf_informado: string | null;

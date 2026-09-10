@@ -150,7 +150,8 @@ export function PainelDeEnvio({
                   {s.status === "assinado" ? (
                     <p className="text-[11px] leading-snug text-ink-muted">
                       {papel.feito} · {s.nome_informado} · CPF {s.cpf_informado ?? "—"} ·{" "}
-                      {s.assinado_em ? new Date(s.assinado_em).toLocaleString("pt-BR") : ""} · IP {s.ip ?? "—"}
+                      {s.assinado_em ? new Date(s.assinado_em).toLocaleString("pt-BR") : ""}
+                      {s.local_assinatura ? ` · ${s.local_assinatura}` : ""} · IP {s.ip ?? "—"}
                     </p>
                   ) : (
                     <div className="flex items-center gap-1.5">

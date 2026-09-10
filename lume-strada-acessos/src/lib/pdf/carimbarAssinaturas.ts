@@ -10,7 +10,7 @@ import type {
 
 /**
  * Monta o PDF final: o documento original com as assinaturas carimbadas nos
- * lugares marcados, mais uma página de autenticidade no fim.
+ * lugares marcados, mais a folha de comprovação no fim — que quebra em quantas folhas precisar.
  *
  * O ORIGINAL NUNCA É ALTERADO. O que sai daqui é um arquivo novo — e isso é
  * o ponto: o hash guardado no envio foi tirado do original, e é ele que cada
@@ -28,6 +28,24 @@ const FUSO = "America/Sao_Paulo";
 function dataHora(iso: string | null): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("pt-BR", { timeZone: FUSO });
+}
+
+/**
+ * Helvetica padrão só sabe escrever WinAnsi. Um caractere fora disso — um
+ * nome com alfabeto não latino, um emoji colado no título — não sai errado:
+ * derruba a geração do PDF inteiro. Melhor perder o caractere do que perder
+ * o comprovante.
+ */
+const EXTRA_WINANSI =
+  "\u20AC\u201A\u0192\u201E\u2026\u2020\u2021\u02C6\u2030\u0160\u2039\u0152\u017D" +
+  "\u2018\u2019\u201C\u201D\u2022\u2013\u2014\u02DC\u2122\u0161\u203A\u0153\u017E\u0178";
+
+function seguro(texto: string): string {
+  return Array.from(texto)
+    .filter(
+      (c) => (c >= "\u0020" && c <= "\u007E") || (c >= "\u00A0" && c <= "\u00FF") || EXTRA_WINANSI.includes(c)
+    )
+    .join("");
 }
 
 /** O navegador cru é ilegível; o que importa na trilha é o essencial dele. */
@@ -106,23 +124,35 @@ export async function carimbarAssinaturas(input: {
     // O corpo acompanha a altura da caixa, com teto: um campo alto não
     // deveria virar um texto gigante atravessando o contrato.
     const corpo = Math.min(11, Math.max(7, altura * 0.6));
-    pagina.drawText(texto, { x: x + 2, y: y + (altura - corpo) / 2, size: corpo, font: fonte, color: rgb(0.07, 0.07, 0.1) });
+    pagina.drawText(seguro(texto), { x: x + 2, y: y + (altura - corpo) / 2, size: corpo, font: fonte, color: rgb(0.07, 0.07, 0.1) });
   }
 
   // -------------------------------------------------------------------
-  // PÁGINA DE AUTENTICIDADE
+  // FOLHA(S) DE COMPROVAÇÃO
   // -------------------------------------------------------------------
-  // É esta página que se apresenta quando alguém contesta. Ela reúne, num
-  // lugar só, o que o sistema registrou e não pode reescrever: quem assinou,
-  // de onde, quando, e a impressão digital do arquivo original.
-  const folha = pdf.addPage([595.28, 841.89]); // A4 retrato
+  // É esta parte que se apresenta quando alguém contesta: quem confirmou, em
+  // que papel, em que dia e hora, de que endereço e de que lugar — mais a
+  // impressão digital do arquivo original.
+  //
+  // Ela QUEBRA EM QUANTAS FOLHAS FOREM NECESSÁRIAS. Numa folha só, um
+  // documento com quatro signatários e a trilha completa escrevia por baixo
+  // da margem — ou seja, o comprovante sumia justamente na parte que mais
+  // importa. Comprovante cortado não comprova nada.
+  const A4: [number, number] = [595.28, 841.89];
   const M = 48;
-  let y = 841.89 - M;
+  const PISO = M + 30; // abaixo disto começa o rodapé: nada de texto aqui
 
-  const escrever = (texto: string, opcoes: { corpo?: number; negrito?: boolean; cor?: [number, number, number]; recuo?: number } = {}) => {
+  let folha = pdf.addPage(A4);
+  const folhas = [folha];
+  let y = A4[1] - M;
+
+  const escrever = (
+    texto: string,
+    opcoes: { corpo?: number; negrito?: boolean; cor?: [number, number, number]; recuo?: number } = {}
+  ) => {
     const corpo = opcoes.corpo ?? 9;
     y -= corpo + 4;
-    folha.drawText(texto, {
+    folha.drawText(seguro(texto), {
       x: M + (opcoes.recuo ?? 0),
       y,
       size: corpo,
@@ -135,13 +165,28 @@ export async function carimbarAssinaturas(input: {
     y -= 10;
     folha.drawLine({
       start: { x: M, y },
-      end: { x: 595.28 - M, y },
+      end: { x: A4[0] - M, y },
       thickness: 0.5,
       color: rgb(0.8, 0.8, 0.84),
     });
   };
 
-  escrever("MANIFESTO DE ASSINATURAS", { corpo: 14, negrito: true });
+  const novaFolha = () => {
+    folha = pdf.addPage(A4);
+    folhas.push(folha);
+    y = A4[1] - M;
+    escrever("COMPROVANTE DE ASSINATURAS (continuação)", { corpo: 9, negrito: true, cor: [0.45, 0.45, 0.5] });
+    linha();
+  };
+
+  // Abre folha nova quando o BLOCO INTEIRO não cabe. Reservar o bloco, e não
+  // linha a linha, é o que impede um signatário de sair partido ao meio —
+  // nome numa folha, data e local na seguinte.
+  const reservar = (altura: number) => {
+    if (y - altura < PISO) novaFolha();
+  };
+
+  escrever("COMPROVANTE DE ASSINATURAS", { corpo: 14, negrito: true });
   escrever(input.nomeApp, { corpo: 9, cor: [0.45, 0.45, 0.5] });
   linha();
 
@@ -150,6 +195,7 @@ export async function carimbarAssinaturas(input: {
   escrever(`Arquivo: ${input.documento.arquivo_nome}`, { corpo: 8, cor: [0.35, 0.35, 0.4] });
   escrever(`Enviado em: ${dataHora(input.documento.enviado_em)}`, { corpo: 8, cor: [0.35, 0.35, 0.4] });
   escrever(`Concluído em: ${dataHora(input.documento.concluido_em)}`, { corpo: 8, cor: [0.35, 0.35, 0.4] });
+  escrever(`Fuso horário dos registros: ${FUSO} (horário de Brasília)`, { corpo: 8, cor: [0.35, 0.35, 0.4] });
 
   if (input.documento.hash_original) {
     y -= 6;
@@ -160,50 +206,80 @@ export async function carimbarAssinaturas(input: {
     escrever(input.documento.hash_original.slice(32), { corpo: 8 });
   }
 
+  reservar(40);
   linha();
   escrever("Signatários", { corpo: 8, negrito: true, cor: [0.45, 0.45, 0.5] });
 
   for (const s of input.signatarios) {
     const papel = PAPEIS_SIGNATARIO[papelDe(s.papel)];
+
+    // O bloco é montado antes de ser escrito, para dar para medir se cabe.
+    const bloco: { texto: string; corpo: number; negrito?: boolean; cor?: [number, number, number] }[] = [
+      { texto: s.nome_informado || s.nome || s.email || "—", corpo: 10, negrito: true },
+      // O papel vem logo abaixo do nome, e não no fim: quem confere uma
+      // assinatura precisa saber, na mesma olhada, se a pessoa se obrigou ou
+      // apenas testemunhou.
+      { texto: `Papel: ${papel.rotulo}`, corpo: 8, negrito: true, cor: [0.25, 0.25, 0.3] },
+      { texto: `E-mail: ${s.email || "—"}`, corpo: 8, cor: [0.35, 0.35, 0.4] },
+    ];
+    if (s.cpf_informado) bloco.push({ texto: `CPF informado: ${s.cpf_informado}`, corpo: 8, cor: [0.35, 0.35, 0.4] });
+    bloco.push({
+      texto:
+        s.status === "assinado"
+          ? `${papel.feito.charAt(0).toUpperCase()}${papel.feito.slice(1)} em: ${dataHora(s.assinado_em)}`
+          : `Situação: ${s.status}`,
+      corpo: 8,
+      cor: [0.35, 0.35, 0.4],
+    });
+    if (s.visualizado_em) bloco.push({ texto: `Abriu o documento em: ${dataHora(s.visualizado_em)}`, corpo: 8, cor: [0.35, 0.35, 0.4] });
+    // Local e IP saem na MESMA linha de propósito: o endereço é o dado duro,
+    // a cidade é a leitura dele. Separados, alguém leria a cidade como se
+    // fosse medida por GPS — e ela é aproximada, da operadora.
+    bloco.push({
+      texto: s.local_assinatura
+        ? `Local (aproximado pelo IP): ${s.local_assinatura} — IP ${s.ip ?? "—"}`
+        : `Endereço de origem (IP): ${s.ip ?? "—"}`,
+      corpo: 8,
+      cor: [0.35, 0.35, 0.4],
+    });
+    bloco.push({ texto: `Navegador: ${navegadorCurto(s.user_agent)}`, corpo: 7, cor: [0.45, 0.45, 0.5] });
+
+    const alturaDoBloco = bloco.reduce((total, l) => total + l.corpo + 4, 6);
+    reservar(alturaDoBloco);
+
     y -= 6;
-    escrever(s.nome_informado || s.nome || s.email || "—", { corpo: 10, negrito: true });
-    // O papel vem logo abaixo do nome, e não no fim do bloco: quem lê o
-    // manifesto para conferir uma assinatura precisa saber, na mesma
-    // olhada, se aquela pessoa se obrigou ou apenas testemunhou.
-    escrever(`Papel: ${papel.rotulo}`, { corpo: 8, recuo: 8, negrito: true, cor: [0.25, 0.25, 0.3] });
-    escrever(`E-mail: ${s.email || "—"}`, { corpo: 8, recuo: 8, cor: [0.35, 0.35, 0.4] });
-    if (s.cpf_informado) escrever(`CPF informado: ${s.cpf_informado}`, { corpo: 8, recuo: 8, cor: [0.35, 0.35, 0.4] });
-    escrever(
-      s.status === "assinado"
-        ? `${papel.feito.charAt(0).toUpperCase()}${papel.feito.slice(1)} em: ${dataHora(s.assinado_em)}`
-        : `Situação: ${s.status}`,
-      { corpo: 8, recuo: 8, cor: [0.35, 0.35, 0.4] }
-    );
-    if (s.visualizado_em) escrever(`Abriu em: ${dataHora(s.visualizado_em)}`, { corpo: 8, recuo: 8, cor: [0.35, 0.35, 0.4] });
-    escrever(`Endereço de origem (IP): ${s.ip ?? "—"}`, { corpo: 8, recuo: 8, cor: [0.35, 0.35, 0.4] });
-    escrever(`Navegador: ${navegadorCurto(s.user_agent)}`, { corpo: 7, recuo: 8, cor: [0.45, 0.45, 0.5] });
+    for (const l of bloco) {
+      escrever(l.texto, {
+        corpo: l.corpo,
+        negrito: l.negrito,
+        cor: l.cor,
+        recuo: l === bloco[0] ? 0 : 8,
+      });
+    }
   }
 
+  reservar(40);
   linha();
   escrever("Registro de acontecimentos", { corpo: 8, negrito: true, cor: [0.45, 0.45, 0.5] });
 
   for (const e of input.eventos) {
-    // A folha acaba: o essencial (documento, hash, signatários) já está
-    // acima, e cortar a trilha é melhor do que escrever por cima do rodapé.
-    if (y < M + 60) {
-      escrever("(...) registro completo disponível no painel", { corpo: 7, cor: [0.5, 0.5, 0.55] });
-      break;
-    }
-    escrever(
-      `${dataHora(e.created_at)} — ${e.descricao}${e.ip ? ` (IP ${e.ip})` : ""}`,
-      { corpo: 7.5, cor: [0.25, 0.25, 0.3] }
-    );
+    reservar(14);
+    escrever(`${dataHora(e.created_at)} — ${e.descricao}${e.ip ? ` (IP ${e.ip})` : ""}`, {
+      corpo: 7.5,
+      cor: [0.25, 0.25, 0.3],
+    });
   }
 
-  folha.drawText(
-    "Este manifesto acompanha o documento e registra o que o sistema apurou em cada assinatura.",
-    { x: M, y: M - 10, size: 7, font: fonte, color: rgb(0.55, 0.55, 0.6) }
-  );
+  // O rodapé é o mesmo em todas as folhas do comprovante, com a contagem —
+  // quem recebe o PDF consegue ver na hora se recebeu o comprovante inteiro.
+  folhas.forEach((f, i) => {
+    f.drawText(
+      seguro(
+        `Comprovante gerado por ${input.nomeApp} — folha ${i + 1} de ${folhas.length}. Registra o que o sistema apurou em cada confirmação.`
+      ),
+      { x: M, y: M - 12, size: 7, font: fonte, color: rgb(0.55, 0.55, 0.6) }
+    );
+  });
 
   return pdf.save();
 }
