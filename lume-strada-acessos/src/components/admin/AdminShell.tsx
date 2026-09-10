@@ -376,7 +376,11 @@ export function AdminShell({
               se procura num menu. Fica verde até 75%, âmbar até 90% e
               vermelho depois — cor de aviso só quando há o que avisar. */}
           {!colapsado && armazenamento && (
-            <div className="mb-3 px-1">
+            <Link
+              href="/admin/armazenamento"
+              className="mb-3 block rounded-lg px-1 py-1 transition hover:bg-base-800/60"
+              title={dict.nav.armazenamentoDica}
+            >
               <div className="mb-1 flex items-baseline justify-between gap-2">
                 <span className="text-[10px] uppercase tracking-[0.12em] text-ink-muted">{dict.nav.armazenamento}</span>
                 <span className="text-[10px] tabular-nums text-ink-muted">
@@ -394,7 +398,7 @@ export function AdminShell({
                   style={{ width: `${Math.max(armazenamento.fracao * 100, armazenamento.fracao > 0 ? 2 : 0)}%` }}
                 />
               </div>
-            </div>
+            </Link>
           )}
 
           {!colapsado && (

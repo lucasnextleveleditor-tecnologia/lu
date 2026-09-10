@@ -4,6 +4,7 @@ export const nav: NavDict = {
   painelAdministrativo: "Admin Panel",
   grupoVisaoGeral: "Overview",
   armazenamento: "Storage",
+  armazenamentoDica: "See where the space is going",
   grupoComercial: "Sales",
   grupoGestao: "Management",
   grupoFinanceiro: "Finance",

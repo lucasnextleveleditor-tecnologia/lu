@@ -3,6 +3,7 @@ export interface NavDict {
   painelAdministrativo: string;
   grupoVisaoGeral: string;
   armazenamento: string;
+  armazenamentoDica: string;
   grupoComercial: string;
   grupoGestao: string;
   grupoFinanceiro: string;
@@ -36,6 +37,7 @@ export const nav: NavDict = {
   painelAdministrativo: "Painel Administrativo",
   grupoVisaoGeral: "Visão Geral",
   armazenamento: "Armazenamento",
+  armazenamentoDica: "Ver onde o espaço está sendo usado",
   grupoComercial: "Comercial",
   grupoGestao: "Gestão",
   grupoFinanceiro: "Financeiro",

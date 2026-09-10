@@ -34,6 +34,16 @@ export function IconUser(props: IconProps) {
   );
 }
 
+/** Play dentro de um retângulo — o serviço de vídeo, sem imitar a marca de ninguém. */
+export function IconYoutube(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="2.5" y="5.5" width="19" height="13" rx="3.5" />
+      <path d="M10.5 9.5v5l4.2-2.5z" />
+    </svg>
+  );
+}
+
 export function IconActivity(props: IconProps) {
   return (
     <svg {...BASE} {...props}>
