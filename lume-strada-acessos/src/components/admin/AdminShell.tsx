@@ -20,9 +20,8 @@ import {
   IconBox,
   IconSettings,
   IconWallet,
+  IconTool,
   IconColumns,
-  IconClipboardList,
-  IconSitemap,
   IconFileText,
   IconTarget,
   IconLayoutGrid,
@@ -124,16 +123,24 @@ const NAV_GRUPOS = [
         // mesmo tempo, já que o destaque é por prefixo de rota.
         naoAtivoEm: ["/admin/producao/ordem-do-dia"],
       },
-      // Entrada própria, e não só um botão dentro de Produção: a folha do dia
-      // é o documento que se abre de manhã e se imprime na véspera — quem
-      // precisa dela não deveria ter de entrar no quadro de tarefas primeiro
-      // para achá-la.
-      { href: "/admin/producao/ordem-do-dia", labelKey: "ordemDeExterna", icon: IconClipboardList, chave: "producao" },
-      // Mapa mental fica sem `chave`: quem trabalha na empresa usa, do
-      // mesmo jeito que o Dashboard. Criar uma permissão só para ele
-      // obrigaria o admin a ligar mais uma chavinha por funcionário sem
-      // proteger nada — o RLS já limita tudo à própria empresa.
-      { href: "/admin/mapas", labelKey: "mapasMentais", icon: IconSitemap, chave: null },
+      // Ordem de Externa e Mapa Mental saíram daqui e viraram cartões dentro
+      // de Ferramentas. O menu vinha misturando duas naturezas: módulos que
+      // se ACOMPANHA (Financeiro, Produção, Comercial) e ferramentas que se
+      // ABRE para fazer uma tarefa e fechar. Numa lista vertical as duas
+      // competem pelo mesmo espaço e a barra fica longa demais para varrer.
+      //
+      // `matchPrefixes` mantém Ferramentas acesa nas rotas das ferramentas
+      // que agora moram nela — senão a sidebar apagaria justo quando a
+      // pessoa está dentro de uma delas. `/admin/producao/ordem-do-dia`
+      // segue na lista de `naoAtivoEm` de Produção logo acima, para as duas
+      // não acenderem juntas.
+      {
+        href: "/admin/ferramentas",
+        labelKey: "ferramentas",
+        icon: IconTool,
+        chave: null,
+        matchPrefixes: ["/admin/ferramentas", "/admin/mapas", "/admin/producao/ordem-do-dia"],
+      },
       { href: "/admin/trafego", labelKey: "trafegoMetas", icon: IconActivity, chave: "trafego" },
       { href: "/admin/inventario", labelKey: "inventarioPatrimonio", icon: IconBox, chave: "inventario" },
     ],

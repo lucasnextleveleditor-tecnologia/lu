@@ -810,3 +810,33 @@ export function IconX(props: IconProps) {
     </svg>
   );
 }
+
+/** Seta para a direita — "entra aqui". */
+export function IconArrowRight(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M4.5 12h15M13 5.5l6.5 6.5-6.5 6.5" />
+    </svg>
+  );
+}
+
+/** Chave inglesa — a caixa de ferramentas do menu. */
+export function IconTool(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M14.6 6.4a3.9 3.9 0 0 1 5.2 4.9l-8.3 8.3a2.1 2.1 0 0 1-3-3l8.3-8.3a3.9 3.9 0 0 1-2.2-1.9z" />
+      <path d="M9.4 4.2 7 3.2 4.2 6l1 2.4 2.6.9 2.5 2.5" />
+    </svg>
+  );
+}
+
+/** Calculadora. */
+export function IconCalculator(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <rect x="5" y="3" width="14" height="18" rx="2" />
+      <path d="M8.5 7h7" />
+      <path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01M8.5 15h.01M12 15h.01M15.5 15h.01M8.5 18h.01M12 18h.01M15.5 18h.01" />
+    </svg>
+  );
+}

@@ -17,6 +17,7 @@ export const nav: NavDict = {
   financeiro: "Finance",
   objetivos: "Goals",
   producaoTarefas: "Production & Tasks",
+  ferramentas: "Tools",
   ordemDeExterna: "Location Day Sheet",
   mapasMentais: "Mind Maps",
   contratos: "Contracts",

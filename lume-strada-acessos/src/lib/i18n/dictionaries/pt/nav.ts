@@ -17,6 +17,8 @@ export interface NavDict {
   financeiro: string;
   objetivos: string;
   producaoTarefas: string;
+  /** Vitrine das ferramentas soltas (Ordem de Externa, Mapa Mental, Calculadora, Contratos). */
+  ferramentas: string;
   ordemDeExterna: string;
   mapasMentais: string;
   contratos: string;
@@ -46,6 +48,7 @@ export const nav: NavDict = {
   financeiro: "Financeiro",
   objetivos: "Objetivos",
   producaoTarefas: "Produção & Tarefas",
+  ferramentas: "Ferramentas",
   ordemDeExterna: "Ordem de Externa",
   mapasMentais: "Mapas Mentais",
   contratos: "Contratos",
