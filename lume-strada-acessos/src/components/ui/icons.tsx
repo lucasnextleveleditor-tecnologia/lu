@@ -840,3 +840,23 @@ export function IconCalculator(props: IconProps) {
     </svg>
   );
 }
+
+/** Sino — a caixa de notificações. */
+export function IconBell(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <path d="M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5z" />
+      <path d="M10.3 19a2 2 0 0 0 3.4 0" />
+    </svg>
+  );
+}
+
+/** Arroba — menção a uma pessoa. */
+export function IconAtSign(props: IconProps) {
+  return (
+    <svg {...BASE} {...props}>
+      <circle cx="12" cy="12" r="3.6" />
+      <path d="M15.6 8.4v4.5a2.6 2.6 0 0 0 5.2 0V12a8.8 8.8 0 1 0-3.5 7" />
+    </svg>
+  );
+}

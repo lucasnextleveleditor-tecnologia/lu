@@ -13,11 +13,13 @@ import { CorDaMarcaCard } from "@/components/admin/configuracoes/CorDaMarcaCard"
 import { EmpresaCard } from "@/components/admin/configuracoes/EmpresaCard";
 import { MinhaContaForm } from "@/components/admin/configuracoes/MinhaContaForm";
 import { AssinaturaCard } from "@/components/admin/configuracoes/AssinaturaCard";
-import { IconBuilding, IconUsers, IconPalette, IconCreditCard } from "@/components/ui/icons";
+import { IconBuilding, IconUsers, IconPalette, IconCreditCard, IconMegaphone } from "@/components/ui/icons";
+import { CentralDeAvisos, type PessoaDaEquipe } from "@/components/admin/notificacoes/CentralDeAvisos";
+import type { AvisoRow } from "@/lib/types/notificacoes";
 
 export const dynamic = "force-dynamic";
 
-const ABAS_VALIDAS: AbaConfiguracoes[] = ["empresa", "conta", "aparencia", "assinatura"];
+const ABAS_VALIDAS: AbaConfiguracoes[] = ["empresa", "avisos", "conta", "aparencia", "assinatura"];
 /** Única aba que um funcionário pode ver — as outras três são de admin. */
 const ABA_PADRAO_FUNCIONARIO: AbaConfiguracoes = "conta";
 
@@ -73,6 +75,10 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
   const abas: ItemAbaConfiguracoes[] = souAdmin
     ? [
         { value: "empresa", label: t.abaEmpresa, icon: IconBuilding },
+        // "Avisos" fica ao lado de "Empresa & Equipe" de propósito: as duas
+        // respondem à mesma pergunta — quem trabalha aqui e o que essa gente
+        // precisa saber.
+        { value: "avisos", label: "Avisos", icon: IconMegaphone },
         { value: "conta", label: t.abaConta, icon: IconUsers },
         { value: "aparencia", label: t.abaAparencia, icon: IconPalette },
         { value: "assinatura", label: t.abaAssinatura, icon: IconCreditCard },
@@ -108,6 +114,49 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
           cargos={cargosRes.data ?? []}
         />
       </div>
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // Avisos — a central de comunicados do administrador.
+  //
+  // A contagem de leituras vem numa consulta separada, e não por join: são
+  // duas perguntas independentes ("quais avisos existem" e "quem já viu o
+  // quê"), e o join obrigaria a trazer uma linha por leitura só para contá-las
+  // aqui na memória do servidor.
+  // --------------------------------------------------------------------------
+  let conteudoAvisos: React.ReactNode = null;
+  if (aba === "avisos") {
+    const [avisosRes, equipeRes, leiturasRes] = await Promise.all([
+      supabase.from("announcements").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase
+        .from("profiles")
+        .select("id, full_name, email, role, active")
+        .in("role", ["admin", "funcionario"])
+        .order("full_name"),
+      supabase.from("announcement_reads").select("announcement_id"),
+    ]);
+
+    const equipe: PessoaDaEquipe[] = ((equipeRes.data ?? []) as {
+      id: string;
+      full_name: string | null;
+      email: string;
+      active: boolean | null;
+    }[])
+      .filter((p) => p.active !== false)
+      .map((p) => ({ id: p.id, nome: p.full_name?.trim() || p.email, email: p.email }));
+
+    const leiturasPorAviso: Record<string, number> = {};
+    for (const l of (leiturasRes.data ?? []) as { announcement_id: string }[]) {
+      leiturasPorAviso[l.announcement_id] = (leiturasPorAviso[l.announcement_id] ?? 0) + 1;
+    }
+
+    conteudoAvisos = (
+      <CentralDeAvisos
+        avisos={(avisosRes.data ?? []) as AvisoRow[]}
+        equipe={equipe}
+        leiturasPorAviso={leiturasPorAviso}
+      />
     );
   }
 
@@ -182,6 +231,7 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
       </div>
 
       {conteudoEmpresa}
+      {conteudoAvisos}
       {conteudoConta}
       {conteudoAparencia}
       {conteudoAssinatura}

@@ -11,6 +11,7 @@ import type { BannerConfig } from "@/components/branding/AnnouncementBanner";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { SinoDeNotificacoes } from "@/components/admin/notificacoes/SinoDeNotificacoes";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { ValoresVisiveisProvider } from "@/lib/valores-visiveis/ValoresVisiveisProvider";
 import type { NavDict } from "@/lib/i18n/dictionaries/pt/nav";
@@ -378,6 +379,10 @@ export function AdminShell({
           ficar sempre no mesmo lugar em toda tela do painel — mesmo padrão de
           posição usado na tela de login e no portal do cliente. */}
       <div className="fixed right-4 top-4 z-30 flex items-center gap-2">
+        {/* O sino vem antes do tema e do idioma porque é o único dos três que
+            MUDA sozinho: os outros dois a pessoa procura quando quer, este
+            precisa ser encontrado sem procurar. */}
+        <SinoDeNotificacoes />
         <ThemeToggle />
         <LanguageSwitcher />
       </div>
