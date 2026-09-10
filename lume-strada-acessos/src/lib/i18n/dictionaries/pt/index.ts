@@ -22,6 +22,7 @@ import { ordemDoDia, type OrdemDoDiaDict } from "./ordemDoDia";
 import { mapaMental, type MapaMentalDict } from "./mapaMental";
 import { ferramentas, type FerramentasDict } from "./ferramentas";
 import { armazenamento, type ArmazenamentoDict } from "./armazenamento";
+import { onboarding, type OnboardingDict } from "./onboarding";
 
 /**
  * Formato COMPLETO do dicionário — cada idioma (`en/index.ts`, `es/index.ts`)
@@ -55,6 +56,7 @@ export interface Dictionary {
   mapaMental: MapaMentalDict;
   ferramentas: FerramentasDict;
   armazenamento: ArmazenamentoDict;
+  onboarding: OnboardingDict;
 }
 
 export const pt: Dictionary = {
@@ -82,6 +84,7 @@ export const pt: Dictionary = {
   mapaMental,
   ferramentas,
   armazenamento,
+  onboarding,
 };
 
 // ----------------------------------------------------------------------------
