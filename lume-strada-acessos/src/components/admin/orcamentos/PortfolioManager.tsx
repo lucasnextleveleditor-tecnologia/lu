@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { IconUpload, IconTrash, IconPencil, IconImage, IconFilm, IconExternalLink } from "@/components/ui/icons";
-import { PlayerDeMidia } from "@/components/ui/PlayerDeMidia";
+import { AvisoDoLink, PlayerDeMidia } from "@/components/ui/PlayerDeMidia";
 import { Input } from "@/components/ui/Input";
 import { resolverMidiaDeLink, ROTULO_ORIGEM, SERVICOS_ACEITOS } from "@/lib/utils/midia-link";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -150,7 +150,7 @@ export function PortfolioManager({ itens }: PortfolioManagerProps) {
               {pending ? dict.orcamentos.portfolioEnviando : dict.common.adicionar}
             </Button>
           </div>
-          <p className="text-[11px] leading-snug text-ink-muted">{dict.orcamentos.portfolioLinkHint}</p>
+          <AvisoDoLink url={link} />
         </Card>
       )}
 

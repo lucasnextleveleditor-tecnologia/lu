@@ -7,7 +7,7 @@ import {
   definirCriativoLink,
   removerCriativo,
 } from "@/app/admin/trafego/infoprodutos-actions";
-import { PlayerDeMidia } from "@/components/ui/PlayerDeMidia";
+import { AvisoDoLink, PlayerDeMidia } from "@/components/ui/PlayerDeMidia";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { CRIATIVO_TAMANHO_MAX_BYTES } from "@/lib/utils/infoprodutos";
@@ -141,7 +141,7 @@ export function CriativoUploader({ anuncioId, criativoUrl, criativoTipo, criativ
               {dict.common.cancelar}
             </Button>
           </div>
-          <p className="text-[11px] leading-snug text-ink-muted">{dict.trafego.criativoLinkHint}</p>
+          <AvisoDoLink url={link} />
         </div>
       ) : (
         <div className="space-y-1.5">

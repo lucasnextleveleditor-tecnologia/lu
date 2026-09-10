@@ -3,6 +3,7 @@ import type { NavDict } from "../pt/nav";
 export const nav: NavDict = {
   painelAdministrativo: "Admin Panel",
   grupoVisaoGeral: "Overview",
+  armazenamento: "Storage",
   grupoComercial: "Sales",
   grupoGestao: "Management",
   grupoFinanceiro: "Finance",

@@ -1,8 +1,8 @@
 "use client";
 
-import { resolverMidiaDeLink, ROTULO_ORIGEM } from "@/lib/utils/midia-link";
+import { resolverMidiaDeLink, ROTULO_ORIGEM, SERVICOS_ACEITOS } from "@/lib/utils/midia-link";
 import { cn } from "@/lib/utils/cn";
-import { IconExternalLink } from "@/components/ui/icons";
+import { IconExternalLink, IconAlertTriangle, IconCheck } from "@/components/ui/icons";
 
 /**
  * Mostra um link de mídia dentro da tela.
@@ -80,5 +80,53 @@ export function PlayerDeMidia({
         </a>
       )}
     </div>
+  );
+}
+
+
+/**
+ * O aviso que aparece embaixo do campo de link, reagindo ao que foi colado.
+ *
+ * Não é um texto fixo de propósito: "deixe público" só faz sentido para
+ * Drive e Dropbox, onde o arquivo nasce privado e o vídeo não toca até
+ * alguém abrir a permissão. No YouTube e no Vimeo o aviso seria ruído — lá
+ * "não listado" já funciona, e mandar tornar público seria conselho errado.
+ *
+ * Enquanto o campo está vazio, diz o que aceita. Com link não reconhecido,
+ * diz isso na hora, em vez de deixar a pessoa salvar e descobrir depois.
+ */
+export function AvisoDoLink({ url }: { url: string }) {
+  const limpo = url.trim();
+  if (!limpo) {
+    return <p className="text-[11px] leading-snug text-ink-muted">Aceita {SERVICOS_ACEITOS}.</p>;
+  }
+
+  const midia = resolverMidiaDeLink(limpo);
+  if (!midia) {
+    return <p className="text-[11px] leading-snug text-status-warning">Link não reconhecido. Aceita {SERVICOS_ACEITOS}.</p>;
+  }
+
+  const precisaAbrir = midia.origem === "drive" || midia.origem === "google-docs" || midia.origem === "dropbox";
+  if (precisaAbrir) {
+    return (
+      <p className="flex items-start gap-1.5 rounded-lg border border-status-warning/40 bg-status-warning/10 px-2.5 py-2 text-[11px] leading-snug text-status-warning">
+        <IconAlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" />
+        <span>
+          <b className="font-semibold">O arquivo precisa estar público.</b> No {ROTULO_ORIGEM[midia.origem]}, abra
+          “Compartilhar” e mude para <b className="font-semibold">qualquer pessoa com o link</b>. Sem isso o vídeo não toca
+          para o cliente — aparece a tela de permissão.
+        </span>
+      </p>
+    );
+  }
+
+  return (
+    <p className="flex items-start gap-1.5 text-[11px] leading-snug text-status-good">
+      <IconCheck className="mt-px h-3.5 w-3.5 shrink-0" />
+      <span>
+        {ROTULO_ORIGEM[midia.origem]} reconhecido. Vídeo <b className="font-semibold">não listado</b> funciona — não
+        precisa deixar público.
+      </span>
+    </p>
   );
 }

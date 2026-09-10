@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
+import { buscarUsoDeArmazenamento, fmtBytes } from "@/lib/armazenamento/uso";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { BrandingAccentStyle } from "@/components/branding/BrandingAccentStyle";
 
@@ -30,6 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (profile?.role !== "admin" && profile?.role !== "funcionario") redirect("/dashboard");
 
   const branding = await getBrandingConfig();
+  const uso = await buscarUsoDeArmazenamento();
 
   const banner =
     branding.banner_ativo_admin && branding.banner_titulo.trim()
@@ -54,6 +56,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminShell
         logoUrl={branding.logo_dark_url ?? branding.logo_url}
         fotoUrl={profile.avatar_url ?? null}
+        armazenamento={
+          uso ? { usado: fmtBytes(uso.bytesUsados), limite: fmtBytes(uso.bytesLimite), fracao: uso.fracao } : null
+        }
         nome={profile.full_name ?? ""}
         email={profile.email}
         colapsadoPadrao={branding.sidebar_compacto_padrao}

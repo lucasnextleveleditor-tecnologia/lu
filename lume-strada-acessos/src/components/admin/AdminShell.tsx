@@ -202,6 +202,8 @@ interface AdminShellProps {
   logoUrl: string | null;
   /** Foto de perfil de quem está logado — `null` cai nas iniciais. */
   fotoUrl: string | null;
+  /** Quanto a conta já ocupa. `null` quando a medição falhou — a barra some, o painel segue. */
+  armazenamento: { usado: string; limite: string; fracao: number } | null;
   /** Nome do APP mostrado no topo da sidebar (`companies.nome_app`, editável em Aparência) — nunca o nome literal de uma empresa específica. Default "App Gestão". */
   nome: string;
   email: string;
@@ -217,6 +219,7 @@ interface AdminShellProps {
 export function AdminShell({
   logoUrl,
   fotoUrl,
+  armazenamento,
   nome,
   email,
   colapsadoPadrao: _colapsadoPadrao,
@@ -368,6 +371,32 @@ export function AdminShell({
               {!colapsado && <span className="truncate">{dict.nav.configuracoes}</span>}
             </Link>
           )}
+          {/* Armazenamento logo acima da conta, no rodapé: é informação de
+              consumo, e informação de consumo se olha de canto de olho, não
+              se procura num menu. Fica verde até 75%, âmbar até 90% e
+              vermelho depois — cor de aviso só quando há o que avisar. */}
+          {!colapsado && armazenamento && (
+            <div className="mb-3 px-1">
+              <div className="mb-1 flex items-baseline justify-between gap-2">
+                <span className="text-[10px] uppercase tracking-[0.12em] text-ink-muted">{dict.nav.armazenamento}</span>
+                <span className="text-[10px] tabular-nums text-ink-muted">
+                  {armazenamento.usado} <span className="opacity-60">/ {armazenamento.limite}</span>
+                </span>
+              </div>
+              <div className="h-1 w-full overflow-hidden rounded-full bg-base-800">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-[width] duration-500",
+                    armazenamento.fracao >= 0.9 ? "bg-status-critical" : armazenamento.fracao >= 0.75 ? "bg-status-warning" : "bg-status-good"
+                  )}
+                  // Largura mínima visível: 0,1% de 10 GB some, e uma barra
+                  // vazia parece medição quebrada em vez de conta nova.
+                  style={{ width: `${Math.max(armazenamento.fracao * 100, armazenamento.fracao > 0 ? 2 : 0)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {!colapsado && (
             <div className="mb-2 flex items-center gap-2 px-1" title={email}>
               <Avatar nome={nome || email} fotoUrl={fotoUrl} className="h-6 w-6" tamanhoTexto="text-[10px]" />
