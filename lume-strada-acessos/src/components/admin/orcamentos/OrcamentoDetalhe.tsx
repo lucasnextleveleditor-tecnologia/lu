@@ -239,7 +239,7 @@ export function OrcamentoDetalhe({ orcamento }: OrcamentoDetalheProps) {
                   <div key={item.id} className="relative aspect-video overflow-hidden rounded-lg border border-base-800" title={item.titulo}>
                     {item.tipo_midia === "video" ? (
                       item.ehLink ? (
-                        <PlayerDeMidia url={item.url} mostrarLink={false} className="h-full" />
+                        <PlayerDeMidia url={item.url} className="h-full" />
                       ) : (
                         <video src={item.url} className="h-full w-full object-cover" muted />
                       )

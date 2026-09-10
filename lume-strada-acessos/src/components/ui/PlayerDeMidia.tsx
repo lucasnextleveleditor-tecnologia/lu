@@ -7,23 +7,26 @@ import { IconExternalLink } from "@/components/ui/icons";
 /**
  * Mostra um link de mídia dentro da tela.
  *
- * O link ORIGINAL fica sempre visível embaixo, e isso não é enfeite: um
- * arquivo do Drive sem "qualquer pessoa com o link" mostra a tela de
- * permissão do Google dentro do quadro, e o YouTube derruba vídeo com
- * direito autoral. Quando o quadro falha — e um dia falha —, quem está
- * olhando precisa ter para onde clicar em vez de achar que o sistema
- * quebrou.
+ * Quando o player monta, NADA é escrito embaixo dele — nem o endereço, nem
+ * o nome do serviço. O cliente da agência não precisa saber que o vídeo
+ * está no Drive de alguém: o que ele vê é o sistema, e citar a hospedagem
+ * ali embaixo quebra essa impressão sem entregar nada em troca. Se o
+ * arquivo estiver sem permissão, a própria tela do Google aparece dentro do
+ * quadro, com o botão de pedir acesso dela.
  *
- * Se o serviço não é reconhecido, não tenta embutir domínio arbitrário:
- * mostra só o link. Iframe de origem desconhecida é porta aberta.
+ * A exceção é o serviço NÃO RECONHECIDO: aí não há player nenhum, e sem o
+ * link a pessoa fica olhando para um vazio. Só nesse caso o endereço
+ * aparece. Domínio arbitrário nunca é embutido — iframe de origem
+ * desconhecida é porta aberta.
  */
 export function PlayerDeMidia({
   url,
   className,
-  mostrarLink = true,
+  mostrarLink = false,
 }: {
   url: string;
   className?: string;
+  /** Escreve o endereço embaixo do player. Fora do padrão de propósito: serve a telas internas de conferência, nunca ao que o cliente vê. */
   mostrarLink?: boolean;
 }) {
   const midia = resolverMidiaDeLink(url);
@@ -73,9 +76,7 @@ export function PlayerDeMidia({
           )}
         >
           <IconExternalLink className="h-3 w-3 shrink-0" />
-          <span className="truncate">
-            {midia ? `Abrir no ${ROTULO_ORIGEM[midia.origem]}` : limpo}
-          </span>
+          <span className="truncate">{limpo}</span>
         </a>
       )}
     </div>

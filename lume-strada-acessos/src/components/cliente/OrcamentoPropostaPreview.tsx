@@ -405,7 +405,7 @@ export function OrcamentoPropostaPreview({
                       {item.tipo_midia === "video" ? (
                         // No link público (interativo) o vídeo pode tocar de verdade; no PDF/print e no preview do construtor fica só a capa parada.
                         item.ehLink ? (
-                          <PlayerDeMidia url={item.url} mostrarLink={false} className="h-full" />
+                          <PlayerDeMidia url={item.url} className="h-full" />
                         ) : (
                           <video src={item.url} className="h-full w-full object-cover" muted loop playsInline autoPlay={interactive} controls={interactive} />
                         )

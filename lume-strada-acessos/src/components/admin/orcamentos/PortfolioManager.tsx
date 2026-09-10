@@ -168,7 +168,7 @@ export function PortfolioManager({ itens }: PortfolioManagerProps) {
             <Card key={item.id} className="overflow-hidden p-0">
               <div className="relative aspect-video w-full bg-base-950">
                 {item.ehLink ? (
-                  <PlayerDeMidia url={item.url} mostrarLink={false} className="h-full" />
+                  <PlayerDeMidia url={item.url} className="h-full" />
                 ) : item.tipo_midia === "video" ? (
                   <video src={item.url} controls className="h-full w-full object-cover" />
                 ) : (
