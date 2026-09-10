@@ -428,7 +428,7 @@ export async function criarUploadAssinadoVersao(entregaId: string, nomeArquivo: 
 export async function confirmarVersaoArquivo(
   tarefaId: string,
   entregaId: string,
-  input: { path: string; versao: number; nomeArquivo: string; tamanhoBytes: number; tipoMime: string | null }
+  input: { path: string; versao: number; nomeArquivo: string; tamanhoBytes: number; tipoMime: string | null; legenda?: string | null }
 ): Promise<UploadResult> {
   try {
     const { supabase, user, companyId } = await requireModulo("producao");
@@ -452,6 +452,7 @@ export async function confirmarVersaoArquivo(
         nome_arquivo: input.nomeArquivo,
         tamanho_bytes: input.tamanhoBytes,
         tipo_mime: input.tipoMime,
+        legenda: input.legenda?.trim() || null,
         enviado_por: user.id,
       })
       .select("id")
@@ -479,7 +480,7 @@ export async function confirmarVersaoArquivo(
 export async function enviarVersaoLink(
   tarefaId: string,
   entregaId: string,
-  input: { url: string; rotulo: string }
+  input: { url: string; rotulo: string; legenda?: string | null }
 ): Promise<UploadResult> {
   try {
     const { supabase, user } = await requireModulo("producao");
@@ -500,6 +501,7 @@ export async function enviarVersaoLink(
         tipo: "link",
         link_url: input.url.trim(),
         nome_arquivo: input.rotulo.trim() || "Link externo",
+        legenda: input.legenda?.trim() || null,
         enviado_por: user.id,
       })
       .select("id")

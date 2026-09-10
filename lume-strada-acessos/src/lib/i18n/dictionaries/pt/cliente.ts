@@ -9,6 +9,8 @@ export interface ClienteDict {
   subtituloPagina: string;
   nenhumaAprovacaoPendente: string;
   enviadoEm: string;
+  legendaTitulo: string;
+  baixarArquivo: string;
   aprovar: string;
   placeholderAlteracao: string;
   solicitarAlteracao: string;
@@ -19,6 +21,8 @@ export const cliente: ClienteDict = {
   subtituloPagina: "Arquivos e links enviados pela sua agência, esperando sua revisão.",
   nenhumaAprovacaoPendente: "Nada esperando sua aprovação no momento.",
   enviadoEm: "Enviado em {data}",
+  legendaTitulo: "Legenda",
+  baixarArquivo: "Baixar arquivo",
   aprovar: "Aprovar",
   placeholderAlteracao: "O que precisa mudar?",
   solicitarAlteracao: "Solicitar Alteração",

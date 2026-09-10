@@ -52,6 +52,9 @@ export const producao: ProducaoDict = {
   colPrazo: "Plazo",
 
   diasSemana: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+  legendaLabel: "Copy para el cliente",
+  legendaPlaceholder: "El texto que acompaña la pieza cuando se publique",
+  legendaAjuda: "Aparece en el portal del cliente, junto al video. Aprueba la pieza y el texto juntos.",
   visaoSemanal: "Semanal",
   visaoTudo: "Todo",
   kanbanSemPrazo: "{n} sin plazo, siempre visibles",

@@ -5,6 +5,8 @@ export const cliente: ClienteDict = {
   subtituloPagina: "Files and links sent by your agency, waiting for your review.",
   nenhumaAprovacaoPendente: "Nothing waiting for your approval right now.",
   enviadoEm: "Sent on {data}",
+  legendaTitulo: "Caption",
+  baixarArquivo: "Download file",
   aprovar: "Approve",
   placeholderAlteracao: "What needs to change?",
   solicitarAlteracao: "Request Changes",

@@ -73,6 +73,9 @@ export interface ProducaoDict {
 
   // Calendário (`CalendarioTarefas.tsx`).
   diasSemana: string[];
+  legendaLabel: string;
+  legendaPlaceholder: string;
+  legendaAjuda: string;
   visaoSemanal: string;
   visaoTudo: string;
   /** `{n}` tarefas sem prazo, que aparecem em todos os recortes. */
@@ -240,6 +243,9 @@ export const producao: ProducaoDict = {
   colPrazo: "Prazo",
 
   diasSemana: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
+  legendaLabel: "Legenda para o cliente",
+  legendaPlaceholder: "O texto que vai junto com a peça quando ela for publicada",
+  legendaAjuda: "Aparece no portal do cliente, ao lado do vídeo. Ele aprova a peça e o texto juntos.",
   visaoSemanal: "Semanal",
   visaoTudo: "Tudo",
   kanbanSemPrazo: "{n} sem prazo, sempre visíveis",

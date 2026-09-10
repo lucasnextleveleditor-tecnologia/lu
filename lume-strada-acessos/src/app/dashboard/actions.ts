@@ -24,6 +24,20 @@ export interface AprovacaoPendente {
   temArquivo: boolean;
   tamanhoBytes: number | null;
   criadoEm: string;
+  /** O texto que vai junto com a peça, escrito no envio. */
+  legenda: string | null;
+  /** Decide COMO desenhar o preview de um arquivo: vídeo, imagem ou PDF. */
+  tipoMime: string | null;
+  /**
+   * URL assinada (1h) do arquivo no Storage, gerada JÁ na listagem.
+   *
+   * Antes o cliente clicava e o navegador abria outra aba — que é
+   * exatamente o que tirava ele da plataforma. Para o vídeo tocar aqui
+   * dentro, a URL precisa existir no primeiro render, e não depois de um
+   * clique. O bucket continua privado: isto é um link temporário, não uma
+   * URL pública.
+   */
+  urlArquivo: string | null;
 }
 
 /**
@@ -97,10 +111,24 @@ export async function listarAprovacoesPendentes(): Promise<AprovacaoPendente[]> 
 
   const { data: versoes } = await admin
     .from("prod_entrega_versoes")
-    .select("id, entrega_id, versao, tipo, storage_path, link_url, nome_arquivo, tamanho_bytes, status_aprovacao, created_at")
+    .select(
+      "id, entrega_id, versao, tipo, storage_path, link_url, nome_arquivo, tamanho_bytes, tipo_mime, legenda, status_aprovacao, created_at"
+    )
     .in("entrega_id", entregaIds)
     .eq("status_aprovacao", "pendente")
     .order("created_at", { ascending: false });
+
+  // As URLs assinadas saem TODAS DE UMA VEZ, e não uma por linha em série:
+  // são chamadas de rede, e uma lista de dez entregas viraria dez idas
+  // encadeadas ao Storage antes de a página aparecer.
+  const caminhos = (versoes ?? []).map((v) => v.storage_path as string | null).filter(Boolean) as string[];
+  const urlPorCaminho = new Map<string, string>();
+  if (caminhos.length > 0) {
+    const { data: assinadas } = await admin.storage.from(BUCKET).createSignedUrls(caminhos, 60 * 60);
+    for (const a of assinadas ?? []) {
+      if (a.path && a.signedUrl) urlPorCaminho.set(a.path, a.signedUrl);
+    }
+  }
 
   return (versoes ?? []).map((v) => {
     const entrega = entregaPorId.get(v.entrega_id)!;
@@ -116,6 +144,9 @@ export async function listarAprovacoesPendentes(): Promise<AprovacaoPendente[]> 
       temArquivo: Boolean(v.storage_path),
       tamanhoBytes: v.tamanho_bytes as number | null,
       criadoEm: v.created_at as string,
+      legenda: (v.legenda as string | null) ?? null,
+      tipoMime: (v.tipo_mime as string | null) ?? null,
+      urlArquivo: v.storage_path ? (urlPorCaminho.get(v.storage_path as string) ?? null) : null,
     };
   });
 }

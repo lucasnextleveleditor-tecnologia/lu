@@ -18,6 +18,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 import { IconCheck, IconExternalLink, IconPaperclip, IconRotateCcw } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
@@ -74,6 +75,10 @@ function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: Entrega
   const [linkUrl, setLinkUrl] = useState("");
   const [linkRotulo, setLinkRotulo] = useState("");
   const [observacao, setObservacao] = useState("");
+  // A legenda é do ENVIO, não do formulário de link: quem manda um arquivo
+  // também escreve legenda, e ter um estado por caminho faria a pessoa perder
+  // o texto ao trocar de "arquivo" para "link".
+  const [legenda, setLegenda] = useState("");
   const [mostrarHistorico, setMostrarHistorico] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -126,9 +131,13 @@ function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: Entrega
         nomeArquivo: file.name,
         tamanhoBytes: file.size,
         tipoMime: file.type || null,
+        legenda,
       });
       if (!result.ok) setError(result.error);
-      else setModoEnvio("nenhum");
+      else {
+        setLegenda("");
+        setModoEnvio("nenhum");
+      }
     });
   }
 
@@ -136,11 +145,12 @@ function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: Entrega
     e.preventDefault();
     setError(null);
     startTransition(async () => {
-      const result = await enviarVersaoLink(tarefaId, entrega.id, { url: linkUrl, rotulo: linkRotulo });
+      const result = await enviarVersaoLink(tarefaId, entrega.id, { url: linkUrl, rotulo: linkRotulo, legenda });
       if (!result.ok) setError(result.error);
       else {
         setLinkUrl("");
         setLinkRotulo("");
+        setLegenda("");
         setModoEnvio("nenhum");
       }
     });
@@ -312,6 +322,24 @@ function EntregaCard({ tarefaId, entrega }: { tarefaId: string; entrega: Entrega
           </Button>
         </div>
       )}
+      {/* A legenda aparece assim que a pessoa escolhe COMO enviar, e vale para
+          os dois caminhos. É aqui que ela é escrita porque é aqui que a peça
+          sai para o cliente — pedir a legenda depois seria pedir de novo, e
+          pedir antes seria pedir sem saber qual corte vai. */}
+      {modoEnvio !== "nenhum" && (
+        <div className="mb-1.5">
+          <label className="mb-1 block text-[11px] font-medium text-ink-secondary">{dict.producao.legendaLabel}</label>
+          <Textarea
+            rows={3}
+            value={legenda}
+            onChange={(e) => setLegenda(e.target.value)}
+            placeholder={dict.producao.legendaPlaceholder}
+            className="text-xs"
+          />
+          <p className="mt-1 text-[11px] text-ink-muted">{dict.producao.legendaAjuda}</p>
+        </div>
+      )}
+
       {modoEnvio === "arquivo" && (
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => inputRef.current?.click()} disabled={pending} className="flex-1 px-2.5 py-1.5 text-xs">

@@ -52,6 +52,9 @@ export const producao: ProducaoDict = {
   colPrazo: "Due",
 
   diasSemana: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  legendaLabel: "Caption for the client",
+  legendaPlaceholder: "The text that goes with the piece when it is published",
+  legendaAjuda: "Shown in the client portal, next to the video. They approve the piece and the text together.",
   visaoSemanal: "Weekly",
   visaoTudo: "All",
   kanbanSemPrazo: "{n} with no due date, always shown",

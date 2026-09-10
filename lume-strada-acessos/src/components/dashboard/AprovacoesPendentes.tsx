@@ -2,14 +2,15 @@
 
 import { useState, useTransition } from "react";
 import type { AprovacaoPendente } from "@/app/dashboard/actions";
-import { aprovarVersaoCliente, getUrlDownloadCliente, solicitarAlteracaoVersaoCliente } from "@/app/dashboard/actions";
+import { aprovarVersaoCliente, solicitarAlteracaoVersaoCliente } from "@/app/dashboard/actions";
 import { STATUS_APROVACAO_META, fmtTamanhoArquivo } from "@/lib/utils/producao";
 import { fmtDataHora } from "@/lib/utils/status";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { IconCheck, IconExternalLink, IconPaperclip, IconRotateCcw } from "@/components/ui/icons";
+import { IconCheck, IconRotateCcw } from "@/components/ui/icons";
+import { PreviewDaEntrega } from "@/components/dashboard/PreviewDaEntrega";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface AprovacoesPendentesProps {
@@ -70,16 +71,6 @@ function VersaoCard({ item }: { item: AprovacaoPendente }) {
     });
   }
 
-  async function handleAbrirArquivo() {
-    setError(null);
-    const result = await getUrlDownloadCliente(item.versaoId);
-    if (!result.ok) {
-      setError(result.error);
-      return;
-    }
-    window.open(result.url, "_blank", "noopener,noreferrer");
-  }
-
   return (
     <Card>
       <div className="mb-2.5 flex flex-wrap items-start justify-between gap-2">
@@ -90,26 +81,38 @@ function VersaoCard({ item }: { item: AprovacaoPendente }) {
         <Badge tone={STATUS_APROVACAO_META.pendente.tone} label={STATUS_APROVACAO_META.pendente.label} />
       </div>
 
-      <div className="mb-3 rounded-lg border border-base-700 bg-base-950/40 p-3">
-        <div className="mb-1 flex items-center gap-2">
-          <span className="rounded bg-base-800 px-1.5 py-0.5 text-[11px] font-semibold text-ink-secondary">V{item.versao}</span>
-          {item.temArquivo ? (
-            <button onClick={handleAbrirArquivo} className="flex items-center gap-1 text-sm text-ink-primary hover:underline">
-              <IconPaperclip className="h-3.5 w-3.5" />
-              {item.nomeArquivo}
-            </button>
-          ) : (
-            <a href={item.linkUrl ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-ink-primary hover:underline">
-              <IconExternalLink className="h-3.5 w-3.5" />
-              {item.nomeArquivo}
-            </a>
-          )}
+      {/* A peça primeiro, o resto depois. O cliente abriu esta tela para VER
+          o material — nome de arquivo, tamanho e data são contexto, e contexto
+          não vai na frente do que se veio olhar. */}
+      <div className="mb-3">
+        <PreviewDaEntrega
+          linkUrl={item.linkUrl}
+          urlArquivo={item.urlArquivo}
+          tipoMime={item.tipoMime}
+          nomeArquivo={item.nomeArquivo}
+        />
+      </div>
+
+      {/* A legenda, do jeito que vai ao ar: fonte de leitura, quebras de linha
+          preservadas. Aprovar um post é aprovar a peça E o texto — mostrar só
+          o vídeo faria o cliente aprovar metade e reclamar da outra. */}
+      {item.legenda && (
+        <div className="mb-3 rounded-lg border border-base-700 bg-base-950/40 p-3">
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+            {dict.cliente.legendaTitulo}
+          </p>
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-secondary">{item.legenda}</p>
         </div>
-        <p className="text-xs text-ink-muted">
+      )}
+
+      <p className="mb-3 flex flex-wrap items-center gap-x-2 text-xs text-ink-muted">
+        <span className="rounded bg-base-800 px-1.5 py-0.5 text-[11px] font-semibold text-ink-secondary">V{item.versao}</span>
+        <span className="truncate">{item.nomeArquivo}</span>
+        <span>
           {item.temArquivo && item.tamanhoBytes != null && `${fmtTamanhoArquivo(item.tamanhoBytes)} · `}
           {dict.cliente.enviadoEm.replace("{data}", fmtDataHora(item.criadoEm))}
-        </p>
-      </div>
+        </span>
+      </p>
 
       <div className="space-y-2">
         <Button onClick={handleAprovar} disabled={pending} className="w-full">
