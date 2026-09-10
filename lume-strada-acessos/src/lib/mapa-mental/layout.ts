@@ -24,6 +24,8 @@ import { ALTURA_IMAGEM, folgaDaForma, larguraCharDaFonte, type MapaNoRow } from 
 
 export const LARGURA_MIN = 96;
 export const LARGURA_MAX = 224;
+/** Teto absoluto para uma largura escolhida à mão — acima disso o balão deixa de ser um balão. */
+export const LARGURA_TETO = 420;
 export const ALTURA_LINHA = 19;
 export const PADDING_X = 14;
 export const PADDING_Y = 11;
@@ -41,7 +43,10 @@ export const VAO_Y = 14;
  * com desenhos diferentes em duas telas. Uma estimativa determinística vale
  * mais aqui do que precisão: todo mundo vê o mesmo mapa.
  */
-export type NoMensuravel = Pick<MapaNoRow, "texto" | "link" | "imagem_path" | "fonte" | "tamanho" | "negrito" | "forma">;
+export type NoMensuravel = Pick<
+  MapaNoRow,
+  "texto" | "link" | "imagem_path" | "fonte" | "tamanho" | "negrito" | "forma" | "largura"
+>;
 
 export function medirBalao(no: NoMensuravel, ehRaiz: boolean): { largura: number; altura: number } {
   const texto = no.texto;
@@ -51,8 +56,12 @@ export function medirBalao(no: NoMensuravel, ehRaiz: boolean): { largura: number
   const corpo = no.tamanho || (ehRaiz ? 16 : 14);
   const escala = larguraCharDaFonte(no.fonte) * (corpo / 14) * (no.negrito ? 1.06 : 1);
   const conteudo = texto.trim() || "…";
+  // Largura FIXADA pela pessoa manda em tudo: é ela que decide onde o texto
+  // quebra. Sem ela, o balão cresce até o teto e a quebra é onde couber —
+  // o que faz uma frase média virar um balão comprido de uma linha só.
+  const larguraFixa = no.largura > 0 ? Math.max(LARGURA_MIN, Math.min(LARGURA_TETO, no.largura)) : 0;
   const larguraIdeal = conteudo.length * escala + PADDING_X * 2;
-  const largura = Math.max(LARGURA_MIN, Math.min(ehRaiz ? LARGURA_MAX + 40 : LARGURA_MAX, larguraIdeal));
+  const largura = larguraFixa || Math.max(LARGURA_MIN, Math.min(ehRaiz ? LARGURA_MAX + 40 : LARGURA_MAX, larguraIdeal));
 
   // Mesma escala usada na largura: se a quebra fosse estimada com outro
   // valor, a altura prevista não bateria com a desenhada.
@@ -77,7 +86,9 @@ export function medirBalao(no: NoMensuravel, ehRaiz: boolean): { largura: number
   const { folgaX, folgaY } = folgaDaForma(no.forma);
 
   return {
-    largura: Math.max(LARGURA_MIN, (no.imagem_path ? Math.max(largura, 168) : largura) + folgaX),
+    // Largura escolhida à mão não recebe a folga da forma: se recebesse, o
+    // balão não teria a largura que a pessoa pediu.
+    largura: larguraFixa || Math.max(LARGURA_MIN, (no.imagem_path ? Math.max(largura, 168) : largura) + folgaX),
     altura: Math.max(28, linhas * alturaLinha + PADDING_Y * 2 + extraImagem + extraLink + folgaY),
   };
 }

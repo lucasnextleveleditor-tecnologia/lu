@@ -81,6 +81,10 @@ export interface MapaMentalDict {
   atalhoZoom: string;
   atalhoArrastar: string;
   atalhoEditar2: string;
+  atalhoQuebraLinha: string;
+  atalhoNavegar: string;
+  atalhoDigitar: string;
+  largura: string;
   anexos: string;
   link: string;
   linkExemplo: string;
@@ -191,6 +195,10 @@ export const mapaMental: MapaMentalDict = {
   atalhoZoom: "dá zoom",
   atalhoArrastar: "move a tela",
   atalhoEditar2: "editam o balão",
+  atalhoQuebraLinha: "quebra a linha",
+  atalhoNavegar: "andam pelo mapa",
+  atalhoDigitar: "reescreve o balão",
+  largura: "Largura",
   anexos: "Anexos",
   link: "Link",
   linkExemplo: "https://...",

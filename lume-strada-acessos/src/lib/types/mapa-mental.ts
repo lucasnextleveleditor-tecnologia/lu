@@ -48,7 +48,29 @@ export interface MapaNoRow {
   italico: boolean;
   /** Chave da forma — nunca CSS cru (ver `FORMAS_MAPA`). */
   forma: string;
+  /** Largura fixa em px. `0` = automática (cresce até o teto e quebra sozinho). */
+  largura: number;
 }
+
+/**
+ * As larguras que se pode fixar num balão.
+ *
+ * No automático o balão cresce até um teto e o texto quebra onde couber —
+ * o que produz um balão largo e de uma linha só para uma frase média, e é
+ * justamente o que deixa o mapa "gigante" de lado a lado. Fixando a
+ * largura, quem decide onde o texto quebra é você: o mesmo texto vira duas
+ * ou três linhas e o mapa fica alto em vez de comprido.
+ *
+ * São quatro degraus e não um campo numérico pelo mesmo motivo dos
+ * tamanhos de fonte: o que importa é "mais estreito que aquele", não
+ * acertar 187 contra 190 pixels.
+ */
+export const LARGURAS_MAPA = [
+  { valor: 0, rotulo: "Automática" },
+  { valor: 130, rotulo: "Estreita" },
+  { valor: 190, rotulo: "Média" },
+  { valor: 280, rotulo: "Larga" },
+] as const;
 
 /**
  * As seis formas de balão.

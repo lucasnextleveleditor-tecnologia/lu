@@ -1,7 +1,7 @@
 "use client";
 
 import type { MapaNoRow } from "@/lib/types/mapa-mental";
-import { FONTES_MAPA, FORMAS_MAPA, ORDEM_FONTES, ORDEM_FORMAS, TAMANHOS_MAPA, fonteCss } from "@/lib/types/mapa-mental";
+import { FONTES_MAPA, FORMAS_MAPA, LARGURAS_MAPA, ORDEM_FONTES, ORDEM_FORMAS, TAMANHOS_MAPA, fonteCss } from "@/lib/types/mapa-mental";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { cn } from "@/lib/utils/cn";
 import { IconType } from "@/components/ui/icons";
@@ -25,6 +25,7 @@ export function FormatoDoTexto({
   const { dict } = useLocale();
   const t = dict.mapaMental;
   const tamanhoAtual = no.tamanho || 14;
+  const larguraAtual = no.largura || 0;
 
   return (
     <div className="border-t border-base-800 pt-3">
@@ -123,6 +124,42 @@ export function FormatoDoTexto({
           >
             I
           </button>
+        </div>
+
+        {/* A largura é o que decide ONDE o texto quebra. No automático o
+            balão cresce até o teto e a quebra é onde couber — é o que faz
+            uma frase média virar um balão comprido de uma linha só, e o
+            mapa esticar de lado a lado. Cada botão mostra a proporção que
+            aplica, e não um número. */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] uppercase tracking-[0.14em] text-ink-muted">{t.largura}</span>
+          <div className="flex flex-1 items-center gap-0.5 rounded-lg border border-base-700 p-0.5">
+            {LARGURAS_MAPA.map((opcao) => (
+              <button
+                key={opcao.valor}
+                type="button"
+                onClick={() => aoMudar({ largura: opcao.valor })}
+                aria-pressed={larguraAtual === opcao.valor}
+                title={opcao.rotulo}
+                aria-label={`${t.largura}: ${opcao.rotulo}`}
+                className={cn(
+                  "flex flex-1 items-center justify-center rounded-md py-1.5 transition",
+                  larguraAtual === opcao.valor ? "bg-accent/[0.16]" : "hover:bg-base-800/60"
+                )}
+              >
+                {opcao.valor === 0 ? (
+                  <span className={cn("text-[10px] font-medium leading-none", larguraAtual === 0 ? "text-accent" : "text-ink-muted")}>
+                    Auto
+                  </span>
+                ) : (
+                  <span
+                    className={cn("h-[3px] rounded-full", larguraAtual === opcao.valor ? "bg-accent" : "bg-ink-muted")}
+                    style={{ width: Math.round(opcao.valor / 14) }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

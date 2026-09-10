@@ -273,11 +273,95 @@ export function MapaCanvas({
     }
   }
 
-  function comecarEdicao(noId: string) {
+  /**
+   * Traz o balão para dentro da área visível, se ele estiver fora.
+   *
+   * Sem isto, navegar pelo teclado seleciona um balão que está fora da tela:
+   * a pessoa aperta a seta, nada parece acontecer, e ela perde de vista onde
+   * está. Move o mínimo necessário — reenquadrar o mapa inteiro a cada seta
+   * embrulharia o estômago de quem só queria andar um ramo.
+   */
+  function trazerParaVista(noId: string) {
+    const area = areaRef.current;
+    const balao = porId.get(noId);
+    if (!area || !balao) return;
+    const margem = 40;
+    const meioX = area.clientWidth / 2;
+    const meioY = area.clientHeight / 2;
+
+    setPan((p) => {
+      const esquerda = meioX + p.x + balao.x * zoom;
+      const topo = meioY + p.y + balao.y * zoom;
+      const direita = esquerda + balao.largura * zoom;
+      const base = topo + balao.altura * zoom;
+
+      let dx = 0;
+      let dy = 0;
+      if (esquerda < margem) dx = margem - esquerda;
+      else if (direita > area.clientWidth - margem) dx = area.clientWidth - margem - direita;
+      if (topo < margem) dy = margem - topo;
+      else if (base > area.clientHeight - margem) dy = area.clientHeight - margem - base;
+
+      return dx || dy ? { x: p.x + dx, y: p.y + dy } : p;
+    });
+  }
+
+  /**
+   * Andar pelo mapa com as setas.
+   *
+   * A escolha é GEOMÉTRICA, e não pela árvore: num mapa que abre para os dois
+   * lados, "seta para a direita" significa coisas opostas conforme o ramo, e
+   * ninguém para para pensar se está no lado esquerdo antes de apertar uma
+   * seta. Olhando a posição na tela, a seta sempre faz o que parece.
+   *
+   * O desvio lateral pesa mais que a distância na direção pedida — senão a
+   * seta para baixo pularia para um balão de outro ramo, lá longe, só porque
+   * ele estava alguns pixels mais perto.
+   */
+  function navegarComSeta(tecla: string) {
+    const atual = selecionado ? porId.get(selecionado) : null;
+    if (!atual) {
+      const raiz = desenho.baloes.find((b) => b.no.pai_id === null);
+      if (raiz) {
+        setSelecionado(raiz.no.id);
+        trazerParaVista(raiz.no.id);
+      }
+      return;
+    }
+
+    const cx = atual.x + atual.largura / 2;
+    const cy = atual.y + atual.altura / 2;
+    let melhorId: string | null = null;
+    let melhorCusto = Infinity;
+
+    for (const b of desenho.baloes) {
+      if (b.no.id === atual.no.id) continue;
+      const dx = b.x + b.largura / 2 - cx;
+      const dy = b.y + b.altura / 2 - cy;
+      const avanco = tecla === "ArrowLeft" ? -dx : tecla === "ArrowRight" ? dx : tecla === "ArrowUp" ? -dy : dy;
+      if (avanco <= 8) continue;
+      const desvio = tecla === "ArrowLeft" || tecla === "ArrowRight" ? Math.abs(dy) : Math.abs(dx);
+      const custo = avanco + desvio * 2.4;
+      if (custo < melhorCusto) {
+        melhorCusto = custo;
+        melhorId = b.no.id;
+      }
+    }
+
+    if (melhorId) {
+      setSelecionado(melhorId);
+      trazerParaVista(melhorId);
+    }
+  }
+
+  function comecarEdicao(noId: string, textoInicial?: string) {
     if (!podeEditar) return;
     setSelecionado(noId);
     setEditando(noId);
-    setRascunho(nosPorId.get(noId)?.texto ?? "");
+    // Com `textoInicial`, a pessoa começou a digitar com o balão selecionado
+    // e a primeira letra SUBSTITUI o texto — é como todo editor de mapa se
+    // comporta, e poupa o F2 antes de cada palavra.
+    setRascunho(textoInicial ?? nosPorId.get(noId)?.texto ?? "");
   }
 
   function confirmarEdicao() {
@@ -392,6 +476,13 @@ export function MapaCanvas({
   function aoTeclar(e: React.KeyboardEvent) {
     if (!podeEditar) return;
 
+    // Campo de formulário que não seja o editor do balão fica de fora: um
+    // Backspace digitado num comentário não pode apagar o ramo selecionado, e
+    // uma letra digitada num campo de link não pode reescrever o balão.
+    const origem = e.target as HTMLElement | null;
+    const emCampo = origem instanceof HTMLElement && Boolean(origem.closest("input, select, [contenteditable='true']"));
+    if (emCampo || (origem instanceof HTMLTextAreaElement && !editando)) return;
+
     // Ctrl/Cmd+Z e Ctrl+Shift+Z valem inclusive durante a edição de um texto:
     // é onde mais se erra, e é onde todo mundo tenta primeiro.
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
@@ -424,6 +515,14 @@ export function MapaCanvas({
       return;
     }
 
+    // As setas andam pelo mapa mesmo sem nada selecionado (aí caem na raiz),
+    // por isso vêm antes da checagem de `selecionado`.
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+      navegarComSeta(e.key);
+      return;
+    }
+
     const alvo = selecionado;
     if (!alvo) return;
     if (e.key === "Enter") {
@@ -439,6 +538,15 @@ export function MapaCanvas({
     } else if (e.key === "F2") {
       e.preventDefault();
       comecarEdicao(alvo);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setSelecionado(null);
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      // Digitar com um balão selecionado entra na edição e a primeira letra
+      // substitui o texto. É o que todo editor de mapa faz, e é o que a mão
+      // tenta antes de procurar o F2.
+      e.preventDefault();
+      comecarEdicao(alvo, e.key);
     }
   }
 

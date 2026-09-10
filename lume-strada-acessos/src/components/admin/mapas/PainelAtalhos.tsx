@@ -21,6 +21,12 @@ export function PainelAtalhos() {
   const linhas: { teclas: string[]; oQueFaz: string }[] = [
     { teclas: ["Tab"], oQueFaz: t.atalhoRamo },
     { teclas: ["Enter"], oQueFaz: t.atalhoVizinho },
+    // Este era o atalho invisível: já funcionava, mas não estava escrito em
+    // lugar nenhum — e é justamente o que resolve o balão que fica comprido
+    // demais. Atalho que ninguém descobre é atalho que não existe.
+    { teclas: ["Shift", "+", "Enter"], oQueFaz: t.atalhoQuebraLinha },
+    { teclas: ["↑ ↓ ← →"], oQueFaz: t.atalhoNavegar },
+    { teclas: ["Digitar"], oQueFaz: t.atalhoDigitar },
     { teclas: ["F2"], oQueFaz: t.atalhoEditar },
     { teclas: ["Delete"], oQueFaz: t.atalhoApagar },
     { teclas: ["Esc"], oQueFaz: t.atalhoSair },

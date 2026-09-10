@@ -17,7 +17,7 @@ export type ResultadoNo = { ok: true; no: MapaNoRow } | { ok: false; error: stri
  * Se viesse de fora, quem tivesse um link de leitura de um mapa poderia
  * escrever em qualquer outro mandando outro id.
  */
-const CAMPOS_NO = ["texto", "cor", "colapsado", "desloc_x", "desloc_y", "lado", "ordem", "link", "fonte", "tamanho", "negrito", "italico", "forma"] as const;
+const CAMPOS_NO = ["texto", "cor", "colapsado", "desloc_x", "desloc_y", "lado", "ordem", "link", "fonte", "tamanho", "negrito", "italico", "forma", "largura"] as const;
 
 export async function adicionarNoPublico(token: string, paiId: string, valores: Record<string, unknown> = {}): Promise<ResultadoNo> {
   const aberto = await abrirParaEscrita(token, "editar");
