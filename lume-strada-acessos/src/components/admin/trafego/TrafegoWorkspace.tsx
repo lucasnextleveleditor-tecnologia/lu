@@ -3,7 +3,9 @@
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { AnuncioComRelacoes, CriativoRow, FechamentoSemanalRow, MetaCalendarioRow, ProdutoRow, TaxaPadraoRow } from "@/lib/types/infoprodutos";
 import { InfoProdutosWorkspace } from "@/components/admin/trafego/infoprodutos/InfoProdutosWorkspace";
+import Link from "next/link";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
+import { IconChevronLeft } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 interface TrafegoWorkspaceProps {
@@ -38,6 +40,12 @@ export function TrafegoWorkspace(props: TrafegoWorkspaceProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
+          <Link
+            href="/admin/trafego"
+            className="mb-1 inline-flex items-center gap-1 text-xs text-ink-muted transition hover:text-ink-primary"
+          >
+            <IconChevronLeft className="h-3 w-3" /> {dict.trafego.trocarCaminho}
+          </Link>
           <h1 className="text-lg font-semibold tracking-tight">{dict.trafego.tituloPagina}</h1>
           <p className="mt-0.5 text-sm text-ink-muted">{dict.trafego.subtituloPagina}</p>
         </div>

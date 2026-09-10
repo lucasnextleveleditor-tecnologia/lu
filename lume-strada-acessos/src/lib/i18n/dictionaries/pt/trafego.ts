@@ -35,6 +35,17 @@ export interface TrafegoDict {
   csvColCliques: string;
   csvColVisualizacoes: string;
   csvColMetaInvestimento: string;
+  csvColCustoPorLead: string;
+  escolhaTitulo: string;
+  escolhaSubtitulo: string;
+  caminhoInfoprodutoTitulo: string;
+  caminhoInfoprodutoTexto: string;
+  caminhoLeadsTitulo: string;
+  caminhoLeadsTexto: string;
+  escolhaRodape: string;
+  trocarCaminho: string;
+  leadsTitulo: string;
+  leadsSubtitulo: string;
   csvColAnuncio: string;
   csvColInvestimento: string;
   csvColReceitaBruta: string;
@@ -253,6 +264,17 @@ export const trafego: TrafegoDict = {
   csvColCliques: "Cliques",
   csvColVisualizacoes: "Visualizações",
   csvColMetaInvestimento: "Meta de Investimento (R$)",
+  csvColCustoPorLead: "Custo por Lead (R$)",
+  escolhaTitulo: "Tráfego & Metas",
+  escolhaSubtitulo: "O que você está anunciando?",
+  caminhoInfoprodutoTitulo: "Infoproduto",
+  caminhoInfoprodutoTexto: "Produto digital que você vende pelo anúncio: cadastro de produtos e order bumps, criativos, lançamentos diários com receita e vendas, calendário de metas de lucro e fechamento semanal.",
+  caminhoLeadsTitulo: "Tráfego para leads",
+  caminhoLeadsTexto: "Anúncio de captação: meta de investimento por cliente e por dia, quanto já foi gasto, quantos leads saíram e a que custo. Sem produto, sem order bump.",
+  escolhaRodape: "O mesmo cliente pode aparecer nos dois — é o mesmo cadastro.",
+  trocarCaminho: "Trocar de caminho",
+  leadsTitulo: "Tráfego para leads",
+  leadsSubtitulo: "Meta do dia, investimento e leads gerados, cliente por cliente.",
   csvColAnuncio: "Anúncio",
   csvColInvestimento: "Investimento (R$)",
   csvColReceitaBruta: "Receita Bruta (R$)",
