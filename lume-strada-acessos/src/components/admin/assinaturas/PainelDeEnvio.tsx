@@ -2,7 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { corDoSignatario, type EventoAssinaturaRow, type SignatarioRow } from "@/lib/types/assinatura";
+import {
+  PAPEIS_SIGNATARIO,
+  corDoSignatario,
+  papelDe,
+  type EventoAssinaturaRow,
+  type SignatarioRow,
+} from "@/lib/types/assinatura";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/Button";
 import {
@@ -123,7 +129,11 @@ export function PainelDeEnvio({
             {signatarios.map((s, i) => {
               const url = `${origem}/assinar/${s.token}`;
               const marca = ROTULO[s.status] ?? ROTULO.pendente;
-              const mensagem = `Olá${s.nome ? ` ${s.nome}` : ""}! Segue o documento "${titulo}" para assinatura: ${url}`;
+              const papel = PAPEIS_SIGNATARIO[papelDe(s.papel)];
+              // O convite diz o que se espera da pessoa. "Segue para
+              // assinatura" mandado a uma testemunha começa a conversa com a
+              // informação errada.
+              const mensagem = `Olá${s.nome ? ` ${s.nome}` : ""}! Segue o documento "${titulo}" para ${papel.rotulo.toLowerCase()}: ${url}`;
               return (
                 <li key={s.id} className="rounded-xl border border-base-800 p-3">
                   <div className="mb-2 flex items-center gap-2">
@@ -131,12 +141,15 @@ export function PainelDeEnvio({
                     <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink-primary">
                       {s.nome || s.email || `Signatário ${i + 1}`}
                     </span>
+                    <span className="shrink-0 rounded-full border border-base-700 px-1.5 py-0.5 text-[10px] text-ink-muted">
+                      {papel.rotulo}
+                    </span>
                     <span className={cn("shrink-0 text-[11px]", marca?.cor)}>{marca?.texto}</span>
                   </div>
 
                   {s.status === "assinado" ? (
                     <p className="text-[11px] leading-snug text-ink-muted">
-                      {s.nome_informado} · CPF {s.cpf_informado ?? "—"} ·{" "}
+                      {papel.feito} · {s.nome_informado} · CPF {s.cpf_informado ?? "—"} ·{" "}
                       {s.assinado_em ? new Date(s.assinado_em).toLocaleString("pt-BR") : ""} · IP {s.ip ?? "—"}
                     </p>
                   ) : (

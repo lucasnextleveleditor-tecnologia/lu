@@ -1,5 +1,6 @@
 import "server-only";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PAPEIS_SIGNATARIO, papelDe } from "@/lib/types/assinatura";
 import type {
   AssinaturaDocumentoRow,
   CampoAssinaturaRow,
@@ -163,12 +164,19 @@ export async function carimbarAssinaturas(input: {
   escrever("Signatários", { corpo: 8, negrito: true, cor: [0.45, 0.45, 0.5] });
 
   for (const s of input.signatarios) {
+    const papel = PAPEIS_SIGNATARIO[papelDe(s.papel)];
     y -= 6;
     escrever(s.nome_informado || s.nome || s.email || "—", { corpo: 10, negrito: true });
+    // O papel vem logo abaixo do nome, e não no fim do bloco: quem lê o
+    // manifesto para conferir uma assinatura precisa saber, na mesma
+    // olhada, se aquela pessoa se obrigou ou apenas testemunhou.
+    escrever(`Papel: ${papel.rotulo}`, { corpo: 8, recuo: 8, negrito: true, cor: [0.25, 0.25, 0.3] });
     escrever(`E-mail: ${s.email || "—"}`, { corpo: 8, recuo: 8, cor: [0.35, 0.35, 0.4] });
     if (s.cpf_informado) escrever(`CPF informado: ${s.cpf_informado}`, { corpo: 8, recuo: 8, cor: [0.35, 0.35, 0.4] });
     escrever(
-      s.status === "assinado" ? `Assinou em: ${dataHora(s.assinado_em)}` : `Situação: ${s.status}`,
+      s.status === "assinado"
+        ? `${papel.feito.charAt(0).toUpperCase()}${papel.feito.slice(1)} em: ${dataHora(s.assinado_em)}`
+        : `Situação: ${s.status}`,
       { corpo: 8, recuo: 8, cor: [0.35, 0.35, 0.4] }
     );
     if (s.visualizado_em) escrever(`Abriu em: ${dataHora(s.visualizado_em)}`, { corpo: 8, recuo: 8, cor: [0.35, 0.35, 0.4] });

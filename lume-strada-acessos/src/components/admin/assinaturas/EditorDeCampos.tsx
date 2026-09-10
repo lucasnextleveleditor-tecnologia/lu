@@ -2,9 +2,13 @@
 
 import { useCallback, useRef, useState } from "react";
 import {
+  ORDEM_PAPEIS,
   ORDEM_TIPOS_CAMPO,
+  PAPEIS_SIGNATARIO,
   TIPOS_CAMPO,
   corDoSignatario,
+  papelDe,
+  type PapelSignatario,
   type CampoAssinaturaRow,
   type DocumentoCompleto,
   type EventoAssinaturaRow,
@@ -14,6 +18,7 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { IconPlus, IconTrash, IconUsers } from "@/components/ui/icons";
 import { PaginaPdf } from "./PaginaPdf";
 import { PainelDeEnvio } from "./PainelDeEnvio";
@@ -245,6 +250,27 @@ export function EditorDeCampos({
                         onChange={(e) => editarSignatario(s.id, { documento: e.target.value })}
                         className="h-8 py-1 text-xs"
                       />
+                      {/*
+                        O papel muda o que a pessoa DECLARA ao confirmar, e não
+                        só um rótulo: quem testemunha não se obriga pelo
+                        contrato, quem acusa recebimento não concordou com
+                        nada. O seletor fica junto do nome porque é decisão da
+                        mesma frase — "quem é essa pessoa aqui dentro".
+                      */}
+                      <Select
+                        value={papelDe(s.papel)}
+                        onChange={(e) => editarSignatario(s.id, { papel: e.target.value as PapelSignatario })}
+                        className="h-8 py-1 text-xs"
+                      >
+                        {ORDEM_PAPEIS.map((valor) => (
+                          <option key={valor} value={valor}>
+                            {PAPEIS_SIGNATARIO[valor].rotulo}
+                          </option>
+                        ))}
+                      </Select>
+                      <p className="px-0.5 text-[10px] leading-snug text-ink-muted">
+                        {PAPEIS_SIGNATARIO[papelDe(s.papel)].explicacao}
+                      </p>
                     </div>
                   </li>
                 );

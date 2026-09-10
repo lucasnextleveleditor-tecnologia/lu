@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useImperativeHandle, useRef, useState } from "react";
-import { TIPOS_CAMPO, type CampoAssinaturaRow, type AssinaturaDocumentoRow, type SignatarioRow } from "@/lib/types/assinatura";
+import {
+  PAPEIS_SIGNATARIO,
+  TIPOS_CAMPO,
+  papelDe,
+  type CampoAssinaturaRow,
+  type AssinaturaDocumentoRow,
+  type SignatarioRow,
+} from "@/lib/types/assinatura";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -47,6 +54,11 @@ export function PainelDeAssinatura({
   const [proporcao, setProporcao] = useState(1.414);
   const padRef = useRef<AssinaturaPadRef | null>(null);
 
+  // O papel decide o VERBO de toda esta tela. Uma testemunha que lê
+  // "assinar" em todo lugar tem motivo de sobra para achar que está se
+  // obrigando ao contrato — e é exatamente o contrário.
+  const papel = PAPEIS_SIGNATARIO[papelDe(signatario.papel)];
+
   // Marca "abriu o documento" uma vez, na abertura. É o evento que sustenta,
   // depois, que a pessoa teve o texto à frente antes de assinar.
   useEffect(() => {
@@ -77,8 +89,8 @@ export function PainelDeAssinatura({
     return (
       <Aviso
         icone={<IconCheckCircle className="h-6 w-6 text-status-good" />}
-        titulo="Assinatura registrada"
-        texto={`Obrigado. Sua assinatura de "${documento.titulo}" foi registrada com data, hora e endereço de origem. ${nomeApp} avisará quem enviou.`}
+        titulo={`${papel.rotulo} — registrado`}
+        texto={`Obrigado. Registramos que você ${papel.feito} "${documento.titulo}", com data, hora e endereço de origem. ${nomeApp} avisará quem enviou.`}
         acao={
           <a
             href={`/api/assinar/${token}/pdf`}
@@ -110,7 +122,7 @@ export function PainelDeAssinatura({
         <p className="text-[10px] uppercase tracking-[0.2em] text-ink-muted">{nomeApp}</p>
         <h1 className="mt-1 text-xl font-semibold tracking-tight text-ink-primary">{documento.titulo}</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          {signatario.nome ? `${signatario.nome}, ` : ""}leia o documento abaixo e assine no fim da página.
+          {signatario.nome ? `${signatario.nome}, ` : ""}leia o documento abaixo e confirme no fim da página.
         </p>
       </header>
 
@@ -172,8 +184,16 @@ export function PainelDeAssinatura({
       {/* ---------------------------------------------------------------- */}
       <div className="mt-6 rounded-2xl border border-base-700 bg-base-900/60 p-5">
         <p className="text-sm font-semibold text-ink-primary">Sua assinatura</p>
-        <p className="mt-1 text-xs text-ink-muted">
-          Ao assinar, ficam registrados seu nome, CPF, data e hora, endereço de origem (IP) e navegador — junto com a
+        {/*
+          A explicação do papel vem ANTES dos campos, em destaque: é a última
+          chance de a pessoa perceber que está testemunhando, e não se
+          obrigando. Depois do clique, essa distinção vale só no papel.
+        */}
+        <p className="mt-2 rounded-lg border border-accent/25 bg-accent/[0.07] px-3 py-2 text-xs leading-relaxed text-ink-secondary">
+          <span className="font-semibold text-accent">{papel.rotulo}.</span> {papel.explicacao}
+        </p>
+        <p className="mt-2 text-xs text-ink-muted">
+          Ao confirmar, ficam registrados seu nome, CPF, data e hora, endereço de origem (IP) e navegador — junto com a
           impressão digital do arquivo, que garante que este é o documento que você leu.
         </p>
 
@@ -200,7 +220,7 @@ export function PainelDeAssinatura({
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <Button disabled={enviando || Boolean(esperandoNome)} onClick={() => void confirmar()}>
             {enviando ? <IconLoader className="h-4 w-4 animate-spin" /> : <IconCheckCircle className="h-4 w-4" />}
-            {enviando ? "Registrando..." : "Assinar documento"}
+            {enviando ? "Registrando..." : papel.acao}
           </Button>
           <Button
             variant="ghost"

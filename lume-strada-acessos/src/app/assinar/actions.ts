@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { PAPEIS_SIGNATARIO, papelDe } from "@/lib/types/assinatura";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
 import { gerarDocumentoAssinado } from "@/lib/pdf/gerarDocumentoAssinado";
 import { buscarPorToken, origemDaRequisicao } from "./acesso";
@@ -94,7 +95,10 @@ export async function assinar(
     documento_id: acesso.documento.id,
     signatario_id: acesso.signatario.id,
     tipo: "assinado",
-    descricao: `${input.nome.trim()} assinou o documento`,
+    // A trilha fala o mesmo idioma do papel: "Fulano testemunhou o
+    // documento" é o que se vai querer ler daqui a um ano, não
+    // "Fulano assinou" para alguém que era testemunha.
+    descricao: `${input.nome.trim()} ${PAPEIS_SIGNATARIO[papelDe(acesso.signatario.papel)].feito} o documento`,
     ip,
     user_agent: userAgent,
   });
@@ -118,7 +122,7 @@ export async function assinar(
       company_id: acesso.documento.company_id,
       documento_id: acesso.documento.id,
       tipo: "concluido",
-      descricao: "Todos os signatários assinaram",
+      descricao: "Todos os signatários confirmaram",
     });
 
     // O PDF final é montado AGORA, com a última assinatura ainda fresca.
@@ -149,7 +153,7 @@ export async function assinar(
 export async function recusar(token: string, motivo: string): Promise<Resultado> {
   const acesso = await buscarPorToken(token);
   if (!acesso) return { ok: false, error: "Link inválido." };
-  if (acesso.signatario.status === "assinado") return { ok: false, error: "Você já assinou este documento." };
+  if (acesso.signatario.status === "assinado") return { ok: false, error: "Você já confirmou este documento." };
 
   const admin = createAdminClient();
   const { ip, userAgent } = await origemDaRequisicao();

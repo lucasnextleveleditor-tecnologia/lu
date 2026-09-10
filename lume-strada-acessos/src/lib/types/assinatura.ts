@@ -30,7 +30,7 @@ export interface SignatarioRow {
   email: string;
   /** CPF esperado. Quando preenchido, o que a pessoa digitar ao assinar tem de bater. */
   documento: string | null;
-  papel: string;
+  papel: PapelSignatario;
   ordem: number;
   token: string;
   status: SignatarioStatus;
@@ -105,4 +105,103 @@ export interface DocumentoCompleto {
   documento: AssinaturaDocumentoRow;
   signatarios: SignatarioRow[];
   campos: CampoAssinaturaRow[];
+}
+
+/* ==================================================================== */
+/* O PAPEL DE CADA PESSOA                                                */
+/* ==================================================================== */
+
+/**
+ * O que a pessoa está declarando ao confirmar.
+ *
+ * Não é enfeite: quem TESTEMUNHA não está se obrigando pelo contrato, está
+ * atestando que viu; quem ACUSA RECEBIMENTO não concordou com nada, só
+ * registrou que recebeu. Um documento em que todos "assinaram" apaga essa
+ * diferença — e ela é justamente a que seria cobrada se o documento fosse
+ * contestado.
+ *
+ * Por isso o papel não muda só um rótulo: muda o verbo na tela de quem vai
+ * confirmar, o texto do botão e a frase que sai no manifesto do PDF.
+ */
+export type PapelSignatario =
+  | "assinar"
+  | "aprovar"
+  | "reconhecer"
+  | "testemunhar"
+  | "acusar_recebimento"
+  | "endossar_preto"
+  | "endossar_branco";
+
+export interface DefinicaoPapel {
+  /** No seletor de quem monta o documento. */
+  rotulo: string;
+  /** No botão que a pessoa clica: "Assinar documento", "Testemunhar documento". */
+  acao: string;
+  /** No passado, para o manifesto e para a trilha: "assinou", "testemunhou". */
+  feito: string;
+  /** Uma linha explicando ao signatário o que ele está declarando. */
+  explicacao: string;
+}
+
+export const PAPEIS_SIGNATARIO: Record<PapelSignatario, DefinicaoPapel> = {
+  assinar: {
+    rotulo: "Assinar",
+    acao: "Assinar documento",
+    feito: "assinou",
+    explicacao: "Você está assinando este documento e se obrigando aos seus termos.",
+  },
+  aprovar: {
+    rotulo: "Aprovar",
+    acao: "Aprovar documento",
+    feito: "aprovou",
+    explicacao: "Você está aprovando o conteúdo deste documento.",
+  },
+  reconhecer: {
+    rotulo: "Reconhecer",
+    acao: "Reconhecer documento",
+    feito: "reconheceu",
+    explicacao: "Você está reconhecendo o conteúdo e a validade deste documento.",
+  },
+  testemunhar: {
+    rotulo: "Testemunhar",
+    acao: "Testemunhar documento",
+    feito: "testemunhou",
+    explicacao:
+      "Você está atestando que presenciou a celebração deste documento. Como testemunha, você NÃO assume as obrigações nele previstas.",
+  },
+  acusar_recebimento: {
+    rotulo: "Acusar recebimento",
+    acao: "Acusar o recebimento",
+    feito: "acusou o recebimento",
+    explicacao:
+      "Você está registrando que RECEBEU este documento. Isso não significa concordância com o seu conteúdo.",
+  },
+  endossar_preto: {
+    rotulo: "Endossar em preto",
+    acao: "Endossar em preto",
+    feito: "endossou em preto",
+    explicacao: "Você está transferindo o título a pessoa determinada, identificada no documento.",
+  },
+  endossar_branco: {
+    rotulo: "Endossar em branco",
+    acao: "Endossar em branco",
+    feito: "endossou em branco",
+    explicacao: "Você está transferindo o título sem indicar a quem — ele passa a circular por simples entrega.",
+  },
+};
+
+/** Ordem do seletor: do mais usado para o mais raro, e não alfabética. */
+export const ORDEM_PAPEIS: PapelSignatario[] = [
+  "assinar",
+  "aprovar",
+  "reconhecer",
+  "testemunhar",
+  "acusar_recebimento",
+  "endossar_preto",
+  "endossar_branco",
+];
+
+/** Nunca confia cegamente no que veio do banco: linha antiga pode ter texto livre. */
+export function papelDe(valor: string | null | undefined): PapelSignatario {
+  return valor && valor in PAPEIS_SIGNATARIO ? (valor as PapelSignatario) : "assinar";
 }
