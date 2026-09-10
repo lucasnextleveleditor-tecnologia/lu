@@ -64,6 +64,8 @@ export interface ProfileRow {
   id: string; // uuid — mesmo id de auth.users
   email: string;
   full_name: string | null;
+  /** Foto de perfil (bucket público `avatares`). `null` = iniciais do nome. */
+  avatar_url: string | null;
   role: PapelUsuario;
   company_id: string | null; // uuid -> companies.id — null SOMENTE quando role = 'super_admin'
   active: boolean; // suspensão manual (independe da data de expiração)

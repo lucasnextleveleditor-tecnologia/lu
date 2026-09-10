@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import type { PapelUsuario, PermissoesFuncionario } from "@/lib/types/database";
 import { BrandingLogo } from "@/components/branding/BrandingLogo";
+import { Avatar } from "@/components/ui/Avatar";
 import { AnnouncementBanner } from "@/components/branding/AnnouncementBanner";
 import type { BannerConfig } from "@/components/branding/AnnouncementBanner";
 import { LogoutButton } from "@/components/auth/LogoutButton";
@@ -17,7 +18,6 @@ import { ValoresVisiveisProvider } from "@/lib/valores-visiveis/ValoresVisiveisP
 import type { NavDict } from "@/lib/i18n/dictionaries/pt/nav";
 import {
   IconUsers,
-  IconUser,
   IconActivity,
   IconBox,
   IconSettings,
@@ -200,6 +200,8 @@ const MODULO_COR: Record<string, string> = {
 
 interface AdminShellProps {
   logoUrl: string | null;
+  /** Foto de perfil de quem está logado — `null` cai nas iniciais. */
+  fotoUrl: string | null;
   /** Nome do APP mostrado no topo da sidebar (`companies.nome_app`, editável em Aparência) — nunca o nome literal de uma empresa específica. Default "App Gestão". */
   nome: string;
   email: string;
@@ -214,6 +216,7 @@ interface AdminShellProps {
 
 export function AdminShell({
   logoUrl,
+  fotoUrl,
   nome,
   email,
   colapsadoPadrao: _colapsadoPadrao,
@@ -366,9 +369,10 @@ export function AdminShell({
             </Link>
           )}
           {!colapsado && (
-            <p className="mb-2 truncate px-1 text-xs text-ink-muted" title={email}>
-              {nome || email}
-            </p>
+            <div className="mb-2 flex items-center gap-2 px-1" title={email}>
+              <Avatar nome={nome || email} fotoUrl={fotoUrl} className="h-6 w-6" tamanhoTexto="text-[10px]" />
+              <p className="min-w-0 flex-1 truncate text-xs text-ink-muted">{nome || email}</p>
+            </div>
           )}
           <div className={cn("flex items-center gap-2", colapsado && "flex-col")}>
             <LogoutButton iconOnly={colapsado} className={colapsado ? undefined : "flex-1"} />
@@ -396,9 +400,7 @@ export function AdminShell({
           title={email}
           className="hidden items-center gap-2 rounded-full border border-base-700 bg-base-900/80 py-1.5 pl-1.5 pr-3.5 backdrop-blur-sm transition hover:border-base-600 hover:bg-base-900 sm:flex"
         >
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-base-800 text-ink-secondary">
-            <IconUser className="h-3.5 w-3.5" />
-          </span>
+          <Avatar nome={nome || email} fotoUrl={fotoUrl} className="h-6 w-6" tamanhoTexto="text-[10px]" />
           <span className="max-w-[14rem] truncate text-sm text-ink-primary">{nome || email}</span>
         </Link>
       </div>

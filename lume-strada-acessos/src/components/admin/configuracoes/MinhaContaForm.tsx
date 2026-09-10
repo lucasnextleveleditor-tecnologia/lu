@@ -1,19 +1,27 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { IconUsers, IconMail, IconKey } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
-import { alterarMinhaSenha, atualizarMeuNome, atualizarMeuTelefone } from "@/app/admin/configuracoes/actions";
+import {
+  alterarMinhaSenha,
+  atualizarMeuNome,
+  atualizarMeuTelefone,
+  atualizarMinhaFoto,
+  removerMinhaFoto,
+} from "@/app/admin/configuracoes/actions";
+import { Avatar } from "@/components/ui/Avatar";
 
 interface MinhaContaFormProps {
   nomeInicial: string;
   email: string;
   /** `null` quando esta pessoa não tem registro em `equipe_membros` (ex: o admin criado direto pelo super_admin) — o campo some em vez de fingir que salva. */
   telefoneInicial: string | null;
+  fotoInicial: string | null;
 }
 
 const TAMANHO_MINIMO_SENHA = 8;
@@ -28,11 +36,15 @@ const TAMANHO_MINIMO_SENHA = 8;
  * `alterarMinhaSenha`) — sem isso, uma máquina destravada viraria sequestro
  * de conta.
  */
-export function MinhaContaForm({ nomeInicial, email, telefoneInicial }: MinhaContaFormProps) {
+export function MinhaContaForm({ nomeInicial, email, telefoneInicial, fotoInicial }: MinhaContaFormProps) {
   const { dict } = useLocale();
   const t = dict.configuracoes;
 
   const [nome, setNome] = useState(nomeInicial);
+  const [foto, setFoto] = useState(fotoInicial);
+  const [avisoFoto, setAvisoFoto] = useState<{ ok: boolean; texto: string } | null>(null);
+  const [pendingFoto, startFoto] = useTransition();
+  const inputFoto = useRef<HTMLInputElement>(null);
   const [telefone, setTelefone] = useState(telefoneInicial ?? "");
   const [senhaAtual, setSenhaAtual] = useState("");
   const [senhaNova, setSenhaNova] = useState("");
@@ -54,6 +66,34 @@ export function MinhaContaForm({ nomeInicial, email, telefoneInicial }: MinhaCon
     if (codigo === "senha-curta") return t.contaErroSenhaCurta;
     if (codigo === "senha-igual") return t.contaErroSenhaIgualAtual;
     return codigo;
+  }
+
+  function handleFoto(file: File) {
+    setAvisoFoto(null);
+    const formData = new FormData();
+    formData.append("file", file);
+    startFoto(async () => {
+      const r = await atualizarMinhaFoto(formData);
+      if (r.ok) {
+        setFoto(r.url);
+        setAvisoFoto({ ok: true, texto: t.fotoSalva });
+      } else {
+        setAvisoFoto({ ok: false, texto: r.error });
+      }
+    });
+  }
+
+  function handleRemoverFoto() {
+    setAvisoFoto(null);
+    startFoto(async () => {
+      const r = await removerMinhaFoto();
+      if (r.ok) {
+        setFoto(null);
+        setAvisoFoto({ ok: true, texto: t.fotoRemovida });
+      } else {
+        setAvisoFoto({ ok: false, texto: r.error });
+      }
+    });
   }
 
   function handleNome() {
@@ -97,6 +137,43 @@ export function MinhaContaForm({ nomeInicial, email, telefoneInicial }: MinhaCon
 
   return (
     <div className="space-y-5">
+      <Card>
+        <p className="mb-4 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t.fotoTitulo}</p>
+        <div className="flex items-center gap-4">
+          {/* Sem foto, as iniciais — e não um boneco cinza igual para todo
+              mundo. É a mesma coisa que a pessoa vai ver na barra do painel,
+              então a prévia aqui é o resultado de verdade. */}
+          <Avatar nome={nome || email} fotoUrl={foto} className="h-16 w-16" tamanhoTexto="text-lg" />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap gap-2">
+              <Button variant="ghost" onClick={() => inputFoto.current?.click()} disabled={pendingFoto}>
+                {pendingFoto ? t.fotoEnviando : foto ? t.fotoTrocar : t.fotoEnviar}
+              </Button>
+              {foto && (
+                <Button variant="danger" onClick={handleRemoverFoto} disabled={pendingFoto}>
+                  {t.fotoRemover}
+                </Button>
+              )}
+            </div>
+            <p className="mt-2 text-xs text-ink-muted">{t.fotoHint}</p>
+            {avisoFoto && (
+              <p className={avisoFoto.ok ? "mt-2 text-xs text-status-good" : "mt-2 text-xs text-danger"}>{avisoFoto.texto}</p>
+            )}
+          </div>
+          <input
+            ref={inputFoto}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) handleFoto(file);
+            }}
+          />
+        </div>
+      </Card>
+
       <Card>
         <p className="mb-4 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t.contaDadosTitulo}</p>
 

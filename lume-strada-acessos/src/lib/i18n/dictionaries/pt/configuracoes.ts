@@ -33,6 +33,14 @@ export interface ConfiguracoesDict {
 
   // --- Minha Conta ---
   contaDadosTitulo: string;
+  fotoTitulo: string;
+  fotoHint: string;
+  fotoEnviar: string;
+  fotoTrocar: string;
+  fotoRemover: string;
+  fotoEnviando: string;
+  fotoSalva: string;
+  fotoRemovida: string;
   contaNomeLabel: string;
   contaNomeHint: string;
   contaEmailLabel: string;
@@ -116,6 +124,14 @@ export const configuracoes: ConfiguracoesDict = {
   empresaSemAcessoDescricao: "Quem tem acesso ao quê é decidido por quem administra a conta.",
 
   contaDadosTitulo: "Seus dados",
+  fotoTitulo: "Foto de perfil",
+  fotoHint: "Aparece na barra do painel e ao lado do seu nome. PNG, JPG ou WEBP · até 2 MB · quadrada fica melhor. Sem foto, aparecem as suas iniciais.",
+  fotoEnviar: "Enviar foto",
+  fotoTrocar: "Trocar foto",
+  fotoRemover: "Remover",
+  fotoEnviando: "Enviando...",
+  fotoSalva: "Foto atualizada.",
+  fotoRemovida: "Foto removida.",
   contaNomeLabel: "Nome completo",
   contaNomeHint: "É como seu nome aparece pra você e pro resto da equipe.",
   contaEmailLabel: "E-mail",

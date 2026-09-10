@@ -9,6 +9,8 @@ export interface PerfilComPermissoes {
   /** Empresa do usuário — `null` só para `super_admin`. Usada para prefixar TODO caminho de upload no Storage com a empresa dona do arquivo (ver `requireModulo`). */
   company_id: string | null;
   full_name: string | null;
+  /** Foto de perfil — `null` cai nas iniciais do nome (ver `Avatar`). */
+  avatar_url: string | null;
   email: string;
   permissoes: PermissoesFuncionario;
   dashboard_config: PreferenciasDashboard;
@@ -27,7 +29,7 @@ export interface PerfilComPermissoes {
 export async function buscarPerfilComPermissoes(supabase: SupabaseClient, userId: string): Promise<PerfilComPermissoes | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("role, full_name, email, company_id, permissoes, dashboard_config")
+    .select("role, full_name, avatar_url, email, company_id, permissoes, dashboard_config")
     .eq("id", userId)
     .single()
     .overrideTypes<PerfilComPermissoes, { merge: false }>();
@@ -48,7 +50,9 @@ export async function buscarPerfilComPermissoes(supabase: SupabaseClient, userId
     .overrideTypes<Pick<ProfileRow, "role" | "full_name" | "email" | "company_id">, { merge: false }>();
 
   if (!basico) return null;
-  return { ...basico, permissoes: {}, dashboard_config: {} };
+  // `avatar_url` entra como `null` no fallback pelo mesmo motivo das outras:
+  // banco ainda sem a coluna não pode derrubar o login, só perde o enfeite.
+  return { ...basico, avatar_url: null, permissoes: {}, dashboard_config: {} };
 }
 
 /**

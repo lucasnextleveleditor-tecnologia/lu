@@ -53,6 +53,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <BrandingAccentStyle primaryColor={branding.primary_color} accentColor={branding.accent_color} />
       <AdminShell
         logoUrl={branding.logo_dark_url ?? branding.logo_url}
+        fotoUrl={profile.avatar_url ?? null}
         nome={profile.full_name ?? ""}
         email={profile.email}
         colapsadoPadrao={branding.sidebar_compacto_padrao}

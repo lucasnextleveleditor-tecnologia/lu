@@ -184,6 +184,7 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
         nomeInicial={perfil.full_name ?? ""}
         email={perfil.email}
         telefoneInicial={membro ? (membro.telefone ?? "") : null}
+        fotoInicial={perfil.avatar_url ?? null}
       />
     );
   }

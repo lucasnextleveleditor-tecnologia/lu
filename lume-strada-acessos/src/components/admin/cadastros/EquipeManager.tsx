@@ -17,6 +17,7 @@ import { AcessoFuncionarioModal } from "@/components/admin/cadastros/AcessoFunci
 import { OrganogramaView } from "@/components/admin/cadastros/organograma/OrganogramaView";
 import { IconBriefcase, IconShieldCheck, IconPauseCircle, IconList, IconSitemap } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
+import { Avatar } from "@/components/ui/Avatar";
 
 interface EquipeManagerProps {
   equipeMembros: EquipeMembroRow[];
@@ -149,7 +150,12 @@ export function EquipeManager({ equipeMembros, profilesPorId, departamentos, car
                 return (
                   <tr key={membro.id} className="border-b border-base-800 last:border-0">
                     <td className="py-3 pr-4">
-                      <p className="text-sm font-medium text-ink-primary">{membro.nome}</p>
+                      {/* A foto ao lado do nome: numa equipe de quinze
+                          pessoas, o rosto encontra a linha antes do nome. */}
+                      <div className="flex items-center gap-2.5">
+                        <Avatar nome={membro.nome} fotoUrl={profile?.avatar_url ?? null} className="h-8 w-8" />
+                        <p className="min-w-0 text-sm font-medium text-ink-primary">{membro.nome}</p>
+                      </div>
                     </td>
                     <td className="py-3 pr-4">
                       <span className="text-xs text-ink-secondary">{membro.cargo || "—"}</span>
