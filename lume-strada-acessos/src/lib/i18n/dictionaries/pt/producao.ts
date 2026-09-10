@@ -73,6 +73,10 @@ export interface ProducaoDict {
 
   // Calendário (`CalendarioTarefas.tsx`).
   diasSemana: string[];
+  visaoSemanal: string;
+  visaoMensal: string;
+  semanaAnterior: string;
+  proximaSemana: string;
   mesAnterior: string;
   irParaHoje: string;
   proximoMes: string;
@@ -233,6 +237,10 @@ export const producao: ProducaoDict = {
   colPrazo: "Prazo",
 
   diasSemana: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
+  visaoSemanal: "Semanal",
+  visaoMensal: "Mensal",
+  semanaAnterior: "Semana anterior",
+  proximaSemana: "Próxima semana",
   mesAnterior: "Mês anterior",
   irParaHoje: "Hoje",
   proximoMes: "Próximo mês",

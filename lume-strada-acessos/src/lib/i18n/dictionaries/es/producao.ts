@@ -52,6 +52,10 @@ export const producao: ProducaoDict = {
   colPrazo: "Plazo",
 
   diasSemana: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+  visaoSemanal: "Semanal",
+  visaoMensal: "Mensual",
+  semanaAnterior: "Semana anterior",
+  proximaSemana: "Próxima semana",
   mesAnterior: "Mes anterior",
   irParaHoje: "Hoy",
   proximoMes: "Mes siguiente",

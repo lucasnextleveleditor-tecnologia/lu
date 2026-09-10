@@ -126,6 +126,53 @@ export function parseMesParam(param: string | undefined): Date {
   return new Date(Date.UTC(hoje.getFullYear(), hoje.getMonth(), 1));
 }
 
+/** Soma dias a uma data, em UTC — como todo cálculo de data do sistema. */
+export function addDias(referencia: Date, delta: number): Date {
+  const d = new Date(referencia.getTime());
+  d.setUTCDate(d.getUTCDate() + delta);
+  return d;
+}
+
+/**
+ * A SEGUNDA-FEIRA da semana de `referencia`.
+ *
+ * Semana começando na segunda, e não no domingo como a grade do mês. Não é
+ * descuido: a visão semanal existe para olhar a SEMANA DE TRABALHO, e ninguém
+ * planeja entrega pensando "domingo é o começo". A grade mensal continua
+ * domingo-primeiro porque lá o que se lê é o desenho do mês inteiro, e é assim
+ * que todo calendário de parede desenha.
+ */
+export function inicioDaSemana(referencia: Date): Date {
+  const diaDaSemana = referencia.getUTCDay(); // 0 = domingo
+  const recuo = diaDaSemana === 0 ? 6 : diaDaSemana - 1;
+  const d = addDias(referencia, -recuo);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
+
+/** Os sete dias da semana de `inicio`, como ISO yyyy-mm-dd. */
+export function diasDaSemanaDe(inicio: Date): string[] {
+  return Array.from({ length: 7 }, (_, i) => addDias(inicio, i).toISOString().slice(0, 10));
+}
+
+/**
+ * "07 – 13 de set." — o intervalo da semana, no idioma de quem está olhando.
+ *
+ * `formatRange` do `Intl` faz o trabalho fino sozinho: quando a semana cruza o
+ * mês, ele escreve "28 de set. – 4 de out." em vez de repetir o mês; quando
+ * cruza o ano, acrescenta o ano. Escrever isso na mão daria três `if` e uma
+ * regra diferente por idioma. O `catch` existe porque `formatRange` é recente
+ * — num runtime antigo, duas datas coladas por travessão ainda se leem.
+ */
+export function fmtIntervaloSemana(inicio: Date, fim: Date, locale: string): string {
+  const opcoes: Intl.DateTimeFormatOptions = { day: "2-digit", month: "short", timeZone: "UTC" };
+  try {
+    return new Intl.DateTimeFormat(locale, opcoes).formatRange(inicio, fim);
+  } catch {
+    const f = new Intl.DateTimeFormat(locale, opcoes);
+    return `${f.format(inicio)} – ${f.format(fim)}`;
+  }
+}
+
 /** Matriz de semanas (cada dia como ISO yyyy-mm-dd, ou null pra preencher a semana fora do mês) — base da grade do Calendário. */
 export function gradeDoMes(referencia: Date): (string | null)[][] {
   const ano = referencia.getUTCFullYear();
