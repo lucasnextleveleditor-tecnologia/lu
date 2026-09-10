@@ -53,6 +53,8 @@ export const producao: ProducaoDict = {
 
   diasSemana: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
   visaoSemanal: "Weekly",
+  visaoTudo: "All",
+  kanbanSemPrazo: "{n} with no due date, always shown",
   visaoMensal: "Monthly",
   semanaAnterior: "Previous week",
   proximaSemana: "Next week",

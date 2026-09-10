@@ -74,6 +74,9 @@ export interface ProducaoDict {
   // Calendário (`CalendarioTarefas.tsx`).
   diasSemana: string[];
   visaoSemanal: string;
+  visaoTudo: string;
+  /** `{n}` tarefas sem prazo, que aparecem em todos os recortes. */
+  kanbanSemPrazo: string;
   visaoMensal: string;
   semanaAnterior: string;
   proximaSemana: string;
@@ -238,6 +241,8 @@ export const producao: ProducaoDict = {
 
   diasSemana: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
   visaoSemanal: "Semanal",
+  visaoTudo: "Tudo",
+  kanbanSemPrazo: "{n} sem prazo, sempre visíveis",
   visaoMensal: "Mensal",
   semanaAnterior: "Semana anterior",
   proximaSemana: "Próxima semana",
