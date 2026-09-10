@@ -146,7 +146,9 @@ export interface TransacaoAnexoRow {
   id: string;
   transacao_id: string;
   tipo: TipoAnexoTransacao;
-  storage_path: string;
+  storage_path: string | null;
+  /** Anexo hospedado fora (Drive, Dropbox...). Alternativa a `storage_path` — não ocupa armazenamento da conta. */
+  link_url: string | null;
   nome_arquivo: string;
   tamanho_bytes: number | null;
   tipo_mime: string | null;

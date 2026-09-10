@@ -405,6 +405,9 @@ export interface FinanceiroDict {
   notaFiscalLabel: string;
   comprovantePagamentoLabel: string;
   anexarBtn: string;
+  anexarPorLink: string;
+  anexoNomePlaceholder: string;
+  anexoLinkBadge: string;
   anexoEnviandoLabel: string;
   nenhumAnexoEnviado: string;
   anexoMuitoGrande: string;
@@ -767,6 +770,9 @@ export const financeiro: FinanceiroDict = {
   notaFiscalLabel: "Nota Fiscal / Recibo",
   comprovantePagamentoLabel: "Comprovante de Pagamento",
   anexarBtn: "Anexar",
+  anexarPorLink: "ou anexe por link (Drive, Dropbox…)",
+  anexoNomePlaceholder: "Do que é este anexo?",
+  anexoLinkBadge: "link",
   anexoEnviandoLabel: "Enviando...",
   nenhumAnexoEnviado: "Nenhum arquivo anexado ainda.",
   anexoMuitoGrande: "Arquivo muito grande — o limite é 20MB.",

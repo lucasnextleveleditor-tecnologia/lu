@@ -6,6 +6,7 @@ import { requireModulo } from "@/lib/auth/requireAdmin";
 import type { FinContexto, FinRecorrencia, FinTipoTransacao, MoedaEstrangeira, TipoAnexoTransacao, TransacaoAnexoRow } from "@/lib/types/financeiro";
 import { addDaysISO, addMonthsISO, todayISO } from "@/lib/utils/format";
 import { ehExtensaoPerigosaParaEntrega } from "@/lib/utils/upload";
+import { resolverMidiaDeLink, SERVICOS_ACEITOS } from "@/lib/utils/midia-link";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
@@ -809,6 +810,49 @@ export async function criarUploadAssinadoAnexo(transacaoId: string, nomeArquivo:
 }
 
 /** Passo 2/2 — depois que o navegador já subiu o arquivo pro Storage, grava a linha do anexo. */
+/**
+ * Anexo por LINK, no lugar do arquivo.
+ *
+ * Comprovante e nota são volume: muitos arquivos pequenos que ninguém abre
+ * depois do mês fechado. Quem já guarda tudo no Drive não precisa de uma
+ * segunda cópia aqui — basta o endereço.
+ *
+ * O link é conferido contra a mesma lista que o visualizador entende, para
+ * não gravar um anexo que nunca vai abrir.
+ */
+export async function anexarLinkTransacao(
+  transacaoId: string,
+  tipo: TipoAnexoTransacao,
+  input: { url: string; nome: string }
+): Promise<ActionResultId> {
+  try {
+    const { supabase, user } = await requireModulo("financeiro");
+    const url = input.url.trim();
+    if (!url) return { ok: false, error: "Cole um link." };
+    if (!resolverMidiaDeLink(url)) return { ok: false, error: `Link não reconhecido. Aceitamos ${SERVICOS_ACEITOS}.` };
+
+    const { data, error } = await supabase
+      .from("fin_transacao_anexos")
+      .insert({
+        transacao_id: transacaoId,
+        tipo,
+        storage_path: null,
+        link_url: url,
+        nome_arquivo: input.nome.trim().slice(0, 120) || "Anexo por link",
+        tamanho_bytes: null,
+        tipo_mime: null,
+        enviado_por: user.id,
+      })
+      .select("id")
+      .single();
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true, id: data!.id as string };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
 export async function confirmarAnexoTransacao(
   transacaoId: string,
   tipo: TipoAnexoTransacao,

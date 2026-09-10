@@ -6,6 +6,7 @@ import {
   confirmarAnexoTransacao,
   criarUploadAssinadoAnexo,
   getUrlDownloadAnexo,
+  anexarLinkTransacao,
   listarAnexosTransacao,
   removerAnexoTransacao,
 } from "@/app/admin/financeiro/actions";
@@ -13,8 +14,10 @@ import { ANEXO_TRANSACAO_TAMANHO_MAX_BYTES } from "@/lib/utils/financeiro";
 import { fmtTamanhoArquivo } from "@/lib/utils/producao";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { IconPaperclip } from "@/components/ui/icons";
+import { Input } from "@/components/ui/Input";
+import { IconPaperclip, IconExternalLink } from "@/components/ui/icons";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { AvisoDoLink } from "@/components/ui/PlayerDeMidia";
 
 const BUCKET = "financeiro";
 
@@ -113,6 +116,9 @@ function AnexoGrupo({
   const { dict } = useLocale();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [linkAberto, setLinkAberto] = useState(false);
+  const [link, setLink] = useState("");
+  const [nomeLink, setNomeLink] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleArquivoSelecionado(e: ChangeEvent<HTMLInputElement>) {
@@ -163,12 +169,39 @@ function AnexoGrupo({
         transacao_id: transacaoId,
         tipo,
         storage_path: assinado.path,
+        link_url: null,
         nome_arquivo: file.name,
         tamanho_bytes: file.size,
         tipo_mime: file.type || null,
         enviado_por: null,
         created_at: new Date().toISOString(),
       });
+    });
+  }
+
+  function handleLink() {
+    setError(null);
+    startTransition(async () => {
+      const result = await anexarLinkTransacao(transacaoId, tipo, { url: link, nome: nomeLink });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      onAnexado({
+        id: result.id,
+        transacao_id: transacaoId,
+        tipo,
+        storage_path: null,
+        link_url: link.trim(),
+        nome_arquivo: nomeLink.trim() || "Anexo por link",
+        tamanho_bytes: null,
+        tipo_mime: null,
+        enviado_por: null,
+        created_at: new Date().toISOString(),
+      });
+      setLink("");
+      setNomeLink("");
+      setLinkAberto(false);
     });
   }
 
@@ -204,22 +237,65 @@ function AnexoGrupo({
         <input ref={inputRef} type="file" className="hidden" onChange={handleArquivoSelecionado} />
       </div>
 
+      <button
+        type="button"
+        onClick={() => setLinkAberto((v) => !v)}
+        disabled={pending}
+        className="mb-1.5 flex items-center gap-1 text-[11px] text-ink-muted transition hover:text-accent"
+      >
+        <IconExternalLink className="h-3 w-3" />
+        {dict.financeiro.anexarPorLink}
+      </button>
+
+      {linkAberto && (
+        <div className="mb-2 space-y-1.5 rounded-lg border border-base-700 p-2.5">
+          <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://drive.google.com/..." className="text-xs" />
+          <Input
+            value={nomeLink}
+            onChange={(e) => setNomeLink(e.target.value)}
+            placeholder={dict.financeiro.anexoNomePlaceholder}
+            className="text-xs"
+          />
+          <div className="flex gap-2">
+            <Button onClick={handleLink} disabled={pending || !link.trim()} className="flex-1 px-2 py-1 text-[11px]">
+              {pending ? dict.financeiro.anexoEnviandoLabel : dict.common.adicionar}
+            </Button>
+            <Button variant="ghost" onClick={() => setLinkAberto(false)} disabled={pending} className="px-2 py-1 text-[11px]">
+              {dict.common.cancelar}
+            </Button>
+          </div>
+          <AvisoDoLink url={link} />
+        </div>
+      )}
+
       {itens.length === 0 ? (
         <p className="text-[11px] text-ink-muted">{dict.financeiro.nenhumAnexoEnviado}</p>
       ) : (
         <div className="space-y-1.5">
           {itens.map((anexo) => (
             <div key={anexo.id} className="flex items-center justify-between gap-2 rounded border border-base-800 px-2.5 py-1.5">
-              <button
-                type="button"
-                onClick={() => handleAbrir(anexo.storage_path)}
-                className="flex min-w-0 items-center gap-1.5 text-left text-xs text-ink-primary hover:underline"
-              >
-                <IconPaperclip className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{anexo.nome_arquivo}</span>
-              </button>
+              {anexo.link_url ? (
+                <a
+                  href={anexo.link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-w-0 items-center gap-1.5 text-left text-xs text-ink-primary hover:underline"
+                >
+                  <IconExternalLink className="h-3.5 w-3.5 shrink-0 text-ink-muted" />
+                  <span className="truncate">{anexo.nome_arquivo}</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => anexo.storage_path && handleAbrir(anexo.storage_path)}
+                  className="flex min-w-0 items-center gap-1.5 text-left text-xs text-ink-primary hover:underline"
+                >
+                  <IconPaperclip className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{anexo.nome_arquivo}</span>
+                </button>
+              )}
               <div className="flex shrink-0 items-center gap-2">
-                <span className="text-[10px] text-ink-muted">{fmtTamanhoArquivo(anexo.tamanho_bytes)}</span>
+                <span className="text-[10px] text-ink-muted">{anexo.link_url ? dict.financeiro.anexoLinkBadge : fmtTamanhoArquivo(anexo.tamanho_bytes)}</span>
                 <button
                   type="button"
                   onClick={() => handleRemover(anexo.id)}
