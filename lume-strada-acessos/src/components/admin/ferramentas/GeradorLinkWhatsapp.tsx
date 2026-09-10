@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
@@ -15,7 +14,9 @@ import {
   IconAlertTriangle,
   IconMessageCircle,
 } from "@/components/ui/icons";
-import { DDIS, analisarNumero, montarLinkWhatsapp, type AvisoDoNumero } from "@/lib/ferramentas/whatsapp";
+import { analisarNumero, montarLinkWhatsapp, type AvisoDoNumero } from "@/lib/ferramentas/whatsapp";
+import { paisPorIso } from "@/lib/ferramentas/paises";
+import { SeletorDePais } from "./SeletorDePais";
 
 /**
  * Gerador de link de WhatsApp.
@@ -36,7 +37,11 @@ export function GeradorLinkWhatsapp() {
   const { dict } = useLocale();
   const t = dict.ferramentas.linkWhatsapp;
 
-  const [ddi, setDdi] = useState("55");
+  // Guarda o PAÍS, não o DDI: vários países dividem o mesmo código (+1 nos
+  // EUA e no Canadá), e guardar só o número faria a lista esquecer qual
+  // deles a pessoa tinha escolhido.
+  const [pais, setPais] = useState("BR");
+  const ddi = paisPorIso(pais)?.ddi ?? "55";
   const [numero, setNumero] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [gerado, setGerado] = useState(false);
@@ -113,13 +118,7 @@ export function GeradorLinkWhatsapp() {
         <div className="grid gap-4 sm:grid-cols-[minmax(0,11rem)_1fr]">
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.paisLabel}</label>
-            <Select value={ddi} onChange={(e) => setDdi(e.target.value)}>
-              {DDIS.map((d) => (
-                <option key={d.codigo} value={d.codigo}>
-                  +{d.codigo} · {d.pais}
-                </option>
-              ))}
-            </Select>
+            <SeletorDePais iso={pais} onChange={setPais} />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.numeroLabel}</label>

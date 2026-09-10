@@ -11,6 +11,8 @@
  * abre a conversa direto.
  */
 
+import { faixaLocalDoDdi } from "./paises";
+
 export type AvisoDoNumero = "zeroRemovido" | "ddiRepetido" | "possivelNonoDigito" | "curto" | "longo";
 
 export interface NumeroAnalisado {
@@ -19,32 +21,6 @@ export interface NumeroAnalisado {
   /** Dá pra gerar um link com isto? */
   valido: boolean;
   avisos: AvisoDoNumero[];
-}
-
-/**
- * Um punhado de DDIs, os que aparecem na vida de uma produtora brasileira.
- *
- * `local` é quantos dígitos o número tem SEM o DDI (mínimo e máximo). Não é
- * enfeite: é com essa faixa que dá pra perceber que alguém colou um número
- * que já vinha com o DDI e evitar gravar "+55 55 11 9...". Onde a faixa é
- * incerta, ela fica generosa de propósito — assim a correção automática
- * simplesmente não dispara, que é a falha segura.
- */
-export const DDIS = [
-  { codigo: "55", pais: "Brasil", local: [10, 11] },
-  { codigo: "351", pais: "Portugal", local: [9, 9] },
-  { codigo: "1", pais: "EUA / Canadá", local: [10, 10] },
-  { codigo: "34", pais: "Espanha", local: [9, 9] },
-  { codigo: "52", pais: "México", local: [10, 10] },
-  { codigo: "54", pais: "Argentina", local: [10, 11] },
-  { codigo: "44", pais: "Reino Unido", local: [9, 10] },
-  { codigo: "39", pais: "Itália", local: [9, 10] },
-  { codigo: "33", pais: "França", local: [9, 9] },
-  { codigo: "49", pais: "Alemanha", local: [10, 11] },
-] as const satisfies ReadonlyArray<{ codigo: string; pais: string; local: readonly [number, number] }>;
-
-function faixaLocalDe(codigo: string): readonly [number, number] {
-  return DDIS.find((d) => d.codigo === codigo)?.local ?? [6, 13];
 }
 
 const soDigitos = (t: string) => t.replace(/\D/g, "");
@@ -82,7 +58,7 @@ export function analisarNumero(ddi: string, numero: string): NumeroAnalisado {
   // DDD 55 existe (Rio Grande do Sul), e um celular de lá começa com 55 de
   // direito. O que decide é o TAMANHO — só remove quando o número está longo
   // demais para o país E fica do tamanho certo depois de tirar o DDI.
-  const [minLocal, maxLocal] = faixaLocalDe(codigo);
+  const [minLocal, maxLocal] = faixaLocalDoDdi(codigo);
   if (local.length > maxLocal && local.startsWith(codigo)) {
     const semDdi = local.slice(codigo.length);
     if (semDdi.length >= minLocal && semDdi.length <= maxLocal) {

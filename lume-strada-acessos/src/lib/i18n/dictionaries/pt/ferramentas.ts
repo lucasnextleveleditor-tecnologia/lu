@@ -101,6 +101,8 @@ export interface FerramentasDict {
   linkWhatsapp: {
     subtitulo: string;
     paisLabel: string;
+    buscarPais: string;
+    nenhumPais: string;
     numeroLabel: string;
     numeroPlaceholder: string;
     mensagemLabel: string;
@@ -293,6 +295,8 @@ export const ferramentas: FerramentasDict = {
     subtitulo:
       "Escolha o número, escreva a mensagem que a pessoa vai mandar e pegue o link. Quem clicar já abre a conversa com o texto digitado — só falta apertar enviar.",
     paisLabel: "País",
+    buscarPais: "Buscar país, sigla ou código",
+    nenhumPais: "Nenhum país com esse nome ou código.",
     numeroLabel: "Número com DDD",
     numeroPlaceholder: "11 99999-9999",
     mensagemLabel: "Mensagem que já vem escrita",

@@ -157,6 +157,8 @@ export const ferramentas: FerramentasDict = {
     subtitulo:
       "Elige el número, escribe el mensaje que la persona va a mandar y toma el enlace. Quien haga clic entra a la conversación con el texto ya escrito — solo falta apretar enviar.",
     paisLabel: "País",
+    buscarPais: "Buscar país, sigla o código",
+    nenhumPais: "Ningún país con ese nombre o código.",
     numeroLabel: "Número con código de área",
     numeroPlaceholder: "11 99999-9999",
     mensagemLabel: "Mensaje que ya viene escrito",
