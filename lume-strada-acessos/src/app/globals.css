@@ -333,8 +333,22 @@ body {
 .menu-lateral-link:hover .menu-lateral-icone,
 .menu-lateral-link:focus-visible .menu-lateral-icone {
   color: rgb(var(--color-accent));
-  filter: drop-shadow(0 0 5px rgb(var(--color-accent) / 0.75)) drop-shadow(0 0 13px rgb(var(--color-accent) / 0.35));
+  /* Três camadas, e a primeira BEM curta (2px). O ícone tem 19px e traço de
+     1.6 — num desenho desse tamanho um halo largo se espalha e vira névoa em
+     vez de brilho. O que faz ler como neon é o núcleo concentrado colado no
+     traço; as duas camadas de fora só dão o esparramado. */
+  filter: drop-shadow(0 0 2px rgb(var(--color-accent) / 0.95)) drop-shadow(0 0 6px rgb(var(--color-accent) / 0.7))
+    drop-shadow(0 0 14px rgb(var(--color-accent) / 0.45));
   transform: scale(1.08);
+}
+
+/* Modo claro: o mesmo brilho que acende no escuro vira um borrão colorido em
+   cima do branco — a luz não tem para onde crescer. Aqui o halo encolhe e
+   perde opacidade; quem carrega o destaque passa a ser a cor do traço, não o
+   brilho em volta. */
+html.light .menu-lateral-link:hover .menu-lateral-icone,
+html.light .menu-lateral-link:focus-visible .menu-lateral-icone {
+  filter: drop-shadow(0 0 1.5px rgb(var(--color-accent) / 0.55)) drop-shadow(0 0 5px rgb(var(--color-accent) / 0.28));
 }
 
 /* Quem pediu menos movimento continua ganhando a cor e o brilho — o que sai é
