@@ -6,19 +6,17 @@ import type { ClienteRow } from "@/lib/types/cadastros";
 import type { OnboardingRow } from "@/lib/types/onboarding";
 import type { PlanoRow } from "@/lib/types/planejamento";
 import type { TarefaRow } from "@/lib/types/producao";
-import type { EventoRow } from "@/lib/eventos/registrar";
 import { CadastrosWorkspace } from "@/components/admin/cadastros/CadastrosWorkspace";
 import { PainelOnboarding } from "@/components/admin/onboarding/PainelOnboarding";
 import { PainelPlanejamento } from "@/components/admin/planejamento/PainelPlanejamento";
 import { PainelDeConteudo } from "@/components/admin/planejamento/PainelDeConteudo";
-import { PainelHistorico } from "@/components/admin/historico/PainelHistorico";
 import { cn } from "@/lib/utils/cn";
-import { IconUsers, IconClipboardList, IconCalendar, IconLayers, IconActivity } from "@/components/ui/icons";
+import { IconUsers, IconClipboardList, IconCalendar, IconLayers } from "@/components/ui/icons";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Gestão de Clientes — duas abas: o cadastro e o briefing.
+ * Gestão de Clientes — o cadastro, o briefing, o ciclo e o calendário.
  *
  * A barra de abas tinha sumido daqui quando Equipe migrou pra Configurações
  * e sobrou só Clientes (ver `CadastrosWorkspace`). Ela volta agora porque
@@ -46,9 +44,7 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
         ? "planejamento"
         : aba === "conteudo"
           ? "conteudo"
-          : aba === "historico"
-            ? "historico"
-            : "clientes";
+          : "clientes";
   const t = dict.onboarding;
 
   const [perfilRes, clientesRes] = await Promise.all([
@@ -161,43 +157,11 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
     };
   }
 
-  // --------------------------------------------------------------------------
-  // Histórico — a trilha do cliente, atravessando os quatro módulos.
-  //
-  // O limite de 300 não é preguiça de paginar: a trilha de um cliente cresce
-  // para sempre, e sem teto esta consulta ficaria mais lenta a cada mês em
-  // silêncio. Trezentos eventos cobrem meses de trabalho; quando isso apertar,
-  // o caminho é filtro por período, não uma lista infinita.
-  // --------------------------------------------------------------------------
-  let dadosHistorico: {
-    clientes: { id: string; nome: string }[];
-    clienteAtual: string | null;
-    eventos: EventoRow[];
-  } | null = null;
-
-  if (abaAtiva === "historico") {
-    const lista = clientes.map((c) => ({ id: c.id, nome: c.nome }));
-    const escolhido = clienteParam && lista.some((c) => c.id === clienteParam) ? clienteParam : (lista[0]?.id ?? null);
-
-    const { data: eventos } = escolhido
-      ? await supabase
-          .from("eventos")
-          .select("*")
-          .eq("cliente_id", escolhido)
-          .order("created_at", { ascending: false })
-          .limit(300)
-          .overrideTypes<EventoRow[], { merge: false }>()
-      : { data: [] as EventoRow[] };
-
-    dadosHistorico = { clientes: lista, clienteAtual: escolhido, eventos: eventos ?? [] };
-  }
-
   const abas = [
     { valor: "clientes", label: t.abaClientes, icone: IconUsers },
     { valor: "onboarding", label: t.abaOnboarding, icone: IconClipboardList },
     { valor: "planejamento", label: dict.planejamento.abaPlanejamento, icone: IconCalendar },
     { valor: "conteudo", label: dict.planejamento.abaConteudo, icone: IconLayers },
-    { valor: "historico", label: dict.historico.abaHistorico, icone: IconActivity },
   ] as const;
 
   return (
@@ -232,10 +196,8 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
         <PainelOnboarding clientes={clientes} onboardings={onboardings} />
       ) : abaAtiva === "planejamento" ? (
         <PainelPlanejamento clientes={clientes} planos={planos} />
-      ) : abaAtiva === "conteudo" ? (
-        dadosConteudo ? <PainelDeConteudo {...dadosConteudo} /> : null
-      ) : dadosHistorico ? (
-        <PainelHistorico {...dadosHistorico} />
+      ) : dadosConteudo ? (
+        <PainelDeConteudo {...dadosConteudo} />
       ) : null}
     </div>
   );

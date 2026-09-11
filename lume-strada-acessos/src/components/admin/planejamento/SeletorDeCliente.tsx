@@ -9,19 +9,16 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
  *
  * Navega de verdade (`?cliente=`), e não muda estado local: assim o endereço
  * leva de volta ao mesmo calendário. É o que permite mandar "olha o conteúdo
- * da Filmmaker Academy" por link para alguém da equipe — coisa que um seletor
+ * de um cliente específico" por link para alguém da equipe — coisa que um seletor
  * de estado interno não permite, porque o link abriria sempre no primeiro
  * cliente da lista.
  */
 export function SeletorDeCliente({
   clientes,
   atual,
-  aba = "conteudo",
 }: {
   clientes: { id: string; nome: string }[];
   atual: string;
-  /** Para qual aba de Gestão de Clientes navegar — Conteúdo e Histórico usam o mesmo seletor. */
-  aba?: "conteudo" | "historico";
 }) {
   const { dict } = useLocale();
   const router = useRouter();
@@ -33,7 +30,7 @@ export function SeletorDeCliente({
       </label>
       <Select
         value={atual}
-        onChange={(e) => router.push(`/admin?aba=${aba}&cliente=${e.target.value}`)}
+        onChange={(e) => router.push(`/admin?aba=conteudo&cliente=${e.target.value}`)}
       >
         {clientes.map((c) => (
           <option key={c.id} value={c.id}>
