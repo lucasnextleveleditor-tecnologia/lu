@@ -304,3 +304,47 @@ body {
     background: rgb(var(--color-base-950)) !important;
   }
 }
+
+/* ============================================================================
+   Menu lateral — o ícone acende na cor da marca ao passar o mouse
+   ============================================================================
+   Só aqui, de propósito. O menu é a única superfície onde o ícone aparece
+   sozinho e é lido de relance; nas telas ele divide espaço com texto e com
+   outros elementos, e um brilho em cada um viraria ruído.
+
+   A cor é `--color-accent`, que é a cor da MARCA da empresa
+   (`BrandingAccentStyle` a sobrescreve por empresa) — então o neon de cada
+   agência sai na cor dela, sem nada aqui precisar saber qual é.
+
+   `drop-shadow` em dois passos e não `box-shadow`: o ícone é um SVG de traço,
+   e `box-shadow` iluminaria a caixa retangular dele em vez do desenho. O
+   primeiro passo é o halo curto que dá a cor, o segundo é o esparramado que
+   dá o brilho.
+
+   A peça sólida de cada ícone usa `currentColor` (ver `icons-nav.tsx`), então
+   ela acende junto, sem regra extra. */
+.menu-lateral-icone {
+  transition:
+    color 160ms ease,
+    filter 160ms ease,
+    transform 160ms ease;
+}
+
+.menu-lateral-link:hover .menu-lateral-icone,
+.menu-lateral-link:focus-visible .menu-lateral-icone {
+  color: rgb(var(--color-accent));
+  filter: drop-shadow(0 0 5px rgb(var(--color-accent) / 0.75)) drop-shadow(0 0 13px rgb(var(--color-accent) / 0.35));
+  transform: scale(1.08);
+}
+
+/* Quem pediu menos movimento continua ganhando a cor e o brilho — o que sai é
+   só o crescimento, que é a parte que incomoda. */
+@media (prefers-reduced-motion: reduce) {
+  .menu-lateral-icone {
+    transition: color 160ms ease, filter 160ms ease;
+  }
+  .menu-lateral-link:hover .menu-lateral-icone,
+  .menu-lateral-link:focus-visible .menu-lateral-icone {
+    transform: none;
+  }
+}
