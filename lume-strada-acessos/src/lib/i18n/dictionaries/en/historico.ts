@@ -7,6 +7,7 @@ export const historico: HistoricoDict = {
   semEventos: "Nothing recorded for this client yet.",
   trilhaDaTarefa: "History of this piece",
   semEventosDaTarefa: "Nothing recorded for this piece yet.",
+  reconstruido: "Rebuilt from the old record",
   semClientes: "Add a client to start recording.",
   todosOsClientes: "All clients",
   atorCliente: "client",

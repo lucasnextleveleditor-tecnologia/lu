@@ -106,6 +106,11 @@ export function TrilhaDaTarefa({ tarefaId }: { tarefaId: string }) {
                   </p>
                   <p className="mt-0.5 text-[11px] text-ink-muted">
                     {e.ator_nome ?? t.atorDesconhecido}
+                    {/* O cargo entre parênteses: "Julia (social media) enviou
+                        para revisão" responde também POR QUE ela fez isso —
+                        numa trilha lida meses depois, por alguém que talvez
+                        nem trabalhasse aqui na época. */}
+                    {e.ator_cargo && <span className="text-ink-muted/70"> ({e.ator_cargo})</span>}
                     {e.ator_tipo !== "equipe" && ` · ${e.ator_tipo === "cliente" ? t.atorCliente : t.atorSistema}`}
                     {" · "}
                     <span className="tabular-nums">
@@ -116,6 +121,16 @@ export function TrilhaDaTarefa({ tarefaId }: { tarefaId: string }) {
 
                   {/* A observação de quem devolveu vai junto: "foi devolvido"
                       sem o motivo obriga a abrir outra tela para saber por quê. */}
+                  {/* Marca o que veio do BACKFILL: estes eventos foram
+                      reconstruídos de dados que já estavam gravados (data da
+                      versão, quem enviou, quem aprovou), e não anotados no
+                      momento em que aconteceram. É honesto dizer a diferença —
+                      o que falta nesses históricos falta porque nunca foi
+                      guardado, não porque alguém deixou de fazer. */}
+                  {e.detalhe?.reconstruido === true && (
+                    <p className="mt-0.5 text-[10px] uppercase tracking-wide text-ink-muted/60">{t.reconstruido}</p>
+                  )}
+
                   {typeof e.detalhe?.observacao === "string" && (
                     <p className="mt-1 border-l-2 border-base-700 pl-2 text-[11px] italic text-ink-secondary">
                       {e.detalhe.observacao}

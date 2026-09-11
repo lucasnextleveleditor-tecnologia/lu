@@ -182,3 +182,48 @@ comment on column public.eventos.tarefa_id is
 -- linhas iguais afogariam tudo o que veio antes. Na da peça, "veio para a
 -- produção" é o passo que falta para a história dela fazer sentido do começo
 -- ao fim.
+
+-- ============================================================================
+-- ADENDO — o cargo, e o passado que já estava gravado
+-- ============================================================================
+--
+-- "Julia enviou para revisão" é uma frase. "Julia (social media) enviou para
+-- revisão" é a mesma frase respondendo também POR QUE ela fez isso — e numa
+-- trilha lida meses depois, por alguém que talvez nem trabalhasse aqui na
+-- época, o cargo é o que transforma um nome numa função.
+--
+-- Retrato, como o nome: quem era editor na época continua editor no registro,
+-- mesmo depois de virar coordenador. Trilha não se reescreve.
+alter table public.eventos
+  add column if not exists ator_cargo text;
+
+comment on column public.eventos.ator_cargo is
+  'Cargo de quem fez, escrito no momento do evento (equipe_membros.cargo). Retrato: quem era editor na epoca continua editor no registro.';
+
+-- O BACKFILL, e por que ele não é invenção.
+--
+-- As tarefas criadas antes da trilha apareciam com "nada registrado", e isso
+-- assusta mais do que informa. Parte do passado delas realmente nunca foi
+-- guardada — ninguém anotava mudança de status. Mas parte SIM: a data de
+-- criação da tarefa, e cada versão enviada e aprovada, com autor e hora,
+-- sempre estiveram em `prod_tarefas` e `prod_entrega_versoes`.
+--
+-- O backfill lê esses campos e escreve os eventos correspondentes. É o mesmo
+-- dado, mudando de lugar para poder ser lido em ordem. O que nunca foi gravado
+-- continua sem aparecer — não há de onde tirar, e preencher com suposição
+-- seria pior do que a lacuna.
+--
+-- Três cuidados que fazem esse backfill ser honesto:
+--
+--   1. `prod_tarefas` nunca guardou QUEM criou. O ator fica nulo e a tela
+--      escreve "—": ninguém leva crédito ou culpa por engano.
+--   2. Quem aprovou com perfil `cliente` aprovou PELO PORTAL. Essa distinção
+--      existia no dado e estava perdida na leitura; o backfill a devolve em
+--      `ator_tipo`.
+--   3. Todo evento reconstruído leva `detalhe.reconstruido = true`, e a tela
+--      diz isso em letra miúda. O que falta nesses históricos falta porque
+--      nunca foi guardado, não porque alguém deixou de fazer — e é justo que
+--      a diferença apareça.
+--
+-- Rodou uma vez, filtrando por tarefas sem nenhum evento e por versões sem o
+-- evento correspondente, então repetir não duplica.

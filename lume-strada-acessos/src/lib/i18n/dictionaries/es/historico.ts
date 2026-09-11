@@ -7,6 +7,7 @@ export const historico: HistoricoDict = {
   semEventos: "Todavía no hay nada registrado para este cliente.",
   trilhaDaTarefa: "Historial de esta pieza",
   semEventosDaTarefa: "Todavía no hay nada registrado para esta pieza.",
+  reconstruido: "Reconstruido del registro antiguo",
   semClientes: "Registra un cliente para empezar a registrar.",
   todosOsClientes: "Todos los clientes",
   atorCliente: "cliente",

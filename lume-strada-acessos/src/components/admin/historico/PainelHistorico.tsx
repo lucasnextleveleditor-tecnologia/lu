@@ -117,6 +117,7 @@ export async function PainelHistorico({
 
                   <span className="w-full pl-3.5 text-[11px] text-ink-muted">
                     {e.ator_nome ?? t.atorDesconhecido}
+                    {e.ator_cargo && <span className="text-ink-muted/70"> ({e.ator_cargo})</span>}
                     {e.ator_tipo !== "equipe" && ` · ${e.ator_tipo === "cliente" ? t.atorCliente : t.atorSistema}`}
                   </span>
                 </li>

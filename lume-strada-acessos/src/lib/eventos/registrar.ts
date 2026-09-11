@@ -62,6 +62,7 @@ export interface EventoRow {
   para: string | null;
   ator_id: string | null;
   ator_nome: string | null;
+  ator_cargo: string | null;
   ator_tipo: TipoDeAtor;
   detalhe: Record<string, unknown> | null;
   created_at: string;
@@ -90,21 +91,30 @@ export interface NovoEvento {
 type Cliente = SupabaseClient<any, any, any>;
 
 /**
- * O nome de quem está logado, memorizado por REQUISIÇÃO (`cache` do React).
+ * Quem está logado — nome e CARGO —, memorizado por REQUISIÇÃO (`cache` do
+ * React).
  *
- * Uma ação que registra três eventos não deve fazer três consultas ao mesmo
+ * Uma ação que registra três eventos não deve fazer seis consultas ao mesmo
  * perfil. Memorizar em escopo de módulo seria mais barato ainda e estaria
  * errado: o processo do servidor atende várias pessoas, e o nome ficaria
  * preso ao primeiro que passou.
+ *
+ * O cargo vem de `equipe_membros`, ligado ao perfil por `profile_id`. É o
+ * mesmo cadastro de RH que alimenta a lista de responsáveis da Produção, então
+ * "editor" aqui é a mesma palavra que está lá — e não um rótulo paralelo.
  */
-const nomeDoAtor = cache(async (supabase: Cliente, userId: string): Promise<string | null> => {
-  const { data } = await supabase
-    .from("profiles")
-    .select("full_name, email")
-    .eq("id", userId)
-    .maybeSingle<{ full_name: string | null; email: string }>();
-  return data?.full_name?.trim() || data?.email || null;
-});
+const atorDe = cache(
+  async (supabase: Cliente, userId: string): Promise<{ nome: string | null; cargo: string | null }> => {
+    const [perfil, membro] = await Promise.all([
+      supabase.from("profiles").select("full_name, email").eq("id", userId).maybeSingle<{ full_name: string | null; email: string }>(),
+      supabase.from("equipe_membros").select("cargo").eq("profile_id", userId).maybeSingle<{ cargo: string | null }>(),
+    ]);
+    return {
+      nome: perfil.data?.full_name?.trim() || perfil.data?.email || null,
+      cargo: membro.data?.cargo?.trim() || null,
+    };
+  }
+);
 
 /**
  * Registra um passo feito por alguém da EQUIPE, com a sessão de quem fez.
@@ -114,7 +124,7 @@ const nomeDoAtor = cache(async (supabase: Cliente, userId: string): Promise<stri
  */
 export async function registrar(supabase: Cliente, userId: string, evento: NovoEvento): Promise<void> {
   try {
-    const nome = await nomeDoAtor(supabase, userId);
+    const ator = await atorDe(supabase, userId);
     await supabase.from("eventos").insert({
       acao: evento.acao,
       entidade: evento.entidade,
@@ -125,7 +135,8 @@ export async function registrar(supabase: Cliente, userId: string, evento: NovoE
       de: evento.de ?? null,
       para: evento.para ?? null,
       ator_id: userId,
-      ator_nome: nome,
+      ator_nome: ator.nome,
+      ator_cargo: ator.cargo,
       ator_tipo: "equipe",
       detalhe: evento.detalhe ?? null,
     });
@@ -163,6 +174,8 @@ export async function registrarDoCliente(
       para: evento.para ?? null,
       ator_id: null,
       ator_nome: nomeDoCliente,
+      // Cliente não tem cargo na equipe — o `ator_tipo` já diz o que ele é.
+      ator_cargo: null,
       ator_tipo: "cliente",
       detalhe: evento.detalhe ?? null,
     });
