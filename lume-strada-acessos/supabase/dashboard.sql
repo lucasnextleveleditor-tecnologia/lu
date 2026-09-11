@@ -1,5 +1,5 @@
 -- ============================================================================
--- Lume Strada Filmes — Dashboard Geral & Calendário (Captações/Entregas)
+-- Creator Suite — Dashboard Geral & Calendário (Captações/Entregas)
 -- ============================================================================
 -- Rode DEPOIS de `producao.sql` (precisa da tabela `prod_tarefas` já
 -- existir). Idempotente — seguro rodar de novo.

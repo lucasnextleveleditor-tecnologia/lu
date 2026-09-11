@@ -1,5 +1,5 @@
 -- ============================================================================
--- Lume Strada Filmes — Módulo Comercial (Pré-vendas / CRM)
+-- Creator Suite — Módulo Comercial (Pré-vendas / CRM)
 -- ============================================================================
 -- Rode DEPOIS de `schema.sql` (precisa de `public.is_admin()`, `profiles` e
 -- `set_updated_at()`) e, de preferência, depois de `producao.sql` — o

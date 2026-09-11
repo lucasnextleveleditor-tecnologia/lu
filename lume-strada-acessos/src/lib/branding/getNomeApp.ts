@@ -2,7 +2,7 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 /** Nome genérico usado enquanto ninguém personalizou nada em Aparência (mesmo default de `companies.nome_app`, ver `supabase/companies-nome-app.sql`) — nunca o nome de uma empresa específica. */
-export const NOME_APP_PADRAO = "App Gestão";
+export const NOME_APP_PADRAO = "Creator Suite";
 
 /**
  * Lê `companies.nome_app` da empresa de quem está logado — usado pela

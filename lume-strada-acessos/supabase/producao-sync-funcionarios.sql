@@ -1,5 +1,5 @@
 -- ============================================================================
--- Lume Strada Filmes — Sincroniza Equipe (Cadastros) → Responsável (Produção)
+-- Creator Suite — Sincroniza Equipe (Cadastros) → Responsável (Produção)
 -- ============================================================================
 -- Rode DEPOIS de `schema.sql`, `cadastros.sql` e `producao.sql` já terem
 -- rodado (precisa de `public.equipe_membros` e `public.prod_funcionarios`

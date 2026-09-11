@@ -8,7 +8,7 @@ export interface CompanyRow {
    * Nome exibido pro time/clientes DENTRO do app (sidebar do admin, header
    * do cliente) — ver `supabase/companies-nome-app.sql`. Independente de
    * `nome`: o admin da empresa compradora edita isso em Aparência, sem
-   * tocar no registro da licença. Default "App Gestão".
+   * tocar no registro da licença. Default "Creator Suite".
    */
   nome_app: string;
   status: StatusEmpresa;

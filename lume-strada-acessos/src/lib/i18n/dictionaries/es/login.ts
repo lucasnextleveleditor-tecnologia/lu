@@ -4,7 +4,7 @@ export const login: LoginDict = {
   convitePrompt: "¿Es tu primer acceso? Entra con el correo registrado y la contraseña provisional que recibiste. Podrás crear una contraseña nueva justo después de entrar.",
   emailLabel: "Correo electrónico",
   senhaLabel: "Contraseña",
-  emailPlaceholder: "tu@lumestrada.com",
+  emailPlaceholder: "tu@empresa.com",
   senhaPlaceholder: "••••••••",
   entrar: "Entrar",
   entrando: "Entrando...",

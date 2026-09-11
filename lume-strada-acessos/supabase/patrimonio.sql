@@ -1,5 +1,5 @@
 -- ============================================================================
--- Lume Strada Filmes — Evolução do Inventário & Patrimônio (inteligência
+-- Creator Suite — Evolução do Inventário & Patrimônio (inteligência
 -- financeira: valor pago, valor atual, depreciação).
 -- ============================================================================
 -- Rode isto no seu projeto Supabase JÁ EXISTENTE (que já tem `itens_inventario`

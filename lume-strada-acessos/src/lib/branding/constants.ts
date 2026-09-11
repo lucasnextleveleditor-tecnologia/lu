@@ -27,7 +27,7 @@ export const DEFAULT_BRANDING: BrandingConfigRow = {
   login_logo_url: null,
   login_logo_light_url: null,
   login_bg_preset: "grain",
-  login_title: "App Gestão",
+  login_title: "Creator Suite",
   login_subtitle: "Acesso a clientes e projetos",
   login_box_position: "centro",
   theme_preset: "cinematic_dark",
@@ -59,7 +59,7 @@ export const THEME_PRESETS: ThemePresetDef[] = [
   {
     key: "cinematic_dark",
     label: "Cinematic Dark",
-    descricao: "Padrão da Lume — âmbar sobre preto quase absoluto.",
+    descricao: "Padrão do sistema — âmbar sobre preto quase absoluto.",
     primaryColor: "#d4a24e",
     accentColor: "#e8bd72",
   },

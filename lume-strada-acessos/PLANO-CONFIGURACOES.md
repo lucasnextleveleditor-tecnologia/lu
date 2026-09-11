@@ -1,7 +1,7 @@
 # `/admin/configuracoes` — o que já existe, o que falta, e como construir
 
 Levantamento de 09/09/2026 cruzando **Floow Studio** (referência de UX, logado como "Estúdio de José"),
-**o código no GitHub** (`lucasnextleveleditor-tecnologia/lu` → `lume-strada-acessos`),
+**o código no GitHub** (`seu-usuario/seu-repositorio` → `lume-strada-acessos`),
 **o Supabase** (projeto `ifoggohkikwtnnhmhwoe`) e **o Vercel** (projeto `lu` → `lu-xi.vercel.app`, branch `main`).
 
 > ⚠️ **A primeira conclusão muda o plano.** O `plano-multi-tenant-e-vendas.md` diz que "hoje o sistema é de uso único" e que a Fase 1 (base de tenant + RLS) ainda precisa ser feita. **Isso está desatualizado.** A migração multi-tenant já foi aplicada em produção em 19/08/2026 e está documentada em `MIGRACAO-MULTI-TENANT.md`. O que sobrou não é uma fase — é um resíduo, e ele está só num lugar.
@@ -125,7 +125,7 @@ Engrenagem fixa no rodapé da sidebar do `AdminShell`, substituindo o item "Apar
 `supabase/branding-por-empresa.sql`, no mesmo padrão idempotente dos outros arquivos:
 
 1. `alter table branding_config add column company_id uuid references companies(id) on delete cascade;`
-2. Backfill: a linha singleton atual vira a linha da **Lume Strada Filmes**; uma linha nova por empresa restante, com os defaults.
+2. Backfill: a linha singleton atual vira a linha da **Creator Suite**; uma linha nova por empresa restante, com os defaults.
 3. Índice único por empresa; aposentar a coluna `singleton` e o `BRANDING_CONFIG_ID` fixo em `lib/branding/constants.ts`.
 4. RLS nova:
    - `UPDATE` → `is_admin() and company_id = current_company_id()` *(fecha o furo atual)*

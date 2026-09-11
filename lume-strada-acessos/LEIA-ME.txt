@@ -29,7 +29,7 @@ src/app/api/whatsapp/webhook/route.ts
 supabase/whatsapp-multitenant-fix.sql   (já aplicado no banco — só documentação)
 
 --------------------------------------------------------------------------
-3) Nome do App (nunca mais "Lume Strada Filmes" em lugar nenhum visível)
+3) Nome do App (nunca mais "Creator Suite" em lugar nenhum visível)
 --------------------------------------------------------------------------
 src/components/admin/AdminShell.tsx              -> sidebar do admin
 src/app/admin/layout.tsx                          -> busca nome_app

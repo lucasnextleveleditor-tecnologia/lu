@@ -1,5 +1,5 @@
 -- ============================================================================
--- Lume Strada Filmes — Tráfego & Metas: aba Info-Produtos e Metas Líquidas
+-- Creator Suite — Tráfego & Metas: aba Info-Produtos e Metas Líquidas
 -- ============================================================================
 -- Nova ABA dentro do módulo "Tráfego & Metas" já existente (mesmo item de
 -- menu, mesma permissão `requireModulo("trafego")`) — NÃO mexe em nada do

@@ -1,6 +1,6 @@
-# Lume Strada Filmes — Painel Interno (Agência Hub)
+# Creator Suite — Painel Interno (Agência Hub)
 
-Sistema interno da Lume Strada Filmes: um único painel dark para a equipe
+Sistema interno da Creator Suite: um único painel dark para a equipe
 gerenciar clientes e o próprio acesso deles à plataforma, o financeiro da
 agência (contas, cartões, transações, faturas), a produção de vídeo (Kanban
 de tarefas, briefing, entregas versionadas com aprovação do cliente), o funil
@@ -145,7 +145,7 @@ AUDITORIA.md                     # Relatório de auditoria do projeto (seguranç
 ## Decisões de projeto (vale ler antes de customizar)
 
 - **Single-tenant de propósito.** Sem `company_id`, sem isolamento
-  multi-cliente-da-Lume-Strada — é a ferramenta interna de UMA agência.
+  multi-cliente-da-Creator-Suite — é a ferramenta interna de UMA agência.
   Simplifica RLS, simplifica todo o resto.
 - **Status nunca é uma coluna gravada.** `active` + `expires_at` são os dois
   únicos campos reais de acesso; "Ativo / Inativo / Expirado" é sempre
@@ -251,7 +251,7 @@ Ainda não existe nenhum usuário. No painel do Supabase:
 1. **Authentication → Users → Add user** — crie seu usuário com e-mail e senha.
 2. No **SQL Editor**, rode (trocando o e-mail):
    ```sql
-   update public.profiles set role = 'admin' where email = 'voce@lumestrada.com';
+   update public.profiles set role = 'admin' where email = 'voce@empresa.com';
    ```
 3. Faça login em `/login` — você cai direto em `/admin`.
 

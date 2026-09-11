@@ -1,5 +1,5 @@
 -- ============================================================================
--- Lume Strada Filmes — Sistema de Gestão de Clientes e Acessos
+-- Creator Suite — Sistema de Gestão de Clientes e Acessos
 -- Schema do banco de dados (Supabase / PostgreSQL)
 -- ============================================================================
 -- Como usar:
@@ -457,7 +457,7 @@ create policy "branding_bucket_admin_delete" on storage.objects
 --    user"), crie o seu próprio usuário com e-mail + senha.
 -- 2. Volte aqui no SQL Editor e rode (trocando o e-mail):
 --
---      update public.profiles set role = 'admin' where email = 'voce@lumestrada.com';
+--      update public.profiles set role = 'admin' where email = 'voce@empresa.com';
 --
 -- 3. Pronto — faça login em /login com esse e-mail/senha e você cai direto
 --    em /admin. A partir daí, todo novo admin ou cliente pode ser gerenciado

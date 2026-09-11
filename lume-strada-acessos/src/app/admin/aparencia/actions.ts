@@ -59,7 +59,7 @@ export async function uploadBrandingAsset(campo: CampoUpload, formData: FormData
 }
 
 /**
- * Desvincula um asset (volta pro padrão da Lume) sem apagar o arquivo do
+ * Desvincula um asset (volta pro padrão do sistema) sem apagar o arquivo do
  * bucket — como só a URL pública é guardada (não o caminho do objeto),
  * remover o arquivo em si fica pra uma limpeza manual do bucket no painel
  * do Supabase, se o admin quiser; a aplicação nunca aponta mais pra ele.

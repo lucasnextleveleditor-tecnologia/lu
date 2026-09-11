@@ -1,5 +1,5 @@
 -- ============================================================================
--- Lume Strada Filmes — Migração para Multi-Tenant (SaaS)
+-- Creator Suite — Migração para Multi-Tenant (SaaS)
 -- ============================================================================
 -- Transforma o sistema de "ferramenta interna da agência" para "SaaS que a
 -- agência vende pra outras empresas". Cada empresa compradora (`companies`)
@@ -25,7 +25,7 @@
 -- de verdade (o admin atual do sistema) — é ele que vira o primeiro
 -- SUPER_ADMIN. Todo o resto dos dados que já existem no banco (seus próprios
 -- clientes, tarefas, leads, financeiro etc.) é automaticamente migrado para
--- uma empresa "Lume Strada Filmes" criada por este script — nada se perde.
+-- uma empresa "Creator Suite" criada por este script — nada se perde.
 --
 -- Idempotente — seguro rodar de novo (o PASSO 0 e o backfill não duplicam
 -- nada na segunda execução).
@@ -94,7 +94,7 @@ alter table public.profiles add constraint profiles_role_check
 create index if not exists profiles_company_id_idx on public.profiles (company_id);
 
 -- ----------------------------------------------------------------------------
--- 2.1 Backfill — cria a empresa "Lume Strada Filmes" (a agência dona do
+-- 2.1 Backfill — cria a empresa "Creator Suite" (a agência dona do
 -- software) e migra TODO mundo que já existe no banco pra ela, exceto quem
 -- vira super_admin no próximo passo. `on conflict` não existe aqui de
 -- propósito (não há chave única em `nome`) — a proteção contra duplicar numa
@@ -105,11 +105,11 @@ do $$
 declare
   v_empresa_id uuid;
 begin
-  select id into v_empresa_id from public.companies where nome = 'Lume Strada Filmes' limit 1;
+  select id into v_empresa_id from public.companies where nome = 'Creator Suite' limit 1;
 
   if v_empresa_id is null then
     insert into public.companies (nome, status)
-    values ('Lume Strada Filmes', 'ativo')
+    values ('Creator Suite', 'ativo')
     returning id into v_empresa_id;
   end if;
 
@@ -270,7 +270,7 @@ create policy "companies_select_own" on public.companies
 --      — é isso que resolve o requisito de o front-end NUNCA precisar passar
 --      company_id manualmente num INSERT: o Postgres resolve sozinho, pelo
 --      JWT/sessão de quem está inserindo);
---   b) UPDATE ... SET company_id = <empresa Lume Strada> WHERE company_id IS
+--   b) UPDATE ... SET company_id = <empresa Creator Suite> WHERE company_id IS
 --      NULL (backfill dos dados que já existem);
 --   c) SET NOT NULL;
 --   d) índice em company_id (toda query operacional passa a filtrar por ele).
@@ -279,7 +279,7 @@ do $$
 declare
   v_empresa_id uuid;
 begin
-  select id into v_empresa_id from public.companies where nome = 'Lume Strada Filmes' limit 1;
+  select id into v_empresa_id from public.companies where nome = 'Creator Suite' limit 1;
 
   -- Cadastros
   alter table public.clientes add column if not exists company_id uuid references public.companies(id) on delete cascade default public.current_company_id();
@@ -461,8 +461,8 @@ create unique index if not exists whatsapp_contatos_company_telefone_idx on publ
 
 -- `whatsapp_sessoes` era SINGLETON global (uma linha só pro sistema
 -- inteiro) — agora vira "uma linha só POR EMPRESA". Remove a trava antiga e
--- cria a nova; a linha que já existia (da Lume Strada) continua valendo como
--- a sessão da empresa Lume Strada Filmes.
+-- cria a nova; a linha que já existia (da Creator Suite) continua valendo como
+-- a sessão da empresa Creator Suite.
 alter table public.whatsapp_sessoes drop constraint if exists whatsapp_sessoes_singleton_check;
 alter table public.whatsapp_sessoes drop constraint if exists whatsapp_sessoes_singleton_key;
 drop index if exists whatsapp_sessoes_singleton_key;

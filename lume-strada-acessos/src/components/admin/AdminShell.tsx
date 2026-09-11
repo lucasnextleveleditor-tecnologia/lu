@@ -204,7 +204,7 @@ interface AdminShellProps {
   fotoUrl: string | null;
   /** Quanto a conta já ocupa. `null` quando a medição falhou — a barra some, o painel segue. */
   armazenamento: { usado: string; limite: string; fracao: number } | null;
-  /** Nome do APP mostrado no topo da sidebar (`companies.nome_app`, editável em Aparência) — nunca o nome literal de uma empresa específica. Default "App Gestão". */
+  /** Nome do APP mostrado no topo da sidebar (`companies.nome_app`, editável em Aparência) — nunca o nome literal de uma empresa específica. Default "Creator Suite". */
   nome: string;
   email: string;
   /** Não usado mais para o estado inicial da sidebar (ver `hover` abaixo) — mantido só pra não quebrar a assinatura de quem chama (`admin/layout.tsx`) e o campo em Aparência que ainda existe no banco. */

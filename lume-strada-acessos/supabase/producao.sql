@@ -1,5 +1,5 @@
 -- ============================================================================
--- Lume Strada Filmes — Módulo B: Produção / Tarefas
+-- Creator Suite — Módulo B: Produção / Tarefas
 -- ============================================================================
 -- Rode DEPOIS de `schema.sql` (precisa de `public.is_admin()`, da tabela
 -- `profiles` e da função `public.set_updated_at()` já existirem). Idempotente

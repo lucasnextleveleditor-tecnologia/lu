@@ -26,7 +26,7 @@ const TONS = [
 function iniciais(nome: string): string {
   const partes = nome.trim().split(/\s+/).filter(Boolean);
   if (partes.length === 0) return "?";
-  // Primeira e ÚLTIMA, não as duas primeiras: "Lucas Melo Silva" é LS para
+  // Primeira e ÚLTIMA, não as duas primeiras: "Ana Maria Souza" é LS para
   // quem o conhece, não LM.
   const primeira = partes[0]?.[0] ?? "";
   const ultima = partes.length > 1 ? (partes[partes.length - 1]?.[0] ?? "") : "";

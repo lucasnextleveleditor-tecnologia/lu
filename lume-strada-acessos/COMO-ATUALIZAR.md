@@ -10,7 +10,7 @@ Guia rápido pra você não se perder da próxima vez que eu (ou outra sessão d
 
 1. **Me peça a mudança** ("muda o texto X", "ajusta a cor Y" etc.)
 2. **Eu aviso exatamente o que mudou** — geralmente te mando de volta o arquivo específico que foi alterado, ou o zip inteiro se forem muitas mudanças de uma vez
-3. **Vá no GitHub**, no seu repositório (`lucasnextleveleditor-tecnologia/lu`)
+3. **Vá no GitHub**, no seu repositório (`seu-usuario/seu-repositorio`)
 4. **Entre na pasta certa**: clique em `lume-strada-acessos` até chegar exatamente na mesma pastinha onde o arquivo alterado vive (ex: se mudou `src/app/login/page.tsx`, entra em `lume-strada-acessos` → `src` → `app` → `login`)
 5. Clique em **"Add file" → "Upload files"** (ou arraste o arquivo direto pra tela)
 6. Arraste o(s) arquivo(s) que eu te mandei — o GitHub reconhece que já existe um arquivo com esse nome ali e vai **substituir** ele

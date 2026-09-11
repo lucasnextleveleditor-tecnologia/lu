@@ -1,5 +1,5 @@
 -- ============================================================================
--- Lume Strada Filmes — Módulo Central de Cadastros (Clientes & Equipe) +
+-- Creator Suite — Módulo Central de Cadastros (Clientes & Equipe) +
 -- RBAC por Funcionário
 -- ============================================================================
 -- Rode DEPOIS de `schema.sql`. Idempotente — seguro rodar de novo. Pode

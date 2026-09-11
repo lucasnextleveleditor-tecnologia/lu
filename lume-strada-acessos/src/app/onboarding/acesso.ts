@@ -78,7 +78,7 @@ export async function buscarOnboardingPorToken(token: string): Promise<AcessoOnb
   return {
     onboarding,
     clienteNome: clienteRes.data?.nome ?? "",
-    nomeApp: empresaRes.data?.nome_app || "App Gestão",
+    nomeApp: empresaRes.data?.nome_app || "Creator Suite",
   };
 }
 

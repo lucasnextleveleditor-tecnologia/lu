@@ -19,3 +19,6 @@ out/
 
 # Pacotes temporários deixados por uploads/exports manuais.
 *.zip
+
+# Restos de refatoração aguardando exclusão manual — nunca versionados.
+_to_delete/

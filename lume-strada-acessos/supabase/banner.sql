@@ -1,5 +1,5 @@
 -- ============================================================================
--- Lume Strada Filmes — Aparência: Banner de Destaque
+-- Creator Suite — Aparência: Banner de Destaque
 -- ============================================================================
 -- Rode DEPOIS de `schema.sql` (precisa de `branding_config` já existir).
 -- Idempotente — seguro rodar de novo.

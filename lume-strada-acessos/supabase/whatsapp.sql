@@ -1,5 +1,5 @@
 -- ============================================================================
--- Lume Strada Filmes — Módulo WhatsApp (Omnichannel / Inbox)
+-- Creator Suite — Módulo WhatsApp (Omnichannel / Inbox)
 -- ============================================================================
 -- Rode DEPOIS de `schema.sql` (precisa de `public.is_admin()`, `profiles` e
 -- `set_updated_at()`) e depois de `comercial.sql` (o botão "Adicionar ao

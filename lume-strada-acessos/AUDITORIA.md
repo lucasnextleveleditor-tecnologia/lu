@@ -1,4 +1,4 @@
-# Auditoria do projeto — Lume Strada Filmes
+# Auditoria do projeto — Creator Suite
 
 Análise completa do sistema (8 módulos administrativos, 9 arquivos de schema Supabase, ~1.770 linhas de Server Actions) feita em 14/08/2026 por 5 revisões paralelas focadas em: segurança/RLS, modelo de dados, consistência de UI/UX, lacunas funcionais por módulo, e performance/operação. Este documento consolida os achados, remove duplicatas e prioriza.
 

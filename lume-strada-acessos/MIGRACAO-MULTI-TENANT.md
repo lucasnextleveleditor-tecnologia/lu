@@ -4,7 +4,7 @@ Este documento explica **por que** o sistema foi refatorado para multi-tenant e 
 
 ## 1. O que muda, em uma frase
 
-O sistema deixa de ser "a ferramenta interna da Lume Strada Filmes" e passa a ser "um SaaS que a Lume Strada vende para outras agências/empresas". Cada empresa compradora (`companies`) tem os próprios dados — clientes, tarefas, financeiro, tráfego, inventário, WhatsApp — completamente isolados dos de qualquer outra empresa, **inclusive da própria Lume Strada**, que a partir de agora é só mais uma linha na tabela `companies`.
+O sistema deixa de ser "a ferramenta interna da Creator Suite" e passa a ser "um SaaS que a Creator Suite vende para outras agências/empresas". Cada empresa compradora (`companies`) tem os próprios dados — clientes, tarefas, financeiro, tráfego, inventário, WhatsApp — completamente isolados dos de qualquer outra empresa, **inclusive da própria Creator Suite**, que a partir de agora é só mais uma linha na tabela `companies`.
 
 ## 2. Os três papéis
 
@@ -91,8 +91,8 @@ O painel `/super-admin` foi entregue com textos em português direto no componen
 Rodar `supabase/multitenant-migration.sql` (depois de trocar o e-mail placeholder no "PASSO 0" pelo seu e-mail de login real):
 
 1. Cria a tabela `companies`.
-2. Cria automaticamente uma empresa **"Lume Strada Filmes"** e migra todos os perfis/dados existentes para ela — exceto o seu, que vira `super_admin` sem empresa. Nada se perde; a agência continua funcionando exatamente como hoje, só que agora como "empresa nº 1" dentro do próprio SaaS.
-3. Adiciona `company_id` a todas as 27 tabelas operacionais, faz o backfill para a empresa "Lume Strada Filmes" e só então marca a coluna como obrigatória (`not null`) — a ordem importa: marcar como obrigatória antes do backfill quebraria a migração no meio.
+2. Cria automaticamente uma empresa **"Creator Suite"** e migra todos os perfis/dados existentes para ela — exceto o seu, que vira `super_admin` sem empresa. Nada se perde; a agência continua funcionando exatamente como hoje, só que agora como "empresa nº 1" dentro do próprio SaaS.
+3. Adiciona `company_id` a todas as 27 tabelas operacionais, faz o backfill para a empresa "Creator Suite" e só então marca a coluna como obrigatória (`not null`) — a ordem importa: marcar como obrigatória antes do backfill quebraria a migração no meio.
 4. Reescreve todas as políticas de RLS existentes para incluir `company_id = current_company_id()`.
 5. Corrige 3 views (`fin_contas_saldo`, `fin_cartoes_limite`, `prod_entregas_atual`) que estavam marcadas como "Security Definer View" pelo auditor de segurança do Supabase — sem essa correção, elas vazariam dados de todas as empresas, ignorando RLS por completo.
 6. Endurece a função `pagar_fatura()` (que roda com privilégio elevado) para confirmar que o cartão e a conta de pagamento pertencem à empresa de quem está chamando, antes de mexer em qualquer coisa.
@@ -103,11 +103,11 @@ O arquivo é idempotente (seguro rodar mais de uma vez) e roda como uma transaç
 
 ## 7. Status: JÁ APLICADA em produção
 
-Esta migração **já foi aplicada** no banco de produção (projeto `ifoggohkikwtnnhmhwoe`), a seu pedido explícito, em 19/08/2026. O "PASSO 0" foi resolvido usando `lucasmelo748@icloud.com` — o único perfil com `role = 'admin'` encontrado no banco antes da migração — que agora é `super_admin`.
+Esta migração **já foi aplicada** no banco de produção (projeto `ifoggohkikwtnnhmhwoe`), a seu pedido explícito, em 19/08/2026. O "PASSO 0" foi resolvido usando `admin@empresa.com` — o único perfil com `role = 'admin'` encontrado no banco antes da migração — que agora é `super_admin`.
 
 Verificado após a aplicação:
-- `lucasmelo748@icloud.com` está com `role = 'super_admin'` e `company_id = null`.
-- Existe 1 empresa, "Lume Strada Filmes", e todo o resto dos perfis/dados existentes foi migrado para ela (0 perfis órfãos sem empresa).
+- `admin@empresa.com` está com `role = 'super_admin'` e `company_id = null`.
+- Existe 1 empresa, "Creator Suite", e todo o resto dos perfis/dados existentes foi migrado para ela (0 perfis órfãos sem empresa).
 - RLS está ativo (`rowsecurity = true`) em `companies` e em todas as tabelas operacionais verificadas.
 - `get_advisors` (segurança) não mostrou nenhum problema novo além do padrão já existente antes da migração (as mesmas funções `SECURITY DEFINER` expostas via RPC que `is_admin()`/`is_staff()` já tinham — comportamento esperado, não uma regressão).
 
@@ -134,7 +134,7 @@ De quebra, corrigido um bug real encontrado ao mexer nesse código: `converterLe
 
 ### 8.1. Bug MAIOR encontrado logo depois, testando o link novo: nenhum convite (nem o antigo por e-mail) conseguia terminar em "definir senha"
 
-Testando o link copiável pela primeira vez (empresa "Lucas Filmmaker", e-mail `contatostradafilmes@gmail.com`), o clique caiu direto de volta em `/login` — sem nenhum aviso, sem a tela de "definir senha". Investigando pelos logs do Supabase (`auth_logs`): o clique no link CHEGOU a verificar com sucesso no lado do Supabase (`email_confirmed_at` foi gravado), mas a rota `src/app/auth/callback/route.ts` nunca recebeu o que precisava pra criar a sessão — e olhando os `edge_logs`, a chamada `/auth/v1/token` (que trocaria o código pela sessão) **nunca aconteceu**.
+Testando o link copiável pela primeira vez (empresa "Empresa Exemplo", e-mail `teste@empresa.com`), o clique caiu direto de volta em `/login` — sem nenhum aviso, sem a tela de "definir senha". Investigando pelos logs do Supabase (`auth_logs`): o clique no link CHEGOU a verificar com sucesso no lado do Supabase (`email_confirmed_at` foi gravado), mas a rota `src/app/auth/callback/route.ts` nunca recebeu o que precisava pra criar a sessão — e olhando os `edge_logs`, a chamada `/auth/v1/token` (que trocaria o código pela sessão) **nunca aconteceu**.
 
 Causa raiz: `app/auth/callback/route.ts` só sabia ler `?code=...` (fluxo PKCE, via `exchangeCodeForSession`) — mas o link que `generateLink`/`inviteUserByEmail` geram NUNCA usa PKCE (é um convite criado do lado do servidor, com a Service Role; não existe "o mesmo navegador que iniciou o fluxo" pra guardar o `code_verifier` que o PKCE exige). Confirmado na própria documentação do Supabase (seção "Redirecting the user to a server-side endpoint" do guia de Email Templates): o link padrão devolve a sessão nos **fragmentos da URL** (`#access_token=...&refresh_token=...`), e fragmento (depois do `#`) **nunca chega no servidor** — só em JavaScript rodando no navegador. Resultado prático: `code` sempre vinha `null` na nossa rota, ela caía direto no fallback `/login?erro=convite_invalido` — e como `LoginForm` nunca lia esse `erro` (outro gap encontrado junto), a pessoa só via a tela de login comum, sem NENHUMA pista do que tinha acontecido. Isso significa que **nenhum convite completou esse fluxo até hoje** nesta migração — o e-mail automático antigo tinha esse mesmo defeito, só que nunca foi percebido porque os bugs anteriores (localhost, Redirect URLs, rate limit) sempre quebravam antes de chegar nessa etapa.
 
@@ -147,7 +147,7 @@ Bônus: como esse novo caminho nunca passa pelo `/auth/v1/verify` do Supabase, e
 
 Também corrigido, de quebra: `LoginForm` (`src/components/auth/LoginForm.tsx`) agora lê `?erro=convite_invalido` e mostra uma mensagem de verdade ("Esse link de convite já foi usado ou expirou...") em vez de deixar a pessoa numa tela de login muda sem explicação nenhuma.
 
-A conta de teste `contatostradafilmes@gmail.com` (que ficou "presa" de novo — confirmada, mas sem senha, com o link já queimado) foi apagada direto no banco (mesmo procedimento de antes: `delete from auth.users`, com cascade pro `profiles`) pra permitir reteste limpo. A empresa "Lucas Filmmaker" foi conferida e continua intacta.
+A conta de teste `teste@empresa.com` (que ficou "presa" de novo — confirmada, mas sem senha, com o link já queimado) foi apagada direto no banco (mesmo procedimento de antes: `delete from auth.users`, com cascade pro `profiles`) pra permitir reteste limpo. A empresa "Empresa Exemplo" foi conferida e continua intacta.
 
 ## 9. Guinada final: convite por link/token abandonado — "Gerar acesso" agora cria login com senha provisória "123"
 
@@ -182,7 +182,7 @@ Pra garantir que nenhum cliente perca dados enquanto estiver com a licença ativ
 - **`public.backup_snapshot_json()`** (função SQL, migração `backup_snapshot_function` aplicada direto no projeto Supabase) percorre dinamicamente toda tabela do schema `public` (`information_schema.tables`) e devolve um único JSON com o conteúdo inteiro de cada uma — clientes, financeiro, produção, comercial, tráfego, inventário, WhatsApp, perfis e empresas, de todas as empresas de uma vez. Por ser dinâmica (não tem lista de tabela fixa no código), qualquer tabela nova criada no futuro entra automaticamente no backup seguinte, sem precisar tocar nessa função de novo.
 - **Nunca inclui login/senha** — a função só lê o schema `public`; `auth.users`/`auth.identities` (onde ficam e-mail confirmado, hash de senha etc.) ficam de fora de propósito. Um backup vazado exporia dados de clientes (nome, financeiro, tarefas...), nunca credenciais de acesso.
 - **Só quem acessa o Postgres diretamente com privilégio elevado consegue chamar essa função.** Toda função do schema `public` no Supabase vira automaticamente um endpoint REST (`/rest/v1/rpc/backup_snapshot_json`), e por padrão o Postgres libera `EXECUTE` pra `PUBLIC` — sem cuidado, isso deixaria QUALQUER cliente logado (de qualquer empresa) baixar o banco inteiro de todo mundo pela API. Por isso a migração já aplica `revoke execute ... from public/anon/authenticated` logo depois de criar a função — confirmado via `has_function_privilege`, `anon`/`authenticated` não conseguem chamá-la.
-- **Uma Tarefa Agendada** ("Backup diário Lume Strada (banco de dados → Drive)", cron `0 9,15,21,3 * * *` em UTC = 06h/12h/18h/00h em Brasília) roda `select public.backup_snapshot_json();` a cada disparo, pega o JSON devolvido e sobe pro Google Drive (pasta `App Gestão`, ID `16Wt8c9zPiOqZgcE9EBfT3eJtED3Xa3A0`) com `mcp__Google_Drive__create_file`, nomeando o arquivo `backup-lume-strada-AAAA-MM-DD_HHhMM-brasilia.json`. `disableConversionToGoogleType: true` impede o Drive de converter o `.json` num Google Doc (o que quebraria o formato).
+- **Uma Tarefa Agendada** ("Backup diário Creator Suite (banco de dados → Drive)", cron `0 9,15,21,3 * * *` em UTC = 06h/12h/18h/00h em Brasília) roda `select public.backup_snapshot_json();` a cada disparo, pega o JSON devolvido e sobe pro Google Drive (pasta `App Gestão`, ID `16Wt8c9zPiOqZgcE9EBfT3eJtED3Xa3A0`) com `mcp__Google_Drive__create_file`, nomeando o arquivo `backup-creator-suite-AAAA-MM-DD_HHhMM-brasilia.json`. `disableConversionToGoogleType: true` impede o Drive de converter o `.json` num Google Doc (o que quebraria o formato).
 - **Retenção: mantém tudo pra sempre**, sem limpeza automática — decisão explícita (a alternativa considerada, apagar backups com mais de 30 dias, foi descartada a pedido). Com 4 backups/dia isso acumula ~120 arquivos/mês na pasta — se um dia quiser limpar, é manual.
 - **Silenciosa por padrão.** A tarefa não manda nenhuma mensagem quando dá tudo certo (é uma rotina 4x/dia, não faz sentido notificar toda vez) — só produz uma mensagem (e o sistema de notificação do dono pode alertar) se algum passo falhar (erro de SQL, upload, etc.).
 
