@@ -5,7 +5,7 @@ import Link from "next/link";
 import { DragDropContext, Draggable, Droppable, type DropResult } from "@hello-pangea/dnd";
 import type { Compromisso, AgendaItem } from "@/lib/types/agenda";
 import type { TarefaAgendaItem, LeadAgendaItem } from "@/lib/types/dashboard";
-import type { ClienteRow } from "@/lib/types/cadastros";
+import { clienteRecemCriado, type ClienteRow } from "@/lib/types/cadastros";
 import { leadEstaAberto } from "@/lib/utils/comercial";
 import { addMeses, fmtHora, fmtMesAno, gradeDoMes, hojeISO, TIPO_COMPROMISSO_META } from "@/lib/utils/agenda";
 import { moverCompromisso } from "@/app/admin/agenda/actions";
@@ -67,7 +67,7 @@ export function AgendaCalendario({ compromissos, tarefasAgenda, leadsAgenda, cli
 
   function handleClienteCriado(novo: Pick<ClienteRow, "id" | "nome" | "cor">) {
     setClientes((atual) =>
-      [...atual, { ...novo, documento: null, email: null, telefone: null, nome_responsavel: null, endereco: null, profile_id: null, portal_token: "", created_at: "", updated_at: "" }].sort((a, b) =>
+      [...atual, clienteRecemCriado(novo)].sort((a, b) =>
         a.nome.localeCompare(b.nome)
       )
     );

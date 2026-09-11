@@ -4,6 +4,8 @@ export type StatusContrato = "rascunho" | "enviado" | "visualizado" | "assinado"
 
 export interface ContratoRow {
   id: string;
+  /** Empresa dona do contrato. Precisa estar no tipo porque a assinatura publica roda pela Service Role, sem sessao de onde tirar a empresa. */
+  company_id: string;
   /** Orçamento de origem (aprovado), quando o contrato não é avulso — ver comentário na migração. */
   orcamento_id: string | null;
   tipo_perfil: PerfilOrcamento | null;
@@ -27,6 +29,21 @@ export interface ContratoRow {
   assinado_ip: string | null;
   recusado_em: string | null;
   motivo_recusa: string | null;
+
+  /**
+   * 'sistema' = gerado e assinado aqui (tem clausulas, itens e token).
+   * 'externo' = assinado fora (papel, Clicksign, DocuSign) e anexado na ficha
+   * do cliente; so a capa mais o documento em `arquivo_url` ou `arquivo_path`.
+   * Ver `supabase/contrato-externo.sql`.
+   */
+  origem: "sistema" | "externo";
+  /** Link do documento assinado fora. */
+  arquivo_url: string | null;
+  /** Caminho no bucket privado `contratos`. A leitura e sempre por URL assinada gerada no servidor. */
+  arquivo_path: string | null;
+  /** Data da assinatura feita fora do sistema. Para origem 'sistema' quem vale e `assinado_em`. */
+  assinado_fora_em: string | null;
+
   criado_por: string | null;
   created_at: string;
   updated_at: string;

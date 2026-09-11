@@ -49,6 +49,59 @@ export interface CadastrosDict {
   nomeResponsavelPlaceholder: string;
   enderecoLabel: string;
   enderecoPlaceholder: string;
+
+  // Cadastro completo do cliente: identificacao, endereco em campos
+  // proprios e dados fiscais (ver supabase/cliente-dados-completos.sql).
+  nomeClienteLabel: string;
+  nomeClientePlaceholder: string;
+  nomeClienteAjuda: string;
+  razaoSocialAjuda: string;
+  secaoIdentificacao: string;
+  secaoContato: string;
+  secaoEndereco: string;
+  secaoFiscal: string;
+  cepLabel: string;
+  logradouroLabel: string;
+  numeroLabel: string;
+  complementoLabel: string;
+  bairroLabel: string;
+  inscricaoEstadualLabel: string;
+  inscricaoMunicipalLabel: string;
+  enderecoLegadoAviso: string;
+  editarCadastro: string;
+  semEnderecoCadastrado: string;
+
+  // O contrato do cliente dentro da ficha dele: os gerados aqui e os
+  // assinados fora (ver supabase/contrato-externo.sql).
+  contratosTitulo: string;
+  contratosVazio: string;
+  contratoAbrir: string;
+  contratoAssinadoEm: string;
+  contratoNaoAssinado: string;
+  contratoDoSistema: string;
+  contratoExterno: string;
+  vincularContrato: string;
+  vincularContratoVazio: string;
+  vincular: string;
+  anexarContrato: string;
+  anexar: string;
+  contratoOuEntao: string;
+  contratoTituloLabel: string;
+  contratoTituloPlaceholder: string;
+  contratoDataLabel: string;
+  contratoLinkLabel: string;
+  contratoLinkPlaceholder: string;
+  contratoArquivoLabel: string;
+  removerContrato: string;
+  removerContratoPergunta: string;
+  erroContratoSemTitulo: string;
+  erroContratoSemDocumento: string;
+  erroContratoLinkEArquivo: string;
+  erroContratoLinkInvalido: string;
+  erroContratoArquivoGrande: string;
+  erroContratoArquivoTipo: string;
+  erroContratoJaVinculado: string;
+  erroContratoNaoEncontrado: string;
   corEtiquetaLabel: string;
   corEtiquetaAjuda: string;
   escolherCorAria: string;
@@ -217,6 +270,53 @@ export const cadastros: CadastrosDict = {
   nomeResponsavelPlaceholder: "Quem fala pela conta",
   enderecoLabel: "Endereço Completo",
   enderecoPlaceholder: "Rua, número, bairro, cidade — UF, CEP",
+  nomeClienteLabel: "Nome do Cliente *",
+  nomeClientePlaceholder: "Como a equipe chama esse cliente",
+  nomeClienteAjuda: "É este nome que aparece no calendário, nas tarefas e nos relatórios.",
+  razaoSocialAjuda: "Quem assina o contrato, quando for diferente do nome acima.",
+  secaoIdentificacao: "Identificação",
+  secaoContato: "Contato",
+  secaoEndereco: "Endereço",
+  secaoFiscal: "Dados fiscais",
+  cepLabel: "CEP",
+  logradouroLabel: "Logradouro",
+  numeroLabel: "Número",
+  complementoLabel: "Complemento",
+  bairroLabel: "Bairro",
+  inscricaoEstadualLabel: "Inscrição Estadual",
+  inscricaoMunicipalLabel: "Inscrição Municipal",
+  enderecoLegadoAviso: "Endereço cadastrado antes dos campos separados: {endereco} — preencha os campos abaixo para substituí-lo.",
+  editarCadastro: "Editar cadastro",
+  semEnderecoCadastrado: "Sem endereço cadastrado",
+  contratosTitulo: "Contrato",
+  contratosVazio: "Nenhum contrato vinculado a este cliente.",
+  contratoAbrir: "Abrir",
+  contratoAssinadoEm: "Assinado em {data}",
+  contratoNaoAssinado: "Ainda não assinado",
+  contratoDoSistema: "Gerado aqui",
+  contratoExterno: "Assinado fora",
+  vincularContrato: "Vincular contrato do sistema",
+  vincularContratoVazio: "Nenhum contrato sem cliente para vincular.",
+  vincular: "Vincular",
+  anexarContrato: "Anexar contrato assinado fora",
+  anexar: "Anexar",
+  contratoOuEntao: "ou",
+  contratoTituloLabel: "Título do contrato",
+  contratoTituloPlaceholder: "Contrato de social media 2026",
+  contratoDataLabel: "Assinado em",
+  contratoLinkLabel: "Link do documento",
+  contratoLinkPlaceholder: "https://drive.google.com/...",
+  contratoArquivoLabel: "Ou envie o arquivo (PDF ou imagem, até 20 MB)",
+  removerContrato: "Remover contrato",
+  removerContratoPergunta: "Remover da ficha?",
+  erroContratoSemTitulo: "Dê um título ao contrato.",
+  erroContratoSemDocumento: "Informe o link ou envie o arquivo do contrato.",
+  erroContratoLinkEArquivo: "Escolha uma coisa só: o link ou o arquivo.",
+  erroContratoLinkInvalido: "O link precisa começar com http:// ou https://.",
+  erroContratoArquivoGrande: "O arquivo passa de 20 MB.",
+  erroContratoArquivoTipo: "Aceita PDF, PNG, JPG ou WEBP.",
+  erroContratoJaVinculado: "Este contrato já foi vinculado a outro cliente. Atualize a página.",
+  erroContratoNaoEncontrado: "Contrato não encontrado. Atualize a página.",
   corEtiquetaLabel: "Cor da etiqueta",
   corEtiquetaAjuda: "Aparece na etiqueta deste cliente no Calendário de Produção — escolha uma cor pra identificar ele de relance.",
   escolherCorAria: "Escolher a cor {hex}",
