@@ -25,7 +25,7 @@
 // agencia reconhecer a pessoa.
 const EMAILS_ACESSO_ANTECIPADO: ReadonlySet<string> = new Set([
   "suportelucasfilmmaker@gmail.com",
-  "lucasmeo748@icloud.com",
+  "lucasmelo748@icloud.com",
 ]);
 
 export function temAcessoAntecipado(email: string | null | undefined): boolean {
