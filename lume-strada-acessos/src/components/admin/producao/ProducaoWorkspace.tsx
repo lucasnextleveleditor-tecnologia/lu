@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ComponentType } from "react";
+import { useEffect, useState, type ComponentType } from "react";
+import { useSearchParams } from "next/navigation";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { EntregaComVersoes, FuncionarioRow, SubtarefaRow, TarefaComRelacoes, TipoServicoRow } from "@/lib/types/producao";
 import type { CompromissoResumo } from "@/lib/types/agenda";
@@ -64,6 +65,17 @@ export function ProducaoWorkspace({
   const [novaTarefaData, setNovaTarefaData] = useState<string | undefined>(undefined);
   const [modalConfigAberto, setModalConfigAberto] = useState(false);
   const [tarefaDetalheId, setTarefaDetalheId] = useState<string | null>(null);
+
+  // `?tarefa=` é o endereço que o sino usa: clicar na notificação tem de
+  // ABRIR a peça, não largar a pessoa no Kanban para procurá-la. O efeito
+  // escuta a query (e não só o primeiro render) porque a navegação vinda do
+  // sino acontece com esta tela já montada — trocar só a query não remonta
+  // nada, e sem escutar o modal nunca abriria.
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const alvo = searchParams.get("tarefa");
+    if (alvo) setTarefaDetalheId(alvo);
+  }, [searchParams]);
 
   function abrirNovaTarefa(data?: string) {
     setNovaTarefaData(data);

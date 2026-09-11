@@ -4,8 +4,8 @@ import { useState, useTransition } from "react";
 import type { SubtarefaRow } from "@/lib/types/producao";
 import { criarSubtarefa, removerSubtarefa, toggleSubtarefa } from "@/app/admin/producao/actions";
 import { calcularProgressoSubtarefas } from "@/lib/utils/producao";
-import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { CampoComMencoes } from "@/components/ui/CampoComMencoes";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 export function SubtarefasChecklist({ tarefaId, subtarefas }: { tarefaId: string; subtarefas: SubtarefaRow[] }) {
@@ -77,12 +77,13 @@ export function SubtarefasChecklist({ tarefaId, subtarefas }: { tarefaId: string
       )}
 
       <form onSubmit={handleAdicionar} className="flex gap-2">
-        <Input
-          value={novoTitulo}
-          onChange={(e) => setNovoTitulo(e.target.value)}
-          placeholder={dict.producao.subtarefaPlaceholder}
-          className="flex-1"
-        />
+        <div className="flex-1">
+          <CampoComMencoes
+            value={novoTitulo}
+            onChange={setNovoTitulo}
+            placeholder={dict.producao.subtarefaPlaceholder}
+          />
+        </div>
         <Button type="submit" variant="ghost" disabled={pending} className="shrink-0 px-3 py-2 text-xs">
           {dict.producao.adicionarAbrev}
         </Button>

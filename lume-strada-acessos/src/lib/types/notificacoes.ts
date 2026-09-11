@@ -57,54 +57,40 @@ export interface AvisoParaMim extends AvisoRow {
   visto: boolean;
 }
 
-export const TOM_AVISO: Record<TomAviso, { rotulo: string; cor: string; classe: string }> = {
-  info: { rotulo: "Informativo", cor: "#38bdf8", classe: "text-accent" },
-  atencao: { rotulo: "Atenção", cor: "#f59e0b", classe: "text-status-warning" },
-  critico: { rotulo: "Urgente", cor: "#f43f5e", classe: "text-danger" },
+/**
+ * Cor de cada tom. O RÓTULO não mora aqui: ele é texto de tela e vive no
+ * dicionário (`dict.notificacoes.tom`), como todo o resto. Cor é dado de
+ * marca, igual nos três idiomas; palavra não é.
+ */
+export const TOM_AVISO: Record<TomAviso, { cor: string; classe: string }> = {
+  info: { cor: "#38bdf8", classe: "text-accent" },
+  atencao: { cor: "#f59e0b", classe: "text-status-warning" },
+  critico: { cor: "#f43f5e", classe: "text-danger" },
 };
 
 /**
- * Rótulo curto do tipo, para a linha de cima da notificação no sino.
+ * "há 5 min", "ontem" — data absoluta num sino é ruído: o que importa é se é
+ * recente.
  *
- * Existe para a pessoa entender a natureza do aviso ANTES de ler o texto —
- * "menção" e "tarefa" pedem reações diferentes, e uma lista onde tudo parece
- * igual obriga a ler tudo.
+ * Recebe os textos em vez de embutir: o sino de quem usa o painel em espanhol
+ * não pode dizer "há 5 min" só porque quem escreveu estava em português.
  */
-export const ROTULO_TIPO: Record<TipoNotificacao, string> = {
-  task_assignment: "Tarefa",
-  mention: "Menção",
-  announcement: "Aviso da empresa",
-  contrato: "Contrato",
-  assinatura: "Assinatura",
-  system: "Sistema",
-};
-
-/**
- * Encontra os `@nome` de um texto.
- *
- * A regra de verdade — a que decide quem recebe — mora no banco
- * (`notificar_mencoes`), para valer venha o texto de onde vier. Esta cópia
- * serve à TELA: destacar o que já é menção enquanto se digita, e avisar
- * quantas pessoas serão notificadas antes de enviar.
- */
-export function extrairMencoes(texto: string): string[] {
-  const achados = texto.match(/@([A-Za-zÀ-ÿ0-9_.-]{2,40})/g) ?? [];
-  return Array.from(new Set(achados.map((m) => m.slice(1))));
-}
-
-/** "há 5 min", "ontem" — data absoluta num sino é ruído: o que importa é se é recente. */
-export function tempoRelativo(iso: string): string {
+export function tempoRelativo(
+  iso: string,
+  t: { agora: string; haMinutos: string; haHoras: string; ontem: string; haDias: string },
+  locale: string
+): string {
   const agora = Date.now();
   const quando = new Date(iso).getTime();
   const seg = Math.max(0, Math.floor((agora - quando) / 1000));
 
-  if (seg < 60) return "agora";
+  if (seg < 60) return t.agora;
   const min = Math.floor(seg / 60);
-  if (min < 60) return `há ${min} min`;
+  if (min < 60) return t.haMinutos.replace("{n}", String(min));
   const horas = Math.floor(min / 60);
-  if (horas < 24) return `há ${horas} h`;
+  if (horas < 24) return t.haHoras.replace("{n}", String(horas));
   const dias = Math.floor(horas / 24);
-  if (dias === 1) return "ontem";
-  if (dias < 7) return `há ${dias} dias`;
-  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+  if (dias === 1) return t.ontem;
+  if (dias < 7) return t.haDias.replace("{n}", String(dias));
+  return new Date(iso).toLocaleDateString(locale, { day: "2-digit", month: "short" });
 }

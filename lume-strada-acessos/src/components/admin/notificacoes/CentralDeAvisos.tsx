@@ -11,6 +11,8 @@ import { IconMegaphone, IconBox, IconRotateCcw, IconCheck, IconUsers } from "@/c
 import { BotaoDeAcao, BotaoExcluir } from "@/components/ui/AcoesEmLinha";
 import { IconTrash } from "@/components/ui/icons";
 import { TOM_AVISO, tempoRelativo, type AvisoRow, type PublicoAviso, type TomAviso } from "@/lib/types/notificacoes";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { LOCALE_BCP47 } from "@/lib/i18n/locales";
 import { arquivarAviso, excluirAviso, publicarAviso } from "@/app/admin/configuracoes/avisos-actions";
 
 export interface PessoaDaEquipe {
@@ -41,6 +43,8 @@ export function CentralDeAvisos({
   /** avisoId -> quantas pessoas já marcaram como visto. */
   leiturasPorAviso: Record<string, number>;
 }) {
+  const { dict, locale } = useLocale();
+  const tNotif = dict.notificacoes;
   const router = useRouter();
   const [titulo, setTitulo] = useState("");
   const [mensagem, setMensagem] = useState("");
@@ -140,7 +144,7 @@ export function CentralDeAvisos({
                     )}
                     style={ativo ? { borderColor: meta.cor, backgroundColor: `${meta.cor}1f`, color: meta.cor } : undefined}
                   >
-                    {meta.rotulo}
+                    {tNotif.tom[valor]}
                   </button>
                 );
               })}
@@ -287,14 +291,14 @@ export function CentralDeAvisos({
                     <p className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-semibold text-ink-primary">{aviso.title}</span>
                       <span className="text-[10px] uppercase tracking-wider" style={{ color: meta.cor }}>
-                        {meta.rotulo}
+                        {tNotif.tom[aviso.tone]}
                       </span>
                     </p>
                     <p className="mt-0.5 line-clamp-2 whitespace-pre-line text-[11px] leading-snug text-ink-muted">
                       {aviso.message}
                     </p>
                     <p className="mt-1.5 text-[10px] text-ink-muted">
-                      {tempoRelativo(aviso.created_at)} ·{" "}
+                      {tempoRelativo(aviso.created_at, tNotif, LOCALE_BCP47[locale])} ·{" "}
                       {aviso.target_type === "all" ? "toda a equipe" : `${aviso.target_user_ids.length} pessoa(s)`} ·{" "}
                       {/*
                         Quantos leram, e não só quantos receberam: é a

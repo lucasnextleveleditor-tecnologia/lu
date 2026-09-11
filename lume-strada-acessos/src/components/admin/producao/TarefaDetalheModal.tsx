@@ -11,6 +11,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
+import { CampoComMencoes } from "@/components/ui/CampoComMencoes";
 import { ReferenciasEstiloField, FormatosExportacaoField } from "@/components/admin/producao/BriefingCamposAvancados";
 import { SubtarefasChecklist } from "@/components/admin/producao/SubtarefasChecklist";
 import { EntregasSection } from "@/components/admin/producao/EntregasSection";
@@ -129,9 +130,9 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
       >
         <div className="mb-5 flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <Input
+            <CampoComMencoes
               value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
+              onChange={setTitulo}
               className="border-none bg-transparent px-0 text-base font-semibold focus:ring-0"
             />
             {atrasada && <p className="mt-1 text-xs font-medium text-danger">{dict.producao.tarefaAtrasada}</p>}

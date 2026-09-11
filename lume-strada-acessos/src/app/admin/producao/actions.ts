@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { registrar, type EventoRow } from "@/lib/eventos/registrar";
 import { requireModulo, requireQualquerModulo } from "@/lib/auth/requireAdmin";
 import { sanitizarBriefingHtml } from "@/lib/utils/sanitize";
+import { linkDaTarefa, mencionadosEm, notificar, profileDoResponsavel } from "@/lib/notificacoes/notificar";
 import { ehExtensaoPerigosaParaEntrega } from "@/lib/utils/upload";
 import type { PrioridadeTarefa, StatusTarefa } from "@/lib/types/producao";
 
@@ -155,6 +156,75 @@ async function registrarSobreTarefa(
   });
 }
 
+
+// ----------------------------------------------------------------------------
+// O sino, quando uma tarefa é salva.
+//
+// DUAS REGRAS, e as duas existem por causa do mesmo defeito de sino:
+// notificação demais ensina a pessoa a ignorar o sino, e aí a que importava
+// se perde junto.
+//
+// 1. SÓ O QUE MUDOU. Ao editar, avisamos o responsável apenas se ele mudou, e
+//    mencionamos apenas quem AINDA NÃO estava mencionado. Sem isso, corrigir
+//    uma vírgula no briefing tocaria o sino de todo mundo que aparece nele —
+//    toda vez, para sempre.
+//
+// 2. QUEM CRIA TAMBÉM RECEBE. Não pulamos o próprio autor. Quem administra
+//    também executa: cria a tarefa na segunda e vai fazê-la na quinta. Um
+//    sino onde "não está lá" não significa "não tenho nada" não serve de
+//    lista de trabalho — e essa é a única função que ele tem.
+// ----------------------------------------------------------------------------
+async function avisarSobreTarefa(
+  supabase: Awaited<ReturnType<typeof requireModulo>>["supabase"],
+  params: {
+    tarefaId: string;
+    titulo: string;
+    responsavelId: string | null;
+    /** Nulo quando a tarefa está nascendo — aí qualquer responsável é novidade. */
+    responsavelAnterior?: string | null;
+    briefing: string | null;
+    outrosTextos: (string | null)[];
+    /** Os mesmos campos como estavam ANTES, para não repetir menção já avisada. */
+    briefingAnterior?: string | null;
+    outrosTextosAnteriores?: (string | null)[];
+  }
+): Promise<void> {
+  const href = linkDaTarefa(params.tarefaId);
+  const referencia = { referenceId: params.tarefaId, referenceType: "tarefa" as const };
+
+  if (params.responsavelId && params.responsavelId !== (params.responsavelAnterior ?? null)) {
+    const perfil = await profileDoResponsavel(supabase, params.responsavelId);
+    if (perfil) {
+      await notificar(supabase, {
+        userIds: [perfil],
+        tipo: "task_assignment",
+        titulo: params.titulo,
+        href,
+        ...referencia,
+      });
+    }
+  }
+
+  const agora = await mencionadosEm(supabase, [
+    { html: params.briefing },
+    ...params.outrosTextos.map((texto) => ({ texto })),
+  ]);
+  if (agora.length === 0) return;
+
+  const antes =
+    params.briefingAnterior === undefined && params.outrosTextosAnteriores === undefined
+      ? []
+      : await mencionadosEm(supabase, [
+          { html: params.briefingAnterior ?? null },
+          ...(params.outrosTextosAnteriores ?? []).map((texto) => ({ texto })),
+        ]);
+
+  const novos = agora.filter((id) => !antes.includes(id));
+  if (novos.length === 0) return;
+
+  await notificar(supabase, { userIds: novos, tipo: "mention", titulo: params.titulo, href, ...referencia });
+}
+
 export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
   try {
     const { supabase, user } = await requireModulo("producao");
@@ -191,6 +261,14 @@ export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
       titulo: input.titulo.trim(),
     });
 
+    await avisarSobreTarefa(supabase, {
+      tarefaId: data!.id as string,
+      titulo: input.titulo.trim(),
+      responsavelId: input.responsavelId,
+      briefing: input.briefing,
+      outrosTextos: [input.formatosExportacao, input.referenciasEstilo],
+    });
+
     revalidatePath(PATH);
     return { ok: true, id: data!.id as string };
   } catch (err) {
@@ -202,6 +280,20 @@ export async function atualizarTarefa(id: string, input: TarefaInput): Promise<A
   try {
     const { supabase } = await requireModulo("producao");
     if (!input.titulo.trim()) return { ok: false, error: "Informe o título da tarefa." };
+
+    // O estado ANTERIOR é lido antes da escrita porque é ele que diz o que é
+    // novidade — sem ele, não há como distinguir "mudou de responsável" de
+    // "salvou de novo", nem "mencionou mais alguém" de "não mexeu no texto".
+    const { data: antes } = await supabase
+      .from("prod_tarefas")
+      .select("responsavel_id, briefing, formatos_exportacao, referencias_estilo")
+      .eq("id", id)
+      .maybeSingle<{
+        responsavel_id: string | null;
+        briefing: string | null;
+        formatos_exportacao: string | null;
+        referencias_estilo: string | null;
+      }>();
 
     const vinculoCliente = await resolverVinculoCliente(supabase, input.clienteId);
 
@@ -223,6 +315,18 @@ export async function atualizarTarefa(id: string, input: TarefaInput): Promise<A
       .eq("id", id);
 
     if (error) return { ok: false, error: error.message };
+
+    await avisarSobreTarefa(supabase, {
+      tarefaId: id,
+      titulo: input.titulo.trim(),
+      responsavelId: input.responsavelId,
+      responsavelAnterior: antes?.responsavel_id ?? null,
+      briefing: input.briefing,
+      outrosTextos: [input.formatosExportacao, input.referenciasEstilo],
+      briefingAnterior: antes?.briefing ?? null,
+      outrosTextosAnteriores: [antes?.formatos_exportacao ?? null, antes?.referencias_estilo ?? null],
+    });
+
     revalidatePath(PATH);
     return { ok: true };
   } catch (err) {
@@ -308,6 +412,28 @@ export async function criarSubtarefa(tarefaId: string, titulo: string): Promise<
     if (!titulo.trim()) return { ok: false, error: "Informe o título da subtarefa." };
     const { error } = await supabase.from("prod_subtarefas").insert({ tarefa_id: tarefaId, titulo: titulo.trim() });
     if (error) return { ok: false, error: error.message };
+
+    // A subtarefa é salva sozinha, no próprio clique — não espera o "salvar"
+    // da tarefa. Então o aviso sai aqui mesmo, e o título da TAREFA é o que
+    // vai no sino: "@ana revisa o corte" sem dizer de que peça não ajuda.
+    const mencionados = await mencionadosEm(supabase, [{ texto: titulo }]);
+    if (mencionados.length > 0) {
+      const { data: tarefa } = await supabase
+        .from("prod_tarefas")
+        .select("titulo")
+        .eq("id", tarefaId)
+        .maybeSingle<{ titulo: string }>();
+      await notificar(supabase, {
+        userIds: mencionados,
+        tipo: "mention",
+        titulo: tarefa?.titulo ?? titulo.trim(),
+        mensagem: titulo.trim(),
+        href: linkDaTarefa(tarefaId),
+        referenceId: tarefaId,
+        referenceType: "tarefa",
+      });
+    }
+
     revalidatePath(PATH);
     return { ok: true };
   } catch (err) {

@@ -25,6 +25,7 @@ import { armazenamento, type ArmazenamentoDict } from "./armazenamento";
 import { onboarding, type OnboardingDict } from "./onboarding";
 import { planejamento, type PlanejamentoDict } from "./planejamento";
 import { historico, type HistoricoDict } from "./historico";
+import { notificacoes, type NotificacoesDict } from "./notificacoes";
 
 /**
  * Formato COMPLETO do dicionário — cada idioma (`en/index.ts`, `es/index.ts`)
@@ -61,6 +62,7 @@ export interface Dictionary {
   onboarding: OnboardingDict;
   planejamento: PlanejamentoDict;
   historico: HistoricoDict;
+  notificacoes: NotificacoesDict;
 }
 
 export const pt: Dictionary = {
@@ -91,6 +93,7 @@ export const pt: Dictionary = {
   onboarding,
   planejamento,
   historico,
+  notificacoes,
 };
 
 // ----------------------------------------------------------------------------

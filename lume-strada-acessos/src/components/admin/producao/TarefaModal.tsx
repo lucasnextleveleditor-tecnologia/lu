@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
+import { CampoComMencoes } from "@/components/ui/CampoComMencoes";
 import { ReferenciasEstiloField, FormatosExportacaoField } from "@/components/admin/producao/BriefingCamposAvancados";
 import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
 import { GerenciarClientesAcessoModal } from "@/components/admin/producao/GerenciarClientesAcessoModal";
@@ -102,7 +103,7 @@ export function TarefaModal({ clientes, funcionarios, tiposServico, dataEntregaI
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.producao.tituloCampoLabel}</label>
-            <Input required value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder={dict.producao.tituloPlaceholder} />
+            <CampoComMencoes required value={titulo} onChange={setTitulo} placeholder={dict.producao.tituloPlaceholder} />
           </div>
 
           <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{dict.producao.briefingInformacoesBasicasTitulo}</p>
