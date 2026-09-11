@@ -12,6 +12,9 @@ export const MODULOS_PERMISSAO: { chave: keyof PermissoesFuncionario; label: str
   // ninguém consegue acessar mais, admin incluso.
   { chave: "financeiro", label: "Financeiro", hint: "Contas, cartões e transações" },
   { chave: "producao", label: "Produção & Tarefas", hint: "Board de tarefas e entregas" },
+  // Eventos fica colado em Produção porque é a mesma natureza de trabalho:
+  // operação. Quem cuida de tarefa é quem cuida de evento.
+  { chave: "eventos", label: "Eventos", hint: "Operação de campo, programação e pauta de captação" },
   { chave: "trafego", label: "Tráfego & Metas", hint: "Metas e lançamentos de tráfego" },
   { chave: "inventario", label: "Inventário & Patrimônio", hint: "Bens e depreciação" },
 ];

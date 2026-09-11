@@ -388,15 +388,31 @@ html.light .menu-lateral-link:focus-visible .menu-lateral-icone {
   color: rgb(255 255 255);
 }
 
-/* A planta baixa. Máscara radial para a grade nascer forte no alto e sumir
-   nas bordas — sem isso ela vira papel quadriculado e briga com o conteúdo. */
-.ev-grade-fundo {
-  background-image:
-    linear-gradient(to right, rgb(var(--ev-linha) / 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(var(--ev-linha) / 0.04) 1px, transparent 1px);
-  background-size: 46px 46px;
-  -webkit-mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, black 35%, transparent 88%);
-  mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, black 35%, transparent 88%);
+/* A textura do fundo: LINHAS DE MONITOR, horizontais e finíssimas.
+
+   Era uma grade quadriculada de planta baixa, e saiu: quadriculado é a marca
+   registrada de metade das interfaces "de engenharia" por aí, inclusive a do
+   concorrente — e uma textura que já é de outro não pode ser a nossa.
+
+   Linha de varredura de monitor diz a mesma coisa ("isto é um equipamento
+   ligado") pelo vocabulário certo: é a textura de quem passa o dia olhando
+   para um monitor de referência, que é exatamente quem usa este módulo. E
+   horizontal não compete com a grade de cobertura, que também é horizontal —
+   o quadriculado brigava com ela.
+
+   3px de período e opacidade baixíssima: se der para contar as linhas, está
+   alto demais. A máscara radial faz a textura nascer no alto e sumir nas
+   bordas, para o fundo nunca competir com o texto. */
+.ev-linhas-monitor {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(var(--ev-linha) / 0.035) 0px,
+    rgb(var(--ev-linha) / 0.035) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  -webkit-mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, black 30%, transparent 85%);
+  mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, black 30%, transparent 85%);
 }
 
 /* O ponto de REC. */

@@ -7,11 +7,10 @@ import type { StatusEvento } from "@/lib/types/eventos";
 /**
  * As ações do módulo de Eventos.
  *
- * `requireModulo("producao")` e não uma chave nova: um evento é produção de
- * campo, e quem opera produção é exatamente quem opera evento. Criar uma
- * permissão "eventos" separada obrigaria o dono da agência a ligar mais uma
- * caixinha para cada pessoa da equipe que já pode mexer em tarefa — e a
- * primeira reclamação seria "por que meu editor não vê o evento?".
+ * `requireModulo("eventos")`: o módulo tem permissão própria, ligada por
+ * funcionário no painel de "Módulos Liberados". Nem todo mundo que mexe em
+ * tarefa vai a evento — o editor que fica na ilha não precisa ver a operação
+ * de campo, e o freelancer de sábado não precisa ver o board da semana.
  *
  * Erros que a pessoa vai ler saem como CÓDIGO, traduzidos no dicionário.
  */
@@ -46,7 +45,7 @@ export interface EventoInput {
  */
 export async function criarEvento(input: EventoInput, ambientes: string[]): Promise<ResultadoEventoId> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase } = await requireModulo("eventos");
 
     const nome = input.nome.trim();
     if (!nome) return { ok: false, error: "EVENTO_SEM_NOME" };
@@ -91,7 +90,7 @@ export async function criarEvento(input: EventoInput, ambientes: string[]): Prom
 
 export async function atualizarEvento(id: string, input: EventoInput): Promise<ResultadoEvento> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase } = await requireModulo("eventos");
 
     const nome = input.nome.trim();
     if (!nome) return { ok: false, error: "EVENTO_SEM_NOME" };
@@ -127,7 +126,7 @@ export async function atualizarEvento(id: string, input: EventoInput): Promise<R
  */
 export async function mudarStatusEvento(id: string, status: StatusEvento): Promise<ResultadoEvento> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase } = await requireModulo("eventos");
     const { error } = await supabase.from("ev_eventos").update({ status }).eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidar();
@@ -140,7 +139,7 @@ export async function mudarStatusEvento(id: string, status: StatusEvento): Promi
 /** Apaga o evento inteiro — ambientes, programação, equipe e pauta vão junto (`on delete cascade`). */
 export async function removerEvento(id: string): Promise<ResultadoEvento> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase } = await requireModulo("eventos");
     const { error } = await supabase.from("ev_eventos").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidar();
@@ -156,7 +155,7 @@ export async function removerEvento(id: string): Promise<ResultadoEvento> {
 
 export async function criarAmbiente(eventoId: string, nome: string): Promise<ResultadoEvento> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase } = await requireModulo("eventos");
     const limpo = nome.trim();
     if (!limpo) return { ok: false, error: "AMBIENTE_SEM_NOME" };
 
@@ -182,7 +181,7 @@ export async function criarAmbiente(eventoId: string, nome: string): Promise<Res
 
 export async function renomearAmbiente(id: string, nome: string): Promise<ResultadoEvento> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase } = await requireModulo("eventos");
     const limpo = nome.trim();
     if (!limpo) return { ok: false, error: "AMBIENTE_SEM_NOME" };
     const { error } = await supabase.from("ev_ambientes").update({ nome: limpo }).eq("id", id);
@@ -202,7 +201,7 @@ export async function renomearAmbiente(id: string, nome: string): Promise<Result
  */
 export async function removerAmbiente(id: string): Promise<ResultadoEvento> {
   try {
-    const { supabase } = await requireModulo("producao");
+    const { supabase } = await requireModulo("eventos");
     const { error } = await supabase.from("ev_ambientes").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidar();

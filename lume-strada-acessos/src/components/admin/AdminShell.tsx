@@ -159,11 +159,16 @@ const NAV_GRUPOS = [
   {
     tituloKey: "grupoEventos",
     itens: [
-      // `chave: null` — todo mundo da equipe VÊ o item, inclusive quem ainda
-      // não tem o módulo: a página de "em breve" é para ser vista. Quem
-      // realmente abre o módulo é decidido no servidor, em
-      // `app/admin/eventos/page.tsx` (ver `lib/auth/acessoAntecipado.ts`).
-      { href: "/admin/eventos", labelKey: "eventos", icon: IconNavEventos, chave: null, emBreve: true },
+      // Permissão própria, e não `chave: null`: o dono da agência decide quais
+      // funcionários enxergam o módulo, pelo mesmo painel de "Módulos
+      // Liberados" de todos os outros. ADMIN sempre vê, em qualquer empresa —
+      // `itemVisivel` devolve true para `papel === "admin"` antes de olhar a
+      // chave.
+      //
+      // Isso é só a VISIBILIDADE do item. O que a página mostra continua sendo
+      // decidido no servidor: quem não está no acesso antecipado recebe o "em
+      // breve", mesmo digitando a URL (ver `lib/auth/acessoAntecipado.ts`).
+      { href: "/admin/eventos", labelKey: "eventos", icon: IconNavEventos, chave: "eventos", emBreve: true },
     ],
   },
   // Grupo próprio, separado de "Gestão" e sempre por último — pedido

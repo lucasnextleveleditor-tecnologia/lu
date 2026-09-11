@@ -31,7 +31,12 @@ export function AcessoFuncionarioModal({ membro, profile, onClose }: AcessoFunci
   const { dict } = useLocale();
   const [email, setEmail] = useState(membro.email ?? "");
   const [expiresAt, setExpiresAt] = useState("");
-  const [permissoes, setPermissoes] = useState<PermissoesFuncionario>(profile?.permissoes ?? {});
+  // Acesso NOVO nasce com Eventos ligado. O módulo está em construção e a
+  // tela que ele abre hoje é a de "em breve": esconder isso de quem acabou de
+  // entrar na equipe não protege nada, só faz a novidade passar despercebida.
+  // Os outros módulos continuam começando desligados, que é o certo para quem
+  // dá acesso a dado real.
+  const [permissoes, setPermissoes] = useState<PermissoesFuncionario>(profile?.permissoes ?? { eventos: true });
   const [dashboardConfig, setDashboardConfig] = useState<PreferenciasDashboard>(profile?.dashboard_config ?? {});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

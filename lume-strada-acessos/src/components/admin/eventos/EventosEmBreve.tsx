@@ -48,8 +48,8 @@ function Console() {
 
   return (
     <div className="ev-console relative overflow-hidden rounded-2xl border border-white/10">
-      {/* Camada 1 — a planta baixa. */}
-      <div aria-hidden className="ev-grade-fundo pointer-events-none absolute inset-0" />
+      {/* Camada 1 — a textura de monitor. */}
+      <div aria-hidden className="ev-linhas-monitor pointer-events-none absolute inset-0" />
 
       {/* Camada 2 — o brilho da marca, dois focos, bem difuso. */}
       <div
@@ -390,7 +390,7 @@ function Modulos() {
 
   return (
     <div className="ev-console relative overflow-hidden rounded-2xl border border-white/10">
-      <div aria-hidden className="ev-grade-fundo pointer-events-none absolute inset-0 opacity-60" />
+      <div aria-hidden className="ev-linhas-monitor pointer-events-none absolute inset-0 opacity-60" />
 
       <div className="relative px-6 py-7 sm:px-9">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">{t.emBreveRecursosTitulo}</p>
