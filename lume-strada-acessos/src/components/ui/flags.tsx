@@ -18,10 +18,18 @@ export function FlagBR(props: SVGProps<SVGSVGElement>) {
       <clipPath id={clipId}>
         <rect width="20" height="14" rx="2" />
       </clipPath>
+      {/* Desenhada pra ser reconhecida a 20x14 px, que e o tamanho real em
+          tela. A versao anterior tinha losango pequeno e azul quase preto: no
+          tamanho de verdade sobrava um retangulo verde com um circulo escuro
+          no meio -- a mesma silhueta da bandeira de Portugal. Aqui o losango
+          vai ate perto da borda (proporcao oficial), o azul e mais claro e a
+          faixa branca entra: sao os tres sinais que o olho usa pra ler
+          "Brasil" num icone minusculo. */}
       <g clipPath={`url(#${clipId})`}>
-        <rect width="20" height="14" fill="#0C7A3C" />
-        <path d="M10 2.2 L18 7 L10 11.8 L2 7 Z" fill="#F7CE3E" />
-        <circle cx="10" cy="7" r="3.1" fill="#1A3D8F" />
+        <rect width="20" height="14" fill="#00923F" />
+        <path d="M10 1.5 L18.6 7 L10 12.5 L1.4 7 Z" fill="#FFDA1F" />
+        <circle cx="10" cy="7" r="3.3" fill="#2B4FB8" />
+        <path d="M6.7 8.5 Q10 6.1 13.3 8.5" stroke="#FFFFFF" strokeWidth="1.05" fill="none" />
       </g>
     </svg>
   );
