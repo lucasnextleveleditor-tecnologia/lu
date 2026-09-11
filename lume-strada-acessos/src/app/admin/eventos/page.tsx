@@ -4,6 +4,8 @@ import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { temAcessoAntecipado } from "@/lib/auth/acessoAntecipado";
 import { EventosEmBreve } from "@/components/admin/eventos/EventosEmBreve";
+import { EventosWorkspace } from "@/components/admin/eventos/EventosWorkspace";
+import { listarEventos, listarClientesParaEvento } from "@/app/admin/eventos/data";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +52,12 @@ export default async function EventosPage() {
   // ---------------------------------------------------------------------------
   // A partir daqui é o módulo de verdade, em construção. Cada pedaço pronto
   // entra aqui e só quem está na lista enxerga — nunca um cliente pagante.
+  //
+  // As consultas vêm DEPOIS da porta de propósito: quem recebe a página de
+  // "em breve" não dispara nenhuma delas.
   // ---------------------------------------------------------------------------
+  const [eventos, clientes] = await Promise.all([listarEventos(), listarClientesParaEvento()]);
+
   return (
     <div>
       <div className="mb-5">
@@ -58,10 +65,12 @@ export default async function EventosPage() {
         <p className="mt-0.5 text-sm text-ink-muted">{t.subtituloPagina}</p>
       </div>
 
-      <div className="rounded-xl border border-dashed border-accent/40 bg-accent/[0.04] p-6">
-        <p className="text-sm font-medium text-ink-primary">{t.emConstrucaoTitulo}</p>
+      <div className="mb-4 rounded-xl border border-dashed border-accent/40 bg-accent/[0.04] px-4 py-3">
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">{t.emConstrucaoTitulo}</p>
         <p className="mt-1 text-xs leading-relaxed text-ink-muted">{t.emConstrucaoTexto}</p>
       </div>
+
+      <EventosWorkspace eventos={eventos} clientes={clientes} />
     </div>
   );
 }

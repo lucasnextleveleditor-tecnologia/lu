@@ -1,3 +1,5 @@
+import type { StatusEvento } from "@/lib/types/eventos";
+
 /**
  * Eventos — a operação de campo (ambientes simultâneos, programação, booms e
  * a pauta de captação).
@@ -19,6 +21,35 @@ export interface EventosDict {
   numeroPendente: string;
   numeroPerdido: string;
   numeroAmbientes: string;
+
+  // O modulo de verdade: lista, criacao e as fases da operacao.
+  novoEvento: string;
+  criarEvento: string;
+  listaVazia: string;
+  listaContagem: string;
+  listaVaziaTitulo: string;
+  listaVaziaTexto: string;
+  semCliente: string;
+  semPauta: string;
+  numeroEquipe: string;
+  numeroCobertura: string;
+  campoNome: string;
+  campoNomePlaceholder: string;
+  campoCliente: string;
+  campoLocal: string;
+  campoLocalPlaceholder: string;
+  campoInicio: string;
+  campoFim: string;
+  campoAmbientes: string;
+  campoAmbientesAjuda: string;
+  campoAmbientesPlaceholder: string;
+  removerAmbienteDe: string;
+  erroEventoSemNome: string;
+  erroEventoSemData: string;
+  erroEventoFimAntes: string;
+  erroAmbienteSemNome: string;
+  /** Rotulo de cada fase da operacao (ver StatusEvento em lib/types/eventos.ts). */
+  status: Record<StatusEvento, string>;
   emBreveSubtitulo: string;
   emBrevePreviaTitulo: string;
   legendaCaptado: string;
@@ -55,6 +86,38 @@ export const eventos: EventosDict = {
   numeroPendente: "pendente",
   numeroPerdido: "fora da janela",
   numeroAmbientes: "ambientes",
+  novoEvento: "Novo evento",
+  criarEvento: "Criar evento",
+  listaVazia: "Nenhum evento",
+  listaContagem: "{n} evento(s)",
+  listaVaziaTitulo: "Nenhum evento cadastrado ainda.",
+  listaVaziaTexto: "Crie o primeiro com os palcos que ele vai ter. A programação e a pauta de captação entram depois, dentro dele.",
+  semCliente: "Sem cliente",
+  semPauta: "sem pauta",
+  numeroEquipe: "equipe",
+  numeroCobertura: "cobertura",
+  campoNome: "Nome do evento *",
+  campoNomePlaceholder: "Festival de Verão 2026",
+  campoCliente: "Cliente",
+  campoLocal: "Local",
+  campoLocalPlaceholder: "Arena da Praia",
+  campoInicio: "Começa",
+  campoFim: "Termina",
+  campoAmbientes: "Palcos e ambientes",
+  campoAmbientesAjuda: "Os lugares onde a equipe vai estar ao mesmo tempo. Dá para acrescentar depois.",
+  campoAmbientesPlaceholder: "Palco 2, Lounge, Bastidores…",
+  removerAmbienteDe: "Remover {ambiente}",
+  erroEventoSemNome: "Dê um nome ao evento.",
+  erroEventoSemData: "Informe quando o evento começa e termina.",
+  erroEventoFimAntes: "O fim precisa ser depois do começo.",
+  erroAmbienteSemNome: "Dê um nome ao ambiente.",
+  status: {
+    planejamento: "Planejamento",
+    montagem: "Montagem",
+    ao_vivo: "Ao vivo",
+    pos: "Pós",
+    encerrado: "Encerrado",
+  },
   emBreveSubtitulo: "Três palcos ao mesmo tempo, a equipe espalhada, e a pergunta que não pode esperar o domingo: pegamos tudo? Este módulo responde isso enquanto o show ainda está acontecendo.",
   emBrevePreviaTitulo: "Grade de cobertura — prévia",
   legendaCaptado: "captado",
