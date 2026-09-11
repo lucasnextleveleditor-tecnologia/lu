@@ -2,7 +2,7 @@
 
 import type { TarefaComRelacoes, PrioridadeTarefa } from "@/lib/types/producao";
 import { PRIORIDADE_TAREFA_META, calcularProgressoSubtarefas, isTarefaAtrasada } from "@/lib/utils/producao";
-import { fmtDataCurta } from "@/lib/utils/format";
+import { fmtDataCurta, diaDaSemanaDe } from "@/lib/utils/format";
 import { Meter } from "@/components/ui/Meter";
 import { PillTag } from "@/components/admin/producao/PillTag";
 import { cn } from "@/lib/utils/cn";
@@ -29,7 +29,7 @@ function iniciais(nome: string): string {
  * única pista (cor nunca carrega sozinha o significado).
  */
 export function TarefaCard({ tarefa, onClick, className }: TarefaCardProps) {
-  const { dict } = useLocale();
+  const { dict, locale } = useLocale();
   const prioridadeLabel: Record<PrioridadeTarefa, string> = {
     baixa: dict.producao.prioridadeBaixa,
     normal: dict.producao.prioridadeNormal,
@@ -89,16 +89,28 @@ export function TarefaCard({ tarefa, onClick, className }: TarefaCardProps) {
 
       <div className="flex items-center justify-between gap-2 border-t border-base-800/70 pt-2.5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-ink-muted">
+          {/* O dia da semana entre parênteses, na captação e no prazo.
+              "10/09/2026" não responde a pergunta que se faz olhando para uma
+              data de entrega — cai em dia útil? é véspera de fim de semana? dá
+              para gravar? — e traduzir de cabeça é um trabalho pequeno feito
+              dezenas de vezes por dia. Vai nas duas datas porque na captação
+              importa até mais: descobrir que a gravação caiu num domingo
+              depois de combinar com a equipe é caro. */}
           {tarefa.data_captacao && (
             <span>
               {dict.producao.captacaoPrefixo}
               {fmtDataCurta(tarefa.data_captacao)}
+              <span className="text-ink-muted/70"> ({diaDaSemanaDe(tarefa.data_captacao, locale)})</span>
             </span>
           )}
           {tarefa.data_entrega && (
             <span className={atrasada ? "font-semibold text-danger" : ""}>
               {atrasada ? dict.producao.atrasadaPrefixo : dict.producao.prazoPrefixo}
               {fmtDataCurta(tarefa.data_entrega)}
+              <span className={atrasada ? "font-normal" : "text-ink-muted/70"}>
+                {" "}
+                ({diaDaSemanaDe(tarefa.data_entrega, locale)})
+              </span>
             </span>
           )}
         </div>

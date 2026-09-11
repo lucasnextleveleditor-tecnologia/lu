@@ -31,10 +31,15 @@ type LayoutKanban = "linha" | "grade";
  *
  * `semanal` é onde o quadro abre, porque um Kanban com noventa cards não
  * responde "o que a gente entrega esta semana" — ele responde "o que existe",
- * que é outra pergunta, e quase nunca a primeira. `tudo` é o quadro inteiro,
- * sem filtro, a um clique de distância.
+ * que é outra pergunta, e quase nunca a primeira. `diario` é o zoom de quem
+ * está no meio do dia.
+ *
+ * `tudo` fica, e não é enfeite: com apenas dia/semana/mês, uma entrega
+ * marcada para daqui a três meses ficaria INVISÍVEL até alguém navegar até
+ * lá. Um quadro que esconde trabalho sem dizer que escondeu é pior do que um
+ * quadro cheio — `tudo` é a saída.
  */
-type PeriodoKanban = "semanal" | "mensal" | "tudo";
+type PeriodoKanban = "diario" | "semanal" | "mensal" | "tudo";
 
 /** Preferência é por navegador (localStorage), não por conta — mesmo padrão do colapso da sidebar em `AdminShell.tsx`. */
 const STORAGE_KEY_LAYOUT = "lsf_producao_kanban_layout";
@@ -83,7 +88,12 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
     const salvo = window.localStorage.getItem(STORAGE_KEY_LAYOUT);
     if (salvo === "linha" || salvo === "grade") setLayout(salvo);
     const periodoSalvo = window.localStorage.getItem(STORAGE_KEY_PERIODO);
-    if (periodoSalvo === "semanal" || periodoSalvo === "mensal" || periodoSalvo === "tudo") {
+    if (
+      periodoSalvo === "diario" ||
+      periodoSalvo === "semanal" ||
+      periodoSalvo === "mensal" ||
+      periodoSalvo === "tudo"
+    ) {
       setPeriodo(periodoSalvo);
     }
   }, []);
@@ -99,16 +109,28 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
   }
 
   function andar(passo: -1 | 1) {
-    setReferencia((r) => (periodo === "semanal" ? addDias(r, passo * 7) : addMeses(r, passo)));
+    setReferencia((r) =>
+      periodo === "diario" ? addDias(r, passo) : periodo === "semanal" ? addDias(r, passo * 7) : addMeses(r, passo)
+    );
   }
 
   const segundaDaSemana = inicioDaSemana(referencia);
   const primeiroDoMes = new Date(Date.UTC(referencia.getUTCFullYear(), referencia.getUTCMonth(), 1));
 
   const rotuloPeriodo =
-    periodo === "semanal"
-      ? fmtIntervaloSemana(segundaDaSemana, addDias(segundaDaSemana, 6), locale)
-      : fmtMesAno(primeiroDoMes);
+    periodo === "diario"
+      ? // Com o dia da semana por extenso: num recorte de um dia só, "quinta,
+        // 11 de set." diz mais do que a data sozinha — é assim que as pessoas
+        // falam de prazo entre elas.
+        referencia.toLocaleDateString(locale, {
+          weekday: "long",
+          day: "2-digit",
+          month: "short",
+          timeZone: "UTC",
+        })
+      : periodo === "semanal"
+        ? fmtIntervaloSemana(segundaDaSemana, addDias(segundaDaSemana, 6), locale)
+        : fmtMesAno(primeiroDoMes);
 
   /**
    * O recorte, aplicado por PRAZO DE ENTREGA.
@@ -122,6 +144,7 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
   function dentroDoPeriodo(dataEntrega: string | null): boolean {
     if (periodo === "tudo") return true;
     if (!dataEntrega) return true;
+    if (periodo === "diario") return dataEntrega === referencia.toISOString().slice(0, 10);
     if (periodo === "semanal") {
       const dias = diasDaSemanaDe(segundaDaSemana);
       return dataEntrega >= dias[0]! && dataEntrega <= dias[6]!;
@@ -156,15 +179,27 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
             <button
               onClick={() => andar(-1)}
               className="flex h-7 w-7 items-center justify-center rounded-lg border border-base-600 text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
-              aria-label={periodo === "semanal" ? dict.producao.semanaAnterior : dict.producao.mesAnterior}
+              aria-label={
+                periodo === "diario"
+                  ? dict.producao.diaAnterior
+                  : periodo === "semanal"
+                    ? dict.producao.semanaAnterior
+                    : dict.producao.mesAnterior
+              }
             >
               <IconChevronLeft className="h-4 w-4" />
             </button>
-            <p className="min-w-[9rem] text-center text-sm font-semibold capitalize">{rotuloPeriodo}</p>
+            <p className="min-w-[11rem] text-center text-sm font-semibold capitalize">{rotuloPeriodo}</p>
             <button
               onClick={() => andar(1)}
               className="flex h-7 w-7 items-center justify-center rounded-lg border border-base-600 text-ink-secondary transition hover:border-ink-muted hover:text-ink-primary"
-              aria-label={periodo === "semanal" ? dict.producao.proximaSemana : dict.producao.proximoMes}
+              aria-label={
+                periodo === "diario"
+                  ? dict.producao.proximoDia
+                  : periodo === "semanal"
+                    ? dict.producao.proximaSemana
+                    : dict.producao.proximoMes
+              }
             >
               <IconChevronRight className="h-4 w-4" />
             </button>
@@ -188,7 +223,7 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-lg border border-base-700/70 bg-gradient-to-b from-base-900 to-base-950 p-1 shadow-[inset_0_1px_0_0_rgb(var(--glow-rgb) / 0.05)]">
-            {(["semanal", "mensal", "tudo"] as const).map((p) => (
+            {(["diario", "semanal", "mensal", "tudo"] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => alternarPeriodo(p)}
@@ -198,11 +233,13 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
                   periodo === p ? "bg-accent text-base-950" : "text-ink-muted hover:text-ink-primary"
                 )}
               >
-                {p === "semanal"
-                  ? dict.producao.visaoSemanal
-                  : p === "mensal"
-                    ? dict.producao.visaoMensal
-                    : dict.producao.visaoTudo}
+                {p === "diario"
+                  ? dict.producao.visaoDiaria
+                  : p === "semanal"
+                    ? dict.producao.visaoSemanal
+                    : p === "mensal"
+                      ? dict.producao.visaoMensal
+                      : dict.producao.visaoTudo}
               </button>
             ))}
           </div>

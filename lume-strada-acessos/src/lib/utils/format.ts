@@ -85,3 +85,19 @@ export function fmtCpfCnpj(valor: string): string {
   }
   return valor;
 }
+
+/**
+ * "quinta-feira" — o dia da semana de uma data ISO, no idioma de quem olha.
+ *
+ * Existe porque "10/09/2026" não responde a pergunta que se faz olhando para
+ * um prazo: cai em dia útil? é véspera de fim de semana? dá para gravar? Quem
+ * trabalha com entrega raciocina por dia da semana, e traduzir a data de
+ * cabeça é um trabalho pequeno feito dezenas de vezes por dia.
+ *
+ * `timeZone: "UTC"` não é detalhe: a data vem como `yyyy-mm-dd` puro e é lida
+ * como meia-noite UTC. Sem fixar o fuso, quem estiver a oeste de Greenwich vê
+ * o dia ANTERIOR — o prazo de sexta virando quinta na tela.
+ */
+export function diaDaSemanaDe(iso: string, locale: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString(locale, { weekday: "long", timeZone: "UTC" });
+}

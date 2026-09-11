@@ -76,6 +76,9 @@ export interface ProducaoDict {
   legendaLabel: string;
   legendaPlaceholder: string;
   legendaAjuda: string;
+  visaoDiaria: string;
+  diaAnterior: string;
+  proximoDia: string;
   visaoSemanal: string;
   visaoTudo: string;
   /** `{n}` tarefas sem prazo, que aparecem em todos os recortes. */
@@ -246,6 +249,9 @@ export const producao: ProducaoDict = {
   legendaLabel: "Legenda para o cliente",
   legendaPlaceholder: "O texto que vai junto com a peça quando ela for publicada",
   legendaAjuda: "Aparece no portal do cliente, ao lado do vídeo. Ele aprova a peça e o texto juntos.",
+  visaoDiaria: "Dia",
+  diaAnterior: "Dia anterior",
+  proximoDia: "Próximo dia",
   visaoSemanal: "Semanal",
   visaoTudo: "Tudo",
   kanbanSemPrazo: "{n} sem prazo, sempre visíveis",
