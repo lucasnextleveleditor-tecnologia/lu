@@ -184,7 +184,7 @@ async function registrarDoPortal(
   admin: ReturnType<typeof createAdminClient>,
   _userId: string,
   tarefaId: string,
-  evento: Omit<Parameters<typeof registrarDoCliente>[3], "clienteId" | "titulo">
+  evento: Omit<Parameters<typeof registrarDoCliente>[3], "clienteId" | "titulo" | "tarefaId">
 ): Promise<void> {
   const { data: tarefa } = await admin
     .from("prod_tarefas")
@@ -199,6 +199,7 @@ async function registrarDoPortal(
 
   await registrarDoCliente(admin, tarefa.company_id, cliente?.nome ?? null, {
     ...evento,
+    tarefaId,
     clienteId: tarefa.cliente_cadastro_id,
     titulo: tarefa.titulo,
   });

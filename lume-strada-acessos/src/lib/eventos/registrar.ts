@@ -55,6 +55,7 @@ export interface EventoRow {
   acao: AcaoEvento;
   entidade: EntidadeEvento;
   entidade_id: string | null;
+  tarefa_id: string | null;
   cliente_id: string | null;
   titulo: string | null;
   de: string | null;
@@ -70,6 +71,14 @@ export interface NovoEvento {
   acao: AcaoEvento;
   entidade: EntidadeEvento;
   entidadeId?: string | null;
+  /**
+   * A que TAREFA o evento pertence.
+   *
+   * Existe separado de `entidadeId` porque um evento de versao aponta para o
+   * id da VERSAO - e sem isto, "tudo o que aconteceu com esta peca" nao teria
+   * como ser perguntado numa consulta so.
+   */
+  tarefaId?: string | null;
   clienteId?: string | null;
   titulo?: string | null;
   de?: string | null;
@@ -110,6 +119,7 @@ export async function registrar(supabase: Cliente, userId: string, evento: NovoE
       acao: evento.acao,
       entidade: evento.entidade,
       entidade_id: evento.entidadeId ?? null,
+      tarefa_id: evento.tarefaId ?? null,
       cliente_id: evento.clienteId ?? null,
       titulo: evento.titulo ?? null,
       de: evento.de ?? null,
@@ -146,6 +156,7 @@ export async function registrarDoCliente(
       acao: evento.acao,
       entidade: evento.entidade,
       entidade_id: evento.entidadeId ?? null,
+      tarefa_id: evento.tarefaId ?? null,
       cliente_id: evento.clienteId ?? null,
       titulo: evento.titulo ?? null,
       de: evento.de ?? null,

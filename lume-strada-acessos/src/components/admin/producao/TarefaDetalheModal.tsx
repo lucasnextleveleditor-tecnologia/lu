@@ -14,6 +14,7 @@ import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
 import { ReferenciasEstiloField, FormatosExportacaoField } from "@/components/admin/producao/BriefingCamposAvancados";
 import { SubtarefasChecklist } from "@/components/admin/producao/SubtarefasChecklist";
 import { EntregasSection } from "@/components/admin/producao/EntregasSection";
+import { TrilhaDaTarefa } from "@/components/admin/producao/TrilhaDaTarefa";
 import { GerenciarTiposServicoModal } from "@/components/admin/producao/GerenciarTiposServicoModal";
 import { GerenciarClientesAcessoModal } from "@/components/admin/producao/GerenciarClientesAcessoModal";
 import { ClienteModal } from "@/components/admin/cadastros/ClienteModal";
@@ -317,6 +318,10 @@ export function TarefaDetalheModal({ tarefa, subtarefas, entregas, clientes, fun
         <div className="space-y-6">
           <SubtarefasChecklist tarefaId={tarefa.id} subtarefas={subtarefas} />
           <EntregasSection tarefaId={tarefa.id} entregas={entregas} />
+          {/* A trilha fica na coluna lateral, depois das entregas: é o que se
+              consulta quando alguém pergunta "quando isso foi para o cliente?",
+              e não algo que se lê toda vez que a peça é aberta. */}
+          <TrilhaDaTarefa tarefaId={tarefa.id} />
         </div>
       </div>
 

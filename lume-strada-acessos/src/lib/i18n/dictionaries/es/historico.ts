@@ -5,6 +5,8 @@ export const historico: HistoricoDict = {
   tituloPagina: "Historial",
   subtituloPagina: "Cada paso del flujo, con quién lo hizo y cuándo.",
   semEventos: "Todavía no hay nada registrado para este cliente.",
+  trilhaDaTarefa: "Historial de esta pieza",
+  semEventosDaTarefa: "Todavía no hay nada registrado para esta pieza.",
   semClientes: "Registra un cliente para empezar a registrar.",
   todosOsClientes: "Todos los clientes",
   atorCliente: "cliente",

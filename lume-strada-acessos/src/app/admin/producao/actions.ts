@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { registrar } from "@/lib/eventos/registrar";
+import { registrar, type EventoRow } from "@/lib/eventos/registrar";
 import { requireModulo, requireQualquerModulo } from "@/lib/auth/requireAdmin";
 import { sanitizarBriefingHtml } from "@/lib/utils/sanitize";
 import { ehExtensaoPerigosaParaEntrega } from "@/lib/utils/upload";
@@ -140,7 +140,7 @@ async function registrarSobreTarefa(
   supabase: Awaited<ReturnType<typeof requireModulo>>["supabase"],
   userId: string,
   tarefaId: string,
-  evento: Omit<Parameters<typeof registrar>[2], "clienteId" | "titulo">
+  evento: Omit<Parameters<typeof registrar>[2], "clienteId" | "titulo" | "tarefaId">
 ): Promise<void> {
   const { data } = await supabase
     .from("prod_tarefas")
@@ -149,6 +149,7 @@ async function registrarSobreTarefa(
     .maybeSingle<{ titulo: string; cliente_cadastro_id: string | null }>();
   await registrar(supabase, userId, {
     ...evento,
+    tarefaId,
     clienteId: data?.cliente_cadastro_id ?? null,
     titulo: data?.titulo ?? null,
   });
@@ -185,6 +186,7 @@ export async function criarTarefa(input: TarefaInput): Promise<ActionResultId> {
       acao: "tarefa_criada",
       entidade: "tarefa",
       entidadeId: data!.id as string,
+      tarefaId: data!.id as string,
       clienteId: vinculoCliente.cliente_cadastro_id,
       titulo: input.titulo.trim(),
     });
@@ -251,6 +253,7 @@ export async function moverStatusTarefa(id: string, status: StatusTarefa): Promi
         acao: "tarefa_status",
         entidade: "tarefa",
         entidadeId: id,
+        tarefaId: id,
         clienteId: antes.cliente_cadastro_id,
         titulo: antes.titulo,
         de: antes.status,
@@ -284,6 +287,7 @@ export async function removerTarefa(id: string): Promise<ActionResult> {
       acao: "tarefa_removida",
       entidade: "tarefa",
       entidadeId: id,
+      tarefaId: id,
       clienteId: antes?.cliente_cadastro_id ?? null,
       titulo: antes?.titulo ?? null,
     });
@@ -580,6 +584,35 @@ export async function solicitarAlteracaoVersao(tarefaId: string, versaoId: strin
 
     revalidatePath(PATH);
     return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * A trilha desta peça — do momento em que virou trabalho até o "concluído".
+ *
+ * Ordem CRESCENTE, ao contrário da tela do cliente: lá a pergunta é "o que
+ * aconteceu por último"; aqui é a história da peça, e história se lê do
+ * começo.
+ *
+ * Buscada sob demanda, quando o detalhe abre, e não junto da lista: são
+ * dezenas de cards no Kanban, e trazer a trilha de todos para mostrar a de um
+ * seria pagar noventa consultas para usar uma.
+ */
+export async function listarEventosDaTarefa(
+  tarefaId: string
+): Promise<{ ok: true; eventos: EventoRow[] } | { ok: false; error: string }> {
+  try {
+    const { supabase } = await requireModulo("producao");
+    const { data, error } = await supabase
+      .from("eventos")
+      .select("*")
+      .eq("tarefa_id", tarefaId)
+      .order("created_at", { ascending: true })
+      .overrideTypes<EventoRow[], { merge: false }>();
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, eventos: data ?? [] };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }

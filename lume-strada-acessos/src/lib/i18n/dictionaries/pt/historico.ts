@@ -12,6 +12,8 @@ export interface HistoricoDict {
   tituloPagina: string;
   subtituloPagina: string;
   semEventos: string;
+  trilhaDaTarefa: string;
+  semEventosDaTarefa: string;
   semClientes: string;
   todosOsClientes: string;
   atorCliente: string;
@@ -30,6 +32,8 @@ export const historico: HistoricoDict = {
   tituloPagina: "Histórico",
   subtituloPagina: "Cada passo do fluxo, com quem fez e quando.",
   semEventos: "Nada registrado ainda para este cliente.",
+  trilhaDaTarefa: "Histórico desta peça",
+  semEventosDaTarefa: "Nada registrado ainda para esta peça.",
   semClientes: "Cadastre um cliente para começar a registrar.",
   todosOsClientes: "Todos os clientes",
   atorCliente: "cliente",

@@ -141,3 +141,44 @@ comment on column public.eventos.entidade_id is
 --   src/app/admin/planejamento/pautas.ts     criar, excluir, subir, devolver
 --   src/app/admin/producao/actions.ts        criar, mudar status, excluir, versões
 --   src/app/dashboard/actions.ts             aprovação e devolução PELO CLIENTE
+
+-- ============================================================================
+-- ADENDO — a trilha DENTRO da peça
+-- ============================================================================
+--
+-- A trilha por CLIENTE responde "o que anda acontecendo com essa conta". Não
+-- responde "o que aconteceu com ESTE arquivo" — e essa é a pergunta que se faz
+-- quando o cliente liga dizendo que não recebeu o vídeo. Ninguém quer filtrar
+-- a linha do tempo da agência inteira; quer abrir a peça e ver que ela foi
+-- para preview terça às 15h40 e voltou quinta às 9h.
+--
+-- Faltava uma coluna para isso ser uma consulta só: um evento de versão
+-- ('versao_enviada', 'versao_aprovada') aponta para o id da VERSÃO, não o da
+-- tarefa. Sem `tarefa_id`, juntar a história de uma peça exigiria descobrir
+-- antes todas as versões dela.
+alter table public.eventos
+  add column if not exists tarefa_id uuid;
+
+-- Backfill: para eventos de tarefa e de pauta, a própria entidade JÁ é a
+-- tarefa (uma pauta é uma linha de `prod_tarefas` com `em_pauta = true`).
+update public.eventos
+   set tarefa_id = entidade_id
+ where tarefa_id is null
+   and entidade in ('tarefa', 'pauta')
+   and entidade_id is not null;
+
+create index if not exists eventos_tarefa_idx
+  on public.eventos(tarefa_id, created_at);
+
+comment on column public.eventos.tarefa_id is
+  'A qual tarefa o evento pertence, inclusive quando a entidade e a versao. Base da trilha dentro do detalhe da peca. Sem FK: o evento sobrevive a tarefa.';
+
+-- Sem FK, pelo mesmo motivo de `entidade_id`: "fulano apagou esta tarefa" é o
+-- registro que não pode sumir junto com ela.
+--
+-- Uma nota sobre "subir para produção": ele grava DOIS eventos por peça
+-- agora — um por peça (com `tarefa_id`) e um do lote (sem). Não é duplicação,
+-- são trilhas diferentes. Na do cliente, soltar o mês é um gesto só e trinta
+-- linhas iguais afogariam tudo o que veio antes. Na da peça, "veio para a
+-- produção" é o passo que falta para a história dela fazer sentido do começo
+-- ao fim.

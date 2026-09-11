@@ -104,6 +104,9 @@ export async function criarPauta(
       acao: "pauta_criada",
       entidade: "pauta",
       entidadeId: data.id,
+      // A pauta E a tarefa (uma linha de prod_tarefas com em_pauta), então a
+      // trilha da peça começa aqui — antes de ela virar trabalho de alguém.
+      tarefaId: data.id,
       clienteId: plano.cliente_id,
       titulo,
       detalhe: { tipo: campos.tipo_pauta ?? "post", dia: campos.data_entrega ?? null },
@@ -192,6 +195,7 @@ export async function removerPauta(id: string): Promise<ResultadoSimples> {
       acao: "pauta_removida",
       entidade: "pauta",
       entidadeId: id,
+      tarefaId: id,
       clienteId: antes?.cliente_cadastro_id ?? null,
       titulo: antes?.titulo ?? null,
     });
@@ -359,7 +363,20 @@ export async function subirParaProducao(
         }
 
         const { error } = await supabase.from("prod_tarefas").update(patch).eq("id", post.id).eq("em_pauta", true);
-        return error ? null : post.id;
+        if (error) return null;
+
+        // Um registro POR PEÇA aqui, além do evento de lote mais abaixo. São
+        // trilhas diferentes: na do cliente, soltar o mês é um gesto só; na da
+        // peça, "veio para a produção" é o passo que falta para a história
+        // dela fazer sentido do começo ao fim.
+        await registrar(supabase, user.id, {
+          acao: "pauta_subiu",
+          entidade: "pauta",
+          entidadeId: post.id,
+          tarefaId: post.id,
+          para: "a_fazer",
+        });
+        return post.id;
       })
     );
 
@@ -429,6 +446,7 @@ export async function devolverParaPauta(id: string): Promise<ResultadoSimples> {
       acao: "pauta_devolvida",
       entidade: "pauta",
       entidadeId: id,
+      tarefaId: id,
       clienteId: alvo?.cliente_cadastro_id ?? null,
       titulo: alvo?.titulo ?? null,
     });
