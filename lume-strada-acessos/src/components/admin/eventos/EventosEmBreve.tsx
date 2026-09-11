@@ -1,111 +1,148 @@
 "use client";
 
-import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
-import {
-  IconNavAgenda,
-  IconNavClientes,
-  IconNavInventario,
-  IconNavProducao,
-  IconNavTrafego,
-  IconNavVisaoGeral,
-} from "@/components/ui/icons-nav";
 
 /**
- * A tela que quem ainda não tem o módulo vê no lugar dele.
+ * Eventos — a tela que quem ainda não tem o módulo vê no lugar dele.
  *
- * Não é um "página não encontrada" nem um aviso de erro: é uma promessa com
- * data marcada no futuro. Quem abre daqui é dono de agência que faz evento, e
- * a pergunta dele é uma só — "isso vai resolver o meu sábado?". Então a tela
- * mostra a resposta em vez de listar funcionalidades: a prévia no topo é a
- * grade de cobertura, que é o que o módulo faz de diferente.
+ * Não é um aviso de erro nem um "em construção" genérico: é a promessa, e ela
+ * tem que dar vontade. Quem abre daqui é dono de produtora que faz evento, e a
+ * pergunta na cabeça dele é uma só — "isso resolve o meu sábado?". A tela
+ * responde mostrando, em vez de listar.
  *
- * A prévia é ESTÁTICA e rotulada como prévia. Uma demonstração que parece
- * interativa e não responde ao clique é pior do que uma imagem parada —
- * a pessoa tenta usar, não acontece nada, e a conclusão é que está quebrado.
+ * A linguagem é de CONSOLE DE OPERAÇÃO, não de página de marketing: moldura de
+ * visor de câmera nos cantos, REC piscando, timecode em mono, rótulos
+ * minúsculos em caixa alta e uma varredura lenta atravessando o painel. É o
+ * vocabulário de quem trabalha atrás da câmera — e é o que separa isto de um
+ * hero de SaaS com um degradê bonito.
+ *
+ * O console é sempre escuro, nos dois temas (ver `.ev-console` em
+ * `globals.css`). Toda cor de destaque sai de `--color-accent`, então ele
+ * acende na cor da marca de cada agência.
+ *
+ * A grade é ESTÁTICA e está rotulada como prévia. Uma demonstração que parece
+ * clicável e não responde é pior do que uma imagem parada: a pessoa tenta usar
+ * e conclui que está quebrado.
  */
 export function EventosEmBreve() {
   const { dict } = useLocale();
   const t = dict.eventos;
 
-  const recursos = [
-    { icone: IconNavAgenda, titulo: t.emBreveAmbientesTitulo, texto: t.emBreveAmbientesTexto },
-    { icone: IconNavProducao, titulo: t.emBreveProgramacaoTitulo, texto: t.emBreveProgramacaoTexto },
-    { icone: IconNavVisaoGeral, titulo: t.emBreveCoberturaTitulo, texto: t.emBreveCoberturaTexto, destaque: true },
-    { icone: IconNavTrafego, titulo: t.emBreveAoVivoTitulo, texto: t.emBreveAoVivoTexto },
-    { icone: IconNavClientes, titulo: t.emBreveEquipeTitulo, texto: t.emBreveEquipeTexto },
-    { icone: IconNavInventario, titulo: t.emBreveEquipamentoTitulo, texto: t.emBreveEquipamentoTexto },
-  ];
-
   return (
-    <div className="space-y-6">
-      <Card className="relative overflow-hidden">
-        {/* Brilho na cor da marca, bem contido — dá o ar de "coisa nova" sem
-            competir com o texto. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-24 -top-28 h-64 w-64 rounded-full opacity-[0.14] blur-3xl"
-          style={{ background: "rgb(var(--color-accent))" }}
-        />
-
-        <div className="relative max-w-2xl">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-accent">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            {t.emBreveEtiqueta}
-          </span>
-
-          <h2 className="mt-4 text-2xl font-semibold leading-tight tracking-tight text-ink-primary">{t.emBreveTitulo}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-ink-secondary">{t.emBreveSubtitulo}</p>
-        </div>
-
-        <GradeDeCobertura className="relative mt-7" />
-      </Card>
-
-      <div>
-        <h3 className="mb-3 text-sm font-semibold text-ink-primary">{t.emBreveRecursosTitulo}</h3>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {recursos.map((r) => (
-            <div
-              key={r.titulo}
-              className={cn(
-                "rounded-xl border bg-base-900/60 p-4 transition",
-                r.destaque ? "border-accent/35 bg-accent/[0.04]" : "border-base-800"
-              )}
-            >
-              <span
-                className={cn(
-                  "mb-3 flex h-9 w-9 items-center justify-center rounded-lg border",
-                  r.destaque ? "border-accent/40 text-accent" : "border-base-700 text-ink-muted"
-                )}
-              >
-                <r.icone className="h-[19px] w-[19px]" />
-              </span>
-              <p className="text-sm font-medium text-ink-primary">{r.titulo}</p>
-              <p className="mt-1 text-xs leading-relaxed text-ink-muted">{r.texto}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <p className="pb-2 text-center text-xs text-ink-muted">{t.emBreveRodape}</p>
+    <div className="space-y-4">
+      <Console />
+      <Modulos />
+      <p className="pb-2 text-center text-[11px] text-ink-muted">{t.emBreveRodape}</p>
     </div>
   );
 }
 
 // ----------------------------------------------------------------------------
-// A prévia: a grade de cobertura
+// O console
 // ----------------------------------------------------------------------------
-// Uma linha por ambiente, o tempo correndo na horizontal, e — a parte que
-// interessa — cada bloco carrega EMBAIXO as marcas de captação daquela janela.
-// Verde é captado, vazio é pendente, vermelho é pendente com a janela já
-// fechada. É isso que responde "a equipe pegou tudo?" sem ninguém precisar
-// perguntar no rádio.
-//
-// Números fixos, de propósito: é um desenho, não uma consulta. Percentuais em
-// vez de pixels para a grade acompanhar a largura da tela.
 
-const AGORA_PCT = 58;
+function Console() {
+  const { dict } = useLocale();
+  const t = dict.eventos;
+
+  return (
+    <div className="ev-console relative overflow-hidden rounded-2xl border border-white/10">
+      {/* Camada 1 — a planta baixa. */}
+      <div aria-hidden className="ev-grade-fundo pointer-events-none absolute inset-0" />
+
+      {/* Camada 2 — o brilho da marca, dois focos, bem difuso. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-40 left-1/4 h-[28rem] w-[28rem] rounded-full opacity-[0.18] blur-[100px]"
+        style={{ background: "rgb(var(--color-accent))" }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-56 right-0 h-[26rem] w-[26rem] rounded-full opacity-[0.10] blur-[110px]"
+        style={{ background: "rgb(var(--color-accent-2))" }}
+      />
+
+      {/* Camada 3 — a varredura. */}
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-1/3 overflow-hidden">
+        <div
+          className="ev-varredura h-full w-full"
+          style={{
+            background: "linear-gradient(90deg, transparent, rgb(var(--color-accent) / 0.07), transparent)",
+          }}
+        />
+      </div>
+
+      <Cantos />
+
+      <div className="relative px-6 py-7 sm:px-9 sm:py-9">
+        {/* Barra de status */}
+        <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
+          <span className="inline-flex items-center gap-2">
+            <span className="ev-rec h-1.5 w-1.5 rounded-full bg-danger shadow-[0_0_8px_rgb(239_68_68/0.9)]" />
+            {t.consoleRec}
+          </span>
+          <span className="tabular-nums">{t.consoleTimecode}</span>
+        </div>
+
+        <p
+          className="mt-7 font-mono text-[10px] uppercase tracking-[0.3em]"
+          style={{ color: "rgb(var(--color-accent))" }}
+        >
+          {t.emBreveEtiqueta}
+        </p>
+
+        <h2 className="mt-3 max-w-[22ch] text-[2rem] font-semibold leading-[1.08] tracking-tight text-white sm:text-[2.75rem]">
+          {/* `block` na segunda metade: o trecho aceso precisa COMECAR a
+              linha. Deixado no fluxo, ele quebrava onde desse ("...do evento,
+              o / que ainda falta") e a cor passava a marcar meia frase em vez
+              da ideia inteira. */}
+          {t.emBreveTituloA}
+          <span
+            className="block"
+            style={{
+              color: "rgb(var(--color-accent))",
+              textShadow: "0 0 28px rgb(var(--color-accent) / 0.55)",
+            }}
+          >
+            {t.emBreveTituloB}
+          </span>
+        </h2>
+
+        <p className="mt-4 max-w-[58ch] text-sm leading-relaxed text-white/55">{t.emBreveSubtitulo}</p>
+
+        <GradeDeCobertura />
+        <Numeros />
+      </div>
+    </div>
+  );
+}
+
+/** A moldura do visor. Quatro cantos, nunca a borda inteira — o que dá a leitura de "enquadramento" é justamente a borda NÃO se fechar. */
+function Cantos() {
+  const base = "pointer-events-none absolute h-5 w-5 border-white/25";
+  return (
+    <div aria-hidden>
+      <span className={cn(base, "left-3 top-3 border-l border-t")} />
+      <span className={cn(base, "right-3 top-3 border-r border-t")} />
+      <span className={cn(base, "bottom-3 left-3 border-b border-l")} />
+      <span className={cn(base, "bottom-3 right-3 border-b border-r")} />
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// A grade de cobertura — o centro da tela
+// ----------------------------------------------------------------------------
+// Uma faixa por ambiente, o tempo correndo na horizontal, e — a parte que
+// nenhuma agenda faz — cada bloco carregando embaixo as marcas do que precisa
+// ser captado ali. Verde é captado, cinza respirando é pendente, vermelho é
+// pendente com a janela já fechada.
+//
+// A régua vai das 21h às 03h porque evento vira a madrugada. Uma timeline que
+// só sabe ir das 09h às 17h não serve para show nenhum.
+
+const AGORA_PCT = 57;
 
 type Marca = "ok" | "pendente" | "perdido";
 interface Bloco {
@@ -113,140 +150,161 @@ interface Bloco {
   inicio: number;
   fim: number;
   marcas: Marca[];
-  boom?: boolean;
 }
 
-const AMBIENTES: { nome: string; blocos: Bloco[] }[] = [
+const AMBIENTES: { nome: string; blocos: Bloco[]; booms?: { rotulo: string; em: number; marca: Marca }[] }[] = [
   {
-    nome: "Palco principal",
+    nome: "PALCO PRINCIPAL",
     blocos: [
-      { rotulo: "Abertura", inicio: 2, fim: 22, marcas: ["ok", "ok", "ok"] },
-      { rotulo: "Show 1", inicio: 26, fim: 54, marcas: ["ok", "ok", "perdido"] },
-      { rotulo: "Show 2", inicio: 60, fim: 92, marcas: ["pendente", "pendente"] },
+      { rotulo: "Abertura", inicio: 1, fim: 21, marcas: ["ok", "ok", "ok"] },
+      { rotulo: "Show 1", inicio: 25, fim: 53, marcas: ["ok", "ok", "perdido"] },
+      { rotulo: "Show 2", inicio: 59, fim: 93, marcas: ["pendente", "pendente"] },
     ],
   },
   {
-    nome: "Palco 2",
+    nome: "PALCO 2",
     blocos: [
-      { rotulo: "DJ set", inicio: 8, fim: 44, marcas: ["ok", "ok"] },
-      { rotulo: "Banda", inicio: 50, fim: 86, marcas: ["pendente", "pendente", "pendente"] },
+      { rotulo: "DJ set", inicio: 7, fim: 43, marcas: ["ok", "ok"] },
+      { rotulo: "Banda", inicio: 49, fim: 85, marcas: ["pendente", "pendente", "pendente"] },
     ],
   },
   {
-    nome: "Patrocinadores",
+    nome: "PATROCÍNIO",
     blocos: [
-      { rotulo: "Ativação A", inicio: 4, fim: 30, marcas: ["ok", "ok"] },
-      { rotulo: "Ativação B", inicio: 36, fim: 62, marcas: ["ok", "perdido"] },
-      { rotulo: "Ativação C", inicio: 70, fim: 96, marcas: ["pendente"] },
+      { rotulo: "Ativação A", inicio: 3, fim: 29, marcas: ["ok", "ok"] },
+      { rotulo: "Ativação B", inicio: 35, fim: 61, marcas: ["ok", "perdido"] },
+      { rotulo: "Ativação C", inicio: 69, fim: 95, marcas: ["pendente"] },
     ],
   },
   {
-    nome: "Booms",
-    blocos: [
-      { rotulo: "CO₂", inicio: 33, fim: 36, marcas: ["ok"], boom: true },
-      { rotulo: "Pirotecnia", inicio: 64, fim: 68, marcas: ["pendente"], boom: true },
-      { rotulo: "Confete", inicio: 88, fim: 91, marcas: ["pendente"], boom: true },
+    nome: "BOOMS",
+    blocos: [],
+    booms: [
+      { rotulo: "CO₂", em: 33, marca: "ok" },
+      { rotulo: "Pirotecnia", em: 63, marca: "pendente" },
+      { rotulo: "Confete", em: 88, marca: "pendente" },
     ],
   },
 ];
 
-const HORAS = ["21h", "22h", "23h", "00h", "01h", "02h", "03h"];
+const HORAS = ["21", "22", "23", "00", "01", "02", "03"];
+/** Largura da coluna de nomes. Caixa alta com `tracking` largo ocupa bem mais
+ *  do que a mesma palavra em caixa baixa: a 108px, "PALCO PRINCIPAL" virava
+ *  "PALCO PRINCI…" — e o nome do ambiente é o que diz de qual palco é a linha. */
+const ROTULO_W = 136;
 
-function GradeDeCobertura({ className }: { className?: string }) {
+function GradeDeCobertura() {
   const { dict } = useLocale();
+  const t = dict.eventos;
 
   return (
-    <div className={cn("rounded-xl border border-base-800 bg-base-950/50 p-4", className)}>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-semibold text-ink-primary">{dict.eventos.emBrevePreviaTitulo}</p>
-        <div className="flex flex-wrap items-center gap-3 text-[10px] text-ink-muted">
-          <Legenda cor="bg-status-good" texto={dict.eventos.legendaCaptado} />
-          <Legenda cor="bg-base-600" texto={dict.eventos.legendaPendente} />
-          <Legenda cor="bg-status-critical" texto={dict.eventos.legendaPerdido} />
+    <div className="mt-8 rounded-xl border border-white/10 bg-black/40 p-4 backdrop-blur-sm">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/45">{t.emBrevePreviaTitulo}</p>
+        <div className="flex flex-wrap items-center gap-3 font-mono text-[9.5px] uppercase tracking-[0.12em] text-white/40">
+          <Legenda classe="bg-status-good shadow-[0_0_6px_rgb(34_197_94/0.8)]" texto={t.legendaCaptado} />
+          <Legenda classe="bg-white/35" texto={t.legendaPendente} />
+          <Legenda classe="bg-danger shadow-[0_0_6px_rgb(239_68_68/0.8)]" texto={t.legendaPerdido} />
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <div className="min-w-[520px]">
-          {/* Régua de horas */}
-          <div className="mb-1.5 flex pl-[104px] text-[10px] tabular-nums text-ink-muted">
+        <div className="min-w-[560px]">
+          {/* Régua */}
+          <div
+            className="mb-2 flex font-mono text-[9.5px] tabular-nums text-white/35"
+            style={{ paddingLeft: ROTULO_W }}
+          >
             {HORAS.map((h) => (
               <span key={h} className="flex-1">
-                {h}
+                {h}h
               </span>
             ))}
           </div>
 
           <div className="relative">
-            {/* A linha do agora. Tudo à esquerda dela já passou — e é por isso
-                que um item pendente ali vira "perdido" em vez de continuar
-                cinza esperando. */}
+            {/* A linha do agora, com o rastro por cima. Tudo à esquerda dela já
+                passou — é por isso que um pendente ali é vermelho e não cinza. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute bottom-0 top-0 z-10 w-px"
-              style={{ left: `calc(104px + (100% - 104px) * ${AGORA_PCT / 100})`, background: "rgb(var(--color-accent))" }}
+              className="pointer-events-none absolute bottom-0 top-0 z-20"
+              style={{ left: `calc(${ROTULO_W}px + (100% - ${ROTULO_W}px) * ${AGORA_PCT / 100})` }}
             >
-              <span className="absolute -top-0.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-accent" />
+              <span
+                className="ev-agora absolute inset-y-0 -left-px w-0.5 rounded-full"
+                style={{
+                  background: "rgb(var(--color-accent))",
+                  boxShadow: "0 0 12px rgb(var(--color-accent)), 0 0 28px rgb(var(--color-accent) / 0.5)",
+                }}
+              />
+              <span
+                className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full"
+                style={{ background: "rgb(var(--color-accent))", boxShadow: "0 0 10px rgb(var(--color-accent))" }}
+              />
+              <span
+                className="absolute -bottom-5 left-1/2 -translate-x-1/2 font-mono text-[9px] uppercase tracking-[0.2em]"
+                style={{ color: "rgb(var(--color-accent))" }}
+              >
+                {t.consoleAgora}
+              </span>
             </div>
 
-            <div className="space-y-1.5">
-              {AMBIENTES.map((amb) => (
+            <div className="space-y-2 pb-6">
+              {AMBIENTES.map((amb, linha) => (
                 <div key={amb.nome} className="flex items-stretch">
-                  <span className="w-[104px] shrink-0 self-center truncate pr-3 text-[11px] text-ink-secondary">{amb.nome}</span>
-                  <div className="relative h-11 flex-1 rounded-md bg-base-900/60">
-                    {amb.blocos.map((b) =>
-                      /* Boom é INSTANTE, não duração: a marca é estreita e o
-                         nome vai para FORA dela. Dentro, um rótulo de quatro
-                         letras já viraria "Pirotec…" — e um nome cortado num
-                         painel que existe para avisar o que falta captar
-                         derrota o próprio painel. */
-                      b.boom ? (
-                        <div
-                          key={b.rotulo}
-                          className="absolute inset-y-1 flex items-center"
-                          style={{ left: `${b.inicio}%` }}
+                  <span
+                    className="shrink-0 self-center truncate pr-3 font-mono text-[9.5px] uppercase tracking-[0.14em] text-white/45"
+                    style={{ width: ROTULO_W }}
+                  >
+                    {amb.nome}
+                  </span>
+
+                  <div className="relative h-12 flex-1 rounded-md border border-white/[0.06] bg-white/[0.02]">
+                    {amb.blocos.map((b, i) => (
+                      <div
+                        key={b.rotulo}
+                        className="ev-entra absolute inset-y-1.5 flex flex-col justify-between rounded border border-white/10 bg-white/[0.045] px-2 py-1.5 backdrop-blur-[2px]"
+                        style={{
+                          left: `${b.inicio}%`,
+                          width: `${b.fim - b.inicio}%`,
+                          animationDelay: `${linha * 90 + i * 60}ms`,
+                        }}
+                      >
+                        <span className="truncate text-[10px] leading-none text-white/70">{b.rotulo}</span>
+                        <span className="flex gap-1">
+                          {b.marcas.map((m, j) => (
+                            <MarcaDeCaptura key={j} marca={m} />
+                          ))}
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Boom é INSTANTE, não duração: marca fina cravada na hora,
+                        com o nome do lado de fora. Um nome cortado dentro de uma
+                        marca de 10px ("Pirotec…") derrotaria o painel que existe
+                        justamente para avisar o que falta. */}
+                    {amb.booms?.map((b, i) => (
+                      <div
+                        key={b.rotulo}
+                        className="ev-entra absolute inset-y-1.5 flex items-center"
+                        style={{ left: `${b.em}%`, animationDelay: `${linha * 90 + i * 60}ms` }}
+                      >
+                        <span
+                          className="flex h-full w-[4px] flex-col justify-end overflow-hidden rounded-full"
+                          style={{
+                            background: "rgb(var(--color-accent) / 0.3)",
+                            boxShadow: "0 0 12px rgb(var(--color-accent) / 0.55)",
+                          }}
                         >
-                          <span
-                            className="flex h-full flex-col justify-end rounded border border-dashed border-accent/60 bg-accent/10 px-1 pb-1"
-                            style={{ width: 10 }}
-                          >
-                            {b.marcas.map((m, i) => (
-                              <span
-                                key={i}
-                                className={cn(
-                                  "h-1 w-full rounded-full",
-                                  m === "ok" && "bg-status-good",
-                                  m === "pendente" && "bg-base-600",
-                                  m === "perdido" && "bg-status-critical"
-                                )}
-                              />
-                            ))}
+                          <span className="block h-2/5 w-full">
+                            <MarcaDeCaptura marca={b.marca} vertical />
                           </span>
-                          <span className="ml-1 whitespace-nowrap text-[9.5px] leading-none text-ink-secondary">{b.rotulo}</span>
-                        </div>
-                      ) : (
-                        <div
-                          key={b.rotulo}
-                          className="absolute inset-y-1 flex flex-col justify-between rounded border border-base-700 bg-base-800/80 px-1.5 py-1"
-                          style={{ left: `${b.inicio}%`, width: `${b.fim - b.inicio}%` }}
-                        >
-                          <span className="truncate text-[9.5px] leading-none text-ink-secondary">{b.rotulo}</span>
-                          <span className="flex gap-0.5">
-                            {b.marcas.map((m, i) => (
-                              <span
-                                key={i}
-                                className={cn(
-                                  "h-1 flex-1 rounded-full",
-                                  m === "ok" && "bg-status-good",
-                                  m === "pendente" && "bg-base-600",
-                                  m === "perdido" && "bg-status-critical"
-                                )}
-                              />
-                            ))}
-                          </span>
-                        </div>
-                      )
-                    )}
+                        </span>
+                        <span className="ml-1.5 whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.1em] text-white/55">
+                          {b.rotulo}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
@@ -258,11 +316,116 @@ function GradeDeCobertura({ className }: { className?: string }) {
   );
 }
 
-function Legenda({ cor, texto }: { cor: string; texto: string }) {
+function MarcaDeCaptura({ marca, vertical }: { marca: Marca; vertical?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "rounded-full",
+        vertical ? "block h-full w-full" : "h-[3px] flex-1",
+        marca === "ok" && "bg-status-good shadow-[0_0_6px_rgb(34_197_94/0.75)]",
+        marca === "pendente" && "ev-pendente bg-white/45",
+        marca === "perdido" && "bg-danger shadow-[0_0_6px_rgb(239_68_68/0.75)]"
+      )}
+    />
+  );
+}
+
+function Legenda({ classe, texto }: { classe: string; texto: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className={cn("h-1.5 w-3 rounded-full", cor)} />
+      <span className={cn("h-[3px] w-3.5 rounded-full", classe)} />
       {texto}
     </span>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Os números
+// ----------------------------------------------------------------------------
+
+function Numeros() {
+  const { dict } = useLocale();
+  const t = dict.eventos;
+
+  const itens = [
+    { valor: "47/52", rotulo: t.numeroCaptado, destaque: true },
+    { valor: "03", rotulo: t.numeroPendente },
+    { valor: "02", rotulo: t.numeroPerdido, alerta: true },
+    { valor: "04", rotulo: t.numeroAmbientes },
+  ];
+
+  return (
+    <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-4">
+      {itens.map((n) => (
+        <div key={n.rotulo} className="bg-base-950 px-4 py-3.5">
+          <p
+            className={cn("font-mono text-xl font-semibold tabular-nums", n.alerta ? "text-danger" : "text-white")}
+            style={n.destaque ? { color: "rgb(var(--color-accent))", textShadow: "0 0 18px rgb(var(--color-accent) / 0.5)" } : undefined}
+          >
+            {n.valor}
+          </p>
+          <p className="mt-0.5 font-mono text-[9.5px] uppercase tracking-[0.16em] text-white/40">{n.rotulo}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Os módulos
+// ----------------------------------------------------------------------------
+
+function Modulos() {
+  const { dict } = useLocale();
+  const t = dict.eventos;
+
+  const itens = [
+    { n: "01", titulo: t.emBreveAmbientesTitulo, texto: t.emBreveAmbientesTexto },
+    { n: "02", titulo: t.emBreveProgramacaoTitulo, texto: t.emBreveProgramacaoTexto },
+    { n: "03", titulo: t.emBreveCoberturaTitulo, texto: t.emBreveCoberturaTexto, destaque: true },
+    { n: "04", titulo: t.emBreveAoVivoTitulo, texto: t.emBreveAoVivoTexto },
+    { n: "05", titulo: t.emBreveEquipeTitulo, texto: t.emBreveEquipeTexto },
+    { n: "06", titulo: t.emBreveEquipamentoTitulo, texto: t.emBreveEquipamentoTexto },
+  ];
+
+  return (
+    <div className="ev-console relative overflow-hidden rounded-2xl border border-white/10">
+      <div aria-hidden className="ev-grade-fundo pointer-events-none absolute inset-0 opacity-60" />
+
+      <div className="relative px-6 py-7 sm:px-9">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">{t.emBreveRecursosTitulo}</p>
+
+        {/* Sem caixas: hairlines formando a grade. O que separa um módulo do
+            outro é a linha, e não uma borda em volta de cada um — é o que
+            mantém a leitura de painel técnico em vez de galeria de cards. */}
+        <div className="mt-5 grid gap-px bg-white/[0.07] sm:grid-cols-2 lg:grid-cols-3">
+          {itens.map((m) => (
+            <div
+              key={m.n}
+              className={cn(
+                "group relative bg-base-950 px-5 py-5 transition",
+                m.destaque ? "bg-base-950" : "bg-base-950"
+              )}
+            >
+              {m.destaque && (
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-px"
+                  style={{ background: "rgb(var(--color-accent))", boxShadow: "0 0 12px rgb(var(--color-accent))" }}
+                />
+              )}
+              <p
+                className="font-mono text-[10px] tabular-nums tracking-[0.2em]"
+                style={m.destaque ? { color: "rgb(var(--color-accent))" } : { color: "rgb(255 255 255 / 0.28)" }}
+              >
+                {m.n}
+              </p>
+              <p className="mt-3 text-[15px] font-medium leading-snug text-white">{m.titulo}</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-white/45">{m.texto}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

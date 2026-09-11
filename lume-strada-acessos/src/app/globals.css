@@ -362,3 +362,93 @@ html.light .menu-lateral-link:focus-visible .menu-lateral-icone {
     transform: none;
   }
 }
+
+/* ============================================================================
+   Eventos — o console
+   ============================================================================
+   A página de "em breve" do módulo de Eventos, e depois o painel ao vivo, não
+   são telas de formulário: são um painel de operação que alguém olha de longe,
+   no escuro, com o show acontecendo. Por isso este bloco existe separado — é
+   a única superfície do app com vocabulário de HUD (moldura de visor,
+   timecode, REC piscando, varredura).
+
+   O console é SEMPRE ESCURO, nos dois temas. Não é descuido com o modo claro:
+   um painel de operação de evento é lido em galpão escuro e em palco, e virar
+   branco no modo claro tiraria dele justamente a legibilidade que ele existe
+   para ter. É a mesma razão de uma mesa de som não ser branca.
+
+   Toda cor de destaque sai de `--color-accent`, que é a cor da marca da
+   empresa — o console de cada agência acende na cor dela. */
+
+.ev-console {
+  /* Superfície própria, independente do tema. */
+  --ev-fundo: 6 7 12;
+  --ev-linha: 255 255 255;
+  background-color: rgb(var(--ev-fundo));
+  color: rgb(255 255 255);
+}
+
+/* A planta baixa. Máscara radial para a grade nascer forte no alto e sumir
+   nas bordas — sem isso ela vira papel quadriculado e briga com o conteúdo. */
+.ev-grade-fundo {
+  background-image:
+    linear-gradient(to right, rgb(var(--ev-linha) / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--ev-linha) / 0.04) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, black 35%, transparent 88%);
+  mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, black 35%, transparent 88%);
+}
+
+/* O ponto de REC. */
+@keyframes ev-rec {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.85); }
+}
+.ev-rec { animation: ev-rec 1.6s ease-in-out infinite; }
+
+/* A varredura que atravessa o console de tempos em tempos — é ela que faz o
+   painel parecer VIVO em vez de impresso. Lenta e quase invisível de
+   propósito: se der para reparar nela, está alto demais. */
+@keyframes ev-varredura {
+  0% { transform: translateX(-60%); opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translateX(160%); opacity: 0; }
+}
+.ev-varredura { animation: ev-varredura 7s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+/* O que ainda não foi captado respira. Pendente é o estado que pede ação, e
+   um retângulo cinza parado não pede nada. */
+@keyframes ev-pendente {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.75; }
+}
+.ev-pendente { animation: ev-pendente 2.4s ease-in-out infinite; }
+
+/* A linha do agora pulsa junto com o brilho dela. */
+@keyframes ev-agora {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.ev-agora { animation: ev-agora 2s ease-in-out infinite; }
+
+/* O que já foi captado entra na tela uma vez, de baixo para cima. */
+@keyframes ev-entra {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.ev-entra { animation: ev-entra 0.5s ease-out both; }
+
+/* Nada disso é informação: é ambiente. Quem pediu menos movimento continua
+   lendo a mesma grade, com os mesmos estados e as mesmas cores. */
+@media (prefers-reduced-motion: reduce) {
+  .ev-rec,
+  .ev-varredura,
+  .ev-pendente,
+  .ev-agora,
+  .ev-entra {
+    animation: none;
+  }
+  .ev-varredura { opacity: 0; }
+  .ev-pendente { opacity: 0.55; }
+}

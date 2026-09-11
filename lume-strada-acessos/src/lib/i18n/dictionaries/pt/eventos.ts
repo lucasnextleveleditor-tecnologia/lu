@@ -10,7 +10,15 @@ export interface EventosDict {
   tituloPagina: string;
   subtituloPagina: string;
   emBreveEtiqueta: string;
-  emBreveTitulo: string;
+  emBreveTituloA: string;
+  emBreveTituloB: string;
+  consoleRec: string;
+  consoleTimecode: string;
+  consoleAgora: string;
+  numeroCaptado: string;
+  numeroPendente: string;
+  numeroPerdido: string;
+  numeroAmbientes: string;
   emBreveSubtitulo: string;
   emBrevePreviaTitulo: string;
   legendaCaptado: string;
@@ -38,7 +46,15 @@ export const eventos: EventosDict = {
   tituloPagina: "Eventos",
   subtituloPagina: "A operação de campo: ambientes, programação e a cobertura do que precisa ser captado.",
   emBreveEtiqueta: "Em breve",
-  emBreveTitulo: "Saber, no meio do evento, o que ainda falta captar.",
+  emBreveTituloA: "Saber, no meio do evento,",
+  emBreveTituloB: "o que ainda falta captar.",
+  consoleRec: "Gravando · módulo em construção",
+  consoleTimecode: "TC 01:23:44:12",
+  consoleAgora: "agora",
+  numeroCaptado: "captado",
+  numeroPendente: "pendente",
+  numeroPerdido: "fora da janela",
+  numeroAmbientes: "ambientes",
   emBreveSubtitulo: "Três palcos ao mesmo tempo, a equipe espalhada, e a pergunta que não pode esperar o domingo: pegamos tudo? Este módulo responde isso enquanto o show ainda está acontecendo.",
   emBrevePreviaTitulo: "Grade de cobertura — prévia",
   legendaCaptado: "captado",
