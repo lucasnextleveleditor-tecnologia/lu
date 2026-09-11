@@ -29,10 +29,10 @@ type LayoutKanban = "linha" | "grade";
 /**
  * O recorte de tempo do quadro.
  *
- * `tudo` é o padrão e o comportamento de sempre: o quadro inteiro, sem
- * filtro. As outras duas existem porque um Kanban com noventa cards não
+ * `semanal` é onde o quadro abre, porque um Kanban com noventa cards não
  * responde "o que a gente entrega esta semana" — ele responde "o que existe",
- * que é outra pergunta.
+ * que é outra pergunta, e quase nunca a primeira. `tudo` é o quadro inteiro,
+ * sem filtro, a um clique de distância.
  */
 type PeriodoKanban = "semanal" | "mensal" | "tudo";
 
@@ -56,7 +56,11 @@ export function KanbanBoard({ tarefas, onAbrirTarefa }: KanbanBoardProps) {
   const [tarefasLocais, setTarefasLocais] = useState(tarefas);
   const [, startTransition] = useTransition();
   const [layout, setLayout] = useState<LayoutKanban>("linha");
-  const [periodo, setPeriodo] = useState<PeriodoKanban>("tudo");
+  // SEMANAL como estado de entrada: quem abre a Produção está perguntando "o
+  // que a gente entrega esta semana", não "o que existe". O quadro inteiro
+  // continua a um clique de distância, e a escolha de quem clicar fica salva —
+  // então trocar para Mensal ou Tudo uma vez basta para sempre.
+  const [periodo, setPeriodo] = useState<PeriodoKanban>("semanal");
   const [referencia, setReferencia] = useState(() => {
     const hoje = new Date();
     return new Date(Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()));
