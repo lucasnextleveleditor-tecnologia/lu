@@ -32,6 +32,8 @@ export function EventosEmBreve() {
   return (
     <div className="space-y-4">
       <Console />
+      <PautaEEquipe />
+      <Fases />
       <Modulos />
       <p className="pb-2 text-center text-[11px] text-ink-muted">{t.emBreveRodape}</p>
     </div>
@@ -386,6 +388,8 @@ function Modulos() {
     { n: "04", titulo: t.emBreveAoVivoTitulo, texto: t.emBreveAoVivoTexto },
     { n: "05", titulo: t.emBreveEquipeTitulo, texto: t.emBreveEquipeTexto },
     { n: "06", titulo: t.emBreveEquipamentoTitulo, texto: t.emBreveEquipamentoTexto },
+    { n: "07", titulo: t.emBrevePosTitulo, texto: t.emBrevePosTexto },
+    { n: "08", titulo: t.emBreveCustosTitulo, texto: t.emBreveCustosTexto },
   ];
 
   return (
@@ -422,6 +426,237 @@ function Modulos() {
               </p>
               <p className="mt-3 text-[15px] font-medium leading-snug text-white">{m.titulo}</p>
               <p className="mt-1.5 text-xs leading-relaxed text-white/45">{m.texto}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Pauta de captação + equipe em campo
+// ----------------------------------------------------------------------------
+// A grade lá em cima mostra o EVENTO. Estes dois painéis mostram a OPERAÇÃO
+// dentro dele: a lista do que ainda falta na janela que está correndo, e quem
+// está onde para fazer. É o par de telas que a pessoa vai olhar no celular às
+// duas da manhã — e é o que separa este módulo de uma agenda bonita.
+//
+// O conteúdo é de demonstração e fica aqui, fora do dicionário, pelo mesmo
+// motivo da grade: é mock, não interface. Traduzir "Show 2" não ajudaria
+// ninguém, e encher o dicionário de frase descartável cobra caro em toda
+// alteração futura.
+
+type EstadoItem = "ok" | "pendente" | "perdido";
+
+const PAUTA: { item: string; onde: string; janela: string; estado: EstadoItem }[] = [
+  { item: "Show 2 — plano geral do palco", onde: "Palco principal", janela: "00:40 — 01:20", estado: "pendente" },
+  { item: "Público na virada", onde: "Pista", janela: "00:55 — 01:05", estado: "pendente" },
+  { item: "Pirotecnia", onde: "Palco principal", janela: "02:00", estado: "pendente" },
+  { item: "Ativação B — fachada acesa", onde: "Patrocínio", janela: "23:30 — 00:10", estado: "perdido" },
+  { item: "Drone — abertura", onde: "Externa", janela: "21:00 — 21:20", estado: "ok" },
+  { item: "Bastidor da banda", onde: "Camarim", janela: "22:10 — 22:40", estado: "ok" },
+];
+
+const FEED: { funcao: string; o_que: string; quando: string }[] = [
+  { funcao: "Câmera 2", o_que: "Show 1 — plano médio", quando: "há 4 min" },
+  { funcao: "Foto", o_que: "Ativação A — público", quando: "há 11 min" },
+  { funcao: "Drone", o_que: "Externa — abertura", quando: "há 38 min" },
+  { funcao: "Câmera 1", o_que: "Abertura — geral", quando: "há 52 min" },
+];
+
+const EQUIPE: { funcao: string; onde: string; estado: "campo" | "deslocando" | "fora" }[] = [
+  { funcao: "Câmera 1", onde: "Palco principal", estado: "campo" },
+  { funcao: "Câmera 2", onde: "Palco 2", estado: "campo" },
+  { funcao: "Foto", onde: "Patrocínio", estado: "deslocando" },
+  { funcao: "Drone", onde: "Externa", estado: "fora" },
+  { funcao: "Realtime", onde: "Base", estado: "campo" },
+];
+
+function PautaEEquipe() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-[1.55fr_1fr]">
+      <PainelPauta />
+      <PainelEquipe />
+    </div>
+  );
+}
+
+/** Moldura comum dos painéis — mesmo console escuro do topo, sem repetir as camadas de brilho (dois focos por tela bastam; mais vira neblina). */
+function Painel({ titulo, subtitulo, children }: { titulo: string; subtitulo: string; children: React.ReactNode }) {
+  return (
+    <div className="ev-console relative overflow-hidden rounded-2xl border border-white/10">
+      <div aria-hidden className="ev-linhas-monitor pointer-events-none absolute inset-0 opacity-60" />
+      <div className="relative px-5 py-6 sm:px-7">
+        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-white/45">{titulo}</p>
+        <p className="mt-2 max-w-[52ch] text-xs leading-relaxed text-white/45">{subtitulo}</p>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function PainelPauta() {
+  const { dict } = useLocale();
+  const t = dict.eventos;
+
+  return (
+    <Painel titulo={t.pautaTitulo} subtitulo={t.pautaSubtitulo}>
+      <p className="mt-5 font-mono text-[9.5px] uppercase tracking-[0.18em] text-white/35">{t.pautaJanelaTitulo}</p>
+
+      <ul className="mt-2.5 divide-y divide-white/[0.06] rounded-xl border border-white/[0.08] bg-black/40">
+        {PAUTA.map((linha, i) => (
+          <li key={linha.item} className="ev-entra flex items-center gap-3 px-3.5 py-2.5" style={{ animationDelay: `${i * 70}ms` }}>
+            <Caixa estado={linha.estado} />
+            <span className="min-w-0 flex-1">
+              <span
+                className={cn(
+                  "block truncate text-[13px] leading-tight",
+                  linha.estado === "ok" ? "text-white/40 line-through decoration-white/20" : "text-white/85"
+                )}
+              >
+                {linha.item}
+              </span>
+              <span className="mt-0.5 block truncate font-mono text-[9.5px] uppercase tracking-[0.1em] text-white/35">
+                {linha.onde}
+              </span>
+            </span>
+            <span
+              className={cn(
+                "shrink-0 font-mono text-[10px] tabular-nums",
+                linha.estado === "perdido" ? "text-danger" : "text-white/40"
+              )}
+            >
+              {linha.janela}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-5 font-mono text-[9.5px] uppercase tracking-[0.18em] text-white/35">{t.pautaFeedTitulo}</p>
+      <ul className="mt-2.5 space-y-1.5">
+        {FEED.map((f) => (
+          <li key={f.o_que} className="flex items-center gap-2.5 text-[12px]">
+            <span className="h-1 w-1 shrink-0 rounded-full bg-status-good shadow-[0_0_6px_rgb(34_197_94/0.8)]" />
+            <span className="shrink-0 font-mono text-[9.5px] uppercase tracking-[0.12em] text-white/40">{f.funcao}</span>
+            <span className="min-w-0 flex-1 truncate text-white/60">{f.o_que}</span>
+            <span className="shrink-0 font-mono text-[9.5px] text-white/30">{f.quando}</span>
+          </li>
+        ))}
+      </ul>
+    </Painel>
+  );
+}
+
+/** A caixinha de marcar. Quadrada e não redonda: redondo virou sinônimo de "status", e aqui é uma AÇÃO que alguém faz no celular — a forma precisa lembrar checklist. */
+function Caixa({ estado }: { estado: EstadoItem }) {
+  if (estado === "ok") {
+    return (
+      <span
+        className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] bg-status-good shadow-[0_0_10px_rgb(34_197_94/0.55)]"
+        aria-hidden
+      >
+        <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none" stroke="#06210F" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2.5 6.3 L4.8 8.6 L9.5 3.6" />
+        </svg>
+      </span>
+    );
+  }
+  if (estado === "perdido") {
+    return <span aria-hidden className="h-4 w-4 shrink-0 rounded-[4px] border border-danger/70 bg-danger/15 shadow-[0_0_10px_rgb(239_68_68/0.35)]" />;
+  }
+  return <span aria-hidden className="ev-pendente h-4 w-4 shrink-0 rounded-[4px] border border-white/30 bg-white/[0.06]" />;
+}
+
+function PainelEquipe() {
+  const { dict } = useLocale();
+  const t = dict.eventos;
+
+  const rotulo = { campo: t.equipeEmCampo, deslocando: t.equipeDeslocando, fora: t.equipeFora } as const;
+
+  return (
+    <Painel titulo={t.equipeTitulo} subtitulo={t.equipeSubtitulo}>
+      <ul className="mt-5 space-y-2">
+        {EQUIPE.map((pessoa, i) => (
+          <li
+            key={pessoa.funcao}
+            className="ev-entra flex items-center gap-3 rounded-xl border border-white/[0.08] bg-black/40 px-3.5 py-2.5"
+            style={{ animationDelay: `${i * 70}ms` }}
+          >
+            {/* Sem foto e sem nome: a sigla da FUNÇÃO. Num evento, quem procura
+                alguém procura "o drone", não "o Fulano". */}
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05] font-mono text-[9.5px] uppercase tracking-[0.06em] text-white/60">
+              {pessoa.funcao.slice(0, 2)}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] leading-tight text-white/85">{pessoa.funcao}</span>
+              <span className="mt-0.5 block truncate font-mono text-[9.5px] uppercase tracking-[0.1em] text-white/35">
+                {pessoa.onde}
+              </span>
+            </span>
+            <span className="flex shrink-0 items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-white/45">
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  pessoa.estado === "campo" && "bg-status-good shadow-[0_0_7px_rgb(34_197_94/0.85)]",
+                  pessoa.estado === "deslocando" && "ev-pendente bg-white/50",
+                  pessoa.estado === "fora" && "bg-white/20"
+                )}
+              />
+              {rotulo[pessoa.estado]}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Painel>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Antes · Durante · Depois
+// ----------------------------------------------------------------------------
+// A promessa contada na ordem em que o trabalho acontece. Vem DEPOIS dos
+// painéis de propósito: primeiro a pessoa vê a coisa funcionando, depois lê o
+// que isso significa para a semana dela. Ao contrário, seria mais um texto de
+// site antes da primeira prova de que o produto existe.
+
+function Fases() {
+  const { dict } = useLocale();
+  const t = dict.eventos;
+
+  const fases = [
+    { etiqueta: t.faseAntesEtiqueta, titulo: t.faseAntesTitulo, texto: t.faseAntesTexto },
+    { etiqueta: t.faseDuranteEtiqueta, titulo: t.faseDuranteTitulo, texto: t.faseDuranteTexto, agora: true },
+    { etiqueta: t.faseDepoisEtiqueta, titulo: t.faseDepoisTitulo, texto: t.faseDepoisTexto },
+  ];
+
+  return (
+    <div className="ev-console relative overflow-hidden rounded-2xl border border-white/10">
+      <div aria-hidden className="ev-linhas-monitor pointer-events-none absolute inset-0 opacity-60" />
+
+      <div className="relative px-6 py-7 sm:px-9">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">{t.fasesTitulo}</p>
+
+        <div className="mt-6 grid gap-px bg-white/[0.07] sm:grid-cols-3">
+          {fases.map((f) => (
+            <div key={f.etiqueta} className="relative bg-base-950 px-5 py-5">
+              {/* A fase do meio é a que o módulo existe para resolver — e é a
+                  única acesa. Destacar as três seria não destacar nenhuma. */}
+              {f.agora && (
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-px"
+                  style={{ background: "rgb(var(--color-accent))", boxShadow: "0 0 12px rgb(var(--color-accent))" }}
+                />
+              )}
+              <p
+                className="font-mono text-[10px] uppercase tracking-[0.24em]"
+                style={f.agora ? { color: "rgb(var(--color-accent))" } : { color: "rgb(255 255 255 / 0.3)" }}
+              >
+                {f.etiqueta}
+              </p>
+              <p className="mt-3 text-[15px] font-medium leading-snug text-white">{f.titulo}</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-white/45">{f.texto}</p>
             </div>
           ))}
         </div>

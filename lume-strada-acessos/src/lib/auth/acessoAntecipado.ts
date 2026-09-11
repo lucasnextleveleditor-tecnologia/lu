@@ -19,7 +19,14 @@
  * só para escolher se mostra a etiqueta "Em breve" ao lado do item — nunca
  * como autorização.
  */
-const EMAILS_ACESSO_ANTECIPADO: ReadonlySet<string> = new Set(["suportelucasfilmmaker@gmail.com"]);
+// Os dois e-mails sao da MESMA pessoa: a conta de super admin e a conta que
+// trabalha dentro de uma agencia. Como a checagem e por e-mail, as duas
+// precisam estar aqui -- estar logado como super admin nao faz o painel da
+// agencia reconhecer a pessoa.
+const EMAILS_ACESSO_ANTECIPADO: ReadonlySet<string> = new Set([
+  "suportelucasfilmmaker@gmail.com",
+  "lucasmeo748@icloud.com",
+]);
 
 export function temAcessoAntecipado(email: string | null | undefined): boolean {
   if (!email) return false;

@@ -159,11 +159,10 @@ const NAV_GRUPOS = [
   {
     tituloKey: "grupoEventos",
     itens: [
-      // Permissão própria, e não `chave: null`: o dono da agência decide quais
-      // funcionários enxergam o módulo, pelo mesmo painel de "Módulos
-      // Liberados" de todos os outros. ADMIN sempre vê, em qualquer empresa —
-      // `itemVisivel` devolve true para `papel === "admin"` antes de olhar a
-      // chave.
+      // `emBreve: true` faz o item aparecer para TODA a equipe hoje (ver
+      // `itemVisivel`), enquanto a `chave: "eventos"` fica pronta para quando
+      // o módulo sair do "em breve" e o dono da agência escolher quem entra,
+      // pelo painel de Módulos Liberados.
       //
       // Isso é só a VISIBILIDADE do item. O que a página mostra continua sendo
       // decidido no servidor: quem não está no acesso antecipado recebe o "em
@@ -274,9 +273,17 @@ export function AdminShell({
   // verdade continua sendo sempre reforçada no servidor (Server Action +
   // RLS), o filtro aqui é só pra não deixar o funcionário nem ver um link
   // que vai barrar.
-  function itemVisivel(item: { chave: string | null; chavesQualquer?: readonly string[]; adminOnly?: boolean }): boolean {
+  function itemVisivel(item: { chave: string | null; chavesQualquer?: readonly string[]; adminOnly?: boolean; emBreve?: boolean }): boolean {
     if (papel === "admin") return true;
     if (item.adminOnly) return false;
+    // Modulo em construcao aparece pra TODO MUNDO da equipe, com ou sem
+    // permissao: o que ele abre hoje e a pagina de "em breve", que existe
+    // justamente pra ser vista. Esconder a novidade de quem ainda nao tem a
+    // caixinha ligada e esconder o anuncio de quem deveria receber o anuncio.
+    // Quando o modulo sair do "em breve", a linha cai e a permissao
+    // (`chave: "eventos"`, ja ligavel em Modulos Liberados) passa a valer
+    // sozinha.
+    if (item.emBreve) return true;
     if (item.chavesQualquer) return item.chavesQualquer.some((chave) => permissoes?.[chave as keyof PermissoesFuncionario] === true);
     if (!item.chave) return true;
     return permissoes?.[item.chave as keyof PermissoesFuncionario] === true;

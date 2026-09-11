@@ -68,6 +68,34 @@ export interface EventosDict {
   emBreveEquipeTexto: string;
   emBreveEquipamentoTitulo: string;
   emBreveEquipamentoTexto: string;
+
+  // A pagina de "em breve": as tres fases da operacao, o painel de pauta
+  // e a equipe em campo. Conteudo de demonstracao continua no componente.
+  fasesTitulo: string;
+  faseAntesEtiqueta: string;
+  faseAntesTitulo: string;
+  faseAntesTexto: string;
+  faseDuranteEtiqueta: string;
+  faseDuranteTitulo: string;
+  faseDuranteTexto: string;
+  faseDepoisEtiqueta: string;
+  faseDepoisTitulo: string;
+  faseDepoisTexto: string;
+  pautaTitulo: string;
+  pautaSubtitulo: string;
+  pautaJanelaTitulo: string;
+  pautaFeedTitulo: string;
+  pautaColunaJanela: string;
+  pautaColunaOnde: string;
+  equipeTitulo: string;
+  equipeSubtitulo: string;
+  equipeEmCampo: string;
+  equipeDeslocando: string;
+  equipeFora: string;
+  emBrevePosTitulo: string;
+  emBrevePosTexto: string;
+  emBreveCustosTitulo: string;
+  emBreveCustosTexto: string;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -136,6 +164,31 @@ export const eventos: EventosDict = {
   emBreveEquipeTexto: "Cada pessoa recebe o próprio acesso, marca o que captou pelo celular, e o registro fica assinado. Expira no fim do evento.",
   emBreveEquipamentoTitulo: "Equipamento que sai e volta",
   emBreveEquipamentoTexto: "O que foi para o evento, com quem está e o que ainda não voltou — ligado ao inventário que você já mantém.",
+  fasesTitulo: "Antes, durante e depois",
+  faseAntesEtiqueta: "Antes",
+  faseAntesTitulo: "Chegar com tudo decidido",
+  faseAntesTexto: "Ambientes, programação, equipe escalada e a pauta de captação fechada. No dia, ninguém precisa perguntar o que é para fazer.",
+  faseDuranteEtiqueta: "Durante",
+  faseDuranteTitulo: "Enxergar o que falta, na hora",
+  faseDuranteTexto: "A grade acende o que está pendente na janela que está correndo e avisa antes dela fechar. Cada pessoa marca do próprio celular.",
+  faseDepoisEtiqueta: "Depois",
+  faseDepoisTitulo: "Fechar sem depender da memória",
+  faseDepoisTexto: "O que foi captado, por quem e a que horas — e o que não rolou, registrado. O material vai para a edição com a lista pronta.",
+  pautaTitulo: "Pauta de captação — prévia",
+  pautaSubtitulo: "A lista do que precisa existir quando o evento acabar. Cada linha tem lugar e hora.",
+  pautaJanelaTitulo: "Na janela que está correndo",
+  pautaFeedTitulo: "Últimas marcações",
+  pautaColunaJanela: "janela",
+  pautaColunaOnde: "onde",
+  equipeTitulo: "Equipe em campo — prévia",
+  equipeSubtitulo: "Quem está onde, agora. Cada pessoa entra com o próprio acesso e o que ela marca fica assinado.",
+  equipeEmCampo: "em campo",
+  equipeDeslocando: "deslocando",
+  equipeFora: "fora",
+  emBrevePosTitulo: "Fechamento e entrega",
+  emBrevePosTexto: "No fim do evento, a lista do que existe e do que não existe — pronta para a edição, sem depender do que alguém lembrou.",
+  emBreveCustosTitulo: "Custo da diária",
+  emBreveCustosTexto: "Cachê de cada pessoa, extras do dia e o que sobrou — pronto para virar lançamento no Financeiro.",
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",
