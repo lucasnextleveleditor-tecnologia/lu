@@ -140,6 +140,21 @@ export default async function ComercialHubPage({ searchParams }: { searchParams:
   const [equipamentos, custoFixoMensalEstimado] =
     abaAtiva === "calculadora" && podeOrcamentos ? await Promise.all([buscarEquipamentosParaCalculadora(), buscarCustoFixoMensalEstimado()]) : [[], 0];
 
+  // Quem pode assumir um lead: a mesma régua de `is_staff()`. As permissões
+  // por módulo ainda não são usadas na prática (todo mundo é admin), então
+  // filtrar por "tem Comercial ligado" devolveria a mesma lista com uma
+  // consulta a mais.
+  const { data: equipe } = await supabase
+    .from("profiles")
+    .select("id, full_name, email")
+    .in("role", ["admin", "funcionario"])
+    .eq("active", true)
+    .order("full_name");
+  const equipeComercial = (equipe ?? []).map((p) => ({
+    id: p.id as string,
+    nome: ((p.full_name as string | null) ?? "").trim() || (p.email as string),
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -194,7 +209,8 @@ export default async function ComercialHubPage({ searchParams }: { searchParams:
             />
           </div>
 
-          <ComercialWorkspace leads={dadosLeads.leadsComRelacoes} anotacoesPorLead={dadosLeads.anotacoesPorLead} tiposServico={dadosLeads.tiposServico} />
+          <ComercialWorkspace leads={dadosLeads.leadsComRelacoes} anotacoesPorLead={dadosLeads.anotacoesPorLead} tiposServico={dadosLeads.tiposServico}   equipe={equipeComercial}
+        />
         </div>
       )}
 

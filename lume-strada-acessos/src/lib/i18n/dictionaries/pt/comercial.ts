@@ -1,3 +1,5 @@
+import type { MotivoPerda } from "@/lib/utils/comercial";
+
 /**
  * Módulo Comercial (CRM/funil de vendas) — `app/admin/comercial/page.tsx` e
  * `components/admin/comercial/*`. Cobre o funil (Kanban/Lista), o modal de
@@ -24,6 +26,25 @@ export interface ComercialDict {
   // ComercialWorkspace — alternância de visão, exportação, novo lead
   visaoFunil: string;
   visaoLista: string;
+  quemVaiContatar: string;
+  semResponsavel: string;
+  visaoPerdidos: string;
+  encerrarLead: string;
+  confirmarEncerramento: string;
+  motivoDaPerda: string;
+  escolhaOMotivo: string;
+  motivoNaoInformado: string;
+  avisarParaRetomar: string;
+  /** Em `{n}` dias. */
+  emDias: string;
+  nuncaMais: string;
+  encerradoComo: string;
+  /** Aviso para retomar em `{data}`. */
+  reabordarMarcado: string;
+  semReabordagem: string;
+  reabrirLead: string;
+  motivosPerda: Record<MotivoPerda, string>;
+
   novoLead: string;
   colEtapaFunil: string;
   colProximoContatoCsv: string;
@@ -124,6 +145,29 @@ export const comercial: ComercialDict = {
 
   visaoFunil: "Funil",
   visaoLista: "Lista",
+  quemVaiContatar: "Quem vai contatar",
+  semResponsavel: "Sem responsável (avisa a equipe)",
+  visaoPerdidos: "Perdidos",
+  encerrarLead: "Encerrar lead",
+  confirmarEncerramento: "Encerrar",
+  motivoDaPerda: "Motivo",
+  escolhaOMotivo: "Escolha o motivo antes de encerrar.",
+  motivoNaoInformado: "não informado",
+  avisarParaRetomar: "Me avisar para retomar",
+  emDias: "Em {n} dias",
+  nuncaMais: "Nunca mais",
+  encerradoComo: "Encerrado:",
+  reabordarMarcado: "Aviso para retomar em {data}.",
+  semReabordagem: "Sem aviso de retomada.",
+  reabrirLead: "Reabrir lead",
+  motivosPerda: {
+    preco: "Preço",
+    sem_resposta: "Sem resposta",
+    concorrente: "Fechou com concorrente",
+    sem_orcamento: "Sem orçamento agora",
+    fora_do_escopo: "Fora do nosso escopo",
+    outro: "Outro",
+  },
   novoLead: "Novo Lead",
   colEtapaFunil: "Etapa do Funil",
   colProximoContatoCsv: "Próximo Contato",

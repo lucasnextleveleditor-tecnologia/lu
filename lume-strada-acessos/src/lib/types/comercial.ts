@@ -1,3 +1,5 @@
+import type { MotivoPerda } from "@/lib/utils/comercial";
+
 export type OrigemLead = "indicacao" | "trafego_pago" | "outbound" | "outro" | "whatsapp";
 export type StatusLead =
   | "lead_frio"
@@ -20,6 +22,12 @@ export interface LeadRow {
   contrato_assinado: boolean;
   status: StatusLead;
   proximo_contato_em: string | null; // ISO date
+  /** Quem está atrás deste lead. É para ele que o aviso do dia vai. */
+  responsavel_id: string | null;
+  /** Encerramento: por que foi perdido e quando lembrar de tentar de novo. */
+  motivo_perda: MotivoPerda | null;
+  reabordar_em: string | null; // ISO date
+  encerrado_em: string | null;
   cliente_id: string | null;
   convertido_em: string | null;
   created_at: string;
@@ -32,6 +40,8 @@ export type LeadComRelacoes = LeadRow & { tipo_servico_nome: string | null };
 export interface AnotacaoRow {
   id: string;
   lead_id: string;
+  /** `contato` conta como tentativa; `nota` é registro interno e não conta. */
+  tipo: "contato" | "nota";
   nota: string;
   proximo_contato_em: string | null;
   criado_por: string | null;

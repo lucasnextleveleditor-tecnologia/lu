@@ -3,7 +3,7 @@
 import { useState, type ComponentType } from "react";
 import type { AnotacaoRow, LeadComRelacoes } from "@/lib/types/comercial";
 import type { TipoServicoRow } from "@/lib/types/producao";
-import { IconColumns, IconList, IconPlus } from "@/components/ui/icons";
+import { IconRotateCcw, IconColumns, IconList, IconPlus } from "@/components/ui/icons";
 import { Button } from "@/components/ui/Button";
 import { ExportMenuButton } from "@/components/ui/ExportMenuButton";
 import { cn } from "@/lib/utils/cn";
@@ -14,12 +14,13 @@ import { LeadDetalheModal } from "@/components/admin/comercial/LeadDetalheModal"
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { ComercialDict } from "@/lib/i18n/dictionaries/pt/comercial";
 
-type Visao = "kanban" | "lista";
+type Visao = "kanban" | "lista" | "perdidos";
 
 interface ComercialWorkspaceProps {
   leads: LeadComRelacoes[];
   anotacoesPorLead: Record<string, AnotacaoRow[]>;
   tiposServico: TipoServicoRow[];
+  equipe: { id: string; nome: string }[];
 }
 
 function etapaLabel(dict: ComercialDict, status: LeadComRelacoes["status"]): string {
@@ -39,10 +40,13 @@ function buildVisoes(dict: ComercialDict): { value: Visao; label: string; icon: 
   return [
     { value: "kanban", label: dict.visaoFunil, icon: IconColumns },
     { value: "lista", label: dict.visaoLista, icon: IconList },
+    // Perdidos fora do funil: a coluna "Perdido" no Kanban cresce para sempre
+    // e vira lixo visual entre as etapas que ainda podem virar dinheiro.
+    { value: "perdidos", label: dict.visaoPerdidos, icon: IconRotateCcw },
   ];
 }
 
-export function ComercialWorkspace({ leads, anotacoesPorLead, tiposServico }: ComercialWorkspaceProps) {
+export function ComercialWorkspace({ leads, anotacoesPorLead, tiposServico, equipe }: ComercialWorkspaceProps) {
   const { dict } = useLocale();
   const [visao, setVisao] = useState<Visao>("kanban");
   const [modalNovoAberto, setModalNovoAberto] = useState(false);
@@ -98,8 +102,12 @@ export function ComercialWorkspace({ leads, anotacoesPorLead, tiposServico }: Co
       </div>
 
       <div id="comercial-export-area">
-        {visao === "kanban" && <LeadKanbanBoard leads={leads} onAbrirLead={setLeadDetalheId} />}
-        {visao === "lista" && <ListaLeads leads={leads} onAbrirLead={setLeadDetalheId} />}
+        {/* O funil e a lista deixam de mostrar os perdidos: eles têm visão
+            própria agora, e mantê-los nas duas seria contar o mesmo lead duas
+            vezes em telas que servem para medir o que ainda está de pé. */}
+        {visao === "kanban" && <LeadKanbanBoard leads={leads.filter((l) => l.status !== "perdido")} onAbrirLead={setLeadDetalheId} />}
+        {visao === "lista" && <ListaLeads leads={leads.filter((l) => l.status !== "perdido")} onAbrirLead={setLeadDetalheId} />}
+        {visao === "perdidos" && <ListaLeads leads={leads.filter((l) => l.status === "perdido")} onAbrirLead={setLeadDetalheId} />}
       </div>
 
       {modalNovoAberto && <LeadModal tiposServico={tiposServico} onClose={() => setModalNovoAberto(false)} />}
@@ -109,6 +117,7 @@ export function ComercialWorkspace({ leads, anotacoesPorLead, tiposServico }: Co
           lead={leadDetalhe}
           anotacoes={anotacoesPorLead[leadDetalhe.id] ?? []}
           tiposServico={tiposServico}
+          equipe={equipe}
           onClose={() => setLeadDetalheId(null)}
         />
       )}

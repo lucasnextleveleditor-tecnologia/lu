@@ -67,3 +67,29 @@ export function sugerirProximoContato(anotacoesAnteriores: number, hoje: Date = 
   const data = new Date(Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), hoje.getUTCDate() + dias));
   return data.toISOString().slice(0, 10);
 }
+
+/**
+ * Por que um lead foi perdido.
+ *
+ * Lista fechada, e não texto livre, porque o motivo só vale se virar número
+ * depois: "perdi 6 dos 10 por preço" muda como se vende; "perdi 10 por vários
+ * motivos escritos de dez jeitos" não responde nada.
+ */
+export const MOTIVOS_PERDA = [
+  "preco",
+  "sem_resposta",
+  "concorrente",
+  "sem_orcamento",
+  "fora_do_escopo",
+  "outro",
+] as const;
+export type MotivoPerda = (typeof MOTIVOS_PERDA)[number];
+
+/**
+ * Os prazos oferecidos para reabordar um lead encerrado.
+ *
+ * Sessenta dias como padrão da tela: é tempo suficiente para o motivo da
+ * recusa ter mudado (orçamento novo, projeto novo, insatisfação com quem
+ * ganhou) e curto o bastante para a agência ainda ser lembrada.
+ */
+export const REABORDAR_EM_DIAS = [30, 60, 90, 180, 365] as const;

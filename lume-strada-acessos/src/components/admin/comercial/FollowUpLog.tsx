@@ -7,15 +7,30 @@ import { CADENCIA_FOLLOWUP_DIAS, sugerirProximoContato } from "@/lib/utils/comer
 import { fmtDataHora } from "@/lib/utils/status";
 import { Button } from "@/components/ui/Button";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { Select } from "@/components/ui/Select";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 
-export function FollowUpLog({ leadId, anotacoes }: { leadId: string; anotacoes: AnotacaoRow[] }) {
+export function FollowUpLog({
+  leadId,
+  anotacoes,
+  responsavelAtual,
+  equipe,
+}: {
+  leadId: string;
+  anotacoes: AnotacaoRow[];
+  responsavelAtual: string | null;
+  /** Quem pode assumir o lead — a mesma lista de quem tem acesso ao sistema. */
+  equipe: { id: string; nome: string }[];
+}) {
   const { dict } = useLocale();
   const [nota, setNota] = useState("");
   // Pré-preenchido com a sugestão da cadência (ver `sugerirProximoContato`)
   // pra não depender de ninguém lembrar de calcular/digitar a data — mas
   // continua um campo de data normal, editável/limpável como sempre foi.
   const [proximoContato, setProximoContato] = useState(() => sugerirProximoContato(anotacoes.length));
+  // Quem vai atrás do próximo retorno. Começa em quem já é dono do lead —
+  // registrar um contato não deveria, por descuido, tirar o lead de alguém.
+  const [responsavel, setResponsavel] = useState(responsavelAtual ?? "");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +51,7 @@ export function FollowUpLog({ leadId, anotacoes }: { leadId: string; anotacoes: 
     if (!nota.trim()) return;
     setError(null);
     startTransition(async () => {
-      const result = await criarAnotacao(leadId, nota, proximoContato || null);
+      const result = await criarAnotacao(leadId, nota, proximoContato || null, responsavel || null);
       if (!result.ok) setError(result.error);
       else setNota("");
     });
@@ -63,6 +78,20 @@ export function FollowUpLog({ leadId, anotacoes }: { leadId: string; anotacoes: 
               </span>
             </label>
             <DatePicker value={proximoContato} onChange={setProximoContato} className="text-xs" />
+          </div>
+          <div className="flex-1">
+            <label className="mb-1 block text-[11px] text-ink-muted">{dict.comercial.quemVaiContatar}</label>
+            <Select value={responsavel} onChange={(e) => setResponsavel(e.target.value)} className="text-xs">
+              {/* Sem responsável é permitido, e o aviso vai para a equipe
+                  inteira. Um follow-up sem dono que não avisa ninguém é um
+                  follow-up perdido — melhor três verem do que nenhuma. */}
+              <option value="">{dict.comercial.semResponsavel}</option>
+              {equipe.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nome}
+                </option>
+              ))}
+            </Select>
           </div>
           <Button type="submit" disabled={pending} className="shrink-0 self-end px-3 py-2 text-xs">
             {pending ? dict.common.salvando : dict.comercial.registrar}

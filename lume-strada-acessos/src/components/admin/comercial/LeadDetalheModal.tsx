@@ -14,6 +14,7 @@ import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { IconCheck } from "@/components/ui/icons";
 import { FollowUpLog } from "@/components/admin/comercial/FollowUpLog";
+import { EncerrarLead } from "@/components/admin/comercial/EncerrarLead";
 import { GerenciarServicosModal } from "@/components/admin/comercial/GerenciarServicosModal";
 import { CredenciaisAcessoGerado } from "@/components/ui/CredenciaisAcessoGerado";
 import { cn } from "@/lib/utils/cn";
@@ -24,6 +25,8 @@ interface LeadDetalheModalProps {
   lead: LeadComRelacoes;
   anotacoes: AnotacaoRow[];
   tiposServico: TipoServicoRow[];
+  /** Quem pode assumir o lead — mesma lista de quem tem acesso ao sistema. */
+  equipe: { id: string; nome: string }[];
   onClose: () => void;
 }
 
@@ -56,7 +59,7 @@ function origemLabel(dict: ComercialDict, origem: OrigemLead): string {
   return MAPA[origem];
 }
 
-export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: LeadDetalheModalProps) {
+export function LeadDetalheModal({ lead, anotacoes, tiposServico, equipe, onClose }: LeadDetalheModalProps) {
   const { dict } = useLocale();
   const [nome, setNome] = useState(lead.nome);
   const [email, setEmail] = useState(lead.email ?? "");
@@ -317,7 +320,25 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, onClose }: Lea
           {error && <p className="text-sm text-danger">{error}</p>}
         </form>
 
-        <FollowUpLog leadId={lead.id} anotacoes={anotacoes} />
+        {/* Encerrar fica ACIMA do histórico, junto das ações do lead — e não
+            no rodapé com "excluir": encerrar é uma decisão comercial, excluir
+            é apagar o registro. Confundir as duas é perder o histórico de um
+            lead que só foi perdido. */}
+        <div className="mb-3">
+          <EncerrarLead
+            leadId={lead.id}
+            perdido={lead.status === "perdido"}
+            motivoAtual={lead.motivo_perda}
+            reabordarEm={lead.reabordar_em}
+          />
+        </div>
+
+        <FollowUpLog
+          leadId={lead.id}
+          anotacoes={anotacoes}
+          responsavelAtual={lead.responsavel_id}
+          equipe={equipe}
+        />
       </div>
 
       {gerenciarServicosAberto && <GerenciarServicosModal tiposServico={tiposServico} onClose={() => setGerenciarServicosAberto(false)} />}

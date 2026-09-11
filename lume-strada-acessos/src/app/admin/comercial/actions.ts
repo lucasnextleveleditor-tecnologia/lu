@@ -5,6 +5,7 @@ import { requireAdmin, requireModulo } from "@/lib/auth/requireAdmin";
 import { createAdminClient, criarAcessoComSenhaPadrao } from "@/lib/supabase/admin";
 import type { OrigemLead, StatusLead } from "@/lib/types/comercial";
 import type { AcessoGeradoResult } from "@/lib/types/acesso";
+import { MOTIVOS_PERDA, type MotivoPerda } from "@/lib/utils/comercial";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
@@ -108,7 +109,78 @@ export async function removerLead(id: string): Promise<ActionResult> {
 // ----------------------------------------------------------------------------
 // Anotações (histórico de follow-up)
 // ----------------------------------------------------------------------------
-export async function criarAnotacao(leadId: string, nota: string, proximoContatoEm: string | null): Promise<ActionResult> {
+/**
+ * Encerra o lead — com motivo e com a data de tentar de novo.
+ *
+ * `reabordarEmDias = null` é "nunca mais". Os dois casos são escolha
+ * consciente na tela, e por isso o nulo aqui é um valor e não um esquecimento.
+ *
+ * O status vai para `perdido` e o `proximo_contato_em` é ZERADO: deixar a data
+ * antiga faria o Cron continuar cobrando follow-up de um lead encerrado —
+ * exatamente o aviso que faz a pessoa parar de confiar no sininho.
+ */
+export async function encerrarLead(
+  leadId: string,
+  motivo: MotivoPerda,
+  reabordarEmDias: number | null
+): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("comercial");
+    if (!MOTIVOS_PERDA.includes(motivo)) return { ok: false, error: "Motivo inválido." };
+
+    const reabordar =
+      reabordarEmDias === null || !Number.isFinite(reabordarEmDias)
+        ? null
+        : new Date(Date.now() + reabordarEmDias * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const { error } = await supabase
+      .from("crm_leads")
+      .update({
+        status: "perdido",
+        motivo_perda: motivo,
+        reabordar_em: reabordar,
+        encerrado_em: new Date().toISOString(),
+        proximo_contato_em: null,
+      })
+      .eq("id", leadId);
+    if (error) return { ok: false, error: error.message };
+
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Traz o lead de volta ao funil.
+ *
+ * Volta para `contato_inicial`, e não para a etapa em que estava: um lead que
+ * foi dado como perdido e ressurge meses depois é uma conversa nova, não a
+ * continuação da negociação que morreu. Colocá-lo direto em "negociação"
+ * inflaria o pipeline com uma expectativa que ninguém confirmou.
+ */
+export async function reabrirLead(leadId: string): Promise<ActionResult> {
+  try {
+    const { supabase } = await requireModulo("comercial");
+    const { error } = await supabase
+      .from("crm_leads")
+      .update({ status: "contato_inicial", reabordar_em: null, encerrado_em: null })
+      .eq("id", leadId);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(PATH);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+export async function criarAnotacao(
+  leadId: string,
+  nota: string,
+  proximoContatoEm: string | null,
+  responsavelId?: string | null
+): Promise<ActionResult> {
   try {
     const { supabase, user } = await requireModulo("comercial");
     if (!nota.trim()) return { ok: false, error: "Escreva um resumo do contato." };
@@ -123,8 +195,16 @@ export async function criarAnotacao(leadId: string, nota: string, proximoContato
 
     // O campo em `crm_leads` é só um cache do último agendamento — sempre
     // que uma anotação nova traz uma data, ela vira a "próxima" oficial.
-    if (proximoContatoEm) {
-      const { error: erroLead } = await supabase.from("crm_leads").update({ proximo_contato_em: proximoContatoEm }).eq("id", leadId);
+    // Quem registrou o contato assume o lead: o aviso do próximo retorno
+    // precisa de um destinatário, e o destinatário natural é quem acabou de
+    // falar com a pessoa. `undefined` (nada escolhido) não mexe no dono atual —
+    // registrar um contato não deve, por descuido, tirar o lead de alguém.
+    const mudancas: Record<string, unknown> = {};
+    if (proximoContatoEm) mudancas.proximo_contato_em = proximoContatoEm;
+    if (responsavelId !== undefined) mudancas.responsavel_id = responsavelId;
+
+    if (Object.keys(mudancas).length > 0) {
+      const { error: erroLead } = await supabase.from("crm_leads").update(mudancas).eq("id", leadId);
       if (erroLead) return { ok: false, error: erroLead.message };
     }
 
