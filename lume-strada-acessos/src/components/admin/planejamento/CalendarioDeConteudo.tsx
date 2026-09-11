@@ -26,10 +26,10 @@ import { ReferenciasEstiloField } from "@/components/admin/producao/BriefingCamp
 import { RichTextEditor } from "@/components/admin/producao/RichTextEditor";
 import {
   CANAIS_DO_POST,
-  FORMATOS_DO_POST,
   TIPOS_DE_PAUTA,
+  rotuloDoFormato,
   type CanalDoPost,
-  type FormatoDoPost,
+  type PostFormatoRow,
   type TarefaRow,
   type TipoDePauta,
 } from "@/lib/types/producao";
@@ -82,6 +82,7 @@ export function CalendarioDeConteudo({
   produzindoInicial,
   funcionarios,
   tiposServico,
+  formatos,
 }: {
   planoId: string;
   /** Limites do ciclo — o calendário não navega para fora deles. */
@@ -99,9 +100,29 @@ export function CalendarioDeConteudo({
   funcionarios: { id: string; nome: string }[];
   /** Os mesmos tipos cadastrados em Produção — para o post já subir categorizado. */
   tiposServico: { id: string; nome: string }[];
+  /**
+   * Os formatos EM USO da empresa (Configurações → Padrões de produção). A
+   * lista fixa de sete saiu daqui: uma agência que vende "Podcast" agora
+   * cadastra "Podcast", e quem só faz Reels e Carrossel não escolhe entre
+   * sete.
+   */
+  formatos: PostFormatoRow[];
 }) {
   const { dict } = useLocale();
   const t = dict.planejamento;
+
+  /**
+   * As opções do seletor de formato de UMA linha.
+   *
+   * Quase sempre é só a lista em uso. A exceção é o post que já está
+   * classificado com um formato que saiu de uso depois — ele entra na lista
+   * daquela linha, senão o `<select>` não teria o próprio valor entre as
+   * opções e mostraria o post como se não tivesse formato nenhum.
+   */
+  const opcoesDeFormato = (atual: string | null): { slug: string; nome: string | null }[] => {
+    if (!atual || formatos.some((f) => f.slug === atual)) return formatos;
+    return [...formatos, { slug: atual, nome: null }];
+  };
 
   const [pauta, setPauta] = useState<TarefaRow[]>(() => ordenar(pautaInicial));
   const [produzindo, setProduzindo] = useState<TarefaRow[]>(() => ordenar(produzindoInicial));
@@ -464,14 +485,12 @@ export function CalendarioDeConteudo({
                   <div className="w-32 shrink-0">
                     <Select
                       value={post.post_formato ?? ""}
-                      onChange={(e) =>
-                        editar(post.id, { post_formato: (e.target.value || null) as FormatoDoPost | null })
-                      }
+                      onChange={(e) => editar(post.id, { post_formato: e.target.value || null })}
                     >
                       <option value="">{t.formato}</option>
-                      {FORMATOS_DO_POST.map((f) => (
-                        <option key={f} value={f}>
-                          {t.formatos[f]}
+                      {opcoesDeFormato(post.post_formato).map((f) => (
+                        <option key={f.slug} value={f.slug}>
+                          {rotuloDoFormato(f, t.formatos)}
                         </option>
                       ))}
                     </Select>

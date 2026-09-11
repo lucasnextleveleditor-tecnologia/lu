@@ -1,11 +1,40 @@
 /** Cadastro completo de um cliente (dados cadastrais) — independente de ter ou não login no sistema. */
 export interface ClienteRow {
   id: string;
-  nome: string; // Razão Social / Nome Completo
+  /** Nome de EXIBIÇÃO — o que aparece no calendário, nas tarefas e nos relatórios. */
+  nome: string;
+  /**
+   * Quem assina o contrato, quando é diferente do nome de exibição
+   * ("Só Crazy - MC Pedrinho" na tela, "Crazy Produções LTDA" no contrato).
+   * `null` = os dois são a mesma coisa.
+   */
+  razao_social: string | null;
   documento: string | null; // CNPJ / CPF
+  inscricao_estadual: string | null;
+  inscricao_municipal: string | null;
   email: string | null;
   telefone: string | null; // Telefone / WhatsApp
   nome_responsavel: string | null;
+
+  // Endereço em campos próprios — o que um contrato e uma nota fiscal exigem.
+  cep: string | null;
+  logradouro: string | null;
+  numero: string | null;
+  complemento: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  uf: string | null; // sempre em maiúsculas (normalizado no banco)
+
+  /**
+   * O endereço em UMA linha, COMPOSTO pelo banco a partir dos campos acima
+   * (gatilho `clientes_compor_endereco`, ver `supabase/cliente-dados-completos.sql`).
+   * Nunca escreva aqui: a próxima gravação sobrescreve. Existe porque o
+   * contrato e o orçamento precisam da linha pronta, e remontá-la em cada um
+   * deles seria a mesma concatenação em dois lugares que vão divergir.
+   *
+   * Cliente cadastrado antes dos campos separados mantém aqui o texto livre
+   * original, e o gatilho não encosta nele até alguém preencher os campos.
+   */
   endereco: string | null;
   profile_id: string | null; // uuid -> profiles.id — null até "Gerar Acesso" ser usado
   cor: string | null; // hex ("#RRGGBB") escolhido no cadastro — usado nas etiquetas do Calendário (Produção) pra identificar o cliente visualmente
@@ -13,6 +42,43 @@ export interface ClienteRow {
   portal_token: string;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Completa um `ClienteRow` a partir do que o `ClienteModal` devolve ao criar
+ * (só id, nome e cor).
+ *
+ * Existe porque as telas que abrem o cadastro "por dentro" — Agenda e Produção
+ * — inserem o cliente novo na lista local sem recarregar a página, e cada uma
+ * montava esse objeto na mão. Toda coluna nova no cadastro quebrava as duas de
+ * uma vez, e a segunda só era descoberta depois de consertar a primeira.
+ *
+ * Os campos vêm vazios porque eles ESTÃO vazios: o cliente acabou de nascer
+ * com nome e cor. A linha correta chega no próximo carregamento da página.
+ */
+export function clienteRecemCriado(novo: Pick<ClienteRow, "id" | "nome" | "cor">): ClienteRow {
+  return {
+    ...novo,
+    razao_social: null,
+    documento: null,
+    inscricao_estadual: null,
+    inscricao_municipal: null,
+    email: null,
+    telefone: null,
+    nome_responsavel: null,
+    cep: null,
+    logradouro: null,
+    numero: null,
+    complemento: null,
+    bairro: null,
+    cidade: null,
+    uf: null,
+    endereco: null,
+    profile_id: null,
+    portal_token: "",
+    created_at: "",
+    updated_at: "",
+  };
 }
 
 /**

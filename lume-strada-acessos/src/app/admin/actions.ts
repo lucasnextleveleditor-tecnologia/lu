@@ -26,12 +26,29 @@ function mensagemAmigavelCliente(error: { code?: string; message: string }): str
 // Clientes — cadastro
 // ----------------------------------------------------------------------------
 export interface ClienteInput {
-  nome: string; // Razão Social / Nome Completo
+  /** Nome de exibição — o que aparece no calendário, nas tarefas e nos relatórios. */
+  nome: string;
+  /** Quem assina o contrato, quando difere do nome de exibição. */
+  razaoSocial: string | null;
   documento: string | null; // CNPJ / CPF
+  inscricaoEstadual: string | null;
+  inscricaoMunicipal: string | null;
   email: string | null;
   telefone: string | null;
   nomeResponsavel: string | null;
-  endereco: string | null;
+
+  // Endereço em campos próprios. `clientes.endereco` (a linha pronta) NÃO
+  // entra aqui de propósito: quem a compõe é o gatilho do banco, e mandar a
+  // linha junto criaria duas fontes para a mesma informação — ver
+  // `supabase/cliente-dados-completos.sql`.
+  cep: string | null;
+  logradouro: string | null;
+  numero: string | null;
+  complemento: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  uf: string | null;
+
   cor: string | null; // hex ("#RRGGBB") — etiqueta do cliente no Calendário de Produção
 }
 
@@ -53,11 +70,20 @@ export async function criarCliente(input: ClienteInput): Promise<ActionResultId>
       .from("clientes")
       .insert({
         nome: input.nome.trim(),
+        razao_social: input.razaoSocial?.trim() || null,
         documento: input.documento?.trim() || null,
+        inscricao_estadual: input.inscricaoEstadual?.trim() || null,
+        inscricao_municipal: input.inscricaoMunicipal?.trim() || null,
         email: input.email?.trim() || null,
         telefone: input.telefone?.trim() || null,
         nome_responsavel: input.nomeResponsavel?.trim() || null,
-        endereco: input.endereco?.trim() || null,
+        cep: input.cep?.trim() || null,
+        logradouro: input.logradouro?.trim() || null,
+        numero: input.numero?.trim() || null,
+        complemento: input.complemento?.trim() || null,
+        bairro: input.bairro?.trim() || null,
+        cidade: input.cidade?.trim() || null,
+        uf: input.uf?.trim().toUpperCase() || null,
         cor: input.cor || null,
       })
       .select("id")
@@ -82,11 +108,20 @@ export async function atualizarCliente(id: string, input: ClienteInput): Promise
       .from("clientes")
       .update({
         nome: input.nome.trim(),
+        razao_social: input.razaoSocial?.trim() || null,
         documento: input.documento?.trim() || null,
+        inscricao_estadual: input.inscricaoEstadual?.trim() || null,
+        inscricao_municipal: input.inscricaoMunicipal?.trim() || null,
         email: input.email?.trim() || null,
         telefone: input.telefone?.trim() || null,
         nome_responsavel: input.nomeResponsavel?.trim() || null,
-        endereco: input.endereco?.trim() || null,
+        cep: input.cep?.trim() || null,
+        logradouro: input.logradouro?.trim() || null,
+        numero: input.numero?.trim() || null,
+        complemento: input.complemento?.trim() || null,
+        bairro: input.bairro?.trim() || null,
+        cidade: input.cidade?.trim() || null,
+        uf: input.uf?.trim().toUpperCase() || null,
         cor: input.cor || null,
       })
       .eq("id", id);

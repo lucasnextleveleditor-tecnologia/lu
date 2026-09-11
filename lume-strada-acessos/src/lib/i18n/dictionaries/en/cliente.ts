@@ -10,4 +10,12 @@ export const cliente: ClienteDict = {
   aprovar: "Approve",
   placeholderAlteracao: "What needs to change?",
   solicitarAlteracao: "Request Changes",
+  abaAprovacoes: "Approvals",
+  abaContratos: "Contract",
+  contratosTitulo: "Your contract",
+  contratosSubtitulo: "The contracts you signed with the agency.",
+  contratosVazio: "No contract available here yet.",
+  contratoAbrir: "Open contract",
+  contratoAssinadoEm: "Signed on {data}",
+  contratoSemData: "Signed contract",
 };

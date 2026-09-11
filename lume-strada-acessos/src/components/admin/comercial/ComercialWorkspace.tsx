@@ -79,6 +79,7 @@ export function ComercialWorkspace({ leads, anotacoesPorLead, tiposServico, equi
             nomeArquivo="comercial-leads"
             dadosCSV={leads.map((l) => ({
               nome: l.nome,
+              instagram: l.instagram ? `@${l.instagram}` : "",
               status: etapaLabel(dict.comercial, l.status),
               origem: l.origem ?? "",
               valorEstimado: (l.valor_estimado ?? 0).toFixed(2),
@@ -87,6 +88,7 @@ export function ComercialWorkspace({ leads, anotacoesPorLead, tiposServico, equi
             }))}
             colunasCSV={[
               { chave: "nome", rotulo: dict.common.nome },
+              { chave: "instagram", rotulo: dict.comercial.instagramLabel },
               { chave: "status", rotulo: dict.comercial.colEtapaFunil },
               { chave: "origem", rotulo: dict.comercial.origem },
               { chave: "valorEstimado", rotulo: dict.comercial.valorEstimadoLabel },

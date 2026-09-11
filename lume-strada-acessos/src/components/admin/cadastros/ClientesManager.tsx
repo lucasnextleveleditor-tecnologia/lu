@@ -195,6 +195,15 @@ export function ClientesManager({ clientes, profilesPorId, souAdmin }: ClientesM
           profile={clienteDetalhe.profile_id ? profilesPorId[clienteDetalhe.profile_id] ?? null : null}
           souAdmin={souAdmin}
           onClose={() => setClienteDetalhe(null)}
+          // Fecha a ficha e abre o formulário do MESMO cliente. Os dois
+          // modais são irmãos aqui em cima e não podem ficar empilhados: dois
+          // overlays com o mesmo cadastro, um por cima do outro, levam a
+          // salvar no de baixo sem perceber.
+          onEditar={() => {
+            const alvo = clienteDetalhe;
+            setClienteDetalhe(null);
+            setClienteEditando(alvo);
+          }}
         />
       )}
       {clienteGerandoAcesso && <GerarAcessoClienteModal cliente={clienteGerandoAcesso} onClose={() => setClienteGerandoAcesso(null)} />}

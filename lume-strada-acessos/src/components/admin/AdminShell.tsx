@@ -16,21 +16,25 @@ import { SinoDeNotificacoes } from "@/components/admin/notificacoes/SinoDeNotifi
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { ValoresVisiveisProvider } from "@/lib/valores-visiveis/ValoresVisiveisProvider";
 import type { NavDict } from "@/lib/i18n/dictionaries/pt/nav";
+// Conjunto PRÓPRIO do menu (ver `icons-nav.tsx`): traço encorpado, cantos
+// macios e uma peça sólida em cada ícone. As telas continuam com o traço fino
+// de `icons.tsx` — os dois estilos não se misturam dentro de uma mesma tela.
 import {
-  IconUsers,
-  IconActivity,
-  IconBox,
-  IconSettings,
-  IconWallet,
-  IconTool,
-  IconColumns,
-  IconFileText,
-  IconTarget,
-  IconLayoutGrid,
-  IconBarChart2,
-  IconCalendar,
-  IconFlag,
-} from "@/components/ui/icons";
+  IconNavVisaoGeral,
+  IconNavRelatorios,
+  IconNavComercial,
+  IconNavContratos,
+  IconNavClientes,
+  IconNavAgenda,
+  IconNavProducao,
+  IconNavFerramentas,
+  IconNavTrafego,
+  IconNavInventario,
+  IconNavFinanceiro,
+  IconNavObjetivos,
+  IconNavConfiguracoes,
+  IconNavEventos,
+} from "@/components/ui/icons-nav";
 
 // Menu separado em grupos — "Visão Geral" (o Dashboard, que junta Produção +
 // Comercial + Financeiro numa tela só) no topo, "Comercial" (pré-vendas/CRM,
@@ -50,7 +54,7 @@ const NAV_GRUPOS = [
   {
     tituloKey: "grupoVisaoGeral",
     itens: [
-      { href: "/admin/dashboard", labelKey: "dashboard", icon: IconLayoutGrid, chave: null },
+      { href: "/admin/dashboard", labelKey: "dashboard", icon: IconNavVisaoGeral, chave: null },
       // Mesmo espírito do Dashboard (chave: null — visível pra qualquer
       // membro da equipe, sem checagem de módulo aqui no menu): a checagem
       // FINA de quais relatórios cada um vê mora dentro da própria página
@@ -58,7 +62,7 @@ const NAV_GRUPOS = [
       // usado no Dashboard) — um funcionário sem nenhuma permissão extra
       // simplesmente vê o Hub vazio, com uma orientação pra falar com o
       // admin, em vej do link sumir do menu.
-      { href: "/admin/relatorios", labelKey: "relatorios", icon: IconBarChart2, chave: null },
+      { href: "/admin/relatorios", labelKey: "relatorios", icon: IconNavRelatorios, chave: null },
     ],
   },
   {
@@ -80,7 +84,7 @@ const NAV_GRUPOS = [
       {
         href: "/admin/comercial",
         labelKey: "comercialHub",
-        icon: IconTarget,
+        icon: IconNavComercial,
         chave: "comercial",
         chavesQualquer: ["comercial", "orcamentos"],
         matchPrefixes: ["/admin/comercial", "/admin/orcamentos"],
@@ -104,21 +108,21 @@ const NAV_GRUPOS = [
       {
         href: "/admin/contratos",
         labelKey: "contratos",
-        icon: IconFileText,
+        icon: IconNavContratos,
         chave: "orcamentos",
         matchPrefixes: ["/admin/contratos", "/admin/assinaturas"],
       },
-      { href: "/admin", labelKey: "cadastros", icon: IconUsers, chave: "clientes" },
+      { href: "/admin", labelKey: "cadastros", icon: IconNavClientes, chave: "clientes" },
     ],
   },
   {
     tituloKey: "grupoGestao",
     itens: [
-      { href: "/admin/agenda", labelKey: "agenda", icon: IconCalendar, chave: "agenda" },
+      { href: "/admin/agenda", labelKey: "agenda", icon: IconNavAgenda, chave: "agenda" },
       {
         href: "/admin/producao",
         labelKey: "producaoTarefas",
-        icon: IconColumns,
+        icon: IconNavProducao,
         chave: "producao",
         // A Ordem de Externa é filha de Produção na URL, mas tem entrada
         // própria logo abaixo — sem esta exclusão as duas ficariam acesas ao
@@ -139,12 +143,31 @@ const NAV_GRUPOS = [
       {
         href: "/admin/ferramentas",
         labelKey: "ferramentas",
-        icon: IconTool,
+        icon: IconNavFerramentas,
         chave: null,
         matchPrefixes: ["/admin/ferramentas", "/admin/mapas", "/admin/producao/ordem-do-dia"],
       },
-      { href: "/admin/trafego", labelKey: "trafegoMetas", icon: IconActivity, chave: "trafego" },
-      { href: "/admin/inventario", labelKey: "inventarioPatrimonio", icon: IconBox, chave: "inventario" },
+      { href: "/admin/trafego", labelKey: "trafegoMetas", icon: IconNavTrafego, chave: "trafego" },
+      { href: "/admin/inventario", labelKey: "inventarioPatrimonio", icon: IconNavInventario, chave: "inventario" },
+    ],
+  },
+  // Eventos em grupo próprio, e não dentro de "Gestão", porque é outra
+  // natureza de trabalho: gestão é o que corre a semana inteira, evento é uma
+  // operação de campo com hora para começar e para acabar, equipe espalhada e
+  // um relógio correndo por cima. Quem está montando um sábado não está
+  // fazendo gestão — está comandando uma operação.
+  {
+    tituloKey: "grupoEventos",
+    itens: [
+      // `emBreve: true` faz o item aparecer para TODA a equipe hoje (ver
+      // `itemVisivel`), enquanto a `chave: "eventos"` fica pronta para quando
+      // o módulo sair do "em breve" e o dono da agência escolher quem entra,
+      // pelo painel de Módulos Liberados.
+      //
+      // Isso é só a VISIBILIDADE do item. O que a página mostra continua sendo
+      // decidido no servidor: quem não está no acesso antecipado recebe o "em
+      // breve", mesmo digitando a URL (ver `lib/auth/acessoAntecipado.ts`).
+      { href: "/admin/eventos", labelKey: "eventos", icon: IconNavEventos, chave: "eventos", emBreve: true },
     ],
   },
   // Grupo próprio, separado de "Gestão" e sempre por último — pedido
@@ -152,12 +175,12 @@ const NAV_GRUPOS = [
   {
     tituloKey: "grupoFinanceiro",
     itens: [
-      { href: "/admin/financeiro", labelKey: "financeiro", icon: IconWallet, chave: "financeiro" },
+      { href: "/admin/financeiro", labelKey: "financeiro", icon: IconNavFinanceiro, chave: "financeiro" },
       // Meta de faturamento do mês/ano — reaproveita os mesmos números de
       // `fin_transacoes` já usados no Financeiro, então reaproveita a mesma
       // permissão em vez de criar uma `ModuloChave` nova só pra isso (ver
       // `src/app/admin/objetivos/data.ts`).
-      { href: "/admin/objetivos", labelKey: "objetivos", icon: IconFlag, chave: "financeiro" },
+      { href: "/admin/objetivos", labelKey: "objetivos", icon: IconNavObjetivos, chave: "financeiro" },
     ],
   },
 ] as const satisfies ReadonlyArray<{
@@ -165,9 +188,11 @@ const NAV_GRUPOS = [
   itens: ReadonlyArray<{
     href: string;
     labelKey: keyof NavDict;
-    icon: typeof IconUsers;
+    icon: typeof IconNavClientes;
     chave: string | null;
     adminOnly?: boolean;
+    /** Módulo ainda em construção: o item aparece para todos, com a etiqueta "Em breve" para quem ainda não tem acesso antecipado. */
+    emBreve?: boolean;
     /** Quando presente, SUBSTITUI `chave` na checagem de visibilidade — aparece pra quem tem QUALQUER UMA dessas permissões (ver hub Comercial acima, que junta "comercial" e "orcamentos"). `chave` continua valendo só pra escolher a cor do destaque ativo (`MODULO_COR`). */
     chavesQualquer?: ReadonlyArray<string>;
     /** Prefixos de rota que NÃO devem acender este item, mesmo casando com `href` — para sub-rotas que ganharam entrada própria no menu (ver Produção × Ordem de Externa). */
@@ -213,6 +238,8 @@ interface AdminShellProps {
   permissoes: PermissoesFuncionario;
   /** Já resolvido pelo `admin/layout.tsx` (`null` quando `banner_ativo_admin` está desligado ou o título está vazio) — aparece no topo de TODA página admin/funcionário, dashboards inclusos, porque este é o único wrapper compartilhado por todas elas. */
   banner: BannerConfig | null;
+  /** Esta pessoa enxerga os módulos ainda em construção (ver `lib/auth/acessoAntecipado.ts`). Calculado no SERVIDOR e passado pronto — o e-mail da lista não vai para o navegador. */
+  acessoAntecipado: boolean;
   children: React.ReactNode;
 }
 
@@ -226,6 +253,7 @@ export function AdminShell({
   papel,
   permissoes,
   banner,
+  acessoAntecipado,
   children,
 }: AdminShellProps) {
   const pathname = usePathname();
@@ -245,9 +273,17 @@ export function AdminShell({
   // verdade continua sendo sempre reforçada no servidor (Server Action +
   // RLS), o filtro aqui é só pra não deixar o funcionário nem ver um link
   // que vai barrar.
-  function itemVisivel(item: { chave: string | null; chavesQualquer?: readonly string[]; adminOnly?: boolean }): boolean {
+  function itemVisivel(item: { chave: string | null; chavesQualquer?: readonly string[]; adminOnly?: boolean; emBreve?: boolean }): boolean {
     if (papel === "admin") return true;
     if (item.adminOnly) return false;
+    // Modulo em construcao aparece pra TODO MUNDO da equipe, com ou sem
+    // permissao: o que ele abre hoje e a pagina de "em breve", que existe
+    // justamente pra ser vista. Esconder a novidade de quem ainda nao tem a
+    // caixinha ligada e esconder o anuncio de quem deveria receber o anuncio.
+    // Quando o modulo sair do "em breve", a linha cai e a permissao
+    // (`chave: "eventos"`, ja ligavel em Modulos Liberados) passa a valer
+    // sozinha.
+    if (item.emBreve) return true;
     if (item.chavesQualquer) return item.chavesQualquer.some((chave) => permissoes?.[chave as keyof PermissoesFuncionario] === true);
     if (!item.chave) return true;
     return permissoes?.[item.chave as keyof PermissoesFuncionario] === true;
@@ -314,6 +350,11 @@ export function AdminShell({
                       href={item.href}
                       title={colapsado ? label : undefined}
                       className={cn(
+                        // `menu-lateral-link` é o gancho do neon (globals.css).
+                        // Só entra no item INATIVO: o ativo já tem a cor do
+                        // módulo, e trocá-la no hover faria a barra piscar de
+                        // cor justo no item onde a pessoa está.
+                        !active && "menu-lateral-link",
                         "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition",
                         colapsado && "justify-center px-0",
                         active
@@ -334,10 +375,17 @@ export function AdminShell({
                       }
                     >
                       <Icon
-                        className={cn("h-[18px] w-[18px] shrink-0", active && !corModulo ? "text-ink-primary" : undefined)}
+                        className={cn("menu-lateral-icone h-[19px] w-[19px] shrink-0", active && !corModulo ? "text-ink-primary" : undefined)}
                         style={active && corModulo ? { color: corModulo } : undefined}
                       />
                       {!colapsado && <span className="truncate">{label}</span>}
+                      {/* A etiqueta some para quem já tem o módulo — para
+                          quem está construindo, "Em breve" seria mentira. */}
+                      {!colapsado && "emBreve" in item && item.emBreve && !acessoAntecipado && (
+                        <span className="ml-auto shrink-0 rounded-full border border-base-700 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-ink-muted">
+                          {dict.nav.emBreveEtiqueta}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
@@ -360,6 +408,7 @@ export function AdminShell({
               href="/admin/configuracoes"
               title={colapsado ? dict.nav.configuracoes : undefined}
               className={cn(
+                !pathname?.startsWith("/admin/configuracoes") && "menu-lateral-link",
                 "mb-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition",
                 colapsado && "justify-center px-0",
                 pathname?.startsWith("/admin/configuracoes")
@@ -367,7 +416,7 @@ export function AdminShell({
                   : "font-medium text-ink-muted hover:bg-base-800 hover:text-ink-secondary"
               )}
             >
-              <IconSettings className="h-[18px] w-[18px] shrink-0" />
+              <IconNavConfiguracoes className="menu-lateral-icone h-[19px] w-[19px] shrink-0" />
               {!colapsado && <span className="truncate">{dict.nav.configuracoes}</span>}
             </Link>
           )}

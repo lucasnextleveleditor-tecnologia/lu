@@ -11,6 +11,7 @@ export type SignedUrlResult = { ok: true; url: string } | { ok: false; error: st
 
 const PATH = "/dashboard";
 const BUCKET = "producao";
+const BUCKET_CONTRATOS = "contratos";
 
 export interface AprovacaoPendente {
   versaoId: string;
@@ -64,6 +65,85 @@ async function requireCliente() {
   if (profile?.role !== "cliente") throw new Error("Apenas clientes podem acessar isso.");
 
   return { user, admin: createAdminClient() };
+}
+
+/** Um contrato como o CLIENTE vê: o que assinou, quando, e onde abrir. Nada editável. */
+export interface ContratoDoClienteLogado {
+  id: string;
+  titulo: string;
+  assinadoEm: string | null;
+  /** Onde o documento abre: a página pública do contrato do sistema, o link externo, ou a URL assinada do PDF. */
+  href: string | null;
+}
+
+/**
+ * Os contratos do cliente logado.
+ *
+ * O vínculo é `clientes.profile_id = user.id` — o cadastro do cliente, e não o
+ * login. São coisas separadas no sistema (um cliente existe no cadastro antes
+ * de ter login, e pode nunca ter), então um cliente cujo login não foi gerado
+ * a partir do cadastro dele simplesmente não vê contrato nenhum aqui, em vez
+ * de ver o de outra pessoa.
+ *
+ * Só contrato ASSINADO aparece. Rascunho e enviado são conversa comercial em
+ * andamento: mostrar ao cliente um contrato que a agência ainda está montando
+ * é vazar uma negociação pela metade.
+ */
+export async function listarContratosDoClienteLogado(): Promise<ContratoDoClienteLogado[]> {
+  try {
+    const { user, admin } = await requireCliente();
+
+    const { data: cadastro } = await admin
+      .from("clientes")
+      .select("id")
+      .eq("profile_id", user.id)
+      .maybeSingle<{ id: string }>();
+    if (!cadastro) return [];
+
+    const { data } = await admin
+      .from("contratos")
+      .select("id, titulo, origem, status, token, assinado_em, assinado_fora_em, arquivo_url, arquivo_path")
+      .eq("cliente_id", cadastro.id)
+      .eq("status", "assinado")
+      .order("created_at", { ascending: false })
+      .overrideTypes<
+        {
+          id: string;
+          titulo: string;
+          origem: "sistema" | "externo";
+          status: string;
+          token: string;
+          assinado_em: string | null;
+          assinado_fora_em: string | null;
+          arquivo_url: string | null;
+          arquivo_path: string | null;
+        }[],
+        { merge: false }
+      >();
+
+    const contratos = data ?? [];
+
+    // URL assinada de uma hora para o PDF anexado — o bucket `contratos` é
+    // privado, e o cliente nunca fala com o storage direto.
+    const assinadas = new Map<string, string>();
+    await Promise.all(
+      contratos
+        .filter((c) => c.arquivo_path)
+        .map(async (c) => {
+          const { data: url } = await admin.storage.from(BUCKET_CONTRATOS).createSignedUrl(c.arquivo_path!, 3600);
+          if (url?.signedUrl) assinadas.set(c.id, url.signedUrl);
+        })
+    );
+
+    return contratos.map((c) => ({
+      id: c.id,
+      titulo: c.titulo,
+      assinadoEm: c.origem === "externo" ? c.assinado_fora_em : c.assinado_em,
+      href: c.origem === "sistema" ? `/contrato/${c.token}` : (c.arquivo_url?.trim() || assinadas.get(c.id) || null),
+    }));
+  } catch {
+    return [];
+  }
 }
 
 /** Confere que a versão pertence a uma tarefa DESSE cliente antes de deixar aprovar/pedir alteração/baixar — nunca confia no `versaoId` sozinho. */

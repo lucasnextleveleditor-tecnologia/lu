@@ -4,7 +4,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import type { AnotacaoRow, LeadComRelacoes, OrigemLead } from "@/lib/types/comercial";
 import type { TipoServicoRow } from "@/lib/types/producao";
 import { atualizarLead, converterLeadEmCliente, moverStatusLead, removerLead } from "@/app/admin/comercial/actions";
-import { STATUS_LEAD_ORDEM } from "@/lib/utils/comercial";
+import { STATUS_LEAD_ORDEM, urlDoInstagram } from "@/lib/utils/comercial";
 import { fmtDataHora } from "@/lib/utils/status";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -64,6 +64,7 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, equipe, onClos
   const [nome, setNome] = useState(lead.nome);
   const [email, setEmail] = useState(lead.email ?? "");
   const [whatsapp, setWhatsapp] = useState(lead.whatsapp ?? "");
+  const [instagram, setInstagram] = useState(lead.instagram ?? "");
   const [origem, setOrigem] = useState<OrigemLead | "">(lead.origem ?? "");
   const [tipoServicoId, setTipoServicoId] = useState(lead.tipo_servico_id ?? "");
   const [valorEstimado, setValorEstimado] = useState(lead.valor_estimado ?? 0);
@@ -78,6 +79,10 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, equipe, onClos
   const [credenciaisConversao, setCredenciaisConversao] = useState<{ email: string; senhaPadrao: string } | null>(null);
   const [gerenciarServicosAberto, setGerenciarServicosAberto] = useState(false);
 
+  // Vale enquanto a pessoa digita: um @ meio escrito não vira link, e o link
+  // só aparece quando já dá pra clicar nele.
+  const perfilInstagram = urlDoInstagram(instagram);
+
   function handleSalvar(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -87,13 +92,14 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, equipe, onClos
         nome,
         email: email || null,
         whatsapp: whatsapp || null,
+        instagram: instagram || null,
         origem: origem || null,
         tipoServicoId: tipoServicoId || null,
         valorEstimado: valorEstimado > 0 ? valorEstimado : null,
         dataPrevistaFechamento: dataPrevistaFechamento || null,
         contratoAssinado,
       });
-      if (!result.ok) setError(result.error);
+      if (!result.ok) setError(result.error === "INSTAGRAM_INVALIDO" ? dict.comercial.instagramInvalido : result.error);
       else {
         setSalvo(true);
         setTimeout(() => setSalvo(false), 2000);
@@ -226,14 +232,34 @@ export function LeadDetalheModal({ lead, anotacoes, tiposServico, equipe, onClos
         )}
 
         <form onSubmit={handleSalvar} className="mb-6 space-y-4 border-b border-base-800 pb-6">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.email}</label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contato@empresa.com" />
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.email}</label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contato@empresa.com" />
-            </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">WhatsApp</label>
               <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="(11) 90000-0000" />
+            </div>
+            <div>
+              {/* O link do perfil ao lado do rótulo, no mesmo lugar em que
+                  "Gerenciar" aparece no campo de serviço logo abaixo. É pra
+                  isso que o @ serve: abrir o perfil antes de ligar. */}
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-medium text-ink-secondary">{dict.comercial.instagramLabel}</label>
+                {perfilInstagram && (
+                  <a
+                    href={perfilInstagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-ink-muted underline-offset-2 hover:text-ink-primary hover:underline"
+                  >
+                    {dict.comercial.instagramAbrirPerfil}
+                  </a>
+                )}
+              </div>
+              <Input value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder={dict.comercial.instagramPlaceholder} />
             </div>
           </div>
 

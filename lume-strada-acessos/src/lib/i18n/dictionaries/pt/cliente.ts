@@ -14,6 +14,17 @@ export interface ClienteDict {
   aprovar: string;
   placeholderAlteracao: string;
   solicitarAlteracao: string;
+
+  // As duas abas da area do cliente: a fila de aprovacao e o contrato
+  // dele (so leitura, ver supabase/contrato-externo.sql).
+  abaAprovacoes: string;
+  abaContratos: string;
+  contratosTitulo: string;
+  contratosSubtitulo: string;
+  contratosVazio: string;
+  contratoAbrir: string;
+  contratoAssinadoEm: string;
+  contratoSemData: string;
 }
 
 export const cliente: ClienteDict = {
@@ -26,4 +37,12 @@ export const cliente: ClienteDict = {
   aprovar: "Aprovar",
   placeholderAlteracao: "O que precisa mudar?",
   solicitarAlteracao: "Solicitar Alteração",
+  abaAprovacoes: "Aprovações",
+  abaContratos: "Contrato",
+  contratosTitulo: "Seu contrato",
+  contratosSubtitulo: "Os contratos que você assinou com a agência.",
+  contratosVazio: "Nenhum contrato disponível por aqui ainda.",
+  contratoAbrir: "Abrir contrato",
+  contratoAssinadoEm: "Assinado em {data}",
+  contratoSemData: "Contrato assinado",
 };

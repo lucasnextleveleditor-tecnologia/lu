@@ -7,6 +7,7 @@ import { fmtBytes } from "@/lib/utils/bytes";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { BrandingAccentStyle } from "@/components/branding/BrandingAccentStyle";
+import { temAcessoAntecipado } from "@/lib/auth/acessoAntecipado";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   // Segunda camada de proteção (a primeira é o middleware): mesmo que
@@ -72,6 +73,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         papel={profile.role}
         permissoes={profile.permissoes ?? {}}
         banner={banner}
+        acessoAntecipado={temAcessoAntecipado(profile.email)}
       >
         {children}
       </AdminShell>

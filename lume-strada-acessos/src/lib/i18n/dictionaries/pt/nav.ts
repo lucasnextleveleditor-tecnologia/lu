@@ -7,6 +7,10 @@ export interface NavDict {
   grupoComercial: string;
   grupoGestao: string;
   grupoFinanceiro: string;
+  grupoEventos: string;
+  eventos: string;
+  /** Etiqueta ao lado do item de menu de um modulo ainda em construcao. */
+  emBreveEtiqueta: string;
   dashboard: string;
   relatorios: string;
   agenda: string;
@@ -41,6 +45,9 @@ export const nav: NavDict = {
   grupoComercial: "Comercial",
   grupoGestao: "Gestão",
   grupoFinanceiro: "Financeiro",
+  grupoEventos: "Eventos",
+  eventos: "Eventos",
+  emBreveEtiqueta: "Em breve",
   dashboard: "Dashboard",
   relatorios: "Relatórios",
   agenda: "Agenda",

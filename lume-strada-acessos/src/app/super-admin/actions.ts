@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createAdminClient, criarAcessoComSenhaPadrao } from "@/lib/supabase/admin";
+import { createAdminClient, criarAcessoComSenhaPadrao, gerarSenhaProvisoria } from "@/lib/supabase/admin";
 import { requireSuperAdmin } from "@/lib/auth/requireAdmin";
 import type { AcessoEmpresaRow, StatusEmpresa } from "@/lib/types/super-admin";
 import type { AcessoGeradoResult } from "@/lib/types/acesso";
@@ -11,6 +11,7 @@ import { ehImagemPermitida } from "@/lib/utils/upload";
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
 export type ActionResultAcessos = { ok: true; acessos: AcessoEmpresaRow[] } | { ok: false; error: string };
+export type ActionResultSenha = { ok: true; email: string; senhaPadrao: string } | { ok: false; error: string };
 
 const PATH = "/super-admin";
 
@@ -236,6 +237,68 @@ export async function atualizarEmailAcesso(profileId: string, companyId: string,
 
     revalidatePath(PATH);
     return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
+  }
+}
+
+/**
+ * Devolve o acesso a quem perdeu a senha, SEM criar login nenhum.
+ *
+ * Era o buraco do painel: existiam "Gerar acesso", "Editar e-mail" e
+ * "Excluir", e nada no meio. Quem esquecia a senha só tinha duas saídas, as
+ * duas ruins — gerar um SEGUNDO login (o antigo fica órfão, e tudo que aponta
+ * pro id da pessoa, como o vínculo com o cadastro de equipe e as tarefas onde
+ * ela é responsável, continua apontando pro login velho) ou apagar e recriar,
+ * que é a mesma coisa com um passo destrutivo na frente.
+ *
+ * Aqui é só uma senha nova na conta que já existe: `updateUserById` com uma
+ * senha aleatória (`gerarSenhaProvisoria`, o mesmo gerador de todo acesso
+ * novo) e `senha_provisoria = true` de volta no perfil, que é o que faz o
+ * `src/middleware.ts` empurrar a pessoa pra `/definir-senha` antes de liberar
+ * qualquer outra tela. O id, o e-mail, o papel e TODO o histórico dela
+ * continuam os mesmos.
+ *
+ * A senha volta pra tela uma vez, pro Super Admin mandar por WhatsApp — sem
+ * e-mail e sem link, a mesma decisão de `criarAcessoComSenhaPadrao`. Ela não
+ * fica guardada em lugar nenhum: o que o Postgres tem é o hash.
+ *
+ * O que esta ação NÃO faz: derrubar as sessões que já estavam abertas. Se a
+ * pessoa ainda tiver o painel logado em outro navegador, aquela aba continua
+ * viva até o refresh token vencer. Para o caso real disto aqui — a dona da
+ * conta perdeu a senha e quer voltar — isso é o certo; se um dia a ação for
+ * usada pra EXPULSAR alguém, o caminho é "Suspender" (`active = false`), que
+ * o middleware checa a cada requisição.
+ */
+export async function redefinirSenhaAcesso(profileId: string, companyId: string): Promise<ActionResultSenha> {
+  try {
+    await requireSuperAdmin();
+
+    const admin = createAdminClient();
+
+    // Mesma defesa extra de `atualizarEmailAcesso`: confere que esse login é
+    // mesmo dessa empresa antes de mexer em nada. Uma Server Action nunca
+    // deve confiar só no id que o client mandou.
+    const { data: perfil, error: erroPerfil } = await admin
+      .from("profiles")
+      .select("id, email, company_id")
+      .eq("id", profileId)
+      .maybeSingle<{ id: string; email: string; company_id: string | null }>();
+    if (erroPerfil) return { ok: false, error: erroPerfil.message };
+    if (!perfil || perfil.company_id !== companyId) {
+      return { ok: false, error: "Acesso não encontrado nessa empresa." };
+    }
+
+    const senhaPadrao = gerarSenhaProvisoria();
+
+    const { error: erroAuth } = await admin.auth.admin.updateUserById(profileId, { password: senhaPadrao });
+    if (erroAuth) return { ok: false, error: erroAuth.message };
+
+    const { error: erroFlag } = await admin.from("profiles").update({ senha_provisoria: true }).eq("id", profileId);
+    if (erroFlag) return { ok: false, error: erroFlag.message };
+
+    revalidatePath(PATH);
+    return { ok: true, email: perfil.email, senhaPadrao };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Erro desconhecido." };
   }

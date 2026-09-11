@@ -54,7 +54,7 @@ export function ListaLeads({ leads, onAbrirLead }: ListaLeadsProps) {
     return leads.filter((l) => {
       if (filtroStatus !== TODOS && l.status !== filtroStatus) return false;
       if (termo) {
-        const alvo = `${l.nome} ${l.email ?? ""} ${l.whatsapp ?? ""} ${l.tipo_servico_nome ?? ""}`.toLowerCase();
+        const alvo = `${l.nome} ${l.email ?? ""} ${l.whatsapp ?? ""} ${l.instagram ?? ""} ${l.tipo_servico_nome ?? ""}`.toLowerCase();
         if (!alvo.includes(termo)) return false;
       }
       return true;
@@ -121,6 +121,7 @@ export function ListaLeads({ leads, onAbrirLead }: ListaLeadsProps) {
                   >
                     <td className="py-3 pr-4">
                       <p className="text-sm font-medium text-ink-primary">{l.nome}</p>
+                      {l.instagram && <p className="text-xs text-ink-muted">@{l.instagram}</p>}
                       {l.tipo_servico_nome && <p className="text-xs text-ink-muted">{l.tipo_servico_nome}</p>}
                     </td>
                     <td className="py-3 pr-4">

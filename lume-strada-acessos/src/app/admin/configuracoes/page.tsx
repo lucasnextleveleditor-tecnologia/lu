@@ -10,7 +10,8 @@ import { AparenciaForm } from "@/components/admin/aparencia/AparenciaForm";
 import { EquipeManager } from "@/components/admin/cadastros/EquipeManager";
 import { ConfiguracoesTabs, type AbaConfiguracoes, type ItemAbaConfiguracoes } from "@/components/admin/configuracoes/ConfiguracoesTabs";
 import { ReceitasDePost } from "@/components/admin/configuracoes/ReceitasDePost";
-import type { PostReceitaRow } from "@/lib/types/producao";
+import type { PostFormatoRow, PostReceitaRow, TipoServicoRow } from "@/lib/types/producao";
+import { addDaysISO, todayISO } from "@/lib/utils/format";
 import { CorDaMarcaCard } from "@/components/admin/configuracoes/CorDaMarcaCard";
 import { EmpresaCard } from "@/components/admin/configuracoes/EmpresaCard";
 import { MoedaEIdiomaCard } from "@/components/admin/configuracoes/MoedaEIdiomaCard";
@@ -83,9 +84,13 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
         // respondem à mesma pergunta — quem trabalha aqui e o que essa gente
         // precisa saber.
         { value: "avisos", label: "Avisos", icon: IconMegaphone },
-        // Conteúdo fica entre Avisos e Conta porque é regra de OPERAÇÃO, como
-        // as duas de cima — o que vem depois é sobre a pessoa e a assinatura.
-        { value: "conteudo", label: dict.planejamento.abaConteudo, icon: IconClipboardList },
+        // Padrões de produção fica entre Avisos e Conta porque é regra de
+        // OPERAÇÃO, como as duas de cima — o que vem depois é sobre a pessoa e
+        // a assinatura. O valor da aba continua "conteudo" para não quebrar os
+        // links que já foram mandados por aí; só o rótulo mudou, porque
+        // "Conteúdo" não dizia nada sobre o que a tela faz — e ainda colidia
+        // com a aba Conteúdo do Planejamento, que é o calendário.
+        { value: "conteudo", label: dict.planejamento.abaPadroesDeProducao, icon: IconClipboardList },
         { value: "conta", label: t.abaConta, icon: IconUsers },
         { value: "aparencia", label: t.abaAparencia, icon: IconPalette },
         { value: "assinatura", label: t.abaAssinatura, icon: IconCreditCard },
@@ -183,16 +188,36 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
   // --------------------------------------------------------------------------
   let conteudoConteudo: React.ReactNode = null;
   if (aba === "conteudo") {
-    const [receitasRes, tiposRes] = await Promise.all([
+    const [receitasRes, tiposRes, formatosRes] = await Promise.all([
       supabase.from("post_receitas").select("*").overrideTypes<PostReceitaRow[], { merge: false }>(),
+      // `created_at` entra porque o atalho de cadastro na tela reaproveita o
+      // MESMO modal do módulo Produção (`GerenciarTiposServicoModal`), que
+      // recebe a linha inteira.
       supabase
         .from("prod_tipos_servico")
-        .select("id, nome")
+        .select("id, nome, created_at")
         .order("nome")
-        .overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
+        .overrideTypes<TipoServicoRow[], { merge: false }>(),
+      supabase
+        .from("post_formatos")
+        .select("*")
+        .order("ordem")
+        .overrideTypes<PostFormatoRow[], { merge: false }>(),
     ]);
 
-    conteudoConteudo = <ReceitasDePost receitas={receitasRes.data ?? []} tiposServico={tiposRes.data ?? []} />;
+    conteudoConteudo = (
+      <ReceitasDePost
+        receitas={receitasRes.data ?? []}
+        tiposServico={tiposRes.data ?? []}
+        formatos={formatosRes.data ?? []}
+        // A data do post de exemplo da prévia sai daqui, e não de um
+        // `new Date()` dentro do componente: ele renderiza no servidor e no
+        // cliente, e um dia calculado nos dois lados discorda perto da
+        // meia-noite. Nove dias à frente para que o primeiro corte de um
+        // padrão comum (três dias antes) ainda caia no futuro.
+        exemploDataPost={addDaysISO(todayISO(), 9)}
+      />
+    );
   }
 
   // --------------------------------------------------------------------------

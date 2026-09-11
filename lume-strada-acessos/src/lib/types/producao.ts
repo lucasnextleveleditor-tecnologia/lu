@@ -46,7 +46,8 @@ export interface TarefaRow {
   /** O que a pauta é dentro do escopo vendido — base dos indicadores do calendário. */
   tipo_pauta: TipoDePauta;
   post_canal: CanalDoPost | null;
-  post_formato: FormatoDoPost | null;
+  /** Slug do formato, de `post_formatos` — texto livre de propósito (ver `FORMATOS_DO_POST`). */
+  post_formato: string | null;
 
   created_at: string;
   updated_at: string;
@@ -81,7 +82,8 @@ export type CanalDoPost = (typeof CANAIS_DO_POST)[number];
 export interface PostReceitaRow {
   id: string;
   company_id: string;
-  formato: FormatoDoPost;
+  /** Slug do formato, de `post_formatos`. */
+  formato: string;
   tipo_servico_id: string | null;
   formatos_exportacao: string | null;
   /** Dias antes do post em que o primeiro corte deve estar pronto. Null = sem V1. */
@@ -90,6 +92,22 @@ export interface PostReceitaRow {
   updated_at: string;
 }
 
+/**
+ * Os formatos NATIVOS — os sete que o sistema sabe traduzir sozinho.
+ *
+ * Esta NÃO é mais a lista de formatos possíveis. Desde
+ * `supabase/formatos-de-post.sql` a lista de verdade é a tabela
+ * `post_formatos`, uma por empresa, onde a agência cadastra "Podcast" ou
+ * "Newsletter". Os sete continuam existindo por um motivo só: são os únicos
+ * que têm rótulo nos três idiomas (`dict.planejamento.formatos`). Formato
+ * criado pela agência tem nome próprio e aparece igual em pt, en e es — que é
+ * o certo, porque "Podcast" não se traduz.
+ *
+ * Por isso `FormatoDoPost` continua sendo união fechada: ele é a CHAVE do
+ * dicionário, e é ele que obriga en/es a traduzirem os sete. O que a peça
+ * guarda (`prod_tarefas.post_formato`) é `string` — o slug do cadastro da
+ * empresa, que pode ser qualquer um.
+ */
 export const FORMATOS_DO_POST = [
   "reels",
   "carrossel",
@@ -100,6 +118,41 @@ export const FORMATOS_DO_POST = [
   "outro",
 ] as const;
 export type FormatoDoPost = (typeof FORMATOS_DO_POST)[number];
+
+/**
+ * Um formato de post no cadastro da empresa.
+ *
+ * `nome` nulo = um dos sete nativos, rótulo vindo do dicionário. `nome`
+ * preenchido = formato da agência. `ativo` false = formato que ela não usa:
+ * sai do seletor do Calendário e dos cards de Padrões de produção, sem apagar
+ * o padrão nem desclassificar as peças antigas.
+ */
+export interface PostFormatoRow {
+  id: string;
+  company_id: string;
+  slug: string;
+  nome: string | null;
+  ordem: number;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * O rótulo de um formato: nome próprio quando a agência cadastrou um, tradução
+ * quando é nativo, e o slug cru quando a peça aponta para um formato que o
+ * cadastro não tem mais. O slug cru é feio de propósito — é uma peça antiga
+ * apontando para um formato excluído, e esconder isso seria pior do que
+ * mostrar.
+ */
+export function rotuloDoFormato(
+  formato: Pick<PostFormatoRow, "slug" | "nome">,
+  nativos: Record<FormatoDoPost, string>
+): string {
+  const proprio = formato.nome?.trim();
+  if (proprio) return proprio;
+  return (nativos as Record<string, string>)[formato.slug] ?? formato.slug;
+}
 
 /** Tarefa enriquecida com os nomes relacionados (join em memória) e contagem de subtarefas. */
 export type TarefaComRelacoes = TarefaRow & {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ComponentType } from "react";
 import { useSearchParams } from "next/navigation";
-import type { ClienteRow } from "@/lib/types/cadastros";
+import { clienteRecemCriado, type ClienteRow } from "@/lib/types/cadastros";
 import type { EntregaComVersoes, FuncionarioRow, SubtarefaRow, TarefaComRelacoes, TipoServicoRow } from "@/lib/types/producao";
 import type { CompromissoResumo } from "@/lib/types/agenda";
 import { IconCalendar, IconColumns, IconList, IconPlus, IconSettings, IconUsers } from "@/components/ui/icons";
@@ -49,7 +49,7 @@ export function ProducaoWorkspace({
   const [clientes, setClientes] = useState(clientesIniciais);
   function handleClienteCriado(novo: Pick<ClienteRow, "id" | "nome" | "cor">) {
     setClientes((atual) =>
-      [...atual, { ...novo, documento: null, email: null, telefone: null, nome_responsavel: null, endereco: null, profile_id: null, portal_token: "", created_at: "", updated_at: "" }].sort((a, b) =>
+      [...atual, clienteRecemCriado(novo)].sort((a, b) =>
         a.nome.localeCompare(b.nome)
       )
     );

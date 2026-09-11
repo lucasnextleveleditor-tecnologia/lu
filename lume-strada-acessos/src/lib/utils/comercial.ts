@@ -53,6 +53,46 @@ export function isFollowUpAtrasado(lead: Pick<LeadRow, "proximo_contato_em" | "s
 // não responde/fecha — nunca "esquece" o lead, mas também não pressiona
 // tanto a ponto de incomodar.
 // ----------------------------------------------------------------------------
+/**
+ * O @ do Instagram como ele deve ser guardado: o handle puro, minúsculo, sem
+ * arroba e sem URL.
+ *
+ * Aceita as quatro formas que a pessoa realmente digita ou cola — "lojacriativa",
+ * "@lojacriativa", "instagram.com/lojacriativa" e a URL inteira com
+ * "?hl=pt" no fim — porque quem está cadastrando um lead acabou de copiar
+ * algo da barra de endereço ou do perfil, e não vai reescrever à mão.
+ *
+ * Espaço no meio NÃO é cortado de propósito: "loja criativa" vira `null`, e
+ * não "loja". @ do Instagram não tem espaço, então ali a pessoa digitou outra
+ * coisa — e salvar o pedaço antes do espaço mandaria alguém, meses depois,
+ * para o perfil errado de outra empresa.
+ *
+ * Devolve `null` quando não sobra um handle válido. A regra é a do próprio
+ * Instagram: letras, números, ponto e sublinhado, até 30 caracteres. Quem
+ * chama trata `null` com texto de erro em vez de gravar lixo — um @ errado
+ * só aparece meses depois, quando alguém clica e cai numa página que não
+ * existe.
+ */
+export function normalizarInstagram(bruto: string | null | undefined): string | null {
+  if (!bruto) return null;
+  let valor = bruto.trim();
+  if (!valor) return null;
+
+  const daUrl = valor.match(/instagram\.com\/([^/?#\s]+)/i);
+  if (daUrl) valor = daUrl[1]!;
+
+  valor = valor.replace(/^@+/, "").split(/[/?#]/)[0] ?? "";
+  if (!valor) return null;
+
+  return /^[A-Za-z0-9._]{1,30}$/.test(valor) ? valor.toLowerCase() : null;
+}
+
+/** O link do perfil, a partir do handle guardado. `null` vira `null` — nada de "instagram.com/null". */
+export function urlDoInstagram(handle: string | null | undefined): string | null {
+  const limpo = normalizarInstagram(handle);
+  return limpo ? `https://instagram.com/${limpo}` : null;
+}
+
 export const CADENCIA_FOLLOWUP_DIAS = [2, 3, 5, 7];
 
 /**
