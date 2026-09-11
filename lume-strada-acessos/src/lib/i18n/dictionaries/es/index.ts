@@ -18,6 +18,7 @@ import { configuracoes } from "./configuracoes";
 import { dashboard } from "./dashboard";
 import { cliente } from "./cliente";
 import { agenda } from "./agenda";
+import { eventos } from "./eventos";
 import { objetivos } from "./objetivos";
 import { ordemDoDia } from "./ordemDoDia";
 import { mapaMental } from "./mapaMental";
@@ -48,6 +49,7 @@ export const es: Dictionary = {
   dashboard,
   cliente,
   agenda,
+  eventos,
   objetivos,
   ordemDoDia,
   mapaMental,

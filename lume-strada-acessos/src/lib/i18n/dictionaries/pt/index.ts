@@ -17,6 +17,7 @@ import { configuracoes, type ConfiguracoesDict } from "./configuracoes";
 import { dashboard, type DashboardDict } from "./dashboard";
 import { cliente, type ClienteDict } from "./cliente";
 import { agenda, type AgendaDict } from "./agenda";
+import { eventos, type EventosDict } from "./eventos";
 import { objetivos, type ObjetivosDict } from "./objetivos";
 import { ordemDoDia, type OrdemDoDiaDict } from "./ordemDoDia";
 import { mapaMental, type MapaMentalDict } from "./mapaMental";
@@ -54,6 +55,7 @@ export interface Dictionary {
   dashboard: DashboardDict;
   cliente: ClienteDict;
   agenda: AgendaDict;
+  eventos: EventosDict;
   objetivos: ObjetivosDict;
   ordemDoDia: OrdemDoDiaDict;
   mapaMental: MapaMentalDict;
@@ -85,6 +87,7 @@ export const pt: Dictionary = {
   dashboard,
   cliente,
   agenda,
+  eventos,
   objetivos,
   ordemDoDia,
   mapaMental,

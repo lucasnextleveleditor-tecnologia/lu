@@ -197,6 +197,31 @@ export function IconNavObjetivos(props: Props) {
   );
 }
 
+/**
+ * Eventos — o estouro.
+ *
+ * Miolo sólido e seis raios. É o desenho do "boom" que o próprio módulo
+ * organiza (CO₂, pirotecnia, confete), e é a silhueta que menos se confunde
+ * com as outras do menu: não tem moldura, não tem canto reto e é a única
+ * radial do conjunto — dá para achar de relance mesmo sem ler o rótulo.
+ */
+export function IconNavEventos(props: Props) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="3.1" {...SOLIDO} />
+      <circle cx="12" cy="12" r="3.1" />
+      <path d="M12 2.6v2.6" />
+      <path d="M12 18.8v2.6" />
+      <path d="M2.6 12h2.6" />
+      <path d="M18.8 12h2.6" />
+      <path d="M5.4 5.4l1.9 1.9" />
+      <path d="M16.7 16.7l1.9 1.9" />
+      <path d="M18.6 5.4l-1.9 1.9" />
+      <path d="M7.3 16.7l-1.9 1.9" />
+    </Svg>
+  );
+}
+
 /** Configurações — engrenagem de cantos macios, miolo sólido. */
 export function IconNavConfiguracoes(props: Props) {
   return (

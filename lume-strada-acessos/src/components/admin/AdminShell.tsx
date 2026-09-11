@@ -33,6 +33,7 @@ import {
   IconNavFinanceiro,
   IconNavObjetivos,
   IconNavConfiguracoes,
+  IconNavEventos,
 } from "@/components/ui/icons-nav";
 
 // Menu separado em grupos — "Visão Geral" (o Dashboard, que junta Produção +
@@ -150,6 +151,21 @@ const NAV_GRUPOS = [
       { href: "/admin/inventario", labelKey: "inventarioPatrimonio", icon: IconNavInventario, chave: "inventario" },
     ],
   },
+  // Eventos em grupo próprio, e não dentro de "Gestão", porque é outra
+  // natureza de trabalho: gestão é o que corre a semana inteira, evento é uma
+  // operação de campo com hora para começar e para acabar, equipe espalhada e
+  // um relógio correndo por cima. Quem está montando um sábado não está
+  // fazendo gestão — está comandando uma operação.
+  {
+    tituloKey: "grupoEventos",
+    itens: [
+      // `chave: null` — todo mundo da equipe VÊ o item, inclusive quem ainda
+      // não tem o módulo: a página de "em breve" é para ser vista. Quem
+      // realmente abre o módulo é decidido no servidor, em
+      // `app/admin/eventos/page.tsx` (ver `lib/auth/acessoAntecipado.ts`).
+      { href: "/admin/eventos", labelKey: "eventos", icon: IconNavEventos, chave: null, emBreve: true },
+    ],
+  },
   // Grupo próprio, separado de "Gestão" e sempre por último — pedido
   // explícito pra destacar Financeiro do resto da operação no menu.
   {
@@ -171,6 +187,8 @@ const NAV_GRUPOS = [
     icon: typeof IconNavClientes;
     chave: string | null;
     adminOnly?: boolean;
+    /** Módulo ainda em construção: o item aparece para todos, com a etiqueta "Em breve" para quem ainda não tem acesso antecipado. */
+    emBreve?: boolean;
     /** Quando presente, SUBSTITUI `chave` na checagem de visibilidade — aparece pra quem tem QUALQUER UMA dessas permissões (ver hub Comercial acima, que junta "comercial" e "orcamentos"). `chave` continua valendo só pra escolher a cor do destaque ativo (`MODULO_COR`). */
     chavesQualquer?: ReadonlyArray<string>;
     /** Prefixos de rota que NÃO devem acender este item, mesmo casando com `href` — para sub-rotas que ganharam entrada própria no menu (ver Produção × Ordem de Externa). */
@@ -216,6 +234,8 @@ interface AdminShellProps {
   permissoes: PermissoesFuncionario;
   /** Já resolvido pelo `admin/layout.tsx` (`null` quando `banner_ativo_admin` está desligado ou o título está vazio) — aparece no topo de TODA página admin/funcionário, dashboards inclusos, porque este é o único wrapper compartilhado por todas elas. */
   banner: BannerConfig | null;
+  /** Esta pessoa enxerga os módulos ainda em construção (ver `lib/auth/acessoAntecipado.ts`). Calculado no SERVIDOR e passado pronto — o e-mail da lista não vai para o navegador. */
+  acessoAntecipado: boolean;
   children: React.ReactNode;
 }
 
@@ -229,6 +249,7 @@ export function AdminShell({
   papel,
   permissoes,
   banner,
+  acessoAntecipado,
   children,
 }: AdminShellProps) {
   const pathname = usePathname();
@@ -346,6 +367,13 @@ export function AdminShell({
                         style={active && corModulo ? { color: corModulo } : undefined}
                       />
                       {!colapsado && <span className="truncate">{label}</span>}
+                      {/* A etiqueta some para quem já tem o módulo — para
+                          quem está construindo, "Em breve" seria mentira. */}
+                      {!colapsado && "emBreve" in item && item.emBreve && !acessoAntecipado && (
+                        <span className="ml-auto shrink-0 rounded-full border border-base-700 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-ink-muted">
+                          {dict.nav.emBreveEtiqueta}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
