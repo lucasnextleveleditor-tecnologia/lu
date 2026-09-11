@@ -94,6 +94,12 @@ export interface ComercialDict {
   // LeadModal
   labelNomeLead: string;
   placeholderNomeLead: string;
+
+  // O @ do Instagram do lead — guardado sem arroba, mostrado com ela.
+  instagramLabel: string;
+  instagramPlaceholder: string;
+  instagramAbrirPerfil: string;
+  instagramInvalido: string;
   criando: string;
   criarLead: string;
 
@@ -211,6 +217,10 @@ export const comercial: ComercialDict = {
 
   labelNomeLead: "Nome da Empresa/Pessoa *",
   placeholderNomeLead: "Ex: Studio Criativo Ltda",
+  instagramLabel: "Instagram",
+  instagramPlaceholder: "@lojacriativa",
+  instagramAbrirPerfil: "Abrir perfil",
+  instagramInvalido: "Confira o @ do Instagram — só letras, números, ponto e sublinhado.",
   criando: "Criando...",
   criarLead: "Criar Lead",
 

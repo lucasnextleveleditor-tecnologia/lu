@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
 import { registrar } from "@/lib/eventos/registrar";
-import type { CanalDoPost, FormatoDoPost, TarefaRow, TipoDePauta } from "@/lib/types/producao";
+import type { CanalDoPost, TarefaRow, TipoDePauta } from "@/lib/types/producao";
 
 /**
  * O calendário de conteúdo — os posts de um ciclo, antes de virarem trabalho.
@@ -32,7 +32,8 @@ export interface CamposDaPauta {
   tipo_pauta: TipoDePauta;
   data_entrega: string | null;
   post_canal: CanalDoPost | null;
-  post_formato: FormatoDoPost | null;
+  /** Slug do formato, de `post_formatos` — ver `supabase/formatos-de-post.sql`. */
+  post_formato: string | null;
   tipo_servico_id: string | null;
   formatos_exportacao: string | null;
   briefing: string | null;
@@ -314,7 +315,7 @@ export async function subirParaProducao(
         .overrideTypes<
           {
             id: string;
-            post_formato: FormatoDoPost | null;
+            post_formato: string | null;
             tipo_servico_id: string | null;
             formatos_exportacao: string | null;
             data_entrega: string | null;
@@ -327,7 +328,7 @@ export async function subirParaProducao(
         .select("formato, tipo_servico_id, formatos_exportacao, dias_v1")
         .overrideTypes<
           {
-            formato: FormatoDoPost;
+            formato: string;
             tipo_servico_id: string | null;
             formatos_exportacao: string | null;
             dias_v1: number | null;

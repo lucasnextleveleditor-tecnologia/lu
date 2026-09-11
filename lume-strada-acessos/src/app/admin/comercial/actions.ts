@@ -5,7 +5,7 @@ import { requireAdmin, requireModulo } from "@/lib/auth/requireAdmin";
 import { createAdminClient, criarAcessoComSenhaPadrao } from "@/lib/supabase/admin";
 import type { OrigemLead, StatusLead } from "@/lib/types/comercial";
 import type { AcessoGeradoResult } from "@/lib/types/acesso";
-import { MOTIVOS_PERDA, type MotivoPerda } from "@/lib/utils/comercial";
+import { MOTIVOS_PERDA, normalizarInstagram, type MotivoPerda } from "@/lib/utils/comercial";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type ActionResultId = { ok: true; id: string } | { ok: false; error: string };
@@ -19,6 +19,8 @@ export interface LeadInput {
   nome: string;
   email: string | null;
   whatsapp: string | null;
+  /** Como a pessoa digitou — "@loja", "loja" ou a URL colada. `normalizarInstagram` resolve. */
+  instagram: string | null;
   origem: OrigemLead | null;
   tipoServicoId: string | null;
   valorEstimado: number | null;
@@ -26,10 +28,25 @@ export interface LeadInput {
   contratoAssinado: boolean;
 }
 
+/**
+ * `null` pro campo em branco, o handle limpo pro @ válido, e `false` pro que
+ * a pessoa digitou mas não é um @ — que vira erro na tela, não uma linha
+ * torta no banco.
+ */
+function instagramParaGravar(bruto: string | null): string | null | false {
+  if (!bruto || !bruto.trim()) return null;
+  return normalizarInstagram(bruto) ?? false;
+}
+
 export async function criarLead(input: LeadInput): Promise<ActionResultId> {
   try {
     const { supabase } = await requireModulo("comercial");
     if (!input.nome.trim()) return { ok: false, error: "Informe o nome da empresa/pessoa." };
+
+    // `undefined` = campo vazio, grava null. `null` = veio algo que não é um
+    // @ válido, e aí é erro em vez de gravar lixo (ver `normalizarInstagram`).
+    const instagram = instagramParaGravar(input.instagram);
+    if (instagram === false) return { ok: false, error: "INSTAGRAM_INVALIDO" };
 
     const { data, error } = await supabase
       .from("crm_leads")
@@ -37,6 +54,7 @@ export async function criarLead(input: LeadInput): Promise<ActionResultId> {
         nome: input.nome.trim(),
         email: input.email?.trim() || null,
         whatsapp: input.whatsapp?.trim() || null,
+        instagram,
         origem: input.origem,
         tipo_servico_id: input.tipoServicoId,
         valor_estimado: input.valorEstimado,
@@ -59,12 +77,16 @@ export async function atualizarLead(id: string, input: LeadInput): Promise<Actio
     const { supabase } = await requireModulo("comercial");
     if (!input.nome.trim()) return { ok: false, error: "Informe o nome da empresa/pessoa." };
 
+    const instagram = instagramParaGravar(input.instagram);
+    if (instagram === false) return { ok: false, error: "INSTAGRAM_INVALIDO" };
+
     const { error } = await supabase
       .from("crm_leads")
       .update({
         nome: input.nome.trim(),
         email: input.email?.trim() || null,
         whatsapp: input.whatsapp?.trim() || null,
+        instagram,
         origem: input.origem,
         tipo_servico_id: input.tipoServicoId,
         valor_estimado: input.valorEstimado,

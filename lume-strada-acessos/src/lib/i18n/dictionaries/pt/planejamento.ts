@@ -168,6 +168,45 @@ export interface PlanejamentoDict {
   receitaDiasV1Sufixo: string;
   receitaSemV1: string;
 
+  // A tela de Padrões de produção: a prévia do topo, o cadastro de
+  // formatos da empresa e os erros das actions, que chegam como CÓDIGO
+  // ("FORMATO_EM_USO") justamente para virarem frase aqui, em cada idioma.
+  abaPadroesDeProducao: string;
+  previaTitulo: string;
+  previaColunaPauta: string;
+  previaColunaTarefa: string;
+  previaTituloExemplo: string;
+  previaCampoTitulo: string;
+  previaCampoData: string;
+  previaEtiquetaPadrao: string;
+  previaEmBranco: string;
+  previaRodape: string;
+  previaDiasAntes: string;
+  previaUmDiaAntes: string;
+  previaMesmoDia: string;
+  formatosQueUso: string;
+  salvaSozinho: string;
+  ocultarFormato: string;
+  ocultarFormatoDe: string;
+  adicionarFormato: string;
+  adicionarFormatoAjuda: string;
+  criarFormatoLabel: string;
+  criarFormatoPlaceholder: string;
+  criarFormatoBotao: string;
+  criarFormatoAjuda: string;
+  excluirFormato: string;
+  excluirFormatoDe: string;
+  excluirFormatoPergunta: string;
+  semFormatosAtivos: string;
+  tiposServicoCompartilhados: string;
+  cadastrarTipoServico: string;
+  erroFormatoSemNome: string;
+  erroFormatoNomeLongo: string;
+  erroFormatoDuplicado: string;
+  erroFormatoEmUso: string;
+  erroFormatoNativo: string;
+  erroFormatoDesconhecido: string;
+
   historicoTitulo: string;
   semHistorico: string;
 
@@ -330,12 +369,46 @@ export const planejamento: PlanejamentoDict = {
   abrirCalendario: "Abrir o calendário",
   abaConteudo: "Conteúdo",
   receitasTitulo: "Padrões de produção por formato",
-  receitasDescricao:
-    "O que cada formato de post já implica. É aplicado quando o post sobe para a produção, e só nos campos deixados em branco — assim quem escreve a pauta não preenche formulário de produção.",
-  receitasSemTipos: "Cadastre os tipos de serviço em Produção para poder escolher aqui.",
+  receitasDescricao: "Cada formato de post já implica um jeito de produzir. Preencha aqui uma vez, e todo post que subir do calendário nasce assim — só nos campos que a social media deixou em branco.",
+  receitasSemTipos: "Você ainda não tem tipos de serviço cadastrados.",
   receitaDiasV1: "Primeiro corte",
   receitaDiasV1Sufixo: "dias antes do post",
   receitaSemV1: "sem primeiro corte",
+  abaPadroesDeProducao: "Padrões de produção",
+  previaTitulo: "Como a tarefa vai nascer",
+  previaColunaPauta: "A social media escreve",
+  previaColunaTarefa: "A produção recebe",
+  previaTituloExemplo: "Bastidores da gravação",
+  previaCampoTitulo: "Título",
+  previaCampoData: "Data do post",
+  previaEtiquetaPadrao: "padrão",
+  previaEmBranco: "fica em branco",
+  previaRodape: "Campo preenchido na pauta não é tocado: se a social media escrever o formato de entrega naquele post, o padrão não encosta.",
+  previaDiasAntes: "{n} dias antes",
+  previaUmDiaAntes: "1 dia antes",
+  previaMesmoDia: "no mesmo dia",
+  formatosQueUso: "Os formatos que você usa",
+  salvaSozinho: "Salva sozinho ao sair do campo.",
+  ocultarFormato: "Não uso este formato",
+  ocultarFormatoDe: "Parar de usar o formato {formato}",
+  adicionarFormato: "Adicionar formato",
+  adicionarFormatoAjuda: "Formatos que você tem cadastrados mas não usa:",
+  criarFormatoLabel: "Ou crie um formato seu",
+  criarFormatoPlaceholder: "Podcast, Newsletter, E-mail…",
+  criarFormatoBotao: "Criar",
+  criarFormatoAjuda: "Ele passa a aparecer no seletor de formato do calendário de conteúdo.",
+  excluirFormato: "Excluir formato",
+  excluirFormatoDe: "Excluir o formato {formato}",
+  excluirFormatoPergunta: "Excluir {formato}?",
+  semFormatosAtivos: "Nenhum formato em uso. Adicione pelo menos um — sem formato, o post sobe sem padrão nenhum.",
+  tiposServicoCompartilhados: "Os tipos de serviço são o mesmo cadastro do módulo Produção.",
+  cadastrarTipoServico: "Cadastrar um agora",
+  erroFormatoSemNome: "Dê um nome ao formato.",
+  erroFormatoNomeLongo: "O nome do formato precisa ter no máximo 40 caracteres.",
+  erroFormatoDuplicado: "Você já tem um formato com esse nome.",
+  erroFormatoEmUso: "Este formato já está em peças da produção. Deixe de usá-lo em vez de excluir.",
+  erroFormatoNativo: "Formato nativo não pode ser excluído — basta deixar de usá-lo.",
+  erroFormatoDesconhecido: "Este formato não está mais cadastrado. Atualize a página.",
 
   historicoTitulo: "Ciclos deste cliente",
   semHistorico: "Este é o primeiro ciclo deste cliente.",

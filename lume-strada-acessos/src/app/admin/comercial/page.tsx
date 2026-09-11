@@ -7,7 +7,7 @@ import { leadEstaAberto } from "@/lib/utils/comercial";
 import { fmtPercent, todayISO } from "@/lib/utils/format";
 import { StatTile } from "@/components/ui/StatTile";
 import { Button } from "@/components/ui/Button";
-import { IconTarget, IconTrendingUp, IconCheckCircle, IconAlertTriangle, IconClipboardList, IconPercent, IconColumns, IconList, IconShieldCheck, IconPlus } from "@/components/ui/icons";
+import { IconTarget, IconTrendingUp, IconCheckCircle, IconAlertTriangle, IconClipboardList, IconPercent, IconColumns, IconList, IconPlus } from "@/components/ui/icons";
 import { ComercialWorkspace } from "@/components/admin/comercial/ComercialWorkspace";
 import { ComercialHubTabs, type AbaHubComercial, type ItemAbaHubComercial } from "@/components/admin/comercial/ComercialHubTabs";
 import { OrcamentosManager } from "@/components/admin/orcamentos/OrcamentosManager";
@@ -165,12 +165,6 @@ export default async function ComercialHubPage({ searchParams }: { searchParams:
         {podeOrcamentos && (
           <div className="flex flex-wrap items-center gap-3">
             <ConfiguracoesOrcamentoMenu />
-            <Link href="/admin/contratos/lista">
-              <Button variant="ghost" className="gap-1.5">
-                <IconShieldCheck className="h-4 w-4" />
-                {dict.orcamentos.contratosBtn}
-              </Button>
-            </Link>
             <Link href="/admin/orcamentos/novo">
               <Button className="gap-1.5">
                 <IconPlus className="h-4 w-4" />

@@ -31,6 +31,10 @@ export function LeadCard({ lead, onClick, className }: LeadCardProps) {
         {lead.contrato_assinado && <Badge tone="good" label={dict.comercial.badgeContrato} className="shrink-0" />}
       </div>
 
+      {/* O @ logo abaixo do nome — é o que fazia as pessoas escreverem
+          "Loja X | @loja" no campo de nome antes deste campo existir. */}
+      {lead.instagram && <p className="mb-1 truncate text-xs text-ink-muted">@{lead.instagram}</p>}
+
       {lead.tipo_servico_nome && <p className="mb-1 truncate text-xs text-ink-secondary">{lead.tipo_servico_nome}</p>}
 
       {lead.valor_estimado != null && <p className="text-sm font-semibold text-ink-primary">{fmtMoeda(lead.valor_estimado)}</p>}

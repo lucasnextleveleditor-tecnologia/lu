@@ -41,6 +41,7 @@ export function LeadModal({ tiposServico, onClose }: LeadModalProps) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [instagram, setInstagram] = useState("");
   const [origem, setOrigem] = useState<OrigemLead | "">("");
   const [tipoServicoId, setTipoServicoId] = useState("");
   const [valorEstimado, setValorEstimado] = useState(0);
@@ -59,6 +60,7 @@ export function LeadModal({ tiposServico, onClose }: LeadModalProps) {
       nome,
       email: email || null,
       whatsapp: whatsapp || null,
+      instagram: instagram || null,
       origem: origem || null,
       tipoServicoId: tipoServicoId || null,
       valorEstimado: valorEstimado > 0 ? valorEstimado : null,
@@ -68,7 +70,7 @@ export function LeadModal({ tiposServico, onClose }: LeadModalProps) {
 
     setLoading(false);
     if (!result.ok) {
-      setError(result.error);
+      setError(result.error === "INSTAGRAM_INVALIDO" ? dict.comercial.instagramInvalido : result.error);
       return;
     }
     onClose();
@@ -93,14 +95,22 @@ export function LeadModal({ tiposServico, onClose }: LeadModalProps) {
             <Input required value={nome} onChange={(e) => setNome(e.target.value)} placeholder={dict.comercial.placeholderNomeLead} />
           </div>
 
+          {/* E-mail sozinho na linha: ele é o campo longo dos três, e é ele
+              que a conversão em cliente exige. WhatsApp e Instagram, que são
+              curtos, dividem a linha de baixo. */}
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.email}</label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contato@empresa.com" />
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.common.email}</label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contato@empresa.com" />
-            </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">WhatsApp</label>
               <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="(11) 90000-0000" />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.comercial.instagramLabel}</label>
+              <Input value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder={dict.comercial.instagramPlaceholder} />
             </div>
           </div>
 

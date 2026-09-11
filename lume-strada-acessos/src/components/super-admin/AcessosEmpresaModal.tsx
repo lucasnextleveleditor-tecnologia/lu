@@ -2,10 +2,16 @@
 
 import { useEffect, useState } from "react";
 import type { AcessoEmpresaRow, CompanyRow } from "@/lib/types/super-admin";
-import { listarAcessosEmpresa, atualizarEmailAcesso, excluirAcessoEmpresa } from "@/app/super-admin/actions";
+import {
+  listarAcessosEmpresa,
+  atualizarEmailAcesso,
+  excluirAcessoEmpresa,
+  redefinirSenhaAcesso,
+} from "@/app/super-admin/actions";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { IconCheck, IconClipboardList } from "@/components/ui/icons";
+import { IconCheck, IconClipboardList, IconKey } from "@/components/ui/icons";
+import { CredenciaisAcessoGerado } from "@/components/ui/CredenciaisAcessoGerado";
 import { getSiteUrl } from "@/lib/utils/siteUrl";
 
 const LABEL_PAPEL: Record<AcessoEmpresaRow["role"], string> = {
@@ -35,6 +41,17 @@ export function AcessosEmpresaModal({ empresa, onClose }: { empresa: CompanyRow;
   const [excluindo, setExcluindo] = useState(false);
 
   const [linkCopiadoId, setLinkCopiadoId] = useState<string | null>(null);
+
+  const [confirmandoSenhaId, setConfirmandoSenhaId] = useState<string | null>(null);
+  const [redefinindoId, setRedefinindoId] = useState<string | null>(null);
+  /**
+   * A senha nova fica na tela só até o modal fechar, e só do login que acabou
+   * de ser redefinido. Não é guardada em lugar nenhum — nem aqui, nem no
+   * banco, que tem só o hash. Se o Super Admin fechar antes de copiar, o
+   * caminho é redefinir de novo, e isso é melhor do que uma senha em claro
+   * parada em algum estado.
+   */
+  const [senhaNova, setSenhaNova] = useState<{ id: string; email: string; senha: string } | null>(null);
 
   useEffect(() => {
     let cancelado = false;
@@ -100,6 +117,30 @@ export function AcessosEmpresaModal({ empresa, onClose }: { empresa: CompanyRow;
       // Clipboard API pode falhar (contexto não seguro, permissão negada) —
       // sem quebrar nada, só não mostra o "Copiado!".
     }
+  }
+
+  /**
+   * Senha nova na conta que JÁ existe — o caminho pra quem perdeu a senha.
+   *
+   * Não confundir com "Gerar acesso" da lista de fora: aquele cria um login
+   * novo, e usado aqui deixaria o antigo órfão, junto com tudo que aponta pro
+   * id da pessoa. Aqui o id, o e-mail e o histórico continuam iguais; só a
+   * senha muda, e o painel obriga a trocá-la no primeiro login.
+   */
+  async function redefinirSenha(id: string) {
+    setConfirmandoSenhaId(null);
+    setRedefinindoId(id);
+    setErroCarregar(null);
+    const result = await redefinirSenhaAcesso(id, empresa.id);
+    setRedefinindoId(null);
+    if (!result.ok) {
+      setErroCarregar(result.error);
+      return;
+    }
+    setSenhaNova({ id, email: result.email, senha: result.senhaPadrao });
+    // A etiqueta "Ainda com a senha provisória" volta na hora — é o estado
+    // real da conta a partir de agora.
+    setAcessos((atual) => atual?.map((a) => (a.id === id ? { ...a, senha_provisoria: true } : a)) ?? atual);
   }
 
   return (
@@ -175,7 +216,35 @@ export function AcessosEmpresaModal({ empresa, onClose }: { empresa: CompanyRow;
                         </button>
                       </div>
                     ) : (
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {confirmandoSenhaId === acesso.id ? (
+                          <div className="flex items-center gap-2 rounded-lg border border-status-warning/40 bg-status-warning/10 px-2.5 py-1.5">
+                            <span className="text-xs text-ink-secondary">Criar uma senha nova? A atual para de funcionar.</span>
+                            <button
+                              onClick={() => redefinirSenha(acesso.id)}
+                              className="text-xs font-medium text-accent hover:underline"
+                            >
+                              Sim
+                            </button>
+                            <button
+                              onClick={() => setConfirmandoSenhaId(null)}
+                              className="text-xs text-ink-muted hover:text-ink-primary"
+                            >
+                              Não
+                            </button>
+                          </div>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => setConfirmandoSenhaId(acesso.id)}
+                            disabled={redefinindoId === acesso.id}
+                            className="px-3 py-1.5 text-xs"
+                          >
+                            <IconKey className="h-3.5 w-3.5" />
+                            {redefinindoId === acesso.id ? "Gerando..." : "Nova senha"}
+                          </Button>
+                        )}
                         <Button type="button" variant="ghost" onClick={() => reenviarAcesso(acesso.id)} className="px-3 py-1.5 text-xs">
                           {linkCopiadoId === acesso.id ? (
                             <>
@@ -195,6 +264,17 @@ export function AcessosEmpresaModal({ empresa, onClose }: { empresa: CompanyRow;
                         </Button>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {senhaNova?.id === acesso.id && (
+                  <div className="mt-3">
+                    <CredenciaisAcessoGerado
+                      email={senhaNova.email}
+                      senhaPadrao={senhaNova.senha}
+                      titulo="Senha nova gerada"
+                      ajuda="Mande por WhatsApp ou dite por telefone. O login, o histórico e tudo que a pessoa já tinha continuam iguais — só a senha mudou, e o painel vai pedir uma definitiva assim que ela entrar."
+                    />
                   </div>
                 )}
               </li>

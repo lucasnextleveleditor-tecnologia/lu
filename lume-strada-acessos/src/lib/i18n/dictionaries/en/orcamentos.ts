@@ -6,7 +6,6 @@ export const orcamentos: OrcamentosDict = {
   novoOrcamentoBtn: "New Quote",
   catalogoBtn: "Service Catalog",
   calculadoraBtn: "Margin Calculator",
-  contratosBtn: "Contracts",
   voltarParaOrcamentos: "Back to Quotes",
 
   hubTitulo: "Commercial",

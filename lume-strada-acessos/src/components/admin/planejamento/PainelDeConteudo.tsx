@@ -7,7 +7,7 @@ import { IconChevronRight } from "@/components/ui/icons";
 import { CalendarioDeConteudo } from "@/components/admin/planejamento/CalendarioDeConteudo";
 import { SeletorDeCliente } from "@/components/admin/planejamento/SeletorDeCliente";
 import type { PlanoRow } from "@/lib/types/planejamento";
-import type { TarefaRow } from "@/lib/types/producao";
+import type { PostFormatoRow, TarefaRow } from "@/lib/types/producao";
 
 /**
  * A aba Conteúdo — o calendário fora da página do ciclo.
@@ -28,6 +28,7 @@ export async function PainelDeConteudo({
   posts,
   funcionarios,
   tiposServico,
+  formatos,
 }: {
   /** Só os clientes que TÊM ciclo — quem não tem não tem o que pautar. */
   clientes: { id: string; nome: string }[];
@@ -36,6 +37,8 @@ export async function PainelDeConteudo({
   posts: TarefaRow[];
   funcionarios: { id: string; nome: string }[];
   tiposServico: { id: string; nome: string }[];
+  /** Os formatos em uso da empresa — o seletor de formato de cada linha. */
+  formatos: PostFormatoRow[];
 }) {
   const { dict } = await getDictionary();
   const t = dict.planejamento;
@@ -92,6 +95,7 @@ export async function PainelDeConteudo({
           produzindoInicial={posts.filter((p) => !p.em_pauta)}
           funcionarios={funcionarios}
           tiposServico={tiposServico}
+          formatos={formatos}
         />
       )}
     </div>

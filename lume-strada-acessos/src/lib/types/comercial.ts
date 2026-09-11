@@ -15,6 +15,12 @@ export interface LeadRow {
   nome: string;
   email: string | null;
   whatsapp: string | null;
+  /**
+   * O @ do Instagram, guardado como o handle PURO ("lojacriativa") e sempre
+   * mostrado com o @ na frente. Guardar sem o @ é o que deixa montar o link
+   * do perfil sem ficar limpando string em cinco telas.
+   */
+  instagram: string | null;
   origem: OrigemLead | null;
   tipo_servico_id: string | null;
   valor_estimado: number | null;

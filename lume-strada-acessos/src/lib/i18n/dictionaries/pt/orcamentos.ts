@@ -13,7 +13,6 @@ export interface OrcamentosDict {
   novoOrcamentoBtn: string;
   catalogoBtn: string;
   calculadoraBtn: string;
-  contratosBtn: string;
   voltarParaOrcamentos: string;
 
   // Hub Comercial unificado (`/admin/comercial`, ver `ComercialHubTabs.tsx`)
@@ -420,7 +419,6 @@ export const orcamentos: OrcamentosDict = {
   novoOrcamentoBtn: "Novo Orçamento",
   catalogoBtn: "Catálogo de Serviços",
   calculadoraBtn: "Calculadora de Margem",
-  contratosBtn: "Contratos",
   voltarParaOrcamentos: "Voltar pros Orçamentos",
 
   hubTitulo: "Comercial",

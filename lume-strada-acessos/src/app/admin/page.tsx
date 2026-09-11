@@ -5,7 +5,7 @@ import type { ProfileRow } from "@/lib/types/database";
 import type { ClienteRow } from "@/lib/types/cadastros";
 import type { OnboardingRow } from "@/lib/types/onboarding";
 import type { PlanoRow } from "@/lib/types/planejamento";
-import type { TarefaRow } from "@/lib/types/producao";
+import type { PostFormatoRow, TarefaRow } from "@/lib/types/producao";
 import { CadastrosWorkspace } from "@/components/admin/cadastros/CadastrosWorkspace";
 import { PainelOnboarding } from "@/components/admin/onboarding/PainelOnboarding";
 import { PainelPlanejamento } from "@/components/admin/planejamento/PainelPlanejamento";
@@ -100,6 +100,7 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
     posts: TarefaRow[];
     funcionarios: { id: string; nome: string }[];
     tiposServico: { id: string; nome: string }[];
+    formatos: PostFormatoRow[];
   } | null = null;
 
   if (abaAtiva === "conteudo") {
@@ -125,7 +126,7 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
       clienteParam && planoPorCliente.has(clienteParam) ? clienteParam : (comCiclo[0]?.id ?? null);
     const plano = escolhido ? (planoPorCliente.get(escolhido) ?? null) : null;
 
-    const [postsRes, funcionariosRes, tiposRes] = await Promise.all([
+    const [postsRes, funcionariosRes, tiposRes, formatosRes] = await Promise.all([
       plano
         ? supabase
             .from("prod_tarefas")
@@ -145,6 +146,15 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
         .select("id, nome")
         .order("nome")
         .overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
+      // Só os EM USO: o seletor de formato de cada linha oferece o que a
+      // agência vende, não uma lista genérica. O que saiu de uso continua
+      // cadastrado em Configurações → Padrões de produção, e volta de lá.
+      supabase
+        .from("post_formatos")
+        .select("*")
+        .eq("ativo", true)
+        .order("ordem")
+        .overrideTypes<PostFormatoRow[], { merge: false }>(),
     ]);
 
     dadosConteudo = {
@@ -154,6 +164,7 @@ export default async function GestaoDeClientesPage({ searchParams }: { searchPar
       posts: postsRes.data ?? [],
       funcionarios: funcionariosRes.data ?? [],
       tiposServico: tiposRes.data ?? [],
+      formatos: formatosRes.data ?? [],
     };
   }
 

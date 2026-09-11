@@ -80,6 +80,10 @@ export const comercial: ComercialDict = {
 
   labelNomeLead: "Company/Person Name *",
   placeholderNomeLead: "E.g.: Creative Studio Inc.",
+  instagramLabel: "Instagram",
+  instagramPlaceholder: "@creativestudio",
+  instagramAbrirPerfil: "Open profile",
+  instagramInvalido: "Check the Instagram handle — letters, numbers, dots and underscores only.",
   criando: "Creating...",
   criarLead: "Create Lead",
 
