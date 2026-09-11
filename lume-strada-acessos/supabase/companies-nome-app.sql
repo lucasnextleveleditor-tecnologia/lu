@@ -5,7 +5,7 @@
 -- `public.companies` já existindo). Idempotente: seguro rodar de novo.
 --
 -- Contexto: a sidebar do admin e o header do portal do cliente tinham o
--- texto "Creator Suite" HARDCODED no componente (`AdminShell.tsx` /
+-- nome de UMA empresa específica HARDCODED no componente (`AdminShell.tsx` /
 -- `dashboard/layout.tsx`), ignorando qualquer configuração — todo cliente
 -- novo, de qualquer empresa, via o nome de uma agência que não é a dele.
 --

@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   // (`branding_config` é global — ver nota em `getBrandingConfig.ts`),
   // exatamente como o favicon logo abaixo. Nunca hardcodear o nome de uma
   // empresa específica aqui: sem branding configurado, cai em "Creator Suite"
-  // (`DEFAULT_BRANDING`), nunca em "Creator Suite".
+  // (`DEFAULT_BRANDING`), nunca no nome de uma empresa específica.
   return {
     title: `${branding.login_title} — Acessos`,
     description: `Gestão de clientes, acessos, tráfego e patrimônio da ${branding.login_title}`,
