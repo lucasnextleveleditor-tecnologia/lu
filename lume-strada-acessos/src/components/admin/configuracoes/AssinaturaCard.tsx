@@ -16,7 +16,7 @@ interface AssinaturaCardProps {
   locale: Locale;
 }
 
-const LOCALE_INTL: Record<Locale, string> = { pt: "pt-BR", en: "en-US", es: "es-ES" };
+const LOCALE_INTL: Record<Locale, string> = { pt: "pt-BR", pt_PT: "pt-PT", en: "en-US", es: "es-ES" };
 
 /**
  * Aba "Assinatura" — deliberadamente mínima. NÃO existe processador de

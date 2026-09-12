@@ -3,9 +3,12 @@
  * (comentários de código, nomes de tabela/coluna no banco etc. continuam
  * SEMPRE em português, só a interface visível pro usuário é traduzida).
  */
-export type Locale = "pt" | "en" | "es";
+// `pt_PT` e nao `pt-PT`: este valor vai para dentro de um cookie e vira
+// chave de Record em varios lugares. O sublinhado evita ter que citar a
+// chave em todo objeto. A forma BCP-47 de verdade fica em LOCALE_BCP47.
+export type Locale = "pt" | "pt_PT" | "en" | "es";
 
-export const LOCALES: Locale[] = ["pt", "en", "es"];
+export const LOCALES: Locale[] = ["pt", "pt_PT", "en", "es"];
 
 export const DEFAULT_LOCALE: Locale = "pt";
 
@@ -17,12 +20,16 @@ export const DEFAULT_LOCALE: Locale = "pt";
  */
 export const LOCALE_BCP47: Record<Locale, string> = {
   pt: "pt-BR",
+  pt_PT: "pt-PT",
   en: "en-US",
   es: "es-ES",
 };
 
 export const LOCALE_LABELS: Record<Locale, string> = {
-  pt: "Português",
+  // Com duas variantes de portugues na lista, "Portugues" sozinho deixa de
+  // identificar qual: quem ve as duas linhas precisa da regiao no rotulo.
+  pt: "Português (BR)",
+  pt_PT: "Português (PT)",
   en: "English",
   es: "Español",
 };

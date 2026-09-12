@@ -47,6 +47,7 @@ export function moedaDe(valor: string | null | undefined): Moeda {
  */
 const LOCALE_NUMERICO: Record<Locale, string> = {
   pt: "pt-BR",
+  pt_PT: "pt-PT",
   en: "en-US",
   es: "es-ES",
 };

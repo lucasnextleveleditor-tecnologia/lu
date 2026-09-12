@@ -35,6 +35,26 @@ export function FlagBR(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function FlagPT(props: SVGProps<SVGSVGElement>) {
+  const clipId = `flag-pt-${useId()}`;
+  return (
+    <svg viewBox="0 0 20 14" {...props}>
+      <clipPath id={clipId}>
+        <rect width="20" height="14" rx="2" />
+      </clipPath>
+      <g clipPath={`url(#${clipId})`}>
+        {/* Verde nos 2/5 da esquerda, vermelho nos 3/5 da direita, e a esfera
+            na divisa -- a divisa fora do centro e o que separa esta bandeira,
+            de relance, de qualquer outra verde e vermelha. */}
+        <rect width="20" height="14" fill="#DA291C" />
+        <rect width="8" height="14" fill="#046A38" />
+        <circle cx="8" cy="7" r="3.1" fill="#FFE800" />
+        <circle cx="8" cy="7" r="1.5" fill="#FFFFFF" />
+      </g>
+    </svg>
+  );
+}
+
 export function FlagUS(props: SVGProps<SVGSVGElement>) {
   const clipId = `flag-us-${useId()}`;
   return (

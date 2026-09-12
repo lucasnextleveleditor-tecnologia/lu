@@ -81,9 +81,14 @@ interface OrcamentoBuilderProps {
   portfolioItens: PortfolioItemComUrl[];
   institucional: DadosInstitucionaisOrcamento;
   orcamentoParaEditar?: OrcamentoParaEditar;
+  /** Area escolhida na primeira tela do fluxo novo. Quando vem preenchida, as
+   *  pilhas de escolha somem do formulario e viram um resumo com link de trocar. */
+  perfilInicial?: PerfilOrcamento;
+  /** Tipo de trabalho escolhido na segunda tela. `null` = comecou do zero. */
+  servicoInicial?: string | null;
 }
 
-export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, tiposOrcamento, portfolioItens, institucional, orcamentoParaEditar }: OrcamentoBuilderProps) {
+export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, tiposOrcamento, portfolioItens, institucional, orcamentoParaEditar, perfilInicial, servicoInicial }: OrcamentoBuilderProps) {
   const { dict, fmtMoeda } = useLocale();
   const router = useRouter();
   const editando = !!orcamentoParaEditar;
@@ -100,8 +105,12 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
   const [objetivos, setObjetivos] = useState(orcamentoParaEditar?.objetivos ?? "");
   const [descontoTipo, setDescontoTipo] = useState<DescontoTipo | "">(orcamentoParaEditar?.desconto_tipo ?? "");
   const [descontoValor, setDescontoValor] = useState(orcamentoParaEditar?.desconto_valor ?? 0);
-  const [tipoPerfil, setTipoPerfil] = useState<PerfilOrcamento | null>(orcamentoParaEditar?.tipo_perfil ?? null);
-  const [tipoServico, setTipoServico] = useState<string | null>(orcamentoParaEditar?.tipo_servico ?? null);
+  const [tipoPerfil, setTipoPerfil] = useState<PerfilOrcamento | null>(orcamentoParaEditar?.tipo_perfil ?? perfilInicial ?? null);
+  const [tipoServico, setTipoServico] = useState<string | null>(orcamentoParaEditar?.tipo_servico ?? servicoInicial ?? null);
+  // Quem chegou pelas duas telas de escolha ja decidiu area e tipo. Repetir as
+  // pilhas aqui seria pedir a mesma decisao duas vezes -- e a segunda, num
+  // canto do formulario, e a que costuma ser trocada sem querer.
+  const vindoDoFluxo = !orcamentoParaEditar && !!perfilInicial;
   const modelosDoTipoServico = useMemo(() => listarModelosPorPerfil(tipoPerfil), [tipoPerfil]);
   const [portfolioSelecionado, setPortfolioSelecionado] = useState<string[]>(orcamentoParaEditar?.portfolio.map((p) => p.id) ?? []);
 
@@ -445,6 +454,32 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
         <Card>
           <h2 className="mb-4 text-sm font-semibold">{dict.orcamentos.dadosDoOrcamentoTitulo}</h2>
           <div className="space-y-4">
+            {vindoDoFluxo ? (
+              <div className="rounded-xl border border-base-700 bg-base-900/50 px-4 py-3">
+                <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+                  <div>
+                    <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-muted">{dict.orcamentos.resumoPerfilLabel}</p>
+                    <p className="mt-0.5 text-sm font-medium text-ink-primary">
+                      {tipoPerfil ? dict.orcamentos.categoriasProfissao[tipoPerfil] : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-ink-muted">{dict.orcamentos.resumoServicoLabel}</p>
+                    <p className="mt-0.5 text-sm font-medium text-ink-primary">
+                      {modelosDoTipoServico.find((m) => m.tipoServico === tipoServico)?.nome ?? dict.orcamentos.resumoSemTipo}
+                    </p>
+                  </div>
+                  <Link href="/admin/orcamentos/novo" className="ml-auto text-xs font-medium text-accent hover:underline">
+                    {dict.orcamentos.resumoTrocar}
+                  </Link>
+                </div>
+                {tipoPerfil && tiposOrcamento[tipoPerfil] && tiposOrcamento[tipoPerfil]!.itens.length > 0 && (
+                  <button type="button" onClick={() => escolherPerfil(tipoPerfil, true)} className="mt-3 text-xs font-medium text-accent hover:underline">
+                    {dict.orcamentos.usarItensDoModeloBtn}
+                  </button>
+                )}
+              </div>
+            ) : (
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.tipoDeOrcamentoLabel}</label>
               <div className="flex flex-wrap gap-2">
@@ -482,6 +517,7 @@ export function OrcamentoBuilder({ categorias, servicosComCategoria, clientes, t
                 </div>
               )}
             </div>
+            )}
 
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{dict.orcamentos.tituloOrcamentoLabel}</label>

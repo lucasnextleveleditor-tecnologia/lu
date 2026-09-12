@@ -6,8 +6,16 @@ import { createClient } from "@/lib/supabase/server";
 import { pt, type Dictionary } from "@/lib/i18n/dictionaries/pt";
 import { en } from "@/lib/i18n/dictionaries/en";
 import { es } from "@/lib/i18n/dictionaries/es";
+import { ptPT } from "@/lib/i18n/dictionaries/pt-PT";
 
-const DICIONARIOS: Record<Locale, Dictionary> = { pt, en, es };
+/**
+ * Cada idioma entra como FUNCAO, e nao como objeto pronto: o portugues de
+ * Portugal e derivado do de Brasil na primeira chamada (ver
+ * `dictionaries/pt-PT/index.ts`), e como objeto pronto essa travessia
+ * aconteceria no carregamento do modulo, em toda instancia do servidor,
+ * inclusive nas que nunca vao servir uma pessoa em Portugal.
+ */
+const DICIONARIOS: Record<Locale, () => Dictionary> = { pt: () => pt, pt_PT: ptPT, en: () => en, es: () => es };
 
 /**
  * A moeda e o idioma padrão da empresa de quem está logado.
@@ -57,7 +65,7 @@ export async function getDictionary(): Promise<{
   const escolhido = cookieStore.get(LOCALE_COOKIE)?.value;
   const { moeda, idiomaPadrao } = await getConfigDaEmpresa();
   const locale = isLocale(escolhido) ? escolhido : (idiomaPadrao ?? DEFAULT_LOCALE);
-  return { locale, dict: DICIONARIOS[locale], moeda, fmtMoeda: criarFormatador(moeda, locale) };
+  return { locale, dict: DICIONARIOS[locale](), moeda, fmtMoeda: criarFormatador(moeda, locale) };
 }
 
 export type { Dictionary };
