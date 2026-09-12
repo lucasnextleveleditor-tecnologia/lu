@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { definirIdioma } from "@/lib/i18n/actions";
 import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n/locales";
-import { FlagBR, FlagUS, FlagES } from "@/components/ui/flags";
+import { FlagBR, FlagPT, FlagUS, FlagES } from "@/components/ui/flags";
 import { cn } from "@/lib/utils/cn";
 
-const FLAGS: Record<Locale, typeof FlagBR> = { pt: FlagBR, en: FlagUS, es: FlagES };
+const FLAGS: Record<Locale, typeof FlagBR> = { pt: FlagBR, "pt-PT": FlagPT, en: FlagUS, es: FlagES };
 
 interface LanguageSwitcherProps {
   className?: string;

@@ -21,6 +21,7 @@ import {
   type CabecalhoInput,
   type ClimaSalvo,
 } from "@/app/admin/producao/ordem-do-dia/actions";
+import { LOCALE_BCP47, type Locale } from "@/lib/i18n/locales";
 
 interface Props {
   dados: OrdemDoDiaCompleta;
@@ -33,10 +34,9 @@ interface Props {
 }
 
 /** "2026-09-10" -> "Quinta-feira, 10 de setembro de 2026" */
-function porExtenso(iso: string | null, locale: string): string | null {
+function porExtenso(iso: string | null, locale: Locale): string | null {
   if (!iso) return null;
-  const mapa: Record<string, string> = { pt: "pt-BR", en: "en-US", es: "es-ES" };
-  const texto = new Date(`${iso}T12:00:00`).toLocaleDateString(mapa[locale] ?? "pt-BR", {
+  const texto = new Date(`${iso}T12:00:00`).toLocaleDateString(LOCALE_BCP47[locale], {
     weekday: "long",
     day: "2-digit",
     month: "long",

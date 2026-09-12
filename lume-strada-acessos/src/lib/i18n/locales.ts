@@ -3,9 +3,14 @@
  * (comentários de código, nomes de tabela/coluna no banco etc. continuam
  * SEMPRE em português, só a interface visível pro usuário é traduzida).
  */
-export type Locale = "pt" | "en" | "es";
+// "pt-PT" na FORMA BCP-47 exata, e nao "pt_PT": este valor e passado direto
+// para `toLocaleDateString`/`toLocaleString` em dezenas de telas, e um
+// underscore ali e `RangeError: Incorrect locale information provided` --
+// pagina inteira em branco, nao numero mal formatado. O preco e ter que citar
+// a chave nos objetos; e barato perto disso.
+export type Locale = "pt" | "pt-PT" | "en" | "es";
 
-export const LOCALES: Locale[] = ["pt", "en", "es"];
+export const LOCALES: Locale[] = ["pt", "pt-PT", "en", "es"];
 
 export const DEFAULT_LOCALE: Locale = "pt";
 
@@ -17,12 +22,16 @@ export const DEFAULT_LOCALE: Locale = "pt";
  */
 export const LOCALE_BCP47: Record<Locale, string> = {
   pt: "pt-BR",
+  "pt-PT": "pt-PT",
   en: "en-US",
   es: "es-ES",
 };
 
 export const LOCALE_LABELS: Record<Locale, string> = {
-  pt: "Português",
+  // Com duas variantes de portugues na lista, "Portugues" sozinho deixa de
+  // identificar qual: quem ve as duas linhas precisa da regiao no rotulo.
+  pt: "Português (BR)",
+  "pt-PT": "Português (PT)",
   en: "English",
   es: "Español",
 };

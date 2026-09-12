@@ -1,3 +1,4 @@
+import type { PerfilOrcamento } from "@/lib/types/orcamentos";
 /**
  * Módulo Orçamentos (`/admin/orcamentos`) — catálogo de serviços por
  * categoria (Marketing, Captação Audiovisual, Edição de Vídeos...),
@@ -222,6 +223,29 @@ export interface OrcamentosDict {
   placeholderPortfolioTitulo: string;
   portfolioCategoriaLabel: string;
   portfolioCategoriaNenhuma: string;
+  // Fluxo novo de orcamento: as duas telas de escolha antes do construtor
+  // (ver app/admin/orcamentos/novo/page.tsx).
+  escolhaEtiqueta: string;
+  escolhaPasso1: string;
+  escolhaPasso2: string;
+  escolhaAcao: string;
+  escolhaPerfilTitulo: string;
+  escolhaPerfilTituloDestaque: string;
+  escolhaPerfilSubtitulo: string;
+  escolhaServicoTitulo: string;
+  escolhaServicoTituloDestaque: string;
+  escolhaServicoSubtitulo: string;
+  escolhaServicoLivreTitulo: string;
+  escolhaServicoLivreTexto: string;
+  escolhaTrocarPerfil: string;
+  escolhaVoltarParaTipos: string;
+  resumoPerfilLabel: string;
+  resumoServicoLabel: string;
+  resumoSemTipo: string;
+  resumoTrocar: string;
+  /** Uma linha curta por profissao, no cartao do passo 1. */
+  escolhaPerfilTextos: Record<PerfilOrcamento, string>;
+
   categoriasProfissao: Record<
     "filmmaker" | "videomaker" | "social_media" | "storymaker" | "designer" | "fotografo" | "agencia_marketing",
     string
@@ -616,6 +640,34 @@ export const orcamentos: OrcamentosDict = {
   placeholderPortfolioTitulo: "Ex: Making of — Campanha Verão",
   portfolioCategoriaLabel: "Categoria (opcional)",
   portfolioCategoriaNenhuma: "Qualquer categoria",
+  escolhaEtiqueta: "Novo orçamento",
+  escolhaPasso1: "Passo 1 de 2",
+  escolhaPasso2: "Passo 2 de 2",
+  escolhaAcao: "Selecionar",
+  escolhaPerfilTitulo: "Comece pela",
+  escolhaPerfilTituloDestaque: "sua área.",
+  escolhaPerfilSubtitulo: "A profissão define o catálogo, os textos e o modelo de contrato que o orçamento já nasce usando. Dá para trocar tudo depois.",
+  escolhaServicoTitulo: "Agora, o",
+  escolhaServicoTituloDestaque: "tipo de trabalho.",
+  escolhaServicoSubtitulo: "Cada tipo entra com a estrutura de itens que costuma ir nesse orçamento — e com o modelo de contrato certo, se virar contrato depois.",
+  escolhaServicoLivreTitulo: "Do zero",
+  escolhaServicoLivreTexto: "Sem modelo nenhum. Você monta item por item, do jeito deste projeto.",
+  escolhaTrocarPerfil: "Trocar de área",
+  escolhaVoltarParaTipos: "Voltar para os tipos",
+  resumoPerfilLabel: "Área",
+  resumoServicoLabel: "Tipo de trabalho",
+  resumoSemTipo: "Do zero",
+  resumoTrocar: "Trocar",
+  escolhaPerfilTextos: {
+    filmmaker: "Casamento, festa, documentário, clipe. Captação com direção e entrega editada.",
+    videomaker: "Institucional, comercial e conteúdo recorrente para marcas.",
+    social_media: "Gestão de conteúdo, planejamento e publicação nas redes.",
+    storymaker: "Cobertura vertical e em stories, do começo ao fim do dia.",
+    designer: "Identidade, peças gráficas e artes para campanha e redes.",
+    fotografo: "Ensaio, cobertura e banco de imagens com direção de arte.",
+    agencia_marketing: "Operação inteira: estratégia, mídia paga, conteúdo e relatório.",
+  },
+
   categoriasProfissao: {
     filmmaker: "Filmmaker",
     videomaker: "Videomaker",
