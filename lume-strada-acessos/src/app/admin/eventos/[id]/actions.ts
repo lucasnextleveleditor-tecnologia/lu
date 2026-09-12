@@ -34,6 +34,7 @@ const PATH = "/admin/eventos";
 export type Resultado = { ok: true } | { ok: false; error: string };
 export type ResultadoId = { ok: true; id: string } | { ok: false; error: string };
 export type ResultadoAtraso = { ok: true; colisoes: Colisao[] } | { ok: false; error: string };
+export type ResultadoContagem = { ok: true; quantos: number } | { ok: false; error: string };
 
 function mensagem(err: unknown): string {
   return err instanceof Error ? err.message : "Erro desconhecido.";
@@ -496,6 +497,226 @@ export async function registrarOcorrencia(
     if (error) return { ok: false, error: error.message };
     revalidar(eventoId);
     return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+
+// ----------------------------------------------------------------------------
+// O Fechamento — os dois botões e o template
+// ----------------------------------------------------------------------------
+
+/**
+ * CRIAR AS ENTREGAS. Cada destinatário vira uma tarefa na Produção, com a
+ * lista do que existe no briefing.
+ *
+ * Uma tarefa POR DESTINATÁRIO, e não uma por material: quem edita abre uma
+ * pasta por cliente, não um card por foto. Trinta cards de "foto do palco"
+ * entupiriam o Kanban da semana inteira no domingo de manhã.
+ *
+ * O carimbo `entregas_criadas_em` existe para o botão não poder ser apertado
+ * duas vezes. Duplicar a semana de trabalho da equipe com um clique repetido
+ * seria um jeito rápido de fazer ninguém confiar no botão.
+ */
+export async function criarEntregas(eventoId: string): Promise<ResultadoContagem> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+
+    const { data: evento } = await supabase
+      .from("ev_eventos")
+      .select("id, nome, fim, entregas_criadas_em")
+      .eq("id", eventoId)
+      .maybeSingle<{ id: string; nome: string; fim: string; entregas_criadas_em: string | null }>();
+
+    if (!evento) return { ok: false, error: "EVENTO_NAO_ENCONTRADO" };
+    if (evento.entregas_criadas_em) return { ok: false, error: "ENTREGAS_JA_CRIADAS" };
+
+    const { data: capturas } = await supabase
+      .from("ev_capturas")
+      .select("id, titulo, destinatario, cliente_id")
+      .eq("evento_id", eventoId)
+      .eq("status", "captado")
+      .overrideTypes<{ id: string; titulo: string; destinatario: string | null; cliente_id: string | null }[], { merge: false }>();
+
+    const lista = capturas ?? [];
+    if (!lista.length) return { ok: false, error: "NADA_PARA_ENTREGAR" };
+
+    const grupos = new Map<string, { destinatario: string | null; clienteId: string | null; itens: string[] }>();
+    for (const c of lista) {
+      const chave = c.cliente_id ?? c.destinatario ?? "";
+      const g = grupos.get(chave) ?? { destinatario: c.destinatario, clienteId: c.cliente_id, itens: [] };
+      g.itens.push(c.titulo);
+      grupos.set(chave, g);
+    }
+
+    const { dict } = await getDictionary();
+    const dataEntrega = evento.fim.slice(0, 10);
+
+    const { error } = await supabase.from("prod_tarefas").insert(
+      [...grupos.values()].map((g) => ({
+        titulo: g.destinatario ? `${evento.nome} — ${g.destinatario}` : evento.nome,
+        briefing: `${dict.eventos.entregaBriefing}\n\n${g.itens.map((i) => `• ${i}`).join("\n")}`,
+        cliente_cadastro_id: g.clienteId,
+        data_captacao: dataEntrega,
+      }))
+    );
+
+    if (error) return { ok: false, error: error.message };
+
+    await supabase.from("ev_eventos").update({ entregas_criadas_em: new Date().toISOString() }).eq("id", eventoId);
+    revalidar(eventoId);
+    return { ok: true, quantos: grupos.size };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+/**
+ * LANÇAR OS CUSTOS. A conta da escala mais os extras vira uma despesa no
+ * Financeiro, com vencimento no dia do evento.
+ *
+ * UM lançamento, e não um por pessoa: no extrato da produtora, "Festival de
+ * Verão — equipe" é uma linha que se entende; doze linhas de cachê no mesmo
+ * dia são doze linhas para conferir. O detalhe por pessoa continua aqui, no
+ * evento, que é onde ele faz sentido.
+ */
+export async function lancarCustos(eventoId: string): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+
+    const { data: evento } = await supabase
+      .from("ev_eventos")
+      .select("id, nome, fim, custos_lancados_em")
+      .eq("id", eventoId)
+      .maybeSingle<{ id: string; nome: string; fim: string; custos_lancados_em: string | null }>();
+
+    if (!evento) return { ok: false, error: "EVENTO_NAO_ENCONTRADO" };
+    if (evento.custos_lancados_em) return { ok: false, error: "CUSTOS_JA_LANCADOS" };
+
+    const { data: equipe } = await supabase
+      .from("ev_equipe")
+      .select("cache, extras")
+      .eq("evento_id", eventoId)
+      .overrideTypes<{ cache: number | null; extras: number | null }[], { merge: false }>();
+
+    const total = (equipe ?? []).reduce((s, p) => s + Number(p.cache ?? 0) + Number(p.extras ?? 0), 0);
+    if (total <= 0) return { ok: false, error: "NADA_PARA_LANCAR" };
+
+    const { dict } = await getDictionary();
+    const { error } = await supabase.from("fin_transacoes").insert({
+      tipo: "despesa",
+      contexto: "profissional",
+      descricao: `${evento.nome} — ${dict.eventos.custoEquipe}`,
+      valor: total,
+      data_vencimento: evento.fim.slice(0, 10),
+      pago: false,
+    });
+
+    if (error) return { ok: false, error: error.message };
+
+    await supabase.from("ev_eventos").update({ custos_lancados_em: new Date().toISOString() }).eq("id", eventoId);
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+/**
+ * SALVAR COMO TEMPLATE — o evento encerrado vira o ponto de partida do próximo.
+ *
+ * Copia ambientes e programação, e NÃO copia pauta marcada, equipe, ponto nem
+ * ocorrências: aquilo aconteceu num sábado específico. O que se repete de um
+ * festival para o outro é a forma — quatro palcos, a mesma sequência, os
+ * mesmos booms —, e é isso que o template guarda.
+ *
+ * O modelo não aparece na lista de eventos. Ele existe só na hora de criar o
+ * próximo, que é quando alguém quer um.
+ */
+export async function salvarComoTemplate(eventoId: string): Promise<ResultadoId> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+
+    const { data: evento } = await supabase
+      .from("ev_eventos")
+      .select("*")
+      .eq("id", eventoId)
+      .maybeSingle<{ id: string; nome: string; local: string | null; inicio: string; fim: string; fuso: string; cliente_id: string | null }>();
+    if (!evento) return { ok: false, error: "EVENTO_NAO_ENCONTRADO" };
+
+    const { dict } = await getDictionary();
+
+    const { data: modelo, error } = await supabase
+      .from("ev_eventos")
+      .insert({
+        nome: `${evento.nome} — ${dict.eventos.templateSufixo}`,
+        local: evento.local,
+        cliente_id: evento.cliente_id,
+        inicio: evento.inicio,
+        fim: evento.fim,
+        fuso: evento.fuso,
+        modelo: true,
+        duplicado_de: evento.id,
+        status: "planejamento",
+      })
+      .select("id")
+      .single<{ id: string }>();
+
+    if (error || !modelo) return { ok: false, error: error?.message ?? "Erro desconhecido." };
+
+    const { data: ambientes } = await supabase
+      .from("ev_ambientes")
+      .select("id, nome, cor, ordem, modo_padrao")
+      .eq("evento_id", eventoId)
+      .overrideTypes<{ id: string; nome: string; cor: string | null; ordem: number; modo_padrao: string }[], { merge: false }>();
+
+    const deParaAmbiente = new Map<string, string>();
+    for (const a of ambientes ?? []) {
+      const { data: novo } = await supabase
+        .from("ev_ambientes")
+        .insert({ evento_id: modelo.id, nome: a.nome, cor: a.cor, ordem: a.ordem, modo_padrao: a.modo_padrao })
+        .select("id")
+        .single<{ id: string }>();
+      if (novo) deParaAmbiente.set(a.id, novo.id);
+    }
+
+    const { data: blocos } = await supabase
+      .from("ev_blocos")
+      .select("ambiente_id, titulo, tipo, ancora, inicio, fim, duracao_min, ordem")
+      .eq("evento_id", eventoId)
+      .overrideTypes<
+        {
+          ambiente_id: string | null;
+          titulo: string;
+          tipo: string;
+          ancora: string;
+          inicio: string;
+          fim: string | null;
+          duracao_min: number | null;
+          ordem: number;
+        }[],
+        { merge: false }
+      >();
+
+    if (blocos?.length) {
+      await supabase.from("ev_blocos").insert(
+        blocos.map((b) => ({
+          evento_id: modelo.id,
+          ambiente_id: b.ambiente_id ? (deParaAmbiente.get(b.ambiente_id) ?? null) : null,
+          titulo: b.titulo,
+          tipo: b.tipo,
+          ancora: b.ancora,
+          inicio: b.inicio,
+          fim: b.fim,
+          duracao_min: b.duracao_min,
+          ordem: b.ordem,
+        }))
+      );
+    }
+
+    revalidar(eventoId);
+    return { ok: true, id: modelo.id };
   } catch (err) {
     return { ok: false, error: mensagem(err) };
   }

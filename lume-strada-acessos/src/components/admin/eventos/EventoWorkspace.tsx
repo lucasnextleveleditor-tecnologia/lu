@@ -8,6 +8,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { IconChevronLeft } from "@/components/ui/icons";
 import { Grade, useRelogio } from "@/components/admin/eventos/Grade";
 import { PainelDoBloco, type ValoresDoBloco } from "@/components/admin/eventos/PainelDoBloco";
+import { Fechamento } from "@/components/admin/eventos/Fechamento";
 import { fusoValido } from "@/lib/utils/fusos";
 import { modoDoStatus, type BlocoRow, type ModoEvento } from "@/lib/types/eventos";
 import type { EventoCompleto } from "@/app/admin/eventos/[id]/data";
@@ -212,7 +213,9 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
         <p className="px-1 text-[11px] text-ink-muted">{t.eventoNaoComecou}</p>
       )}
 
-      {modo === "fechamento" && <EmConstrucaoDoModo />}
+      {modo === "fechamento" && (
+        <Fechamento evento={evento} capturas={capturas} equipe={equipe} blocos={blocos} />
+      )}
 
       {modo === "aovivo" && selecionado && !painelAberto && (
         <BarraDeAtraso
@@ -522,18 +525,6 @@ function DialogoDeColisao({
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function EmConstrucaoDoModo() {
-  const { dict } = useLocale();
-  return (
-    <div className="ev-console relative overflow-hidden rounded-2xl border border-white/10 px-6 py-10 text-center">
-      <div aria-hidden className="ev-linhas-monitor pointer-events-none absolute inset-0" />
-      <p className="relative font-mono text-[10px] uppercase tracking-[0.24em] text-white/40">
-        {dict.eventos.emConstrucaoTitulo}
-      </p>
     </div>
   );
 }

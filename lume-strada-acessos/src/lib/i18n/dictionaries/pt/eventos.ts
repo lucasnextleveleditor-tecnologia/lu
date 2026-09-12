@@ -161,6 +161,39 @@ export interface EventosDict {
   eventoSemLocal: string;
   voltarParaEventos: string;
   eventoNaoComecou: string;
+  balancoExiste: string;
+  balancoNaoExiste: string;
+  balancoConta: string;
+  balancoDoisBotoes: string;
+  balancoProximoEvento: string;
+  balancoSemDestinatario: string;
+  balancoVazio: string;
+  balancoTudoCaptado: string;
+  balancoPrevisto: string;
+  balancoRealizado: string;
+  balancoDiferenca: string;
+  balancoAtraso: string;
+  balancoPessoas: string;
+  balancoHoras: string;
+  motivoSemMotivo: string;
+  motivoJanelaFechou: string;
+  botaoCriarEntregas: string;
+  botaoCriarEntregasAjuda: string;
+  botaoLancarCustos: string;
+  botaoLancarCustosAjuda: string;
+  botaoSalvarTemplate: string;
+  botaoSalvarTemplateAjuda: string;
+  botaoJaFeito: string;
+  entregasCriadas: string;
+  custosLancados: string;
+  templateSalvo: string;
+  entregaBriefing: string;
+  custoEquipe: string;
+  templateSufixo: string;
+  erroEntregasJaCriadas: string;
+  erroCustosJaLancados: string;
+  erroNadaParaEntregar: string;
+  erroNadaParaLancar: string;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -327,6 +360,39 @@ export const eventos: EventosDict = {
   eventoSemLocal: "Sem local",
   voltarParaEventos: "Voltar para Eventos",
   eventoNaoComecou: "O evento ainda não começou. A linha AGORA aparece quando você der o play.",
+  balancoExiste: "Existe",
+  balancoNaoExiste: "Não existe",
+  balancoConta: "A conta",
+  balancoDoisBotoes: "Dois botões",
+  balancoProximoEvento: "E o próximo evento começa adiantado",
+  balancoSemDestinatario: "Sem destinatário",
+  balancoVazio: "Nada foi marcado como captado ainda.",
+  balancoTudoCaptado: "Nada ficou para trás.",
+  balancoPrevisto: "previsto",
+  balancoRealizado: "realizado",
+  balancoDiferenca: "extras do dia",
+  balancoAtraso: "atraso do evento",
+  balancoPessoas: "{n} na escala",
+  balancoHoras: "{n} h de ponto",
+  motivoSemMotivo: "Marcado como não rolou, sem motivo escrito.",
+  motivoJanelaFechou: "A janela fechou sem ninguém marcar.",
+  botaoCriarEntregas: "Criar as entregas",
+  botaoCriarEntregasAjuda: "Cada destinatário vira uma tarefa, com a lista do que existe no briefing.",
+  botaoLancarCustos: "Lançar os custos",
+  botaoLancarCustosAjuda: "Cachês e extras do evento viram uma despesa, com vencimento no dia.",
+  botaoSalvarTemplate: "Salvar como template",
+  botaoSalvarTemplateAjuda: "Ambientes e programação prontos para o próximo. Pauta marcada, equipe e ponto não vão junto.",
+  botaoJaFeito: "Já feito. Este botão não roda duas vezes.",
+  entregasCriadas: "{n} entrega(s) criada(s) na Produção.",
+  custosLancados: "Custos lançados no Financeiro.",
+  templateSalvo: "Template salvo. Ele aparece na hora de criar o próximo evento.",
+  entregaBriefing: "Material captado neste evento:",
+  custoEquipe: "equipe",
+  templateSufixo: "modelo",
+  erroEntregasJaCriadas: "As entregas deste evento já foram criadas.",
+  erroCustosJaLancados: "Os custos deste evento já foram lançados.",
+  erroNadaParaEntregar: "Nada foi marcado como captado — não há o que entregar.",
+  erroNadaParaLancar: "Ninguém na escala tem cachê lançado.",
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",
