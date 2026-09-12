@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireModulo } from "@/lib/auth/requireAdmin";
 import type { StatusEvento } from "@/lib/types/eventos";
+import { fusoValido } from "@/lib/utils/fusos";
 
 /**
  * As ações do módulo de Eventos.
@@ -32,6 +33,8 @@ export interface EventoInput {
   /** ISO com fuso. A tela monta a partir da data + hora escolhidas. */
   inicio: string;
   fim: string;
+  /** Fuso IANA do LOCAL do evento. Muda só como as horas sao escritas. */
+  fuso: string;
   observacoes: string | null;
 }
 
@@ -60,6 +63,7 @@ export async function criarEvento(input: EventoInput, ambientes: string[]): Prom
         local: input.local?.trim() || null,
         inicio: input.inicio,
         fim: input.fim,
+        fuso: fusoValido(input.fuso),
         observacoes: input.observacoes?.trim() || null,
       })
       .select("id")
@@ -105,6 +109,7 @@ export async function atualizarEvento(id: string, input: EventoInput): Promise<R
         local: input.local?.trim() || null,
         inicio: input.inicio,
         fim: input.fim,
+        fuso: fusoValido(input.fuso),
         observacoes: input.observacoes?.trim() || null,
       })
       .eq("id", id);

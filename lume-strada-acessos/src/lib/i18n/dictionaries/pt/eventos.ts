@@ -96,6 +96,71 @@ export interface EventosDict {
   emBrevePosTexto: string;
   emBreveCustosTitulo: string;
   emBreveCustosTexto: string;
+
+  // Parte 2 do modulo: os tres modos, a grade, o atraso em cascata e o log.
+  modoPlano: string;
+  modoPlanoQuando: string;
+  modoAoVivo: string;
+  modoAoVivoQuando: string;
+  modoFechamento: string;
+  modoFechamentoQuando: string;
+  gradePlano: string;
+  gradeAoVivo: string;
+  gradeSemAmbientes: string;
+  gradeCliqueParaCriar: string;
+  ancoraEncadeado: string;
+  ancoraCravado: string;
+  ancoraEncadeadoAjuda: string;
+  ancoraCravadoAjuda: string;
+  tipoShow: string;
+  tipoAtivacao: string;
+  tipoBoom: string;
+  tipoOperacao: string;
+  darOPlay: string;
+  darOPlayAjuda: string;
+  encerrar: string;
+  encerrarAjuda: string;
+  logAtraso: string;
+  logEmpurrado: string;
+  logPlay: string;
+  logPlayNaHora: string;
+  logEncerrado: string;
+  colisaoTitulo: string;
+  colisaoSobreposicao: string;
+  colisaoMesmaPessoa: string;
+  colisaoOrdemTrocada: string;
+  colisaoEmpurrarTambem: string;
+  colisaoDeixarComoEsta: string;
+  fusoRegiaoAmericaDoSul: string;
+  fusoRegiaoAmericaDoNorte: string;
+  fusoRegiaoEuropa: string;
+  fusoLabel: string;
+  fusoAjuda: string;
+  erroBlocoSemTitulo: string;
+  erroBlocoSemInicio: string;
+  erroBlocoNaoEncontrado: string;
+  erroEventoNaoEncontrado: string;
+  erroOcorrenciaVazia: string;
+  /** Titulos da pauta que nasce com o bloco (ver lib/eventos/pautaPadrao.ts). */
+  pautaPadrao: Record<string, string>;
+  blocoNovo: string;
+  blocoEditar: string;
+  blocoTitulo: string;
+  blocoTituloPlaceholder: string;
+  blocoTipo: string;
+  blocoAncora: string;
+  blocoQuando: string;
+  blocoDuracao: string;
+  blocoOnde: string;
+  blocoSemAmbiente: string;
+  blocoQuemCobre: string;
+  blocoSemResponsavel: string;
+  blocoQuemCobreAjuda: string;
+  atrasouTitulo: string;
+  atrasoAbrirBloco: string;
+  eventoSemLocal: string;
+  voltarParaEventos: string;
+  eventoNaoComecou: string;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -189,6 +254,79 @@ export const eventos: EventosDict = {
   emBrevePosTexto: "No fim do evento, a lista do que existe e do que não existe — pronta para a edição, sem depender do que alguém lembrou.",
   emBreveCustosTitulo: "Custo da diária",
   emBreveCustosTexto: "Cachê de cada pessoa, extras do dia e o que sobrou — pronto para virar lançamento no Financeiro.",
+  modoPlano: "Plano",
+  modoPlanoQuando: "antes do evento",
+  modoAoVivo: "Ao vivo",
+  modoAoVivoQuando: "no dia",
+  modoFechamento: "Fechamento",
+  modoFechamentoQuando: "depois",
+  gradePlano: "Grade · planejamento",
+  gradeAoVivo: "Ao vivo · relógio correndo",
+  gradeSemAmbientes: "Nenhum ambiente ainda. Crie o primeiro palco para a grade existir.",
+  gradeCliqueParaCriar: "Clique em qualquer ponto vazio da faixa para criar um bloco ali.",
+  ancoraEncadeado: "Segue o anterior",
+  ancoraCravado: "Hora cravada",
+  ancoraEncadeadoAjuda: "Anda quando o bloco de cima atrasa. Só no mesmo ambiente.",
+  ancoraCravadoAjuda: "Não se move nunca. Ativação contratada, virada da meia-noite, alvará de som, horário do artista.",
+  tipoShow: "Show",
+  tipoAtivacao: "Ativação",
+  tipoBoom: "Boom",
+  tipoOperacao: "Operação",
+  darOPlay: "Dar o play",
+  darOPlayAjuda: "Trava a grade e liga o relógio. O atraso da abertura entra em cascata.",
+  encerrar: "Encerrar",
+  encerrarAjuda: "A cobertura vira o balanço pronto.",
+  logAtraso: "{bloco}: {minutos} min. {n} bloco(s) andaram junto.",
+  logEmpurrado: "Empurrado junto: {blocos} ({minutos} min).",
+  logPlay: "Play — o evento começou {minutos} min depois do marcado. A grade andou junto.",
+  logPlayNaHora: "Play — o evento começou na hora marcada.",
+  logEncerrado: "Evento encerrado.",
+  colisaoTitulo: "O atraso criou conflito",
+  colisaoSobreposicao: "{a} caiu em cima de {b}, no mesmo ambiente.",
+  colisaoMesmaPessoa: "{a} caiu dentro de {b}, e a mesma pessoa está escalada nos dois.",
+  colisaoOrdemTrocada: "{a} passou a acontecer antes de {b}.",
+  colisaoEmpurrarTambem: "Empurrar também",
+  colisaoDeixarComoEsta: "Deixar como está",
+  fusoRegiaoAmericaDoSul: "América do Sul",
+  fusoRegiaoAmericaDoNorte: "América do Norte",
+  fusoRegiaoEuropa: "Europa",
+  fusoLabel: "Fuso do evento",
+  fusoAjuda: "Onde o evento acontece. Muda só como as horas são escritas — a linha AGORA é o relógio de verdade.",
+  erroBlocoSemTitulo: "Dê um nome ao bloco.",
+  erroBlocoSemInicio: "Informe quando o bloco começa.",
+  erroBlocoNaoEncontrado: "Esse bloco não existe mais.",
+  erroEventoNaoEncontrado: "Esse evento não existe mais.",
+  erroOcorrenciaVazia: "Escreva o que aconteceu.",
+  pautaPadrao: {
+    planoGeralDoPalco: "Plano geral do palco",
+    detalheDoArtista: "Detalhe do artista",
+    publicoNaVirada: "Público na virada",
+    bastidorDaBanda: "Bastidor da banda",
+    marcaLegivel: "Marca legível na ativação",
+    publicoInteragindo: "Público interagindo com a ativação",
+    detalheDoProduto: "Detalhe do produto / brinde",
+    oDisparo: "O disparo",
+    reacaoDoPublico: "Reação do público",
+    registroDaMontagem: "Registro da montagem",
+  },
+  blocoNovo: "Novo bloco",
+  blocoEditar: "Bloco",
+  blocoTitulo: "O que é",
+  blocoTituloPlaceholder: "Show 1, Ativação da marca, CO₂…",
+  blocoTipo: "Tipo",
+  blocoAncora: "Este bloco anda se o anterior atrasar?",
+  blocoQuando: "Começa",
+  blocoDuracao: "dura",
+  blocoOnde: "Ambiente",
+  blocoSemAmbiente: "Sem ambiente",
+  blocoQuemCobre: "Quem cobre",
+  blocoSemResponsavel: "Ninguém ainda",
+  blocoQuemCobreAjuda: "É o que permite o sistema avisar quando a mesma pessoa cai em dois blocos ao mesmo tempo.",
+  atrasouTitulo: "Atrasou?",
+  atrasoAbrirBloco: "Abrir bloco",
+  eventoSemLocal: "Sem local",
+  voltarParaEventos: "Voltar para Eventos",
+  eventoNaoComecou: "O evento ainda não começou. A linha AGORA aparece quando você der o play.",
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",
