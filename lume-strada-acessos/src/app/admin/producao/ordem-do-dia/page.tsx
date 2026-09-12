@@ -5,6 +5,7 @@ import { listarOrdensDoDia } from "./data";
 import { NovaOrdemBotao } from "@/components/admin/producao/ordem-do-dia/NovaOrdemBotao";
 import { AcoesDaOrdem } from "@/components/admin/producao/ordem-do-dia/AcoesDaOrdem";
 import { IconCalendar, IconBox, IconGlobe } from "@/components/ui/icons";
+import { LOCALE_BCP47 } from "@/lib/i18n/locales";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,6 @@ export default async function OrdemDoDiaListaPage({ searchParams }: { searchPara
   const vendoArquivadas = aba === "arquivadas";
   const ordens = await listarOrdensDoDia(vendoArquivadas);
 
-  const mapaLocale: Record<string, string> = { pt: "pt-BR", en: "en-US", es: "es-ES" };
 
   return (
     <div>
@@ -94,7 +94,7 @@ export default async function OrdemDoDiaListaPage({ searchParams }: { searchPara
                 </div>
                 <p className="shrink-0 text-xs tabular-nums text-ink-secondary">
                   {o.data
-                    ? new Date(`${o.data}T12:00:00`).toLocaleDateString(mapaLocale[locale] ?? "pt-BR", {
+                    ? new Date(`${o.data}T12:00:00`).toLocaleDateString(LOCALE_BCP47[locale], {
                         day: "2-digit",
                         month: "short",
                         year: "numeric",

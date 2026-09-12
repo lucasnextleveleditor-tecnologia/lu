@@ -7,12 +7,17 @@
 -- cru do Postgres — o pior tipo de bug, porque a interface promete algo que o
 -- banco recusa.
 --
--- O valor é `pt_PT` com sublinhado, e não `pt-PT`: é o mesmo texto que o
--- cookie de idioma guarda e que vira chave de Record no TypeScript (ver
--- `lib/i18n/locales.ts`). A forma BCP-47 de verdade só existe na hora de
--- formatar data e dinheiro.
+-- O valor é `pt-PT`, na FORMA BCP-47 exata. A primeira versão desta migração
+-- usou `pt_PT` com underscore, para não precisar de aspas nas chaves de
+-- Record no TypeScript, e isso derrubou o app inteiro: este mesmo texto é
+-- passado direto para `toLocaleDateString`/`toLocaleString` em dezenas de
+-- telas, e o Node responde `RangeError: Incorrect locale information
+-- provided` — página em branco, não número mal formatado. A conveniência de
+-- sintaxe não vale uma classe inteira de erro em tempo de execução.
 alter table public.companies drop constraint if exists companies_idioma_valido;
+
+update public.companies set idioma_padrao = 'pt-PT' where idioma_padrao = 'pt_PT';
 
 alter table public.companies
   add constraint companies_idioma_valido
-  check (idioma_padrao = any (array['pt'::text, 'pt_PT'::text, 'en'::text, 'es'::text]));
+  check (idioma_padrao = any (array['pt'::text, 'pt-PT'::text, 'en'::text, 'es'::text]));

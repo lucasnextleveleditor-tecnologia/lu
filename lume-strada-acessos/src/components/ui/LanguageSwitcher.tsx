@@ -8,7 +8,7 @@ import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n/locales";
 import { FlagBR, FlagPT, FlagUS, FlagES } from "@/components/ui/flags";
 import { cn } from "@/lib/utils/cn";
 
-const FLAGS: Record<Locale, typeof FlagBR> = { pt: FlagBR, pt_PT: FlagPT, en: FlagUS, es: FlagES };
+const FLAGS: Record<Locale, typeof FlagBR> = { pt: FlagBR, "pt-PT": FlagPT, en: FlagUS, es: FlagES };
 
 interface LanguageSwitcherProps {
   className?: string;

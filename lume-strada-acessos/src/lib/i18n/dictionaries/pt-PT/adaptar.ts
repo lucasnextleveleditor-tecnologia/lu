@@ -244,7 +244,7 @@ function adaptarTexto(texto: string): string {
       // sobra "todas os ecrãs", que é pior do que não ter mexido.
       const corrigidos = determinante
         .trimEnd()
-        .split(/(\\s+)/)
+        .split(/(\s+)/)
         .map((pedaco) => {
           const par = DETERMINANTES[pedaco.toLowerCase()];
           return par ? comACaixaDoOriginal(pedaco, par[genero === "m" ? 0 : 1]) : pedaco;

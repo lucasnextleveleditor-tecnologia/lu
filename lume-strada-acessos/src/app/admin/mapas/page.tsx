@@ -5,6 +5,7 @@ import { listarMapas } from "./data";
 import { NovoMapaBotao } from "@/components/admin/mapas/NovoMapaBotao";
 import { AcoesDoMapa } from "@/components/admin/mapas/AcoesDoMapa";
 import { IconSitemap, IconGlobe, IconBox } from "@/components/ui/icons";
+import { LOCALE_BCP47 } from "@/lib/i18n/locales";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,6 @@ export default async function MapasPage({ searchParams }: { searchParams: Promis
   const vendoArquivados = aba === "arquivados";
   const mapas = await listarMapas(vendoArquivados);
 
-  const mapaLocale: Record<string, string> = { pt: "pt-BR", en: "en-US", es: "es-ES" };
   const contar = (n: number) => (n === 1 ? t.contagemBaloes.um : t.contagemBaloes.muitos.replace("{n}", String(n)));
 
   return (
@@ -78,7 +78,7 @@ export default async function MapasPage({ searchParams }: { searchParams: Promis
                   <p className="mt-0.5 truncate text-xs text-ink-muted">{contar(m.total_nos)}</p>
                 </div>
                 <p className="shrink-0 text-xs tabular-nums text-ink-secondary">
-                  {new Date(m.atualizado_em).toLocaleDateString(mapaLocale[locale] ?? "pt-BR", {
+                  {new Date(m.atualizado_em).toLocaleDateString(LOCALE_BCP47[locale], {
                     day: "2-digit",
                     month: "short",
                     year: "numeric",

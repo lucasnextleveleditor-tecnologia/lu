@@ -15,7 +15,7 @@ import { ptPT } from "@/lib/i18n/dictionaries/pt-PT";
  * aconteceria no carregamento do modulo, em toda instancia do servidor,
  * inclusive nas que nunca vao servir uma pessoa em Portugal.
  */
-const DICIONARIOS: Record<Locale, () => Dictionary> = { pt: () => pt, pt_PT: ptPT, en: () => en, es: () => es };
+const DICIONARIOS: Record<Locale, () => Dictionary> = { pt: () => pt, "pt-PT": ptPT, en: () => en, es: () => es };
 
 /**
  * A moeda e o idioma padrão da empresa de quem está logado.
