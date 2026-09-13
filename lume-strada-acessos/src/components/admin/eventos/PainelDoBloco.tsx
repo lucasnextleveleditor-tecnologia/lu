@@ -40,7 +40,8 @@ interface Props {
   /** Null = fechado. */
   bloco: BlocoRow | null;
   /** Preenchido quando é criação a partir de um clique na grade. */
-  rascunho: { ambienteId: string; inicio: string } | null;
+  /** `duracaoMin` vem preenchida quando o bloco foi DESENHADO na grade. */
+  rascunho: { ambienteId: string; inicio: string; duracaoMin?: number } | null;
   ambientes: AmbienteRow[];
   equipe: EquipeEventoRow[];
   fuso: string;
@@ -86,12 +87,14 @@ export function PainelDoBloco({ bloco, rascunho, ambientes, equipe, fuso, salvan
       // O ambiente SUGERE a âncora — é para isso que ele carrega um modo.
       setAncora(amb?.modo_padrao ?? "encadeado");
       setInicio(rascunho.inicio);
-      setDuracao(60);
+      // Uma hora é o chute de quem só tocou na grade. Quem arrastou já
+      // respondeu a pergunta, e sobrescrever a resposta seria rude.
+      setDuracao(rascunho.duracaoMin ?? 60);
       setAmbienteId(rascunho.ambienteId);
       setResponsavelId(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bloco?.id, rascunho?.ambienteId, rascunho?.inicio]);
+  }, [bloco?.id, rascunho?.ambienteId, rascunho?.inicio, rascunho?.duracaoMin]);
 
   if (!aberto) return null;
 

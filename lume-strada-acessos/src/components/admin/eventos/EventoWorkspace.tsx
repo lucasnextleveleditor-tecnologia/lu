@@ -13,8 +13,10 @@ import { Fechamento } from "@/components/admin/eventos/Fechamento";
 import { GavetaEquipe } from "@/components/admin/eventos/GavetaEquipe";
 import { GavetaKit } from "@/components/admin/eventos/GavetaKit";
 import { GavetaOcorrencia } from "@/components/admin/eventos/GavetaOcorrencia";
+import { GavetaRealtime } from "@/components/admin/eventos/GavetaRealtime";
+import { GavetaAjustes } from "@/components/admin/eventos/GavetaAjustes";
 import { fusoValido } from "@/lib/utils/fusos";
-import { modoDoStatus, type BlocoRow, type ModoEvento } from "@/lib/types/eventos";
+import { modoDoStatus, type BlocoRow, type EventoRow, type ModoEvento } from "@/lib/types/eventos";
 import type { EventoCompleto } from "@/app/admin/eventos/[id]/data";
 import type { Colisao } from "@/lib/eventos/cascata";
 import {
@@ -41,6 +43,9 @@ import {
  * no bloco. O que é hora cravada não se mexe".
  */
 
+/** As gavetas que a barra do cabeçalho pode abrir. */
+type TipoGaveta = "equipe" | "kit" | "ocorrencia" | "realtime" | "ajustes";
+
 export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto; modoInicial: ModoEvento }) {
   const { dict } = useLocale();
   const t = dict.eventos;
@@ -53,10 +58,10 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
   const [modo, setModo] = useState<ModoEvento>(modoInicial);
   const [selecionado, setSelecionado] = useState<BlocoRow | null>(null);
   const [painelAberto, setPainelAberto] = useState(false);
-  const [rascunho, setRascunho] = useState<{ ambienteId: string; inicio: string } | null>(null);
+  const [rascunho, setRascunho] = useState<{ ambienteId: string; inicio: string; duracaoMin?: number } | null>(null);
   const [colisoes, setColisoes] = useState<{ minutos: number; lista: Colisao[] } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const [gaveta, setGaveta] = useState<"equipe" | "kit" | "ocorrencia" | null>(null);
+  const [gaveta, setGaveta] = useState<TipoGaveta | null>(null);
 
   const rodando = !!evento.iniciado_em;
 
@@ -189,6 +194,7 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
         onPlay={play}
         onEncerrar={encerrar}
         onGaveta={setGaveta}
+        usa={evento}
         ocupado={pendente}
       />
 
@@ -215,9 +221,9 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
           }}
           onCriarAqui={
             modo === "plano"
-              ? (ambienteId, inicio) => {
+              ? (ambienteId, inicio, duracaoMin) => {
                   setSelecionado(null);
-                  setRascunho({ ambienteId, inicio });
+                  setRascunho({ ambienteId, inicio, duracaoMin });
                   setPainelAberto(true);
                 }
               : undefined
@@ -240,6 +246,7 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
           equipe={equipe}
           fuso={evento.fuso}
           agora={agora}
+          usaPonto={evento.usa_ponto}
         />
       )}
 
@@ -258,7 +265,14 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
       )}
 
       {gaveta === "equipe" && (
-        <GavetaEquipe eventoId={evento.id} equipe={equipe} membros={dados.membros} onFechar={() => setGaveta(null)} />
+        <GavetaEquipe
+          eventoId={evento.id}
+          equipe={equipe}
+          membros={dados.membros}
+          usaPonto={evento.usa_ponto}
+          usaCache={evento.usa_cache}
+          onFechar={() => setGaveta(null)}
+        />
       )}
 
       {gaveta === "kit" && (
@@ -266,6 +280,17 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
           eventoId={evento.id}
           kit={dados.kit}
           inventario={dados.inventario}
+          equipe={equipe}
+          onFechar={() => setGaveta(null)}
+        />
+      )}
+
+      {gaveta === "ajustes" && <GavetaAjustes evento={evento} onFechar={() => setGaveta(null)} />}
+
+      {gaveta === "realtime" && (
+        <GavetaRealtime
+          eventoId={evento.id}
+          realtime={dados.realtime}
           equipe={equipe}
           onFechar={() => setGaveta(null)}
         />
@@ -326,6 +351,7 @@ function Cabecalho({
   onPlay,
   onEncerrar,
   onGaveta,
+  usa,
   ocupado,
 }: {
   nome: string;
@@ -336,12 +362,24 @@ function Cabecalho({
   onModo: (m: ModoEvento) => void;
   onPlay: () => void;
   onEncerrar: () => void;
-  onGaveta: (qual: "equipe" | "kit" | "ocorrencia") => void;
+  onGaveta: (qual: TipoGaveta) => void;
+  usa: EventoRow;
   ocupado: boolean;
 }) {
   const { dict } = useLocale();
   const t = dict.eventos;
   const agora = useRelogio();
+
+  // Só entra na barra o que este evento LIGOU. Ajustes fica sempre, porque é
+  // de lá que o resto nasce — um botão que some não pode levar junto a porta
+  // que o traz de volta.
+  const gavetas: [TipoGaveta, string][] = [
+    ["equipe", t.gavetaEquipe],
+    ...(usa.usa_kit ? ([["kit", t.gavetaKit]] as [TipoGaveta, string][]) : []),
+    ["ocorrencia", t.gavetaOcorrencia],
+    ...(usa.usa_realtime ? ([["realtime", t.gavetaRealtime]] as [TipoGaveta, string][]) : []),
+    ["ajustes", t.gavetaAjustes],
+  ];
 
   const relogio =
     agora === null
@@ -391,7 +429,7 @@ function Cabecalho({
           <Modo chave="fechamento" atual={modo} onClick={onModo} rotulo={t.modoFechamento} quando={t.modoFechamentoQuando} />
 
           <span className="ml-auto flex items-center gap-2">
-            {([["equipe", t.gavetaEquipe], ["kit", t.gavetaKit], ["ocorrencia", t.gavetaOcorrencia]] as const).map(
+            {gavetas.map(
               ([chave, rotulo]) => (
                 <button
                   key={chave}

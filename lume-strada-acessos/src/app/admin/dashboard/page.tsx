@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
+import { buscarPerfilComPermissoes, usuarioAtual } from "@/lib/auth/requireAdmin";
 import type { DashboardCardChave, ProfileRow } from "@/lib/types/database";
 import type { TarefaRow } from "@/lib/types/producao";
 import type { LeadRow } from "@/lib/types/comercial";
@@ -32,9 +32,7 @@ export default async function DashboardPage() {
   // (ou é admin), mesmo turnover a policy de RLS só checar "é da equipe?"
   // (a checagem fina de módulo é sempre da aplicação, não do banco — ver
   // `requireModulo`). Mesmo padrão já usado pro card de Saldo Consolidado.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   const perfil = user ? await buscarPerfilComPermissoes(supabase, user.id) : null;
   const podeVerFinanceiro = perfil?.role === "admin" || perfil?.permissoes?.financeiro === true;
   const podeVerInventario = perfil?.role === "admin" || perfil?.permissoes?.inventario === true;

@@ -75,6 +75,16 @@ export interface EventoRow {
   entregas_criadas_em: string | null;
   custos_lancados_em: string | null;
   observacoes: string | null;
+  /**
+   * O que ESTE evento usa. Tudo `false` por padrão: a tela nasce no mínimo
+   * (grade + equipe + ocorrência) e cresce pelo lado de quem pediu, na gaveta
+   * de Ajustes. Um casamento não precisa ver a fila de entrega realtime.
+   */
+  usa_kit: boolean;
+  usa_realtime: boolean;
+  usa_ponto: boolean;
+  usa_cache: boolean;
+  usa_entregas: boolean;
   created_at: string;
   updated_at: string;
 }

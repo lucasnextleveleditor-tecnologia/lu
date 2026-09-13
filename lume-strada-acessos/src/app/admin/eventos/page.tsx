@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
+import { usuarioAtual, perfilAtual } from "@/lib/auth/requireAdmin";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { temAcessoAntecipado } from "@/lib/auth/acessoAntecipado";
 import { EventosEmBreve } from "@/components/admin/eventos/EventosEmBreve";
@@ -24,13 +23,10 @@ export const dynamic = "force-dynamic";
  * quem escolhe o que renderizar é o servidor e não o link.
  */
 export default async function EventosPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   if (!user) redirect("/login");
 
-  const perfil = await buscarPerfilComPermissoes(supabase, user.id);
+  const perfil = await perfilAtual();
   if (!perfil) redirect("/login");
   if (perfil.role !== "admin" && perfil.role !== "funcionario") redirect("/dashboard");
 

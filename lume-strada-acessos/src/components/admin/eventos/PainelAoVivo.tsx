@@ -36,6 +36,7 @@ export function PainelAoVivo({
   equipe,
   fuso,
   agora,
+  usaPonto,
 }: {
   eventoId: string;
   capturas: CapturaRow[];
@@ -43,6 +44,8 @@ export function PainelAoVivo({
   fuso: string;
   /** O relógio vem de cima: uma batida só para a tela inteira. */
   agora: number | null;
+  /** Sem ponto ligado, a bolinha mentiria: ninguém "não chegou", ninguém bate. */
+  usaPonto: boolean;
 }) {
   const { dict } = useLocale();
   const t = dict.eventos;
@@ -186,21 +189,27 @@ export function PainelAoVivo({
 
                 return (
                   <li key={p.id} className="flex items-center gap-2.5 rounded-lg border border-white/[0.06] bg-black/30 px-3 py-2">
-                    <span
-                      className={cn(
-                        "h-1.5 w-1.5 shrink-0 rounded-full",
-                        emCampo
-                          ? "bg-status-good shadow-[0_0_7px_rgb(34_197_94/0.85)]"
-                          : p.checkout_em
-                            ? "bg-white/15"
-                            : "ev-pendente bg-white/40"
-                      )}
-                    />
+                    {usaPonto && (
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 shrink-0 rounded-full",
+                          emCampo
+                            ? "bg-status-good shadow-[0_0_7px_rgb(34_197_94/0.85)]"
+                            : p.checkout_em
+                              ? "bg-white/15"
+                              : "ev-pendente bg-white/40"
+                        )}
+                      />
+                    )}
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[13px] text-white/85">{p.nome}</span>
-                      <span className="block truncate font-mono text-[9px] uppercase tracking-[0.1em] text-white/30">
-                        {p.funcao ?? (emCampo ? t.aoVivoChegou : t.aoVivoNaoChegou)}
-                      </span>
+                      {/* Sem função e sem ponto ligado não há segunda linha —
+                          e uma linha vazia empurra a lista sem dizer nada. */}
+                      {(p.funcao || usaPonto) && (
+                        <span className="block truncate font-mono text-[9px] uppercase tracking-[0.1em] text-white/30">
+                          {p.funcao ?? (emCampo ? t.aoVivoChegou : t.aoVivoNaoChegou)}
+                        </span>
+                      )}
                     </span>
                     {meus.length > 0 && (
                       <span className="shrink-0 font-mono text-[10px] tabular-nums text-white/45">

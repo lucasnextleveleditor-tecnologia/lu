@@ -116,7 +116,7 @@ export interface GradeProps {
   blocoSelecionadoId?: string | null;
   onAbrirBloco?: (bloco: BlocoRow) => void;
   /** Clique no vazio: cria bloco naquele ambiente, naquele minuto (já arredondado). */
-  onCriarAqui?: (ambienteId: string, inicioISO: string) => void;
+  onCriarAqui?: (ambienteId: string, inicioISO: string, duracaoMin?: number) => void;
 }
 
 export function Grade({
@@ -327,7 +327,7 @@ interface FaixaProps {
   modo: "plano" | "aovivo";
   selecionadoId: string | null;
   onAbrirBloco?: (bloco: BlocoRow) => void;
-  onCriarAqui?: (ambienteId: string, inicioISO: string) => void;
+  onCriarAqui?: (ambienteId: string, inicioISO: string, duracaoMin?: number) => void;
 }
 
 function Faixa({
@@ -348,24 +348,64 @@ function Faixa({
   const { dict } = useLocale();
   const t = dict.eventos;
   const trilha = useRef<HTMLDivElement>(null);
+  /** O bloco sendo desenhado agora. Instantes em ms, não ISO: isto é aritmética. */
+  const [arrasto, setArrasto] = useState<{ de: number; ate: number } | null>(null);
 
   /**
-   * Clicar no vazio cria um bloco ali.
+   * ARRASTAR NO VAZIO DESENHA O BLOCO. Clicar sem arrastar continua criando um
+   * de uma hora.
    *
-   * Arredondado para 5 minutos: a precisão que o dedo tem numa barra de seis
-   * horas é de uns 15 minutos, e um bloco que nasce "22:03" faz a pessoa
-   * corrigir antes de fazer qualquer outra coisa. Cinco minutos é fino o
-   * bastante para caber uma passagem de som e grosso o bastante para nunca
-   * nascer torto.
+   * As duas coisas existem porque são duas cabeças. Quem já sabe que o show
+   * dura quarenta minutos desenha os quarenta e pula a etapa do painel; quem
+   * ainda não sabe toca uma vez e resolve a duração lá dentro, com os +/−. Ter
+   * só o clique obrigava todo mundo a corrigir 60 minutos depois; ter só o
+   * arrasto obrigaria a mirar com o dedo antes de pensar.
+   *
+   * Tudo arredondado para 5 minutos: a precisão que o dedo tem numa barra de
+   * seis horas é de uns 15, e um bloco que nasce "22:03" faz a pessoa corrigir
+   * antes de fazer qualquer outra coisa. Cinco é fino o bastante para caber
+   * uma passagem de som e grosso o bastante para nunca nascer torto.
    */
-  function clicarNoVazio(e: React.MouseEvent<HTMLDivElement>) {
-    if (modo !== "plano" || !onCriarAqui || !trilha.current) return;
-    if (e.target !== e.currentTarget) return;
+  const PASSO = 5 * MINUTO;
+
+  function instanteDoX(clientX: number): number | null {
+    if (!trilha.current) return null;
     const caixa = trilha.current.getBoundingClientRect();
-    const fracao = Math.min(1, Math.max(0, (e.clientX - caixa.left) / caixa.width));
-    const bruto = de + fracao * total;
-    const arredondado = Math.round(bruto / (5 * MINUTO)) * (5 * MINUTO);
-    onCriarAqui(ambiente.id, new Date(arredondado).toISOString());
+    const fracao = Math.min(1, Math.max(0, (clientX - caixa.left) / caixa.width));
+    return Math.round((de + fracao * total) / PASSO) * PASSO;
+  }
+
+  function comecarArrasto(e: React.PointerEvent<HTMLDivElement>) {
+    if (modo !== "plano" || !onCriarAqui) return;
+    // Só o vazio. Em cima de um bloco, o clique é dele.
+    if (e.target !== e.currentTarget) return;
+    const quando = instanteDoX(e.clientX);
+    if (quando === null) return;
+    // O ponteiro fica preso nesta trilha: sem isso, arrastar para fora da
+    // faixa (ou soltar em cima de um bloco vizinho) perderia o "soltou" e o
+    // rascunho ficaria desenhado na tela para sempre.
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setArrasto({ de: quando, ate: quando });
+  }
+
+  function moverArrasto(e: React.PointerEvent<HTMLDivElement>) {
+    if (!arrasto) return;
+    const quando = instanteDoX(e.clientX);
+    if (quando === null) return;
+    setArrasto((a) => (a ? { ...a, ate: quando } : a));
+  }
+
+  function soltarArrasto(e: React.PointerEvent<HTMLDivElement>) {
+    if (!arrasto || !onCriarAqui) return;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+
+    const inicio = Math.min(arrasto.de, arrasto.ate);
+    const minutos = Math.abs(arrasto.ate - arrasto.de) / MINUTO;
+    setArrasto(null);
+
+    // Menos de cinco minutos é clique, não arrasto: o dedo treme, e tremer não
+    // pode virar um bloco de zero minuto.
+    onCriarAqui(ambiente.id, new Date(inicio).toISOString(), minutos >= 5 ? minutos : undefined);
   }
 
   return (
@@ -382,12 +422,33 @@ function Faixa({
 
       <div
         ref={trilha}
-        onClick={clicarNoVazio}
+        onPointerDown={comecarArrasto}
+        onPointerMove={moverArrasto}
+        onPointerUp={soltarArrasto}
+        onPointerCancel={() => setArrasto(null)}
         className={cn(
-          "relative h-14 flex-1 rounded-md border border-white/[0.06] bg-white/[0.02]",
+          "relative h-14 flex-1 touch-none rounded-md border border-white/[0.06] bg-white/[0.02]",
           modo === "plano" && onCriarAqui && "cursor-copy"
         )}
       >
+        {/* O rascunho, enquanto o dedo está na tela. Mostra os minutos porque
+            é a pergunta que a pessoa está respondendo ao arrastar. */}
+        {arrasto && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-1 z-10 flex items-center justify-center rounded-md border border-dashed"
+            style={{
+              left: `${pct(Math.min(arrasto.de, arrasto.ate))}%`,
+              width: `${Math.max(0.4, pct(Math.max(arrasto.de, arrasto.ate)) - pct(Math.min(arrasto.de, arrasto.ate)))}%`,
+              borderColor: "rgb(var(--color-accent) / 0.65)",
+              background: "rgb(var(--color-accent) / 0.12)",
+            }}
+          >
+            <span className="font-mono text-[9px] tabular-nums text-white/80">
+              {Math.abs(arrasto.ate - arrasto.de) / MINUTO}
+            </span>
+          </span>
+        )}
         {/* O passado, escurecido. Só no Ao Vivo: no Plano tudo é futuro. */}
         {modo === "aovivo" && agora !== null && (
           <span

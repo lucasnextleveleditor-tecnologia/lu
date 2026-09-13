@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
+import { usuarioAtual, perfilAtual } from "@/lib/auth/requireAdmin";
 import { temAcessoAntecipado } from "@/lib/auth/acessoAntecipado";
 import { buscarEvento } from "@/app/admin/eventos/[id]/data";
 import { EventoWorkspace } from "@/components/admin/eventos/EventoWorkspace";
@@ -29,13 +28,10 @@ export default async function EventoPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ modo?: string }>;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   if (!user) redirect("/login");
 
-  const perfil = await buscarPerfilComPermissoes(supabase, user.id);
+  const perfil = await perfilAtual();
   if (!perfil) redirect("/login");
   if (!temAcessoAntecipado(perfil.email)) redirect("/admin/eventos");
 

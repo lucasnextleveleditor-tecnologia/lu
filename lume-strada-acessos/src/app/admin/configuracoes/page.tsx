@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
+import { buscarPerfilComPermissoes, usuarioAtual } from "@/lib/auth/requireAdmin";
 import { getBrandingConfig } from "@/lib/branding/getBrandingConfig";
 import { getNomeApp } from "@/lib/branding/getNomeApp";
 import { getDictionary, getConfigDaEmpresa } from "@/lib/i18n/getDictionary";
@@ -59,9 +59,7 @@ function ehAbaValida(valor: string | undefined): valor is AbaConfiguracoes {
  */
 export default async function ConfiguracoesPage({ searchParams }: { searchParams: Promise<{ aba?: string }> }) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   if (!user) redirect("/login");
 
   const perfil = await buscarPerfilComPermissoes(supabase, user.id);

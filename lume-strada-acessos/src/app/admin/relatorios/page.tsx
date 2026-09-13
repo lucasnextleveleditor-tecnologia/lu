@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
+import { perfilAtual } from "@/lib/auth/requireAdmin";
 import { RelatoriosHub, type ModuloRelatorio } from "@/components/admin/relatorios/RelatoriosHub";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 
@@ -16,11 +15,7 @@ export const dynamic = "force-dynamic";
  * verdadeira barreira de segurança.
  */
 export default async function RelatoriosPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const perfil = user ? await buscarPerfilComPermissoes(supabase, user.id) : null;
+  const perfil = await perfilAtual();
   const { dict } = await getDictionary();
 
   function temModulo(chave: "financeiro" | "comercial" | "producao" | "trafego" | "inventario"): boolean {

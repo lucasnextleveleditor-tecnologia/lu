@@ -35,11 +35,17 @@ export function GavetaEquipe({
   eventoId,
   equipe,
   membros,
+  usaPonto,
+  usaCache,
   onFechar,
 }: {
   eventoId: string;
   equipe: EquipeEventoRow[];
   membros: MembroDaCasa[];
+  /** Ligado nos Ajustes do evento. Desligado, o ponto some — o dado fica. */
+  usaPonto: boolean;
+  /** Idem para cachê e extras: escalar gente não deveria pedir dinheiro. */
+  usaCache: boolean;
   onFechar: () => void;
 }) {
   const { dict, fmtMoeda } = useLocale();
@@ -151,14 +157,18 @@ export function GavetaEquipe({
             </div>
 
             <div className="mt-3 flex items-center gap-3">
-              <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-white/40">{t.equipeCache}</span>
-              <span className="inline-flex items-stretch overflow-hidden rounded-lg border border-white/12 bg-black/50">
-                <button type="button" onClick={() => setCache((c) => Math.max(0, c - 50))} className="w-9 text-white/50 transition hover:text-accent">−</button>
-                <span className="flex min-w-[92px] items-center justify-center px-2 font-mono text-sm tabular-nums text-white">
-                  {fmtMoeda(cache)}
-                </span>
-                <button type="button" onClick={() => setCache((c) => c + 50)} className="w-9 text-white/50 transition hover:text-accent">+</button>
-              </span>
+              {usaCache && (
+                <>
+                  <span className="font-mono text-[9.5px] uppercase tracking-[0.16em] text-white/40">{t.equipeCache}</span>
+                  <span className="inline-flex items-stretch overflow-hidden rounded-lg border border-white/12 bg-black/50">
+                    <button type="button" onClick={() => setCache((c) => Math.max(0, c - 50))} className="w-9 text-white/50 transition hover:text-accent">−</button>
+                    <span className="flex min-w-[92px] items-center justify-center px-2 font-mono text-sm tabular-nums text-white">
+                      {fmtMoeda(cache)}
+                    </span>
+                    <button type="button" onClick={() => setCache((c) => c + 50)} className="w-9 text-white/50 transition hover:text-accent">+</button>
+                  </span>
+                </>
+              )}
 
               <button
                 type="button"
@@ -175,7 +185,7 @@ export function GavetaEquipe({
           {/* --- a escala --- */}
           <div className="mt-6 flex items-center justify-between">
             <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-white/40">{t.equipeEscala}</p>
-            <span className="font-mono text-[11px] tabular-nums text-white/40">{fmtMoeda(total)}</span>
+            {usaCache && <span className="font-mono text-[11px] tabular-nums text-white/40">{fmtMoeda(total)}</span>}
           </div>
 
           <ul className="mt-2 space-y-2">
@@ -188,7 +198,7 @@ export function GavetaEquipe({
                     <p className="truncate text-[14px] font-medium text-white">{p.nome}</p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-2 font-mono text-[9.5px] uppercase tracking-[0.1em] text-white/35">
                       {p.funcao && <span>{p.funcao}</span>}
-                      <span>{fmtMoeda(Number(p.cache ?? 0))}</span>
+                      {usaCache && <span>{fmtMoeda(Number(p.cache ?? 0))}</span>}
                       {p.equipe_membro_id && <span className="text-white/25">{t.equipeDaCasa}</span>}
                     </p>
                   </div>
@@ -206,27 +216,33 @@ export function GavetaEquipe({
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  <BotaoPonto
-                    marcado={!!p.checkin_em}
-                    texto={t.equipeChegou}
-                    ocupado={pendente}
-                    onClick={() => iniciar(async () => { await baterPonto(eventoId, p.id, "entrada"); router.refresh(); })}
-                  />
-                  <BotaoPonto
-                    marcado={!!p.checkout_em}
-                    texto={t.equipeSaiu}
-                    ocupado={pendente}
-                    onClick={() => iniciar(async () => { await baterPonto(eventoId, p.id, "saida"); router.refresh(); })}
-                  />
+                  {usaPonto && (
+                    <>
+                      <BotaoPonto
+                        marcado={!!p.checkin_em}
+                        texto={t.equipeChegou}
+                        ocupado={pendente}
+                        onClick={() => iniciar(async () => { await baterPonto(eventoId, p.id, "entrada"); router.refresh(); })}
+                      />
+                      <BotaoPonto
+                        marcado={!!p.checkout_em}
+                        texto={t.equipeSaiu}
+                        ocupado={pendente}
+                        onClick={() => iniciar(async () => { await baterPonto(eventoId, p.id, "saida"); router.refresh(); })}
+                      />
+                    </>
+                  )}
 
-                  <button
-                    type="button"
-                    disabled={pendente}
-                    onClick={() => iniciar(async () => { await atualizarPessoaDaEquipe(eventoId, p.id, { extras: Number(p.extras ?? 0) + 50 }); router.refresh(); })}
-                    className="rounded-lg border border-white/10 px-2.5 py-1.5 font-mono text-[9.5px] uppercase tracking-[0.1em] text-white/45 transition hover:text-white disabled:opacity-40"
-                  >
-                    {t.equipeExtra} {Number(p.extras ?? 0) > 0 ? fmtMoeda(Number(p.extras)) : "+"}
-                  </button>
+                  {usaCache && (
+                    <button
+                      type="button"
+                      disabled={pendente}
+                      onClick={() => iniciar(async () => { await atualizarPessoaDaEquipe(eventoId, p.id, { extras: Number(p.extras ?? 0) + 50 }); router.refresh(); })}
+                      className="rounded-lg border border-white/10 px-2.5 py-1.5 font-mono text-[9.5px] uppercase tracking-[0.1em] text-white/45 transition hover:text-white disabled:opacity-40"
+                    >
+                      {t.equipeExtra} {Number(p.extras ?? 0) > 0 ? fmtMoeda(Number(p.extras)) : "+"}
+                    </button>
+                  )}
 
                   <button
                     type="button"

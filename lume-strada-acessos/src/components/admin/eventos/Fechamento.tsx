@@ -164,24 +164,38 @@ export function Fechamento({ evento, capturas, equipe, blocos }: Props) {
       </Painel>
 
       <Painel titulo={t.balancoDoisBotoes}>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <Botao
-            titulo={t.botaoCriarEntregas}
-            texto={t.botaoCriarEntregasAjuda}
-            destino="Produção"
-            feito={!!evento.entregas_criadas_em}
-            ocupado={pendente}
-            onClick={entregas}
-          />
-          <Botao
-            titulo={t.botaoLancarCustos}
-            texto={t.botaoLancarCustosAjuda}
-            destino="Financeiro"
-            feito={!!evento.custos_lancados_em}
-            ocupado={pendente}
-            onClick={custos}
-          />
-        </div>
+        {/* Os dois botões são os Ajustes do evento em forma de ação: quem não
+            liga entregas não vai querer o botão que cria tarefa na Produção. */}
+        {(evento.usa_entregas || evento.usa_cache) && (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {evento.usa_entregas && (
+              <Botao
+                titulo={t.botaoCriarEntregas}
+                texto={t.botaoCriarEntregasAjuda}
+                destino="Produção"
+                feito={!!evento.entregas_criadas_em}
+                ocupado={pendente}
+                onClick={entregas}
+              />
+            )}
+            {evento.usa_cache && (
+              <Botao
+                titulo={t.botaoLancarCustos}
+                texto={t.botaoLancarCustosAjuda}
+                destino="Financeiro"
+                feito={!!evento.custos_lancados_em}
+                ocupado={pendente}
+                onClick={custos}
+              />
+            )}
+          </div>
+        )}
+
+        {!evento.usa_entregas && !evento.usa_cache && (
+          <p className="rounded-xl border border-white/[0.07] bg-black/30 px-4 py-4 text-center text-[11.5px] leading-relaxed text-white/35">
+            {t.balancoNadaLigado}
+          </p>
+        )}
 
         <p className="mt-5 font-mono text-[9.5px] uppercase tracking-[0.18em] text-white/35">{t.balancoProximoEvento}</p>
         <button

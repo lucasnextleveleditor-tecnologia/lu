@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
@@ -17,6 +18,57 @@ export interface PerfilComPermissoes {
 }
 
 /**
+ * UMA IDA AO BANCO POR REQUISIÇÃO, NÃO QUATRO.
+ *
+ * Abrir /admin/producao custava, antes disto: o middleware confere a sessão e
+ * o perfil; o `layout.tsx` do /admin confere DE NOVO; a página chama
+ * `requireModuloOuRedirect`, que confere OUTRA VEZ. Três `getUser()` — que é
+ * uma chamada HTTP ao Auth, não uma leitura de cookie — e três `select` em
+ * `profiles`, todos com o mesmo id, na mesma requisição, para a mesma
+ * resposta. Como as funções rodam em iad1 e o banco em ca-central-1, cada par
+ * desses é ida e volta de rede antes de a página começar a existir.
+ *
+ * O `cache()` do React memoiza **por requisição** (não entre requisições, não
+ * entre usuários): a primeira chamada busca, as outras recebem a mesma
+ * promessa. O middleware continua fora — ele roda antes do React, e é o único
+ * lugar onde a consulta se justifica de novo, porque é ele que barra acesso
+ * expirado.
+ *
+ * A chave do cache é o `userId`, e ele vem sempre de um `getUser()` — ou seja,
+ * do token verificado, nunca de algo que o navegador escreveu. Duas pessoas
+ * diferentes nunca compartilham entrada porque nunca compartilham requisição.
+ */
+export const usuarioAtual = cache(async (): Promise<User | null> => {
+  const supabase = await createClient();
+  const user = await usuarioAtual();
+  return user;
+});
+
+/** O perfil desta requisição. Ver `usuarioAtual` — mesma memoização, mesmo motivo. */
+const perfilDaRequisicao = cache(
+  async (userId: string): Promise<PerfilComPermissoes | null> => {
+    const supabase = await createClient();
+    return carregarPerfil(supabase, userId);
+  }
+);
+
+/**
+ * O perfil de quem está pedindo esta página — sem precisar de cliente na mão.
+ *
+ * É a porta de entrada para tela que só quer saber "quem é e o que pode".
+ * `buscarPerfilComPermissoes` continua existindo para quem já tem o cliente
+ * ali do lado, mas pedir um cliente só para jogá-lo fora obrigava cada página
+ * a um `createClient()` que não servia para mais nada.
+ *
+ * Devolve `null` quando não há sessão — quem precisa redirecionar decide o
+ * destino, que não é o mesmo em toda tela.
+ */
+export async function perfilAtual(): Promise<PerfilComPermissoes | null> {
+  const user = await usuarioAtual();
+  return user ? perfilDaRequisicao(user.id) : null;
+}
+
+/**
  * Busca o profile já com `permissoes`/`dashboard_config` — COM FALLBACK pra
  * quando essas colunas ainda não existem no banco (`supabase/cadastros.sql`/
  * `supabase/dashboard-config.sql` não foram rodados, ou rodaram só até a
@@ -26,7 +78,18 @@ export interface PerfilComPermissoes {
  * "parece" não existir). Com o fallback, quem ainda não rodou a migração
  * continua entrando normalmente — só sem RBAC por funcionário até rodar o SQL.
  */
-export async function buscarPerfilComPermissoes(supabase: SupabaseClient, userId: string): Promise<PerfilComPermissoes | null> {
+export async function buscarPerfilComPermissoes(
+  // O cliente continua no contrato por compatibilidade — todos os chamadores
+  // passam o MESMO cliente autenticado, do MESMO usuário, então a memoização
+  // por `userId` não muda o que cada um enxerga. O parâmetro segue aqui para
+  // não mexer em treze arquivos de uma vez.
+  _supabase: SupabaseClient,
+  userId: string
+): Promise<PerfilComPermissoes | null> {
+  return perfilDaRequisicao(userId);
+}
+
+async function carregarPerfil(supabase: SupabaseClient, userId: string): Promise<PerfilComPermissoes | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select("role, full_name, avatar_url, email, company_id, permissoes, dashboard_config")
@@ -65,9 +128,7 @@ export async function buscarPerfilComPermissoes(supabase: SupabaseClient, userId
  */
 export async function requireAdmin() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
 
   if (!user) throw new Error("Não autenticado.");
 
@@ -91,9 +152,7 @@ export async function requireAdmin() {
 /** Mesma checagem de `requireAdmin`, mas pra Server Components de página — redireciona em vez de lançar (uma página não tem try/catch pra virar mensagem inline). Usado só em Equipe/Aparência. */
 export async function requireAdminOuRedirect() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -120,9 +179,7 @@ export async function requireAdminOuRedirect() {
 /** Guarda de Server Action para `/super-admin` — mesmo padrão de `requireAdmin`. */
 export async function requireSuperAdmin() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
 
   if (!user) throw new Error("Não autenticado.");
 
@@ -141,9 +198,7 @@ export async function requireSuperAdmin() {
 /** Mesma checagem de `requireSuperAdmin`, mas pra Server Components de página — redireciona em vez de lançar. Usado em `/super-admin`. */
 export async function requireSuperAdminOuRedirect() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -188,9 +243,7 @@ type ResultadoPermissao = { autorizado: true; supabase: SupabaseClient; user: Us
 
 async function carregarAutorizacaoQualquer(chaves: ModuloChave[]): Promise<ResultadoPermissao> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   if (!user) return { autorizado: false };
 
   const profile = await buscarPerfilComPermissoes(supabase, user.id);
@@ -214,9 +267,7 @@ async function carregarAutorizacaoQualquer(chaves: ModuloChave[]): Promise<Resul
  */
 export async function requireEquipe() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   if (!user) throw new Error("Não autenticado.");
 
   const profile = await buscarPerfilComPermissoes(supabase, user.id);
@@ -229,9 +280,7 @@ export async function requireEquipe() {
 /** Mesma checagem de `requireEquipe`, mas para Server Components de página — redireciona em vez de lançar. */
 export async function requireEquipeOuRedirect() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   if (!user) redirect("/login");
 
   const profile = await buscarPerfilComPermissoes(supabase, user.id);
@@ -285,9 +334,7 @@ export async function requireModuloOuRedirect(chave: ModuloChave) {
  */
 export async function requireQualquerModuloOuRedirect(chaves: ModuloChave[]): Promise<{ supabase: SupabaseClient; user: User; chavesAutorizadas: Set<ModuloChave> }> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   if (!user) redirect("/login");
 
   const profile = await buscarPerfilComPermissoes(supabase, user.id);

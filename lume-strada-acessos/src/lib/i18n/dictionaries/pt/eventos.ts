@@ -269,6 +269,41 @@ export interface EventosDict {
   baseDoZero: string;
   baseModelo: string;
   baseAjuda: string;
+  gavetaRealtime: string;
+  realtimeTitulo: string;
+  realtimeCorrendo: string;
+  realtimeNovo: string;
+  realtimePlaceholder: string;
+  realtimeEditor: string;
+  realtimeSemEditor: string;
+  realtimePrazo: string;
+  realtimeMin: string;
+  realtimePedir: string;
+  realtimeVazio: string;
+  realtimeComecar: string;
+  realtimeEntregar: string;
+  realtimeParaProducao: string;
+  realtimeCancelar: string;
+  realtimeEstourou: string;
+  realtimeNaProducao: string;
+  realtimeLinkPlaceholder: string;
+  /** Rotulo de cada estado do pedido (ver StatusRealtime). */
+  realtimeStatus: Record<string, string>;
+  gavetaAjustes: string;
+  ajustesTitulo: string;
+  ajustesAjuda: string;
+  ajustesRodape: string;
+  ajustesKit: string;
+  ajustesKitAjuda: string;
+  ajustesRealtime: string;
+  ajustesRealtimeAjuda: string;
+  ajustesPonto: string;
+  ajustesPontoAjuda: string;
+  ajustesCache: string;
+  ajustesCacheAjuda: string;
+  ajustesEntregas: string;
+  ajustesEntregasAjuda: string;
+  balancoNadaLigado: string;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -371,7 +406,7 @@ export const eventos: EventosDict = {
   gradePlano: "Grade · planejamento",
   gradeAoVivo: "Ao vivo · relógio correndo",
   gradeSemAmbientes: "Nenhum ambiente ainda. Crie o primeiro palco para a grade existir.",
-  gradeCliqueParaCriar: "Clique em qualquer ponto vazio da faixa para criar um bloco ali.",
+  gradeCliqueParaCriar: "Clique num ponto vazio da faixa para criar um bloco ali — ou arraste para já desenhar a duração.",
   ancoraEncadeado: "Segue o anterior",
   ancoraCravado: "Hora cravada",
   ancoraEncadeadoAjuda: "Anda quando o bloco de cima atrasa. Só no mesmo ambiente.",
@@ -554,6 +589,45 @@ export const eventos: EventosDict = {
   baseDoZero: "Do zero",
   baseModelo: "modelo",
   baseAjuda: "Ambientes e programação vêm prontos, com os horários deslocados para a data nova. Pauta marcada, equipe e kit não vêm.",
+  gavetaRealtime: "Realtime",
+  realtimeTitulo: "Entrega realtime",
+  realtimeCorrendo: "com o prazo correndo",
+  realtimeNovo: "Novo pedido",
+  realtimePlaceholder: "Ex.: teaser de 15s da abertura",
+  realtimeEditor: "Quem edita",
+  realtimeSemEditor: "Sem editor",
+  realtimePrazo: "Prazo",
+  realtimeMin: "min",
+  realtimePedir: "Pedir",
+  realtimeVazio: "Nenhum pedido ainda.",
+  realtimeComecar: "Começou",
+  realtimeEntregar: "Entregue",
+  realtimeParaProducao: "→ Produção",
+  realtimeCancelar: "Cancelar",
+  realtimeEstourou: "estourou",
+  realtimeNaProducao: "na Produção",
+  realtimeLinkPlaceholder: "Link (opcional)",
+  realtimeStatus: {
+    pedido: "pedido",
+    editando: "editando",
+    entregue: "entregue",
+    cancelado: "cancelado",
+  },
+  gavetaAjustes: "Ajustes",
+  ajustesTitulo: "O que este evento usa",
+  ajustesAjuda: "Tudo começa desligado. Ligue só o que este evento precisa — o resto nem aparece na tela.",
+  ajustesRodape: "Desligar nunca apaga nada. O que já foi preenchido continua no banco e volta inteiro se a chave voltar.",
+  ajustesKit: "Kit",
+  ajustesKitAjuda: "A lista do que saiu e do que voltou. O número que ela mostra é quantos itens não voltaram.",
+  ajustesRealtime: "Entrega realtime",
+  ajustesRealtimeAjuda: "A fila de corte na hora: pedido, editor e o prazo correndo na tela.",
+  ajustesPonto: "Ponto da equipe",
+  ajustesPontoAjuda: "Chegou e saiu em um toque, e as bolinhas de quem está em campo no Ao Vivo.",
+  ajustesCache: "Cachê e extras",
+  ajustesCacheAjuda: "O dinheiro por pessoa, e o botão do Fechamento que leva isso para o Financeiro.",
+  ajustesEntregas: "Entregas na Produção",
+  ajustesEntregasAjuda: "No Fechamento, transforma o que foi captado em tarefa no quadro da Produção.",
+  balancoNadaLigado: "Nenhuma saída ligada para este evento. Ligue entregas ou cachê nos Ajustes se quiser que o fechamento alimente a Produção ou o Financeiro.",
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",

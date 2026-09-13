@@ -642,7 +642,20 @@ export async function salvarComoTemplate(eventoId: string): Promise<ResultadoId>
       .from("ev_eventos")
       .select("*")
       .eq("id", eventoId)
-      .maybeSingle<{ id: string; nome: string; local: string | null; inicio: string; fim: string; fuso: string; cliente_id: string | null }>();
+      .maybeSingle<{
+        id: string;
+        nome: string;
+        local: string | null;
+        inicio: string;
+        fim: string;
+        fuso: string;
+        cliente_id: string | null;
+        usa_kit: boolean;
+        usa_realtime: boolean;
+        usa_ponto: boolean;
+        usa_cache: boolean;
+        usa_entregas: boolean;
+      }>();
     if (!evento) return { ok: false, error: "EVENTO_NAO_ENCONTRADO" };
 
     const { dict } = await getDictionary();
@@ -658,6 +671,14 @@ export async function salvarComoTemplate(eventoId: string): Promise<ResultadoId>
         fuso: evento.fuso,
         modelo: true,
         duplicado_de: evento.id,
+        // As chaves fazem parte da FORMA do evento: quem fez um festival com
+        // kit e realtime vai fazer o próximo igual, e religar tudo na mão
+        // seria o template cobrando pedágio justo de quem mais o usa.
+        usa_kit: evento.usa_kit,
+        usa_realtime: evento.usa_realtime,
+        usa_ponto: evento.usa_ponto,
+        usa_cache: evento.usa_cache,
+        usa_entregas: evento.usa_entregas,
         status: "planejamento",
       })
       .select("id")
@@ -919,6 +940,170 @@ export async function removerDoKit(eventoId: string, itemId: string): Promise<Re
   try {
     const { supabase } = await requireModulo("eventos");
     const { error } = await supabase.from("ev_kit").delete().eq("id", itemId);
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+
+// ----------------------------------------------------------------------------
+// Entrega realtime — pedido → editor → link, com o prazo correndo
+// ----------------------------------------------------------------------------
+
+/**
+ * O pedido nasce com PRAZO, não com data de entrega.
+ *
+ * "Para as 23h40" e "em 30 minutos" são a mesma informação e não são a mesma
+ * cabeça: no meio de um evento ninguém calcula que horas são daqui a meia
+ * hora. A tela pergunta em minutos e guarda o instante — e é esse instante que
+ * vira o relógio correndo do lado do pedido.
+ */
+export async function criarPedidoRealtime(
+  eventoId: string,
+  input: { pedido: string; editorEquipeId: string | null; prazoMin: number }
+): Promise<ResultadoId> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+
+    const pedido = input.pedido.trim();
+    if (!pedido) return { ok: false, error: "PEDIDO_VAZIO" };
+
+    const prazo = input.prazoMin > 0 ? new Date(Date.now() + input.prazoMin * 60_000).toISOString() : null;
+
+    const { data, error } = await supabase
+      .from("ev_realtime")
+      .insert({ evento_id: eventoId, pedido, editor_equipe_id: input.editorEquipeId, prazo_em: prazo })
+      .select("id")
+      .single<{ id: string }>();
+
+    if (error || !data) return { ok: false, error: error?.message ?? "Erro desconhecido." };
+    revalidar(eventoId);
+    return { ok: true, id: data.id };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+/**
+ * Anda o pedido. `entregue` sem link é permitido de propósito: no meio do
+ * evento o material às vezes vai pelo WhatsApp e o link chega depois — barrar
+ * a marcação por falta de URL faria a fila mentir sobre o que já foi feito.
+ */
+export async function mudarStatusRealtime(
+  eventoId: string,
+  id: string,
+  status: "pedido" | "editando" | "entregue" | "cancelado",
+  link?: string | null
+): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+    const { error } = await supabase
+      .from("ev_realtime")
+      .update({ status, ...(link !== undefined ? { link: link?.trim() || null } : {}) })
+      .eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+/**
+ * O pedido vira tarefa na Produção — o "→ Produção" do mapa.
+ *
+ * É para o que NÃO deu tempo: o corte pedido às duas da manhã que ninguém
+ * entregou às duas e meia não pode simplesmente evaporar quando o evento
+ * fecha. Aqui ele atravessa para o quadro da semana, com o evento no título,
+ * em vez de virar uma mensagem perdida no grupo.
+ */
+export async function enviarRealtimeParaProducao(eventoId: string, id: string): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+
+    const { data: item } = await supabase
+      .from("ev_realtime")
+      .select("id, pedido, tarefa_id")
+      .eq("id", id)
+      .maybeSingle<{ id: string; pedido: string; tarefa_id: string | null }>();
+
+    if (!item) return { ok: false, error: "PEDIDO_NAO_ENCONTRADO" };
+    if (item.tarefa_id) return { ok: false, error: "PEDIDO_JA_NA_PRODUCAO" };
+
+    const { data: evento } = await supabase
+      .from("ev_eventos")
+      .select("nome, cliente_id, fim")
+      .eq("id", eventoId)
+      .maybeSingle<{ nome: string; cliente_id: string | null; fim: string }>();
+
+    const { data: tarefa, error } = await supabase
+      .from("prod_tarefas")
+      .insert({
+        titulo: `${evento?.nome ?? ""} — ${item.pedido}`.trim(),
+        cliente_cadastro_id: evento?.cliente_id ?? null,
+        data_captacao: evento ? evento.fim.slice(0, 10) : null,
+      })
+      .select("id")
+      .single<{ id: string }>();
+
+    if (error || !tarefa) return { ok: false, error: error?.message ?? "Erro desconhecido." };
+
+    await supabase.from("ev_realtime").update({ tarefa_id: tarefa.id }).eq("id", id);
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+export async function removerRealtime(eventoId: string, id: string): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+    const { error } = await supabase.from("ev_realtime").delete().eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Ajustes do evento
+// ----------------------------------------------------------------------------
+
+/** As chaves da gaveta de Ajustes. Lista fechada de propósito: nome errado não compila. */
+export type ChaveDeUso = "usa_kit" | "usa_realtime" | "usa_ponto" | "usa_cache" | "usa_entregas";
+
+const CHAVES_DE_USO: readonly ChaveDeUso[] = [
+  "usa_kit",
+  "usa_realtime",
+  "usa_ponto",
+  "usa_cache",
+  "usa_entregas",
+];
+
+/**
+ * Liga ou desliga um pedaço do módulo neste evento.
+ *
+ * A chave vem do cliente, então é conferida contra a lista antes de virar nome
+ * de coluna — é a diferença entre um `update` e um `update` que o usuário
+ * escreve. Desligar nunca apaga nada: o kit continua no banco, só sai da tela,
+ * e volta inteiro se a chave voltar.
+ */
+export async function ajustarEvento(eventoId: string, chave: ChaveDeUso, valor: boolean): Promise<Resultado> {
+  try {
+    if (!CHAVES_DE_USO.includes(chave)) return { ok: false, error: "AJUSTE_DESCONHECIDO" };
+
+    const { supabase } = await requireModulo("eventos");
+    const { error } = await supabase
+      .from("ev_eventos")
+      .update({ [chave]: valor })
+      .eq("id", eventoId);
+
     if (error) return { ok: false, error: error.message };
     revalidar(eventoId);
     return { ok: true };
