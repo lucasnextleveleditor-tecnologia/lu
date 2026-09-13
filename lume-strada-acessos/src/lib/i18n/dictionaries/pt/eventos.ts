@@ -308,6 +308,24 @@ export interface EventosDict {
   mapaAjuda: string;
   novoEventoAjuda: string;
   avancadoTitulo: string;
+  prepTitulo: string;
+  prepPronto: string;
+  prepProntoAjuda: string;
+  prepContagem: string;
+  prepIrAoVivo: string;
+  prepProximo: string;
+  prepAmbientes: string;
+  prepProgramacao: string;
+  prepPauta: string;
+  prepEquipe: string;
+  prepKit: string;
+  prepDicaAmbientes: string;
+  prepDicaProgramacao: string;
+  prepDicaPauta: string;
+  prepDicaEquipe: string;
+  prepDicaKit: string;
+  prepAcaoEquipe: string;
+  prepAcaoKit: string;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -636,6 +654,24 @@ export const eventos: EventosDict = {
   mapaAjuda: "Três modos, a mesma grade — a tela troca de pergunta, não de lugar. As gavetas abrem em qualquer um deles.",
   novoEventoAjuda: "O nome e os palcos bastam. O resto entra depois, dentro do evento.",
   avancadoTitulo: "Fuso e modelo",
+  prepTitulo: "Preparação",
+  prepPronto: "Pronto para o dia",
+  prepProntoAjuda: "Palcos, programação, pauta e equipe estão de pé. O que vem agora é o evento.",
+  prepContagem: "{feitos} de {total}",
+  prepIrAoVivo: "Ir para o Ao vivo",
+  prepProximo: "Próximo passo",
+  prepAmbientes: "Palcos",
+  prepProgramacao: "Programação",
+  prepPauta: "Pauta",
+  prepEquipe: "Equipe",
+  prepKit: "Kit",
+  prepDicaAmbientes: "Abra os Ajustes do evento e acrescente os palcos onde a equipe vai estar.",
+  prepDicaProgramacao: "Arraste na faixa de um palco para desenhar o primeiro bloco — show, ativação ou boom.",
+  prepDicaPauta: "Abra um bloco da grade e marque o que precisa ser captado nele.",
+  prepDicaEquipe: "Escale quem vai estar em campo. Cada pessoa recebe um link próprio para o celular.",
+  prepDicaKit: "Liste o equipamento que sai com a equipe — é assim que se sabe o que não voltou.",
+  prepAcaoEquipe: "Escalar equipe",
+  prepAcaoKit: "Montar o kit",
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",
