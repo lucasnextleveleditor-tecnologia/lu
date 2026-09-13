@@ -505,10 +505,27 @@ function Faixa({
 // ----------------------------------------------------------------------------
 
 /**
- * A cor da BORDA vem do ambiente; o que muda com a cobertura é a barra de
- * baixo. Pintar o bloco inteiro de vermelho porque falta uma foto tiraria da
- * tela a informação principal — de qual palco é aquilo.
+ * VERDE, AMARELO OU VERMELHO PELA COBERTURA — o item do mapa desenhado.
+ *
+ * O bloco tem duas informações de cor ao mesmo tempo, e elas competem: de qual
+ * palco ele é, e como está a cobertura dele. Pintar o bloco INTEIRO pela
+ * cobertura resolvia a segunda apagando a primeira — numa grade de quatro
+ * ambientes, perder a cor do palco é perder a leitura de relance que a grade
+ * existe para dar.
+ *
+ * Então cada uma fica num lugar: a BORDA continua sendo o palco, e a cobertura
+ * entra como um filete na lateral esquerda, na altura inteira do bloco. É a
+ * mesma faixa de cor que o desenho pedia, sem tomar o bloco. A fileira de
+ * pontos embaixo continua, porque ela diz outra coisa: QUANTOS itens, e quais.
  */
+function corDaCobertura(estados: EstadoCaptura[]): string | null {
+  if (estados.length === 0) return null;
+  // Vermelho ganha de tudo: janela fechada sem marcação não volta.
+  if (estados.some((e) => e === "perdido")) return "rgb(239 68 68)";
+  if (estados.every((e) => e === "captado")) return "rgb(34 197 94)";
+  return "rgb(245 158 11)";
+}
+
 function Bloco({
   bloco,
   cor,
@@ -534,6 +551,9 @@ function Bloco({
 }) {
   const agoraISO = agora === null ? null : new Date(agora).toISOString();
   const estados = agoraISO ? capturas.map((c) => estadoDaCaptura(c, agoraISO)) : [];
+  // Só no Ao Vivo: no Plano nada foi captado ainda, e um bloco amarelo antes
+  // do evento começar seria um alarme sobre coisa nenhuma.
+  const cobertura = modo === "aovivo" ? corDaCobertura(estados) : null;
   const rolandoAgora =
     agora !== null && agora >= new Date(bloco.inicio).getTime() && agora <= new Date(bloco.fim ?? bloco.inicio).getTime();
 
@@ -555,6 +575,16 @@ function Bloco({
         boxShadow: rolandoAgora ? `0 0 0 1px ${cor}88, 0 0 18px ${cor}55` : undefined,
       }}
     >
+      {/* O filete da cobertura: lateral esquerda, altura inteira. Fica fora do
+          span do título para não empurrar o texto. */}
+      {cobertura && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 w-[3px]"
+          style={{ background: cobertura, boxShadow: `0 0 8px ${cobertura}` }}
+        />
+      )}
+
       <span className="flex items-center gap-1.5 overflow-hidden">
         {bloco.ancora === "cravado" && (
           // O cadeado é o que diz, sem texto, que aquele bloco não anda quando

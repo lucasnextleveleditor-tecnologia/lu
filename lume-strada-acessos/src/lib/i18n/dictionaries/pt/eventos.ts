@@ -326,6 +326,8 @@ export interface EventosDict {
   prepDicaKit: string;
   prepAcaoEquipe: string;
   prepAcaoKit: string;
+  duplicarUltimo: string;
+  duplicarUltimoAjuda: string;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -672,6 +674,8 @@ export const eventos: EventosDict = {
   prepDicaKit: "Liste o equipamento que sai com a equipe — é assim que se sabe o que não voltou.",
   prepAcaoEquipe: "Escalar equipe",
   prepAcaoKit: "Montar o kit",
+  duplicarUltimo: "Duplicar o último",
+  duplicarUltimoAjuda: "Nasce com os palcos, a pauta e a escala do anterior. Você troca a data e o nome.",
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",

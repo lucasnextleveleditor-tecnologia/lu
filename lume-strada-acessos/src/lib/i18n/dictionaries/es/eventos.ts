@@ -341,6 +341,8 @@ export const eventos: EventosDict = {
   prepDicaKit: "Lista el equipamiento que sale con el equipo — así se sabe qué no volvió.",
   prepAcaoEquipe: "Asignar equipo",
   prepAcaoKit: "Armar el kit",
+  duplicarUltimo: "Duplicar el último",
+  duplicarUltimoAjuda: "Nace con los escenarios, la pauta y el equipo del anterior. Cambias la fecha y el nombre.",
   emBreveRodape: "Esta área todavía está en construcción. Nada aquí es editable por ahora.",
   emConstrucaoTitulo: "Módulo en construcción — estás viendo la versión de trabajo.",
   emConstrucaoTexto: "Las demás cuentas ven la página de \"muy pronto\" en lugar de esta. Cada parte terminada aparece aquí primero.",

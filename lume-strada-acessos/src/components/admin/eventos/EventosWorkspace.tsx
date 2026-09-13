@@ -8,7 +8,7 @@ import { fmtDataCurta, todayISO } from "@/lib/utils/format";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { FUSOS, cidadeDoFuso, deslocamentoDoFuso, fusoValido } from "@/lib/utils/fusos";
 import type { BaseParaDuplicar } from "@/app/admin/eventos/data";
-import { IconPlus, IconX, IconChevronRight } from "@/components/ui/icons";
+import { IconPlus, IconX, IconChevronRight, IconCopy } from "@/components/ui/icons";
 import { criarEvento } from "@/app/admin/eventos/actions";
 import type { EventoComResumo, StatusEvento } from "@/lib/types/eventos";
 
@@ -54,9 +54,18 @@ export function EventosWorkspace({
 }) {
   const { dict } = useLocale();
   const t = dict.eventos;
-  const [modalAberto, setModalAberto] = useState(false);
+  // `null` = modal fechado. String vazia = "do zero". Um id = ja abre
+  // duplicando aquela base. Guardar a escolha AQUI (e nao dentro do modal) e o
+  // que permite os dois caminhos do mapa desenhado — "+ Novo" e "Duplicar o
+  // ultimo" — abrirem a MESMA tela, em estados diferentes.
+  const [base, setBase] = useState<string | null>(null);
+  const modalAberto = base !== null;
 
   const aoVivo = eventos.filter((e) => e.status === "ao_vivo").length;
+
+  // O "ultimo" e o primeiro da lista de bases — `listarBasesParaDuplicar` ja
+  // devolve modelos salvos e eventos recentes na ordem certa.
+  const ultimaBase = bases[0] ?? null;
 
   return (
     <div className="space-y-4">
@@ -88,15 +97,35 @@ export function EventosWorkspace({
               <p className="mt-1 max-w-xl text-[12.5px] leading-relaxed text-white/45">{subtitulo}</p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setModalAberto(true)}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-semibold text-black transition hover:brightness-110"
-              style={{ background: "rgb(var(--color-accent))", boxShadow: "0 0 22px rgb(var(--color-accent) / 0.45)" }}
-            >
-              <IconPlus className="h-4 w-4" />
-              {t.novoEvento}
-            </button>
+            <span className="flex shrink-0 flex-wrap items-center gap-2">
+              {/* DUAS PORTAS, como no mapa: "+ Novo ou Duplicar o ultimo".
+                  A segunda existe porque a agencia repete formato — o festival
+                  de todo mes tem os mesmos palcos, a mesma pauta e quase a
+                  mesma escala. Escondida dentro do formulario (era um campo na
+                  gaveta de avancado) ela so servia a quem ja sabia que existia;
+                  do lado do "+ Novo" ela e uma escolha de verdade. */}
+              {ultimaBase && (
+                <button
+                  type="button"
+                  onClick={() => setBase(ultimaBase.id)}
+                  title={t.duplicarUltimoAjuda}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-4 py-2.5 text-xs font-medium text-white/75 transition hover:border-white/40 hover:text-white"
+                >
+                  <IconCopy className="h-3.5 w-3.5" />
+                  {t.duplicarUltimo}
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setBase("")}
+                className="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-semibold text-black transition hover:brightness-110"
+                style={{ background: "rgb(var(--color-accent))", boxShadow: "0 0 22px rgb(var(--color-accent) / 0.45)" }}
+              >
+                <IconPlus className="h-4 w-4" />
+                {t.novoEvento}
+              </button>
+            </span>
           </div>
 
           {/* A régua de baixo: contagem à esquerda, estado do módulo à direita. */}
@@ -123,7 +152,7 @@ export function EventosWorkspace({
       </div>
 
       {eventos.length === 0 ? (
-        <PortaVazia onCriar={() => setModalAberto(true)} />
+        <PortaVazia onCriar={() => setBase("")} />
       ) : (
         <div className="space-y-2">
           {eventos.map((e) => (
@@ -132,7 +161,7 @@ export function EventosWorkspace({
         </div>
       )}
 
-      {modalAberto && <ModalNovoEvento clientes={clientes} bases={bases} onClose={() => setModalAberto(false)} />}
+      {modalAberto && <ModalNovoEvento clientes={clientes} bases={bases} baseInicial={base ?? ""} onClose={() => setBase(null)} />}
     </div>
   );
 }
@@ -344,10 +373,13 @@ function Numero({ valor, rotulo, acento, alerta }: { valor: string; rotulo: stri
 function ModalNovoEvento({
   clientes,
   bases,
+  baseInicial,
   onClose,
 }: {
   clientes: { id: string; nome: string }[];
   bases: BaseParaDuplicar[];
+  /** Vazio = do zero. Preenchido = abriu pelo "Duplicar o último". */
+  baseInicial: string;
   onClose: () => void;
 }) {
   const { dict } = useLocale();
@@ -357,7 +389,7 @@ function ModalNovoEvento({
   const [nome, setNome] = useState("");
   const [clienteId, setClienteId] = useState("");
   const [local, setLocal] = useState("");
-  const [baseId, setBaseId] = useState("");
+  const [baseId, setBaseId] = useState(baseInicial);
   // `Intl` devolve o fuso do navegador; `fusoValido` derruba para o padrão
   // quando ele não está na lista curada (alguém em Tóquio cadastrando um
   // evento no Brasil, por exemplo). Na esmagadora maioria das vezes o evento é
@@ -369,7 +401,10 @@ function ModalNovoEvento({
   const [horaFim, setHoraFim] = useState("04:00");
   const [ambientes, setAmbientes] = useState<string[]>(["Palco principal"]);
   const [novoAmbiente, setNovoAmbiente] = useState("");
-  const [avancado, setAvancado] = useState(false);
+  // Quem entrou por "Duplicar o último" precisa VER de onde o evento está
+  // nascendo. Gaveta fechada escondendo a escolha que a pessoa acabou de
+  // fazer é a pior combinação possível.
+  const [avancado, setAvancado] = useState(!!baseInicial);
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
 
@@ -607,7 +642,7 @@ function ModalNovoEvento({
                 className="flex w-full items-center justify-between px-4 py-3 text-left"
               >
                 <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-white/35">
-                  {t.avancadoTitulo}
+                  {baseId ? t.baseLabel : t.avancadoTitulo}
                 </span>
                 <span className="font-mono text-[13px] leading-none text-white/30">{avancado ? "−" : "+"}</span>
               </button>

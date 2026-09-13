@@ -341,6 +341,8 @@ export const eventos: EventosDict = {
   prepDicaKit: "List the gear going out with the crew — that's how you know what didn't come back.",
   prepAcaoEquipe: "Assign crew",
   prepAcaoKit: "Pack the kit",
+  duplicarUltimo: "Duplicate the last one",
+  duplicarUltimoAjuda: "Born with the stages, shot list and crew of the previous one. You change the date and the name.",
   emBreveRodape: "This area is still being built. Nothing here is editable yet.",
   emConstrucaoTitulo: "Module under construction — you are seeing the working version.",
   emConstrucaoTexto: "Every other account sees the \"coming soon\" page instead of this one. Each finished piece shows up here first.",
