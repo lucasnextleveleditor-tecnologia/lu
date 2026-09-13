@@ -1,9 +1,6 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { cn } from "@/lib/utils/cn";
 import { substituir } from "@/lib/utils/texto";
@@ -16,7 +13,13 @@ import { criarEvento } from "@/app/admin/eventos/actions";
 import type { EventoComResumo, StatusEvento } from "@/lib/types/eventos";
 
 /**
- * A lista de eventos — a porta do módulo.
+ * A LISTA DE EVENTOS — a porta do módulo.
+ *
+ * Foi reescrita por um motivo que não é estético: a porta não parecia com a
+ * sala. Dentro do evento tudo é console — superfície própria, linhas de
+ * monitor, rótulo em mono, número grande. Aqui fora era formulário de painel
+ * comum, com campo claro e etiqueta cinza. Quem entrava pela primeira vez
+ * julgava o módulo inteiro por esta tela, e julgava errado.
  *
  * Cada linha responde, de relance, as três coisas que se quer saber de um
  * evento sem abri-lo: quando é, em que fase está, e — o número que só este
@@ -24,37 +27,103 @@ import type { EventoComResumo, StatusEvento } from "@/lib/types/eventos";
  * vermelho e separado porque é o único que não dá para consertar depois: uma
  * foto não feita às duas da manhã não vai ser feita mais.
  */
+
+/** Campo de texto do console. Preto, borda fina, foco na cor da marca. */
+const CAMPO =
+  "w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2.5 text-sm text-white placeholder:text-white/25 transition focus:border-accent/60 focus:outline-none focus:ring-1 focus:ring-accent/25";
+
+/** O rótulo de cada campo: mono, maiúsculo, espaçado — etiqueta de equipamento. */
+const ROTULO = "font-mono text-[9.5px] uppercase tracking-[0.18em] text-white/40";
+
 export function EventosWorkspace({
   eventos,
   clientes,
   bases,
+  titulo,
+  subtitulo,
+  aviso,
 }: {
   eventos: EventoComResumo[];
   clientes: { id: string; nome: string }[];
   /** Modelos salvos e eventos recentes — de onde um evento novo pode nascer pronto. */
   bases: BaseParaDuplicar[];
+  titulo: string;
+  subtitulo: string;
+  /** A faixa de "módulo em construção" — some sozinha quando o módulo abrir. */
+  aviso: { titulo: string; texto: string } | null;
 }) {
   const { dict } = useLocale();
   const t = dict.eventos;
   const [modalAberto, setModalAberto] = useState(false);
 
+  const aoVivo = eventos.filter((e) => e.status === "ao_vivo").length;
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-muted">
-          {eventos.length === 0 ? t.listaVazia : substituir(t.listaContagem, { n: eventos.length })}
-        </p>
-        <Button onClick={() => setModalAberto(true)} className="gap-1.5">
-          <IconPlus className="h-4 w-4" />
-          {t.novoEvento}
-        </Button>
+      {/* --- o cabeçalho, que é o console --- */}
+      <div className="ev-console relative overflow-hidden rounded-2xl border border-white/10">
+        <div aria-hidden className="ev-linhas-monitor pointer-events-none absolute inset-0" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-32 left-1/4 h-72 w-72 rounded-full opacity-[0.16] blur-[90px]"
+          style={{ background: "rgb(var(--color-accent))" }}
+        />
+        {/* A varredura: é ela que faz o painel parecer ligado em vez de impresso. */}
+        <div
+          aria-hidden
+          className="ev-varredura pointer-events-none absolute inset-y-0 w-1/3"
+          style={{ background: "linear-gradient(90deg, transparent, rgb(var(--color-accent) / 0.05), transparent)" }}
+        />
+
+        <div className="relative px-5 py-6 sm:px-7">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p
+                className="font-mono text-[10px] uppercase tracking-[0.28em]"
+                style={{ color: "rgb(var(--color-accent))" }}
+              >
+                {t.tituloPagina}
+              </p>
+              <h1 className="mt-1.5 text-xl font-semibold tracking-tight text-white sm:text-2xl">{titulo}</h1>
+              <p className="mt-1 max-w-xl text-[12.5px] leading-relaxed text-white/45">{subtitulo}</p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setModalAberto(true)}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-semibold text-black transition hover:brightness-110"
+              style={{ background: "rgb(var(--color-accent))", boxShadow: "0 0 22px rgb(var(--color-accent) / 0.45)" }}
+            >
+              <IconPlus className="h-4 w-4" />
+              {t.novoEvento}
+            </button>
+          </div>
+
+          {/* A régua de baixo: contagem à esquerda, estado do módulo à direita. */}
+          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/[0.07] pt-4">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+              {eventos.length === 0 ? t.listaVazia : substituir(t.listaContagem, { n: eventos.length })}
+            </span>
+            {aoVivo > 0 && (
+              <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-danger">
+                <span className="ev-rec h-1.5 w-1.5 rounded-full bg-danger" />
+                {aoVivo} {t.status.ao_vivo}
+              </span>
+            )}
+            {aviso && (
+              <span className="ml-auto inline-flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-accent/80">
+                <span className="ev-pendente h-1 w-1 rounded-full bg-accent" />
+                {aviso.titulo}
+              </span>
+            )}
+          </div>
+
+          {aviso && <p className="mt-2 text-[11.5px] leading-relaxed text-white/35">{aviso.texto}</p>}
+        </div>
       </div>
 
       {eventos.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-base-700 px-6 py-14 text-center">
-          <p className="text-sm text-ink-secondary">{t.listaVaziaTitulo}</p>
-          <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-ink-muted">{t.listaVaziaTexto}</p>
-        </div>
+        <PortaVazia onCriar={() => setModalAberto(true)} />
       ) : (
         <div className="space-y-2">
           {eventos.map((e) => (
@@ -69,13 +138,107 @@ export function EventosWorkspace({
 }
 
 // ----------------------------------------------------------------------------
+// A tela sem nenhum evento
+// ----------------------------------------------------------------------------
+
+/**
+ * O VAZIO MOSTRA O MAPA.
+ *
+ * Antes ele dizia só "nenhum evento cadastrado ainda" — e quem chegava aqui
+ * ficava sem a menor ideia do que existe atrás da porta. Como TODO o módulo
+ * mora dentro de um evento, a lista vazia é literalmente a única coisa que uma
+ * pessoa nova vê: ela julga o módulo inteiro por uma caixa tracejada com uma
+ * frase dentro.
+ *
+ * Então o vazio virou o mapa: os três modos, o que cada um responde, e as
+ * gavetas que abrem em qualquer um deles. Não é enfeite — é a explicação de
+ * para que serve criar o primeiro evento.
+ */
+function PortaVazia({ onCriar }: { onCriar: () => void }) {
+  const { dict } = useLocale();
+  const t = dict.eventos;
+
+  const MODOS = [
+    { nome: t.modoPlano, quando: t.modoPlanoQuando, cor: "#38bdf8" },
+    { nome: t.modoAoVivo, quando: t.modoAoVivoQuando, cor: "#f43f5e" },
+    { nome: t.modoFechamento, quando: t.modoFechamentoQuando, cor: "#a78bfa" },
+  ];
+
+  const GAVETAS = [t.gavetaEquipe, t.gavetaKit, t.gavetaOcorrencia, t.gavetaRealtime, t.gavetaAjustes];
+
+  return (
+    <div className="ev-console relative overflow-hidden rounded-2xl border border-white/10">
+      <div aria-hidden className="ev-linhas-monitor pointer-events-none absolute inset-0" />
+
+      <div className="relative px-5 py-8 sm:px-8 sm:py-10">
+        <div className="text-center">
+          <p className="text-[15px] font-medium text-white/90">{t.listaVaziaTitulo}</p>
+          <p className="mx-auto mt-1.5 max-w-md text-[12.5px] leading-relaxed text-white/40">{t.listaVaziaTexto}</p>
+        </div>
+
+        {/* --- o mapa --- */}
+        <p className="mt-9 text-center font-mono text-[9.5px] uppercase tracking-[0.22em] text-white/30">
+          {t.mapaTitulo}
+        </p>
+
+        <div className="mx-auto mt-4 grid max-w-2xl gap-2.5 sm:grid-cols-3">
+          {MODOS.map((m) => (
+            <div
+              key={m.nome}
+              className="rounded-xl border border-white/[0.08] bg-black/40 px-4 py-4 text-center"
+              style={{ boxShadow: `inset 0 1px 0 0 ${m.cor}33` }}
+            >
+              <span
+                aria-hidden
+                className="mx-auto block h-1 w-8 rounded-full"
+                style={{ background: m.cor, boxShadow: `0 0 10px ${m.cor}` }}
+              />
+              <p className="mt-3 text-[13.5px] font-medium text-white/90">{m.nome}</p>
+              <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-white/30">{m.quando}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* A linha que liga os modos às gavetas — elas abrem em qualquer um. */}
+        <div aria-hidden className="mx-auto mt-3 h-5 w-px bg-gradient-to-b from-white/15 to-transparent" />
+
+        <div className="mx-auto flex max-w-2xl flex-wrap justify-center gap-1.5">
+          {GAVETAS.map((g) => (
+            <span
+              key={g}
+              className="rounded-full border border-white/[0.09] px-3 py-1.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-white/45"
+            >
+              {g}
+            </span>
+          ))}
+        </div>
+
+        <p className="mx-auto mt-4 max-w-md text-center text-[11.5px] leading-relaxed text-white/30">{t.mapaAjuda}</p>
+
+        <div className="mt-8 text-center">
+          <button
+            type="button"
+            onClick={onCriar}
+            className="inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-semibold text-black transition hover:brightness-110"
+            style={{ background: "rgb(var(--color-accent))", boxShadow: "0 0 22px rgb(var(--color-accent) / 0.45)" }}
+          >
+            <IconPlus className="h-4 w-4" />
+            {t.novoEvento}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
 
 const TOM_DO_STATUS: Record<StatusEvento, string> = {
-  planejamento: "border-base-600 text-ink-muted",
+  planejamento: "border-white/15 text-white/45",
   montagem: "border-status-warning/40 text-status-warning",
   ao_vivo: "border-danger/50 text-danger",
-  pos: "border-base-600 text-ink-secondary",
-  encerrado: "border-base-700 text-ink-muted",
+  pos: "border-white/15 text-white/60",
+  encerrado: "border-white/[0.08] text-white/30",
 };
 
 function LinhaDoEvento({ evento }: { evento: EventoComResumo }) {
@@ -88,11 +251,20 @@ function LinhaDoEvento({ evento }: { evento: EventoComResumo }) {
   return (
     <a
       href={`/admin/eventos/${evento.id}`}
-      className="group flex flex-wrap items-center gap-x-5 gap-y-3 rounded-xl border border-base-800 bg-base-900/60 px-4 py-3.5 transition hover:border-base-600"
+      className="ev-console group relative flex flex-wrap items-center gap-x-5 gap-y-3 overflow-hidden rounded-xl border border-white/[0.09] px-4 py-4 transition hover:border-accent/35"
     >
-      <div className="min-w-[12rem] flex-1">
+      <div aria-hidden className="ev-linhas-monitor pointer-events-none absolute inset-0 opacity-50" />
+
+      {/* O filete da esquerda acende no hover — é o que diz "isto abre". */}
+      <span
+        aria-hidden
+        className="absolute inset-y-0 left-0 w-[2px] opacity-0 transition group-hover:opacity-100"
+        style={{ background: "rgb(var(--color-accent))", boxShadow: "0 0 12px rgb(var(--color-accent) / 0.8)" }}
+      />
+
+      <div className="relative min-w-[12rem] flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-ink-primary">{evento.nome}</span>
+          <span className="text-[14px] font-medium text-white">{evento.nome}</span>
           <span
             className={cn(
               "rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em]",
@@ -100,27 +272,29 @@ function LinhaDoEvento({ evento }: { evento: EventoComResumo }) {
             )}
           >
             {/* O ao vivo pisca: é o único estado em que alguém precisa estar olhando agora. */}
-            {evento.status === "ao_vivo" && <span className="ev-rec mr-1 inline-block h-1 w-1 rounded-full bg-danger align-middle" />}
+            {evento.status === "ao_vivo" && (
+              <span className="ev-rec mr-1 inline-block h-1 w-1 rounded-full bg-danger align-middle" />
+            )}
             {t.status[evento.status]}
           </span>
         </div>
-        <p className="mt-0.5 truncate text-xs text-ink-muted">
+        <p className="mt-0.5 truncate font-mono text-[9.5px] uppercase tracking-[0.12em] text-white/35">
           {[evento.cliente_nome, evento.local].filter(Boolean).join(" · ") || t.semCliente}
         </p>
       </div>
 
-      <div className="font-mono text-[11px] tabular-nums text-ink-secondary">
+      <div className="relative font-mono text-[11px] tabular-nums text-white/60">
         {fmtDataCurta(evento.inicio.slice(0, 10))}
         {evento.fim.slice(0, 10) !== evento.inicio.slice(0, 10) && (
-          <span className="text-ink-muted"> → {fmtDataCurta(evento.fim.slice(0, 10))}</span>
+          <span className="text-white/30"> → {fmtDataCurta(evento.fim.slice(0, 10))}</span>
         )}
       </div>
 
-      <div className="flex items-center gap-4 font-mono text-[11px] tabular-nums">
+      <div className="relative flex items-center gap-4 font-mono text-[11px] tabular-nums">
         <Numero valor={String(evento.ambientes)} rotulo={t.numeroAmbientes} />
         <Numero valor={String(evento.equipe)} rotulo={t.numeroEquipe} />
         {cobertura === null ? (
-          <span className="text-[10px] uppercase tracking-[0.12em] text-ink-muted">{t.semPauta}</span>
+          <span className="text-[9px] uppercase tracking-[0.12em] text-white/25">{t.semPauta}</span>
         ) : (
           <>
             <Numero valor={`${cobertura}%`} rotulo={t.numeroCobertura} acento />
@@ -131,7 +305,7 @@ function LinhaDoEvento({ evento }: { evento: EventoComResumo }) {
         )}
       </div>
 
-      <IconChevronRight className="h-4 w-4 shrink-0 text-ink-muted transition group-hover:text-ink-primary" />
+      <IconChevronRight className="relative h-4 w-4 shrink-0 text-white/25 transition group-hover:text-accent" />
     </a>
   );
 }
@@ -140,12 +314,12 @@ function Numero({ valor, rotulo, acento, alerta }: { valor: string; rotulo: stri
   return (
     <span className="text-center">
       <span
-        className={cn("block font-semibold", alerta ? "text-danger" : "text-ink-primary")}
+        className={cn("block text-[15px] font-semibold leading-none", alerta ? "text-danger" : "text-white")}
         style={acento ? { color: "rgb(var(--color-accent))" } : undefined}
       >
         {valor}
       </span>
-      <span className="block text-[9px] uppercase tracking-[0.12em] text-ink-muted">{rotulo}</span>
+      <span className="mt-1 block text-[8.5px] uppercase tracking-[0.14em] text-white/30">{rotulo}</span>
     </span>
   );
 }
@@ -160,6 +334,12 @@ function Numero({ valor, rotulo, acento, alerta }: { valor: string; rotulo: stri
  * Os dois juntos porque um evento sem ambiente não desenha grade nenhuma — a
  * tela seguinte seria uma tela vazia pedindo para cadastrar algo antes de
  * poder fazer qualquer coisa. Quem está criando já sabe quantos palcos vai ter.
+ *
+ * A ORDEM DOS CAMPOS é a ordem em que a cabeça responde: o que é, de quem é e
+ * onde, quando, e só então onde a equipe vai estar. O fuso e o modelo ficam
+ * numa gaveta fechada no rodapé porque na esmagadora maioria das vezes o
+ * evento é em casa e nasce do zero — e campo que quase ninguém mexe, aberto,
+ * é campo que todo mundo lê antes de ignorar.
  */
 function ModalNovoEvento({
   clientes,
@@ -189,6 +369,7 @@ function ModalNovoEvento({
   const [horaFim, setHoraFim] = useState("04:00");
   const [ambientes, setAmbientes] = useState<string[]>(["Palco principal"]);
   const [novoAmbiente, setNovoAmbiente] = useState("");
+  const [avancado, setAvancado] = useState(false);
   const [pendente, iniciar] = useTransition();
   const [erro, setErro] = useState<string | null>(null);
 
@@ -247,160 +428,266 @@ function ModalNovoEvento({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-[2px]"
+      onClick={onClose}
+    >
       <div
-        className="max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-base-700 bg-base-900 p-6"
+        className="ev-console relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-white/[0.12] shadow-2xl"
         onClick={(ev) => ev.stopPropagation()}
       >
-        <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-base font-semibold">{t.novoEvento}</h3>
-          <button onClick={onClose} className="text-xl leading-none text-ink-muted hover:text-ink-primary" aria-label={dict.common.fechar}>
-            ×
-          </button>
-        </div>
+        <div aria-hidden className="ev-linhas-monitor pointer-events-none absolute inset-0" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-28 left-1/3 h-64 w-64 rounded-full opacity-[0.18] blur-[80px]"
+          style={{ background: "rgb(var(--color-accent))" }}
+        />
 
-        <form onSubmit={salvar} className="space-y-4">
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.campoNome}</label>
-            <Input required value={nome} onChange={(e) => setNome(e.target.value)} placeholder={t.campoNomePlaceholder} />
+        <div className="relative px-6 py-6 sm:px-7">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p
+                className="font-mono text-[10px] uppercase tracking-[0.28em]"
+                style={{ color: "rgb(var(--color-accent))" }}
+              >
+                {t.novoEvento}
+              </p>
+              <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/40">{t.novoEventoAjuda}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={dict.common.fechar}
+              className="shrink-0 rounded-lg border border-white/10 p-1.5 text-white/40 transition hover:border-white/25 hover:text-white"
+            >
+              <IconX className="h-3.5 w-3.5" />
+            </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={salvar} className="mt-6 space-y-5">
+            {/* --- o que é --- */}
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.campoCliente}</label>
-              <Select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
-                <option value="">{t.semCliente}</option>
-                {clientes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nome}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.baseLabel}</label>
-              <Select value={baseId} onChange={(e) => setBaseId(e.target.value)}>
-                <option value="">{t.baseDoZero}</option>
-                {bases.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.modelo ? `${b.nome} · ${t.baseModelo}` : b.nome}
-                  </option>
-                ))}
-              </Select>
-              {baseId && <p className="mt-1 text-[11px] text-ink-muted">{t.baseAjuda}</p>}
+              <label className={ROTULO} htmlFor="ev-nome">
+                {t.campoNome}
+              </label>
+              <input
+                id="ev-nome"
+                required
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                placeholder={t.campoNomePlaceholder}
+                className={cn(CAMPO, "mt-1.5 text-[15px]")}
+              />
             </div>
 
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.campoLocal}</label>
-              <Input value={local} onChange={(e) => setLocal(e.target.value)} placeholder={t.campoLocalPlaceholder} />
-            </div>
-          </div>
-
-          {/* O fuso é do LOCAL do evento, não de quem está cadastrando: quem
-              opera de São Paulo um show em Lisboa precisa da grade na hora de
-              Lisboa. */}
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.fusoLabel}</label>
-            <Select value={fuso} onChange={(e) => setFuso(e.target.value)}>
-              {FUSOS.map((grupo) => (
-                <optgroup key={grupo.regiao} label={rotuloDaRegiao(grupo.regiao, t)}>
-                  {grupo.fusos.map((f) => (
-                    <option key={f} value={f}>
-                      {cidadeDoFuso(f)} · {deslocamentoDoFuso(f)}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={ROTULO} htmlFor="ev-cliente">
+                  {t.campoCliente}
+                </label>
+                <select
+                  id="ev-cliente"
+                  value={clienteId}
+                  onChange={(e) => setClienteId(e.target.value)}
+                  className={cn(CAMPO, "mt-1.5")}
+                >
+                  <option value="">{t.semCliente}</option>
+                  {clientes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nome}
                     </option>
                   ))}
-                </optgroup>
-              ))}
-            </Select>
-            <p className="mt-1 text-[11px] text-ink-muted">{t.fusoAjuda}</p>
-          </div>
+                </select>
+              </div>
 
-          {/* Data E hora, nos dois lados. Um evento que começa 20h de sábado e
-              termina 4h de domingo é a regra, não a exceção — e sem a hora a
-              grade não sabe onde começar a desenhar. */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.campoInicio}</label>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <DatePicker value={dataInicio} onChange={setDataInicio} />
+              <div>
+                <label className={ROTULO} htmlFor="ev-local">
+                  {t.campoLocal}
+                </label>
+                <input
+                  id="ev-local"
+                  value={local}
+                  onChange={(e) => setLocal(e.target.value)}
+                  placeholder={t.campoLocalPlaceholder}
+                  className={cn(CAMPO, "mt-1.5")}
+                />
+              </div>
+            </div>
+
+            {/* --- quando ---
+                Data E hora, nos dois lados. Um evento que começa 20h de sábado
+                e termina 4h de domingo é a regra, não a exceção — e sem a hora
+                a grade não sabe onde começar a desenhar. */}
+            <div className="rounded-xl border border-white/[0.08] bg-black/30 p-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={ROTULO}>{t.campoInicio}</label>
+                  <div className="mt-1.5 flex gap-2">
+                    <div className="min-w-0 flex-1">
+                      <DatePicker value={dataInicio} onChange={setDataInicio} />
+                    </div>
+                    <input
+                      type="time"
+                      value={horaInicio}
+                      onChange={(e) => setHoraInicio(e.target.value)}
+                      className={cn(CAMPO, "w-[5.5rem] shrink-0 px-2 text-center font-mono tabular-nums")}
+                    />
+                  </div>
                 </div>
-                <div className="w-[5.5rem] shrink-0">
-                  <Input type="time" value={horaInicio} onChange={(e) => setHoraInicio(e.target.value)} />
+                <div>
+                  <label className={ROTULO}>{t.campoFim}</label>
+                  <div className="mt-1.5 flex gap-2">
+                    <div className="min-w-0 flex-1">
+                      <DatePicker value={dataFim} onChange={setDataFim} />
+                    </div>
+                    <input
+                      type="time"
+                      value={horaFim}
+                      onChange={(e) => setHoraFim(e.target.value)}
+                      className={cn(CAMPO, "w-[5.5rem] shrink-0 px-2 text-center font-mono tabular-nums")}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* --- onde a equipe vai estar --- */}
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.campoFim}</label>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <DatePicker value={dataFim} onChange={setDataFim} />
-                </div>
-                <div className="w-[5.5rem] shrink-0">
-                  <Input type="time" value={horaFim} onChange={(e) => setHoraFim(e.target.value)} />
-                </div>
-              </div>
-            </div>
-          </div>
+              <label className={ROTULO}>{t.campoAmbientes}</label>
+              <p className="mt-1 text-[11.5px] leading-relaxed text-white/30">{t.campoAmbientesAjuda}</p>
 
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.campoAmbientes}</label>
-            <p className="mb-2 text-[11px] text-ink-muted">{t.campoAmbientesAjuda}</p>
-
-            <div className="mb-2 flex flex-wrap gap-1.5">
-              {ambientes.map((a) => (
-                <span
-                  key={a}
-                  className="inline-flex items-center gap-1 rounded-full border border-base-700 py-1 pl-2.5 pr-1 text-[11px] text-ink-secondary"
-                >
-                  {a}
-                  <button
-                    type="button"
-                    onClick={() => setAmbientes((lista) => lista.filter((x) => x !== a))}
-                    className="rounded-full p-0.5 text-ink-muted transition hover:text-danger"
-                    aria-label={substituir(t.removerAmbienteDe, { ambiente: a })}
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {ambientes.map((a) => (
+                  <span
+                    key={a}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-accent/35 bg-accent/[0.08] py-1.5 pl-3 pr-1.5 text-[11.5px] text-white/85"
                   >
-                    <IconX className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
+                    {a}
+                    <button
+                      type="button"
+                      onClick={() => setAmbientes((lista) => lista.filter((x) => x !== a))}
+                      className="rounded-full p-0.5 text-white/35 transition hover:text-danger"
+                      aria-label={substituir(t.removerAmbienteDe, { ambiente: a })}
+                    >
+                      <IconX className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              <div className="mt-2 flex gap-2">
+                <input
+                  value={novoAmbiente}
+                  onChange={(e) => setNovoAmbiente(e.target.value)}
+                  placeholder={t.campoAmbientesPlaceholder}
+                  className={CAMPO}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      adicionarAmbiente();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={adicionarAmbiente}
+                  disabled={!novoAmbiente.trim()}
+                  className="shrink-0 rounded-lg border border-white/[0.12] px-3.5 font-mono text-[10px] uppercase tracking-[0.12em] text-white/55 transition hover:border-white/30 hover:text-white disabled:opacity-30"
+                >
+                  {dict.common.adicionar}
+                </button>
+              </div>
             </div>
 
-            <div className="flex gap-2">
-              <Input
-                value={novoAmbiente}
-                onChange={(e) => setNovoAmbiente(e.target.value)}
-                placeholder={t.campoAmbientesPlaceholder}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    adicionarAmbiente();
-                  }
-                }}
-              />
-              <Button
+            {/* --- a gaveta do que quase ninguém mexe --- */}
+            <div className="rounded-xl border border-white/[0.07]">
+              <button
                 type="button"
-                variant="ghost"
-                onClick={adicionarAmbiente}
-                disabled={!novoAmbiente.trim()}
-                className="shrink-0 px-3 py-2 text-xs"
+                onClick={() => setAvancado((v) => !v)}
+                className="flex w-full items-center justify-between px-4 py-3 text-left"
               >
-                {dict.common.adicionar}
-              </Button>
+                <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-white/35">
+                  {t.avancadoTitulo}
+                </span>
+                <span className="font-mono text-[13px] leading-none text-white/30">{avancado ? "−" : "+"}</span>
+              </button>
+
+              {avancado && (
+                <div className="space-y-4 border-t border-white/[0.07] px-4 py-4">
+                  {/* O fuso é do LOCAL do evento, não de quem está cadastrando:
+                      quem opera de São Paulo um show em Lisboa precisa da grade
+                      na hora de Lisboa. */}
+                  <div>
+                    <label className={ROTULO} htmlFor="ev-fuso">
+                      {t.fusoLabel}
+                    </label>
+                    <select
+                      id="ev-fuso"
+                      value={fuso}
+                      onChange={(e) => setFuso(e.target.value)}
+                      className={cn(CAMPO, "mt-1.5")}
+                    >
+                      {FUSOS.map((grupo) => (
+                        <optgroup key={grupo.regiao} label={rotuloDaRegiao(grupo.regiao, t)}>
+                          {grupo.fusos.map((f) => (
+                            <option key={f} value={f}>
+                              {cidadeDoFuso(f)} · {deslocamentoDoFuso(f)}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-white/30">{t.fusoAjuda}</p>
+                  </div>
+
+                  <div>
+                    <label className={ROTULO} htmlFor="ev-base">
+                      {t.baseLabel}
+                    </label>
+                    <select
+                      id="ev-base"
+                      value={baseId}
+                      onChange={(e) => setBaseId(e.target.value)}
+                      className={cn(CAMPO, "mt-1.5")}
+                    >
+                      <option value="">{t.baseDoZero}</option>
+                      {bases.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.modelo ? `${b.nome} · ${t.baseModelo}` : b.nome}
+                        </option>
+                      ))}
+                    </select>
+                    {baseId && <p className="mt-1.5 text-[11px] leading-relaxed text-accent/70">{t.baseAjuda}</p>}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
 
-          {erro && <p className="text-sm text-danger">{erro}</p>}
+            {erro && (
+              <p className="rounded-lg border border-danger/35 bg-danger/[0.08] px-3 py-2 text-[12px] text-danger">
+                {erro}
+              </p>
+            )}
 
-          <div className="flex justify-end gap-2 pt-1">
-            <Button type="button" variant="ghost" onClick={onClose}>
-              {dict.common.cancelar}
-            </Button>
-            <Button type="submit" disabled={pendente || !nome.trim()}>
-              {pendente ? dict.common.salvando : t.criarEvento}
-            </Button>
-          </div>
-        </form>
+            <div className="flex items-center justify-end gap-2 border-t border-white/[0.07] pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-white/40 transition hover:text-white"
+              >
+                {dict.common.cancelar}
+              </button>
+              <button
+                type="submit"
+                disabled={pendente || !nome.trim()}
+                className="rounded-full px-5 py-2.5 text-xs font-semibold text-black transition hover:brightness-110 disabled:opacity-30 disabled:shadow-none"
+                style={{ background: "rgb(var(--color-accent))", boxShadow: "0 0 22px rgb(var(--color-accent) / 0.45)" }}
+              >
+                {pendente ? dict.common.salvando : t.criarEvento}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

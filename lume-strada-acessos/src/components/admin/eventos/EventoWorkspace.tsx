@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
-import { IconChevronLeft } from "@/components/ui/icons";
+import { IconChevronLeft, IconCheck } from "@/components/ui/icons";
 import { Grade, useRelogio } from "@/components/admin/eventos/Grade";
 import { PainelAoVivo } from "@/components/admin/eventos/PainelAoVivo";
 import { PainelDoBloco, type ValoresDoBloco } from "@/components/admin/eventos/PainelDoBloco";
@@ -15,6 +15,7 @@ import { GavetaKit } from "@/components/admin/eventos/GavetaKit";
 import { GavetaOcorrencia } from "@/components/admin/eventos/GavetaOcorrencia";
 import { GavetaRealtime } from "@/components/admin/eventos/GavetaRealtime";
 import { GavetaAjustes } from "@/components/admin/eventos/GavetaAjustes";
+import { PreparacaoDoPlano, etapasDaPreparacao } from "@/components/admin/eventos/PreparacaoDoPlano";
 import { fusoValido } from "@/lib/utils/fusos";
 import { modoDoStatus, type BlocoRow, type EventoRow, type ModoEvento } from "@/lib/types/eventos";
 import type { EventoCompleto } from "@/app/admin/eventos/[id]/data";
@@ -64,6 +65,18 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
   const [gaveta, setGaveta] = useState<TipoGaveta | null>(null);
 
   const rodando = !!evento.iniciado_em;
+
+  // O Plano está fechado quando nenhuma etapa da preparação ficou para trás.
+  // É o que acende o "concluído" na trilha das fases lá em cima — a mesma
+  // conta que a faixa de preparação mostra por extenso, em um lugar só.
+  const planoPronto = etapasDaPreparacao({
+    ambientes,
+    blocos,
+    capturas,
+    equipe,
+    kit: dados.kit,
+    usaKit: evento.usa_kit,
+  }).every((e) => e.feito);
 
   // O relógio da tela inteira — o painel de baixo usa a MESMA batida da grade,
   // senão os dois mostram minutos diferentes do mesmo instante.
@@ -195,11 +208,27 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
         onEncerrar={encerrar}
         onGaveta={setGaveta}
         usa={evento}
+        planoPronto={planoPronto}
         ocupado={pendente}
       />
 
       {erro && (
         <p className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger">{erro}</p>
+      )}
+
+      {/* A ORDEM DO MÓDULO, desenhada. Só no Plano: é o único modo em que a
+          pergunta é "o que falta preparar". Ver PreparacaoDoPlano. */}
+      {modo === "plano" && (
+        <PreparacaoDoPlano
+          ambientes={ambientes}
+          blocos={blocos}
+          capturas={capturas}
+          equipe={equipe}
+          kit={dados.kit}
+          usaKit={evento.usa_kit}
+          onGaveta={setGaveta}
+          onIrAoVivo={() => setModo("aovivo")}
+        />
       )}
 
       {modo !== "fechamento" && (
@@ -352,6 +381,7 @@ function Cabecalho({
   onEncerrar,
   onGaveta,
   usa,
+  planoPronto,
   ocupado,
 }: {
   nome: string;
@@ -364,21 +394,36 @@ function Cabecalho({
   onEncerrar: () => void;
   onGaveta: (qual: TipoGaveta) => void;
   usa: EventoRow;
+  /** Preparação fechada — acende o visto da fase Plano na trilha. */
+  planoPronto: boolean;
   ocupado: boolean;
 }) {
   const { dict } = useLocale();
   const t = dict.eventos;
   const agora = useRelogio();
 
-  // Só entra na barra o que este evento LIGOU. Ajustes fica sempre, porque é
-  // de lá que o resto nasce — um botão que some não pode levar junto a porta
-  // que o traz de volta.
-  const gavetas: [TipoGaveta, string][] = [
-    ["equipe", t.gavetaEquipe],
-    ...(usa.usa_kit ? ([["kit", t.gavetaKit]] as [TipoGaveta, string][]) : []),
-    ["ocorrencia", t.gavetaOcorrencia],
-    ...(usa.usa_realtime ? ([["realtime", t.gavetaRealtime]] as [TipoGaveta, string][]) : []),
-    ["ajustes", t.gavetaAjustes],
+  // AS GAVETAS SEGUEM A ORDEM DO TRABALHO, nao a ordem em que foram escritas.
+  //
+  // Ajustes, Equipe e Kit sao vespera: o que o evento usa, quem vai, e o que
+  // vai na van. Ocorrencia e Realtime sao madrugada. Estavam todas numa
+  // fileira so, igualmente acesas o tempo todo, e o Kit acabava lado a lado
+  // com o Realtime como se planejar equipamento e pedir corte na hora fossem
+  // a mesma etapa.
+  //
+  // A ordem e FIXA em todo modo — a barra nunca se reembaralha, entao a mao
+  // aprende onde cada uma fica. O que muda e o PESO: a gaveta que nao e da
+  // fase atual continua ali, clicavel, so que apagada. Esconder obrigaria a
+  // pessoa a trocar de modo para achar o que ela sabe que existe.
+  const gavetas: { chave: TipoGaveta; rotulo: string; fases: ModoEvento[] }[] = [
+    { chave: "ajustes", rotulo: t.gavetaAjustes, fases: ["plano"] },
+    { chave: "equipe", rotulo: t.gavetaEquipe, fases: ["plano", "aovivo", "fechamento"] },
+    ...(usa.usa_kit
+      ? [{ chave: "kit" as TipoGaveta, rotulo: t.gavetaKit, fases: ["plano", "fechamento"] as ModoEvento[] }]
+      : []),
+    { chave: "ocorrencia", rotulo: t.gavetaOcorrencia, fases: ["aovivo"] },
+    ...(usa.usa_realtime
+      ? [{ chave: "realtime" as TipoGaveta, rotulo: t.gavetaRealtime, fases: ["aovivo"] as ModoEvento[] }]
+      : []),
   ];
 
   const relogio =
@@ -423,24 +468,58 @@ function Cabecalho({
           </div>
         </div>
 
+        {/* AS TRES FASES SAO UMA TRILHA, e agora dizem isso.
+            Eram tres botoes iguais lado a lado — nada indicava que uma vem
+            antes da outra, nem onde a pessoa esta. Ligados por um traco que
+            acende no trecho ja vencido, viram um caminho: o visto marca o que
+            fechou, e o proximo fica claro sem ninguem ler numero nenhum. */}
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <Modo chave="plano" atual={modo} onClick={onModo} rotulo={t.modoPlano} quando={t.modoPlanoQuando} />
-          <Modo chave="aovivo" atual={modo} onClick={onModo} rotulo={t.modoAoVivo} quando={t.modoAoVivoQuando} />
-          <Modo chave="fechamento" atual={modo} onClick={onModo} rotulo={t.modoFechamento} quando={t.modoFechamentoQuando} />
+          <Modo
+            chave="plano"
+            atual={modo}
+            onClick={onModo}
+            rotulo={t.modoPlano}
+            quando={t.modoPlanoQuando}
+            concluido={planoPronto}
+          />
+          <TracoDeFase aceso={planoPronto} />
+          <Modo
+            chave="aovivo"
+            atual={modo}
+            onClick={onModo}
+            rotulo={t.modoAoVivo}
+            quando={t.modoAoVivoQuando}
+            concluido={!!usa.encerrado_em}
+          />
+          <TracoDeFase aceso={!!usa.encerrado_em} />
+          <Modo
+            chave="fechamento"
+            atual={modo}
+            onClick={onModo}
+            rotulo={t.modoFechamento}
+            quando={t.modoFechamentoQuando}
+            concluido={!!usa.entregas_criadas_em || !!usa.custos_lancados_em}
+          />
 
           <span className="ml-auto flex items-center gap-2">
-            {gavetas.map(
-              ([chave, rotulo]) => (
+            {gavetas.map(({ chave, rotulo, fases }) => {
+              const daVez = fases.includes(modo);
+              return (
                 <button
                   key={chave}
                   type="button"
                   onClick={() => onGaveta(chave)}
-                  className="rounded-full border border-white/15 px-3.5 py-2 text-xs font-medium text-white/70 transition hover:border-white/35 hover:text-white"
+                  className={cn(
+                    "rounded-full border px-3.5 py-2 text-xs font-medium transition",
+                    daVez
+                      ? "border-white/20 text-white/80 hover:border-white/40 hover:text-white"
+                      : "border-white/[0.07] text-white/30 hover:border-white/20 hover:text-white/70"
+                  )}
                 >
                   {rotulo}
                 </button>
-              )
-            )}
+              );
+            })}
             {!rodando ? (
               <button
                 type="button"
@@ -470,18 +549,37 @@ function Cabecalho({
   );
 }
 
+/**
+ * O traço entre uma fase e a seguinte.
+ *
+ * Aceso quando a fase de trás fechou. É o que transforma tres botoes numa
+ * trilha: sem ele a barra é um menu, com ele é um caminho.
+ */
+function TracoDeFase({ aceso }: { aceso: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={cn("h-px w-5 shrink-0 transition", aceso ? "bg-accent/60" : "bg-white/10")}
+      style={aceso ? { boxShadow: "0 0 8px rgb(var(--color-accent) / 0.5)" } : undefined}
+    />
+  );
+}
+
 function Modo({
   chave,
   atual,
   onClick,
   rotulo,
   quando,
+  concluido,
 }: {
   chave: ModoEvento;
   atual: ModoEvento;
   onClick: (m: ModoEvento) => void;
   rotulo: string;
   quando: string;
+  /** Esta fase já cumpriu o que tinha para cumprir. */
+  concluido: boolean;
 }) {
   const ativo = atual === chave;
   return (
@@ -500,7 +598,20 @@ function Modo({
           style={{ background: "rgb(var(--color-accent))", boxShadow: "0 0 10px rgb(var(--color-accent))" }}
         />
       )}
-      <span className={cn("block text-[13px] font-medium", ativo ? "text-white" : "text-white/60")}>{rotulo}</span>
+      <span className="flex items-center gap-1.5">
+        {/* O visto, e não um número: a trilha de pedido não conta etapas, ela
+            mostra quais já passaram. */}
+        <span
+          className={cn(
+            "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition",
+            concluido ? "border-accent/70 text-black" : ativo ? "border-accent/50" : "border-white/15"
+          )}
+          style={concluido ? { background: "rgb(var(--color-accent))" } : undefined}
+        >
+          {concluido && <IconCheck className="h-2.5 w-2.5" />}
+        </span>
+        <span className={cn("text-[13px] font-medium", ativo ? "text-white" : "text-white/60")}>{rotulo}</span>
+      </span>
       <span className="block font-mono text-[8.5px] uppercase tracking-[0.14em] text-white/30">{quando}</span>
     </button>
   );
