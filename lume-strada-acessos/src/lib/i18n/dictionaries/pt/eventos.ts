@@ -328,6 +328,14 @@ export interface EventosDict {
   prepAcaoKit: string;
   duplicarUltimo: string;
   duplicarUltimoAjuda: string;
+  ajustesDados: string;
+  ajustesSalvo: string;
+  ajustesSemPalco: string;
+  ajustesPerigo: string;
+  ajustesPerigoAjuda: string;
+  ajustesPerigoConfirmar: string;
+  ajustesStatus: string;
+  ajustesStatusAjuda: string;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -676,6 +684,14 @@ export const eventos: EventosDict = {
   prepAcaoKit: "Montar o kit",
   duplicarUltimo: "Duplicar o último",
   duplicarUltimoAjuda: "Nasce com os palcos, a pauta e a escala do anterior. Você troca a data e o nome.",
+  ajustesDados: "Dados do evento",
+  ajustesSalvo: "Salvo",
+  ajustesSemPalco: "Este evento não tem nenhum palco. A grade só começa a existir quando houver um — acrescente abaixo.",
+  ajustesPerigo: "Remover este evento",
+  ajustesPerigoAjuda: "Apaga a programação, a pauta de captação, a equipe escalada e o kit. Os links do celular de quem estava em campo param de funcionar. Não tem volta.",
+  ajustesPerigoConfirmar: "Apagar \"{nome}\" de vez",
+  ajustesStatus: "Fase do evento",
+  ajustesStatusAjuda: "Anda sozinha: vira “ao vivo” no play e “pós” ao encerrar. Aqui é para os dois casos em que ela não anda — marcar a montagem no dia, e arquivar um evento que já foi entregue.",
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",

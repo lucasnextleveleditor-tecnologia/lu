@@ -314,7 +314,14 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
         />
       )}
 
-      {gaveta === "ajustes" && <GavetaAjustes evento={evento} onFechar={() => setGaveta(null)} />}
+      {gaveta === "ajustes" && (
+        <GavetaAjustes
+          evento={evento}
+          ambientes={ambientes}
+          clientes={dados.clientes}
+          onFechar={() => setGaveta(null)}
+        />
+      )}
 
       {gaveta === "realtime" && (
         <GavetaRealtime
