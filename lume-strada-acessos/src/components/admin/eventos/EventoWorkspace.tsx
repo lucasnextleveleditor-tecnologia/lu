@@ -10,6 +10,8 @@ import { Grade, useRelogio } from "@/components/admin/eventos/Grade";
 import { PainelDoBloco, type ValoresDoBloco } from "@/components/admin/eventos/PainelDoBloco";
 import { Fechamento } from "@/components/admin/eventos/Fechamento";
 import { GavetaEquipe } from "@/components/admin/eventos/GavetaEquipe";
+import { GavetaKit } from "@/components/admin/eventos/GavetaKit";
+import { GavetaOcorrencia } from "@/components/admin/eventos/GavetaOcorrencia";
 import { fusoValido } from "@/lib/utils/fusos";
 import { modoDoStatus, type BlocoRow, type ModoEvento } from "@/lib/types/eventos";
 import type { EventoCompleto } from "@/app/admin/eventos/[id]/data";
@@ -53,7 +55,7 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
   const [rascunho, setRascunho] = useState<{ ambienteId: string; inicio: string } | null>(null);
   const [colisoes, setColisoes] = useState<{ minutos: number; lista: Colisao[] } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const [gaveta, setGaveta] = useState<"equipe" | null>(null);
+  const [gaveta, setGaveta] = useState<"equipe" | "kit" | "ocorrencia" | null>(null);
 
   const rodando = !!evento.iniciado_em;
 
@@ -171,7 +173,7 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
         onModo={setModo}
         onPlay={play}
         onEncerrar={encerrar}
-        onGaveta={() => setGaveta("equipe")}
+        onGaveta={setGaveta}
         ocupado={pendente}
       />
 
@@ -234,6 +236,26 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
         <GavetaEquipe eventoId={evento.id} equipe={equipe} membros={dados.membros} onFechar={() => setGaveta(null)} />
       )}
 
+      {gaveta === "kit" && (
+        <GavetaKit
+          eventoId={evento.id}
+          kit={dados.kit}
+          inventario={dados.inventario}
+          equipe={equipe}
+          onFechar={() => setGaveta(null)}
+        />
+      )}
+
+      {gaveta === "ocorrencia" && (
+        <GavetaOcorrencia
+          eventoId={evento.id}
+          ocorrencias={dados.ocorrencias}
+          equipe={equipe}
+          fuso={evento.fuso}
+          onFechar={() => setGaveta(null)}
+        />
+      )}
+
       {painelAberto && (
         <PainelDoBloco
           bloco={selecionado}
@@ -289,7 +311,7 @@ function Cabecalho({
   onModo: (m: ModoEvento) => void;
   onPlay: () => void;
   onEncerrar: () => void;
-  onGaveta: () => void;
+  onGaveta: (qual: "equipe" | "kit" | "ocorrencia") => void;
   ocupado: boolean;
 }) {
   const { dict } = useLocale();
@@ -344,13 +366,18 @@ function Cabecalho({
           <Modo chave="fechamento" atual={modo} onClick={onModo} rotulo={t.modoFechamento} quando={t.modoFechamentoQuando} />
 
           <span className="ml-auto flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onGaveta}
-              className="rounded-full border border-white/15 px-3.5 py-2 text-xs font-medium text-white/70 transition hover:border-white/35 hover:text-white"
-            >
-              {t.gavetaEquipe}
-            </button>
+            {([["equipe", t.gavetaEquipe], ["kit", t.gavetaKit], ["ocorrencia", t.gavetaOcorrencia]] as const).map(
+              ([chave, rotulo]) => (
+                <button
+                  key={chave}
+                  type="button"
+                  onClick={() => onGaveta(chave)}
+                  className="rounded-full border border-white/15 px-3.5 py-2 text-xs font-medium text-white/70 transition hover:border-white/35 hover:text-white"
+                >
+                  {rotulo}
+                </button>
+              )
+            )}
             {!rodando ? (
               <button
                 type="button"

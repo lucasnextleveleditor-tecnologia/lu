@@ -235,6 +235,28 @@ export interface EventosDict {
   gavetaEquipe: string;
   gavetaKit: string;
   gavetaOcorrencia: string;
+  kitTitulo: string;
+  kitNaoVoltou: string;
+  kitDoInventario: string;
+  kitOuEscreva: string;
+  kitNome: string;
+  kitSemResponsavel: string;
+  kitAdicionar: string;
+  kitVazio: string;
+  kitDoPatrimonio: string;
+  kitSaiu: string;
+  kitVoltou: string;
+  ocorrenciaTitulo: string;
+  ocorrenciaAjuda: string;
+  ocorrenciaOutra: string;
+  ocorrenciaRegistrar: string;
+  ocorrenciaLog: string;
+  ocorrenciaLogVazio: string;
+  ocorrenciaAutorPainel: string;
+  /** Os seis atalhos de dois toques da gaveta de Ocorrencia. */
+  ocorrenciaAtalhos: Record<string, string>;
+  /** Rotulo de cada tipo de linha do log (ver TipoOcorrencia). */
+  ocorrenciaTipos: Record<string, string>;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -475,6 +497,39 @@ export const eventos: EventosDict = {
   gavetaEquipe: "Equipe",
   gavetaKit: "Kit",
   gavetaOcorrencia: "Ocorrência",
+  kitTitulo: "Kit do evento",
+  kitNaoVoltou: "saíram e não voltaram",
+  kitDoInventario: "Puxar do Inventário",
+  kitOuEscreva: "— ou escreva o item abaixo —",
+  kitNome: "O que é",
+  kitSemResponsavel: "Sem responsável",
+  kitAdicionar: "Adicionar",
+  kitVazio: "Nada no kit ainda.",
+  kitDoPatrimonio: "do patrimônio",
+  kitSaiu: "Saiu",
+  kitVoltou: "Voltou",
+  ocorrenciaTitulo: "Ocorrência",
+  ocorrenciaAjuda: "Toque no que aconteceu. Fica no log com hora e autor — é o que transforma \"o show atrasou\" em \"o som chegou 21h40\".",
+  ocorrenciaOutra: "Outra coisa…",
+  ocorrenciaRegistrar: "Registrar",
+  ocorrenciaLog: "O que aconteceu neste evento",
+  ocorrenciaLogVazio: "Nada registrado ainda.",
+  ocorrenciaAutorPainel: "painel",
+  ocorrenciaAtalhos: {
+    chuva: "Choveu",
+    artistaAtrasado: "Artista atrasado",
+    equipamento: "Equipamento com problema",
+    acessoNegado: "Acesso negado",
+    publico: "Público acima do previsto",
+    producao: "Mudança da produção",
+  },
+  ocorrenciaTipos: {
+    atraso: "atraso",
+    ocorrencia: "ocorrência",
+    status: "status",
+    captura: "captação",
+    entrega: "entrega",
+  },
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",

@@ -840,3 +840,89 @@ export async function removerDaEquipe(eventoId: string, pessoaId: string): Promi
     return { ok: false, error: mensagem(err) };
   }
 }
+
+
+// ----------------------------------------------------------------------------
+// A gaveta de Kit — o que sai e o que volta
+// ----------------------------------------------------------------------------
+
+export interface ItemDeKitInput {
+  /** Quando vem do Inventário da casa. Null = "tripé emprestado do João". */
+  itemInventarioId: string | null;
+  nome: string;
+  quantidade: number;
+  responsavelId: string | null;
+}
+
+export async function adicionarAoKit(eventoId: string, input: ItemDeKitInput): Promise<ResultadoId> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+
+    const nome = input.nome.trim();
+    if (!nome) return { ok: false, error: "ITEM_SEM_NOME" };
+
+    const { data: ultimo } = await supabase
+      .from("ev_kit")
+      .select("ordem")
+      .eq("evento_id", eventoId)
+      .order("ordem", { ascending: false })
+      .limit(1)
+      .maybeSingle<{ ordem: number }>();
+
+    const { data, error } = await supabase
+      .from("ev_kit")
+      .insert({
+        evento_id: eventoId,
+        item_inventario_id: input.itemInventarioId,
+        nome,
+        quantidade: input.quantidade > 0 ? input.quantidade : 1,
+        responsavel_id: input.responsavelId,
+        ordem: (ultimo?.ordem ?? -1) + 1,
+      })
+      .select("id")
+      .single<{ id: string }>();
+
+    if (error || !data) return { ok: false, error: error?.message ?? "Erro desconhecido." };
+    revalidar(eventoId);
+    return { ok: true, id: data.id };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+/**
+ * Saiu e voltou, em dois toques independentes.
+ *
+ * "Voltou" não implica "saiu" e o contrário também não: equipamento que foi
+ * direto do cliente para o evento nunca saiu da base, e o que sumiu no meio do
+ * caminho saiu e não voltou. Amarrar um no outro criaria uma conta bonita e
+ * errada — e a conta que importa nesta gaveta é justamente **o que não
+ * voltou**.
+ */
+export async function marcarItemDoKit(
+  eventoId: string,
+  itemId: string,
+  campos: { saiu?: boolean; voltou?: boolean }
+): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+    const { error } = await supabase.from("ev_kit").update(campos).eq("id", itemId);
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+export async function removerDoKit(eventoId: string, itemId: string): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+    const { error } = await supabase.from("ev_kit").delete().eq("id", itemId);
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
