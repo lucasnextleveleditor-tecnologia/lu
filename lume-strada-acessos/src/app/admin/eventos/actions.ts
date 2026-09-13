@@ -46,7 +46,18 @@ export interface EventoInput {
  * a pessoa cadastrar algo antes de poder fazer qualquer coisa. Quem está
  * criando um evento já sabe quantos palcos vai ter.
  */
-export async function criarEvento(input: EventoInput, ambientes: string[]): Promise<ResultadoEventoId> {
+/**
+ * `baseId` = o evento (ou modelo) de onde este nasce.
+ *
+ * Quando ele vem, os ambientes digitados são ignorados e a estrutura inteira é
+ * copiada da origem — ambientes E programação —, com todos os horários
+ * deslocados pela diferença entre o começo novo e o antigo. É o que faz um
+ * festival mensal levar três minutos em vez de uma tarde.
+ *
+ * O que NÃO é copiado: pauta marcada, equipe, ponto, kit e ocorrências. Aquilo
+ * aconteceu num sábado específico. O que se repete é a forma.
+ */
+export async function criarEvento(input: EventoInput, ambientes: string[], baseId?: string | null): Promise<ResultadoEventoId> {
   try {
     const { supabase } = await requireModulo("eventos");
 
@@ -70,6 +81,12 @@ export async function criarEvento(input: EventoInput, ambientes: string[]): Prom
       .single<{ id: string }>();
 
     if (error || !data) return { ok: false, error: error?.message ?? "Erro desconhecido." };
+
+    if (baseId) {
+      await copiarEstrutura(supabase, baseId, data.id, input.inicio);
+      revalidar();
+      return { ok: true, id: data.id };
+    }
 
     const limpos = ambientes.map((a) => a.trim()).filter(Boolean).slice(0, 20);
     if (limpos.length > 0) {
@@ -213,5 +230,86 @@ export async function removerAmbiente(id: string): Promise<ResultadoEvento> {
     return { ok: true };
   } catch (err) {
     return { ok: false, error: mensagem(err) };
+  }
+}
+
+
+/**
+ * Copia ambientes e programação de um evento para outro, deslocando o relógio.
+ *
+ * Falhar aqui NÃO desfaz o evento: ele existe, e a pessoa consegue montar a
+ * grade na mão. Derrubar o evento inteiro porque a cópia de uma estrutura não
+ * entrou trocaria um problema pequeno por um grande — a mesma regra dos
+ * ambientes logo acima.
+ */
+async function copiarEstrutura(
+  supabase: Awaited<ReturnType<typeof requireModulo>>["supabase"],
+  baseId: string,
+  novoId: string,
+  novoInicio: string
+): Promise<void> {
+  try {
+    const { data: base } = await supabase
+      .from("ev_eventos")
+      .select("inicio")
+      .eq("id", baseId)
+      .maybeSingle<{ inicio: string }>();
+    if (!base) return;
+
+    const delta = new Date(novoInicio).getTime() - new Date(base.inicio).getTime();
+    const mover = (iso: string) => new Date(new Date(iso).getTime() + delta).toISOString();
+
+    const { data: ambientes } = await supabase
+      .from("ev_ambientes")
+      .select("id, nome, cor, ordem, modo_padrao")
+      .eq("evento_id", baseId)
+      .order("ordem")
+      .overrideTypes<{ id: string; nome: string; cor: string | null; ordem: number; modo_padrao: string }[], { merge: false }>();
+
+    const dePara = new Map<string, string>();
+    for (const a of ambientes ?? []) {
+      const { data: novo } = await supabase
+        .from("ev_ambientes")
+        .insert({ evento_id: novoId, nome: a.nome, cor: a.cor, ordem: a.ordem, modo_padrao: a.modo_padrao })
+        .select("id")
+        .single<{ id: string }>();
+      if (novo) dePara.set(a.id, novo.id);
+    }
+
+    const { data: blocos } = await supabase
+      .from("ev_blocos")
+      .select("ambiente_id, titulo, tipo, ancora, inicio, fim, duracao_min, ordem")
+      .eq("evento_id", baseId)
+      .overrideTypes<
+        {
+          ambiente_id: string | null;
+          titulo: string;
+          tipo: string;
+          ancora: string;
+          inicio: string;
+          fim: string | null;
+          duracao_min: number | null;
+          ordem: number;
+        }[],
+        { merge: false }
+      >();
+
+    if (blocos?.length) {
+      await supabase.from("ev_blocos").insert(
+        blocos.map((b) => ({
+          evento_id: novoId,
+          ambiente_id: b.ambiente_id ? (dePara.get(b.ambiente_id) ?? null) : null,
+          titulo: b.titulo,
+          tipo: b.tipo,
+          ancora: b.ancora,
+          inicio: mover(b.inicio),
+          fim: b.fim ? mover(b.fim) : null,
+          duracao_min: b.duracao_min,
+          ordem: b.ordem,
+        }))
+      );
+    }
+  } catch {
+    // Ver o comentário acima.
   }
 }

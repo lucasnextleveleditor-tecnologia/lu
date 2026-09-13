@@ -257,6 +257,18 @@ export interface EventosDict {
   ocorrenciaAtalhos: Record<string, string>;
   /** Rotulo de cada tipo de linha do log (ver TipoOcorrencia). */
   ocorrenciaTipos: Record<string, string>;
+  aoVivoFaltaAgora: string;
+  aoVivoFaltaVazio: string;
+  aoVivoPassouDaHora: string;
+  aoVivoSemDono: string;
+  aoVivoEmCampo: string;
+  aoVivoNinguemEmCampo: string;
+  aoVivoChegou: string;
+  aoVivoNaoChegou: string;
+  baseLabel: string;
+  baseDoZero: string;
+  baseModelo: string;
+  baseAjuda: string;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -530,6 +542,18 @@ export const eventos: EventosDict = {
     captura: "captação",
     entrega: "entrega",
   },
+  aoVivoFaltaAgora: "Falta captar agora",
+  aoVivoFaltaVazio: "Nada pendente nesta janela. Respira.",
+  aoVivoPassouDaHora: "passou da hora",
+  aoVivoSemDono: "sem dono",
+  aoVivoEmCampo: "Quem está em campo",
+  aoVivoNinguemEmCampo: "Ninguém escalado ainda.",
+  aoVivoChegou: "chegou",
+  aoVivoNaoChegou: "não bateu ponto",
+  baseLabel: "Começar de",
+  baseDoZero: "Do zero",
+  baseModelo: "modelo",
+  baseAjuda: "Ambientes e programação vêm prontos, com os horários deslocados para a data nova. Pauta marcada, equipe e kit não vêm.",
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",

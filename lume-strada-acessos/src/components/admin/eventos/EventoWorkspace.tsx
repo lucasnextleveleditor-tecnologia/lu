@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { IconChevronLeft } from "@/components/ui/icons";
 import { Grade, useRelogio } from "@/components/admin/eventos/Grade";
+import { PainelAoVivo } from "@/components/admin/eventos/PainelAoVivo";
 import { PainelDoBloco, type ValoresDoBloco } from "@/components/admin/eventos/PainelDoBloco";
 import { Fechamento } from "@/components/admin/eventos/Fechamento";
 import { GavetaEquipe } from "@/components/admin/eventos/GavetaEquipe";
@@ -58,6 +59,20 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
   const [gaveta, setGaveta] = useState<"equipe" | "kit" | "ocorrencia" | null>(null);
 
   const rodando = !!evento.iniciado_em;
+
+  // O relógio da tela inteira — o painel de baixo usa a MESMA batida da grade,
+  // senão os dois mostram minutos diferentes do mesmo instante.
+  const agora = useRelogio(modo === "aovivo");
+
+  // AO VIVO ATUALIZA SOZINHO. É o que fecha a promessa do mapa: "o que ele
+  // marca acende na timeline". O freela toca no celular dele, e trinta
+  // segundos depois a base vê — sem ninguém apertar F5 no meio do show.
+  // Só no Ao Vivo: no Plano não há nada mudando do outro lado.
+  useEffect(() => {
+    if (modo !== "aovivo") return;
+    const id = setInterval(() => router.refresh(), 30_000);
+    return () => clearInterval(id);
+  }, [modo, router]);
 
   function traduzirErro(codigo: string): string {
     const mapa: Record<string, string> = {
@@ -216,6 +231,16 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
 
       {modo === "aovivo" && !rodando && (
         <p className="px-1 text-[11px] text-ink-muted">{t.eventoNaoComecou}</p>
+      )}
+
+      {modo === "aovivo" && (
+        <PainelAoVivo
+          eventoId={evento.id}
+          capturas={capturas}
+          equipe={equipe}
+          fuso={evento.fuso}
+          agora={agora}
+        />
       )}
 
       {modo === "fechamento" && (
