@@ -267,6 +267,40 @@ export interface OcorrenciaRow {
   created_at: string;
 }
 
+/**
+ * As categorias de custo. Lista FECHADA de propósito: ela existe para agrupar
+ * no fechamento, não para descrever. Texto livre viraria "Van", "van" e "Van
+ * grande" na primeira semana, e o agrupamento morreria junto.
+ */
+export const CATEGORIAS_CUSTO = [
+  "transporte",
+  "alimentacao",
+  "locacao",
+  "equipe",
+  "producao",
+  "taxa",
+  "outro",
+] as const;
+export type CategoriaCusto = (typeof CATEGORIAS_CUSTO)[number];
+
+/** Uma despesa do evento. O cachê da equipe NÃO entra aqui — ele nasce da escala. */
+export interface CustoRow {
+  id: string;
+  company_id: string;
+  evento_id: string;
+  descricao: string;
+  categoria: CategoriaCusto;
+  valor: number;
+  /** `true` = ainda é estimativa. `false` = o valor real, já confirmado. */
+  previsto: boolean;
+  /** Carimbo do olho humano no fechamento. Null = ninguém conferiu ainda. */
+  conferido_em: string | null;
+  pago: boolean;
+  observacao: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export const STATUS_REALTIME = ["pedido", "editando", "entregue", "cancelado"] as const;
 export type StatusRealtime = (typeof STATUS_REALTIME)[number];
 

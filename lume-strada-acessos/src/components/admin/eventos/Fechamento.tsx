@@ -8,6 +8,8 @@ import { useRelogio } from "@/components/admin/eventos/Grade";
 import { montarBalanco } from "@/lib/eventos/balanco";
 import { estadoDaCaptura, type BlocoRow, type CapturaRow, type EquipeEventoRow, type EventoRow } from "@/lib/types/eventos";
 import { criarEntregas, lancarCustos, salvarComoTemplate } from "@/app/admin/eventos/[id]/actions";
+import type { CustoRow } from "@/lib/types/eventos";
+import { substituir } from "@/lib/utils/texto";
 
 /**
  * O FECHAMENTO — o balanço, e os dois botões que devolvem trabalho.
@@ -29,9 +31,13 @@ interface Props {
   capturas: CapturaRow[];
   equipe: EquipeEventoRow[];
   blocos: BlocoRow[];
+  /** As despesas lançadas na aba de Custos. */
+  custos: CustoRow[];
+  /** Abre a gaveta de Custos — daqui o fechamento não edita, ele manda para lá. */
+  onAbrirCustos: () => void;
 }
 
-export function Fechamento({ evento, capturas, equipe, blocos }: Props) {
+export function Fechamento({ evento, capturas, equipe, blocos, custos, onAbrirCustos }: Props) {
   const { dict, fmtMoeda } = useLocale();
   const t = dict.eventos;
   const router = useRouter();
@@ -45,6 +51,10 @@ export function Fechamento({ evento, capturas, equipe, blocos }: Props) {
     () => montarBalanco(capturas, equipe, blocos, new Date(agora ?? 0).toISOString(), t.balancoSemDestinatario),
     [capturas, equipe, blocos, agora, t.balancoSemDestinatario]
   );
+
+  const daProducao = custos.reduce((soma, c) => soma + Number(c.valor ?? 0), 0);
+  const totalDaConta = balanco.conta.realizado + daProducao;
+  const porConferir = custos.filter((c) => !c.conferido_em).length;
 
   const ERROS: Record<string, string> = {
     ENTREGAS_JA_CRIADAS: t.erroEntregasJaCriadas,
@@ -66,7 +76,7 @@ export function Fechamento({ evento, capturas, equipe, blocos }: Props) {
     });
   }
 
-  function custos() {
+  function lancarNoFinanceiro() {
     iniciar(async () => {
       const r = await lancarCustos(evento.id);
       setAviso(r.ok ? { tom: "bom", texto: t.custosLancados } : { tom: "ruim", texto: ERROS[r.error] ?? r.error });
@@ -163,6 +173,58 @@ export function Fechamento({ evento, capturas, equipe, blocos }: Props) {
         </p>
       </Painel>
 
+      {/* ---- A CONFERÊNCIA ----
+          O fechamento não é onde a conta se DIGITA, é onde ela se CONFERE. As
+          despesas foram lançadas ao longo da semana, na aba de Custos; aqui a
+          pergunta é só "foi isso mesmo?", e o que ela precisa destacar é a
+          linha que ninguém olhou ainda. Editar continua sendo lá — uma
+          despesa com dois lugares para mudar é uma despesa que diverge. */}
+      {evento.usa_cache && (
+        <Painel titulo={t.custosTitulo}>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="font-mono text-xl tabular-nums text-white">{fmtMoeda(totalDaConta)}</p>
+              <p className="mt-0.5 font-mono text-[9.5px] uppercase tracking-[0.16em] text-white/40">
+                {t.custosTotal}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onAbrirCustos}
+              className="rounded-full border border-white/15 px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-white/60 transition hover:border-white/35 hover:text-white"
+            >
+              {t.gavetaCustos}
+            </button>
+          </div>
+
+          {porConferir > 0 ? (
+            <div className="mt-3 rounded-xl border border-status-warning/30 bg-status-warning/[0.05] px-4 py-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-status-warning">
+                {substituir(t.custosPorConferir, { n: porConferir })}
+              </p>
+              <ul className="mt-2 space-y-1">
+                {custos
+                  .filter((c) => !c.conferido_em)
+                  .slice(0, 6)
+                  .map((c) => (
+                    <li key={c.id} className="flex items-center justify-between gap-3 text-[12.5px] text-white/70">
+                      <span className="min-w-0 truncate">{c.descricao}</span>
+                      <span className="shrink-0 font-mono tabular-nums text-white/50">
+                        {fmtMoeda(Number(c.valor))}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+              <p className="mt-2.5 text-[11.5px] leading-relaxed text-white/35">{t.custosConfiraAntes}</p>
+            </div>
+          ) : (
+            <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-status-good">
+              {custos.length === 0 ? t.custosVazio : t.custosTudoConferido}
+            </p>
+          )}
+        </Painel>
+      )}
+
       <Painel titulo={t.balancoDoisBotoes}>
         {/* Os dois botões são os Ajustes do evento em forma de ação: quem não
             liga entregas não vai querer o botão que cria tarefa na Produção. */}
@@ -185,7 +247,7 @@ export function Fechamento({ evento, capturas, equipe, blocos }: Props) {
                 destino="Financeiro"
                 feito={!!evento.custos_lancados_em}
                 ocupado={pendente}
-                onClick={custos}
+                onClick={lancarNoFinanceiro}
               />
             )}
           </div>

@@ -336,6 +336,49 @@ export interface EventosDict {
   ajustesPerigoConfirmar: string;
   ajustesStatus: string;
   ajustesStatusAjuda: string;
+  custoProducao: string;
+  gavetaCustos: string;
+  custosTitulo: string;
+  custosAjuda: string;
+  custosNovo: string;
+  custosDescricao: string;
+  custosDescricaoPlaceholder: string;
+  custosValor: string;
+  custosCategoria: string;
+  custosVazio: string;
+  custosEhPrevisto: string;
+  custosPrevisto: string;
+  custosRealizado: string;
+  custosDaEquipe: string;
+  custosDeProducao: string;
+  custosTotal: string;
+  custosPago: string;
+  custosConferir: string;
+  custosConferido: string;
+  custosConferirTodos: string;
+  custosPorConferir: string;
+  custosTudoConferido: string;
+  custosConfiraAntes: string;
+  erroCustoSemDescricao: string;
+  erroCustoCategoria: string;
+  kitAbrirInventario: string;
+  kitFecharInventario: string;
+  kitBuscar: string;
+  kitSemCategoria: string;
+  kitTodasCategorias: string;
+  kitSelecionados: string;
+  kitIncluirSelecionados: string;
+  kitInventarioVazio: string;
+  kitJaNoKit: string;
+  gradeTelaCheia: string;
+  gradeSairTelaCheia: string;
+  gradeZoom: string;
+  celularTimeline: string;
+  celularSoLeitura: string;
+  celularToqueNoSeu: string;
+  celularOutrosItens: string;
+  /** Rotulo de cada categoria de custo (ver CATEGORIAS_CUSTO). */
+  categoriasCusto: Record<string, string>;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -692,6 +735,56 @@ export const eventos: EventosDict = {
   ajustesPerigoConfirmar: "Apagar \"{nome}\" de vez",
   ajustesStatus: "Fase do evento",
   ajustesStatusAjuda: "Anda sozinha: vira “ao vivo” no play e “pós” ao encerrar. Aqui é para os dois casos em que ela não anda — marcar a montagem no dia, e arquivar um evento que já foi entregue.",
+  custoProducao: "Produção e estrutura",
+  gavetaCustos: "Custos",
+  custosTitulo: "Custos do evento",
+  custosAjuda: "Lance conforme os valores aparecem — van na terça, gerador na quarta. No fechamento você só confere o que já está aqui e acrescenta o imprevisto.",
+  custosNovo: "Nova despesa",
+  custosDescricao: "O que foi",
+  custosDescricaoPlaceholder: "Ex.: van da equipe, ida e volta",
+  custosValor: "Quanto",
+  custosCategoria: "Categoria",
+  custosVazio: "Nenhuma despesa lançada ainda.",
+  custosEhPrevisto: "Ainda é estimativa",
+  custosPrevisto: "previsto",
+  custosRealizado: "realizado",
+  custosDaEquipe: "Cachês e extras",
+  custosDeProducao: "Produção e estrutura",
+  custosTotal: "Total do evento",
+  custosPago: "Pago",
+  custosConferir: "Conferir",
+  custosConferido: "conferido",
+  custosConferirTodos: "Conferir tudo",
+  custosPorConferir: "{n} por conferir",
+  custosTudoConferido: "Tudo conferido.",
+  custosConfiraAntes: "Confira os custos antes de lançar — depois disso o Financeiro já recebeu.",
+  erroCustoSemDescricao: "Escreva o que foi essa despesa.",
+  erroCustoCategoria: "Essa categoria não existe.",
+  kitAbrirInventario: "Ver o inventário todo",
+  kitFecharInventario: "Fechar o inventário",
+  kitBuscar: "Buscar no inventário",
+  kitSemCategoria: "Sem categoria",
+  kitTodasCategorias: "Todas",
+  kitSelecionados: "{n} marcados",
+  kitIncluirSelecionados: "Incluir no kit",
+  kitInventarioVazio: "Nada no inventário com esse filtro.",
+  kitJaNoKit: "já está no kit",
+  gradeTelaCheia: "Tela cheia",
+  gradeSairTelaCheia: "Sair",
+  gradeZoom: "Zoom",
+  celularTimeline: "A noite inteira",
+  celularSoLeitura: "O resto da equipe está aqui só para você se localizar.",
+  celularToqueNoSeu: "Toque no que é seu para marcar.",
+  celularOutrosItens: "de outra pessoa",
+  categoriasCusto: {
+    transporte: "Transporte",
+    alimentacao: "Alimentação",
+    locacao: "Locação",
+    equipe: "Equipe",
+    producao: "Produção",
+    taxa: "Taxas e alvarás",
+    outro: "Outro",
+  },
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",

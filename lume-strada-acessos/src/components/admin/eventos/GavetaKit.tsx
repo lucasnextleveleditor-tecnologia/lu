@@ -7,6 +7,7 @@ import { useLocale } from "@/lib/i18n/LocaleProvider";
 import type { EquipeEventoRow, KitRow } from "@/lib/types/eventos";
 import type { ItemDaCasa } from "@/app/admin/eventos/[id]/data";
 import { adicionarAoKit, marcarItemDoKit, removerDoKit } from "@/app/admin/eventos/[id]/actions";
+import { InventarioDoKit } from "@/components/admin/eventos/InventarioDoKit";
 
 /**
  * A GAVETA DE KIT — o que vai, e o que voltou.
@@ -43,6 +44,11 @@ export function GavetaKit({
   const [quantidade, setQuantidade] = useState(1);
   const [itemId, setItemId] = useState<string | null>(null);
   const [responsavelId, setResponsavelId] = useState<string | null>(null);
+  const [prateleira, setPrateleira] = useState(false);
+
+  // O que ja esta no kit, por id do inventario — a prateleira marca esses e
+  // nao deixa incluir de novo.
+  const jaNoKit = new Set(kit.map((i) => i.item_inventario_id).filter((x): x is string => !!x));
 
   function escolherDoInventario(id: string) {
     const item = inventario.find((i) => i.id === id);
@@ -100,10 +106,23 @@ export function GavetaKit({
           {/* --- acrescentar --- */}
           <div className="mt-5 rounded-xl border border-white/[0.08] bg-black/40 p-4">
             <p className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-white/40">{t.kitDoInventario}</p>
+
+            {/* DUAS PORTAS, e a de cima e a nova: abrir a prateleira inteira e
+                marcar o que vai. A lista suspensa continua embaixo porque ela
+                ganha quando a pessoa JA SABE o nome do item — digitar tres
+                letras e mais rapido do que rolar uma categoria. */}
+            <button
+              type="button"
+              onClick={() => setPrateleira((v) => !v)}
+              className="mt-1.5 w-full rounded-lg border border-accent/35 bg-accent/[0.06] px-3 py-2.5 text-left text-sm text-white/85 transition hover:border-accent/55"
+            >
+              {t.kitAbrirInventario}
+            </button>
+
             <select
               value={itemId ?? ""}
               onChange={(e) => escolherDoInventario(e.target.value)}
-              className="mt-1.5 w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2.5 text-sm text-white focus:border-accent/60 focus:outline-none"
+              className="mt-2 w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2.5 text-sm text-white focus:border-accent/60 focus:outline-none"
             >
               <option value="">{t.kitOuEscreva}</option>
               {inventario.map((i) => (
@@ -152,6 +171,17 @@ export function GavetaKit({
               </button>
             </div>
           </div>
+
+          {prateleira && (
+            <div className="mt-3">
+              <InventarioDoKit
+                eventoId={eventoId}
+                inventario={inventario}
+                jaNoKit={jaNoKit}
+                onFechar={() => setPrateleira(false)}
+              />
+            </div>
+          )}
 
           {/* --- a lista --- */}
           <ul className="mt-5 space-y-2">

@@ -16,6 +16,7 @@ import { GavetaOcorrencia } from "@/components/admin/eventos/GavetaOcorrencia";
 import { GavetaRealtime } from "@/components/admin/eventos/GavetaRealtime";
 import { GavetaAjustes } from "@/components/admin/eventos/GavetaAjustes";
 import { PreparacaoDoPlano, etapasDaPreparacao } from "@/components/admin/eventos/PreparacaoDoPlano";
+import { GavetaCustos } from "@/components/admin/eventos/GavetaCustos";
 import { fusoValido } from "@/lib/utils/fusos";
 import { modoDoStatus, type BlocoRow, type EventoRow, type ModoEvento } from "@/lib/types/eventos";
 import type { EventoCompleto } from "@/app/admin/eventos/[id]/data";
@@ -45,7 +46,7 @@ import {
  */
 
 /** As gavetas que a barra do cabeçalho pode abrir. */
-type TipoGaveta = "equipe" | "kit" | "ocorrencia" | "realtime" | "ajustes";
+type TipoGaveta = "equipe" | "kit" | "custos" | "ocorrencia" | "realtime" | "ajustes";
 
 export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto; modoInicial: ModoEvento }) {
   const { dict } = useLocale();
@@ -280,7 +281,14 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
       )}
 
       {modo === "fechamento" && (
-        <Fechamento evento={evento} capturas={capturas} equipe={equipe} blocos={blocos} />
+        <Fechamento
+          evento={evento}
+          capturas={capturas}
+          equipe={equipe}
+          blocos={blocos}
+          custos={dados.custos}
+          onAbrirCustos={() => setGaveta("custos")}
+        />
       )}
 
       {modo === "aovivo" && selecionado && !painelAberto && (
@@ -310,6 +318,16 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
           kit={dados.kit}
           inventario={dados.inventario}
           equipe={equipe}
+          onFechar={() => setGaveta(null)}
+        />
+      )}
+
+      {gaveta === "custos" && (
+        <GavetaCustos
+          eventoId={evento.id}
+          custos={dados.custos}
+          equipe={equipe}
+          usaCache={evento.usa_cache}
           onFechar={() => setGaveta(null)}
         />
       )}
@@ -426,6 +444,12 @@ function Cabecalho({
     { chave: "equipe", rotulo: t.gavetaEquipe, fases: ["plano", "aovivo", "fechamento"] },
     ...(usa.usa_kit
       ? [{ chave: "kit" as TipoGaveta, rotulo: t.gavetaKit, fases: ["plano", "fechamento"] as ModoEvento[] }]
+      : []),
+    // Custos aparece nas TRES fases, e e a unica gaveta assim. Lancar acontece
+    // na vespera, o imprevisto aparece no meio do show, e conferir e o
+    // fechamento — nao ha fase em que a aba nao sirva.
+    ...(usa.usa_cache
+      ? [{ chave: "custos" as TipoGaveta, rotulo: t.gavetaCustos, fases: ["plano", "aovivo", "fechamento"] as ModoEvento[] }]
       : []),
     { chave: "ocorrencia", rotulo: t.gavetaOcorrencia, fases: ["aovivo"] },
     ...(usa.usa_realtime

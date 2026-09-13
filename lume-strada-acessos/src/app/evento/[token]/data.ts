@@ -67,15 +67,23 @@ export async function buscarPautaPorToken(token: string): Promise<ResultadoDaPau
   if (!evento) return null;
 
   const [capturas, blocos, ambientes] = await Promise.all([
-    // A pauta dela MAIS a que não tem dono. Num evento real metade dos itens
-    // nasce sem responsável, e quem está com a câmera na mão perto do palco é
-    // quem capta — esconder o que não tem dono deixaria a lista vazia para
-    // todo mundo.
+    // A NOITE INTEIRA, e não só a pauta dela.
+    //
+    // A consulta era filtrada por responsável, e a tela nascia cega: quem está
+    // no meio de um festival não pergunta apenas "o que eu tenho que fazer",
+    // pergunta "onde eu estou na noite". Sem a programação completa, o
+    // freelancer não sabia que o show seguinte começava em dez minutos no
+    // palco ao lado, nem por que a janela dele fechava às 23h40.
+    //
+    // O que ele PODE MARCAR continua sendo só o dele e o que não tem dono — e
+    // quem garante isso é `marcarPorToken`, no servidor, não esta consulta. A
+    // tela mostra o resto apagado e sem botão; a ação recusa de qualquer jeito.
+    // Trazer tudo aqui não abre porta nenhuma: é a programação do evento para
+    // o qual essa pessoa foi contratada, e ela vai estar lá dentro.
     admin
       .from("ev_capturas")
       .select("*")
       .eq("evento_id", evento.id)
-      .or(`responsavel_id.eq.${pessoa.id},responsavel_id.is.null`)
       .order("janela_inicio")
       .overrideTypes<CapturaRow[], { merge: false }>(),
     admin

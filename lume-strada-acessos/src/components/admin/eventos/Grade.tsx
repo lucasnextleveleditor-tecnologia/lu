@@ -136,6 +136,43 @@ export function Grade({
   const zona = fusoValido(fuso);
   const agora = useRelogio();
 
+  /**
+   * ZOOM E TELA CHEIA.
+   *
+   * Uma noite de seis horas em mil pixels dá dez minutos por centímetro: cabe
+   * inteira na tela e não cabe na leitura. Um boom de cinco minutos vira um
+   * risco, e "o CO₂ é antes ou depois do Show 2?" deixa de ter resposta
+   * visual. O zoom estica o eixo do TEMPO — a faixa de cada ambiente continua
+   * na mesma altura, porque o que está apertado é o horizontal.
+   *
+   * A tela cheia é o outro lado do mesmo problema: no meio do show a grade é a
+   * única coisa que importa, e o menu lateral, o cabeçalho e as gavetas são
+   * paisagem. Um clique tira tudo.
+   *
+   * O zoom mora no `min-width` do conteúdo dentro de um contêiner que rola,
+   * e não num `transform: scale`: escala borraria o texto dos blocos e a régua
+   * junto, que é exatamente o que se foi lá ler.
+   */
+  const [zoom, setZoom] = useState(1);
+  const [telaCheia, setTelaCheia] = useState(false);
+
+  // Esc sai da tela cheia. É o gesto que a pessoa já tenta sem pensar, e sem
+  // ele a única saída seria achar um botão dentro de uma tela que ocupa tudo.
+  useEffect(() => {
+    if (!telaCheia) return;
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTelaCheia(false);
+    };
+    window.addEventListener("keydown", aoTeclar);
+    // A página atrás não deve rolar enquanto a grade ocupa a tela.
+    const antes = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", aoTeclar);
+      document.body.style.overflow = antes;
+    };
+  }, [telaCheia]);
+
   // A janela desenhada estica para caber bloco que passou do fim previsto —
   // evento atrasa, e um bloco desenhado fora da tela é um bloco que ninguém vê.
   const { de, ate } = useMemo(() => {
@@ -175,15 +212,30 @@ export function Grade({
   const agoraVisivel = agora !== null && agora >= de && agora <= ate;
 
   return (
-    <div className="ev-console relative overflow-hidden rounded-2xl border border-white/10">
+    <div
+      className={cn(
+        "ev-console relative border border-white/10",
+        telaCheia
+          ? "fixed inset-0 z-50 flex flex-col overflow-hidden rounded-none"
+          : "overflow-hidden rounded-2xl"
+      )}
+    >
       <div aria-hidden className="ev-linhas-monitor pointer-events-none absolute inset-0" />
       <Cantos />
 
-      <div className="relative px-4 py-5 sm:px-6">
-        <BarraDaGrade zona={zona} agora={agora} modo={modo} />
+      <div className={cn("relative px-4 py-5 sm:px-6", telaCheia && "flex min-h-0 flex-1 flex-col")}>
+        <BarraDaGrade
+          zona={zona}
+          agora={agora}
+          modo={modo}
+          zoom={zoom}
+          telaCheia={telaCheia}
+          onZoom={setZoom}
+          onTelaCheia={() => setTelaCheia((v) => !v)}
+        />
 
-        <div className="mt-5 overflow-x-auto">
-          <div className="min-w-[720px]">
+        <div className={cn("mt-5 overflow-x-auto", telaCheia && "min-h-0 flex-1 overflow-y-auto")}>
+          <div style={{ minWidth: `${720 * zoom}px`, width: zoom > 1 ? `${zoom * 100}%` : undefined }}>
             <Regua marcas={marcas} pct={pct} zona={zona} />
 
             <div className="relative">
@@ -217,7 +269,7 @@ export function Grade({
           </div>
         </div>
 
-        <Legenda />
+        {!telaCheia && <Legenda />}
       </div>
     </div>
   );
@@ -236,10 +288,30 @@ function Cantos() {
   );
 }
 
-function BarraDaGrade({ zona, agora, modo }: { zona: string; agora: number | null; modo: "plano" | "aovivo" }) {
+/** Os degraus de zoom. Passar de 4x nao ajuda: a noite vira um corredor. */
+const ZOOMS = [1, 1.5, 2, 3, 4] as const;
+
+function BarraDaGrade({
+  zona,
+  agora,
+  modo,
+  zoom,
+  telaCheia,
+  onZoom,
+  onTelaCheia,
+}: {
+  zona: string;
+  agora: number | null;
+  modo: "plano" | "aovivo";
+  zoom: number;
+  telaCheia: boolean;
+  onZoom: (z: number) => void;
+  onTelaCheia: () => void;
+}) {
   const { dict } = useLocale();
   const t = dict.eventos;
   const aoVivo = modo === "aovivo";
+  const i = ZOOMS.indexOf(zoom as (typeof ZOOMS)[number]);
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
@@ -257,6 +329,44 @@ function BarraDaGrade({ zona, agora, modo }: { zona: string; agora: number | nul
         )}
       </span>
       <span className="inline-flex items-center gap-3 tabular-nums">
+        {/* zoom — dois degraus e o numero, sem menu */}
+        <span className="inline-flex items-stretch overflow-hidden rounded-lg border border-white/[0.12]">
+          <button
+            type="button"
+            aria-label={`${t.gradeZoom} −`}
+            disabled={i <= 0}
+            onClick={() => onZoom(ZOOMS[Math.max(0, i - 1)] ?? 1)}
+            className="w-7 text-white/45 transition hover:text-accent disabled:opacity-25"
+          >
+            −
+          </button>
+          <span className="flex min-w-[2.5rem] items-center justify-center px-1 text-[10px] text-white/55">
+            {zoom}×
+          </span>
+          <button
+            type="button"
+            aria-label={`${t.gradeZoom} +`}
+            disabled={i >= ZOOMS.length - 1}
+            onClick={() => onZoom(ZOOMS[Math.min(ZOOMS.length - 1, i + 1)] ?? 1)}
+            className="w-7 text-white/45 transition hover:text-accent disabled:opacity-25"
+          >
+            +
+          </button>
+        </span>
+
+        <button
+          type="button"
+          onClick={onTelaCheia}
+          className={cn(
+            "rounded-lg border px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition",
+            telaCheia
+              ? "border-accent/50 text-accent"
+              : "border-white/[0.12] text-white/45 hover:border-white/30 hover:text-white"
+          )}
+        >
+          {telaCheia ? t.gradeSairTelaCheia : t.gradeTelaCheia}
+        </button>
+
         <span className="text-white/30">{zona.split("/").pop()?.replace(/_/g, " ")}</span>
         {/* `suppressHydrationWarning` não resolveria: o relógio só existe
             depois de montar, então aqui fica um traço até lá. */}

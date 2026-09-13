@@ -1,6 +1,6 @@
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { buscarPautaPorToken } from "@/app/evento/[token]/data";
-import { PautaDoCelular } from "@/components/evento/PautaDoCelular";
+import { TimelineDoCelular } from "@/components/evento/TimelineDoCelular";
 
 export const dynamic = "force-dynamic";
 
@@ -36,5 +36,5 @@ export default async function PautaDoEventoPage({ params }: { params: Promise<{ 
     );
   }
 
-  return <PautaDoCelular pauta={pauta} token={token} />;
+  return <TimelineDoCelular pauta={pauta} token={token} />;
 }

@@ -14,6 +14,7 @@ import {
   type Colisao,
 } from "@/lib/eventos/cascata";
 import type { AncoraBloco, BlocoRow, StatusCaptura, TipoBloco } from "@/lib/types/eventos";
+import { CATEGORIAS_CUSTO, type CategoriaCusto } from "@/lib/types/eventos";
 
 /**
  * As ações de um evento.
@@ -600,18 +601,40 @@ export async function lancarCustos(eventoId: string): Promise<Resultado> {
       .eq("evento_id", eventoId)
       .overrideTypes<{ cache: number | null; extras: number | null }[], { merge: false }>();
 
-    const total = (equipe ?? []).reduce((s, p) => s + Number(p.cache ?? 0) + Number(p.extras ?? 0), 0);
-    if (total <= 0) return { ok: false, error: "NADA_PARA_LANCAR" };
+    const daEquipe = (equipe ?? []).reduce((s, p) => s + Number(p.cache ?? 0) + Number(p.extras ?? 0), 0);
+
+    // As despesas lançadas na aba de Custos entram JUNTO — antes disso o
+    // Financeiro recebia só o cachê, e a van, o gerador e a alimentação do
+    // evento simplesmente não existiam na conta da empresa.
+    const { data: custos } = await supabase
+      .from("ev_custos")
+      .select("descricao, valor")
+      .eq("evento_id", eventoId)
+      .overrideTypes<{ descricao: string; valor: number }[], { merge: false }>();
+
+    const outros = (custos ?? []).reduce((s, c) => s + Number(c.valor ?? 0), 0);
+    if (daEquipe + outros <= 0) return { ok: false, error: "NADA_PARA_LANCAR" };
 
     const { dict } = await getDictionary();
-    const { error } = await supabase.from("fin_transacoes").insert({
-      tipo: "despesa",
-      contexto: "profissional",
-      descricao: `${evento.nome} — ${dict.eventos.custoEquipe}`,
-      valor: total,
-      data_vencimento: evento.fim.slice(0, 10),
-      pago: false,
-    });
+
+    // DUAS LINHAS, não uma. Cachê e produção são naturezas diferentes de
+    // despesa, e somá-las numa linha só faria o Financeiro perder a única
+    // pergunta que ele responde sobre um evento: quanto foi gente e quanto foi
+    // estrutura.
+    const linhas: { descricao: string; valor: number }[] = [];
+    if (daEquipe > 0) linhas.push({ descricao: `${evento.nome} — ${dict.eventos.custoEquipe}`, valor: daEquipe });
+    if (outros > 0) linhas.push({ descricao: `${evento.nome} — ${dict.eventos.custoProducao}`, valor: outros });
+
+    const { error } = await supabase.from("fin_transacoes").insert(
+      linhas.map((l) => ({
+        tipo: "despesa",
+        contexto: "profissional",
+        descricao: l.descricao,
+        valor: l.valor,
+        data_vencimento: evento.fim.slice(0, 10),
+        pago: false,
+      }))
+    );
 
     if (error) return { ok: false, error: error.message };
 
@@ -1104,6 +1127,135 @@ export async function ajustarEvento(eventoId: string, chave: ChaveDeUso, valor: 
       .update({ [chave]: valor })
       .eq("id", eventoId);
 
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Custos do evento
+// ----------------------------------------------------------------------------
+
+/**
+ * LANÇAR CUSTO ANTES, CONFERIR DEPOIS.
+ *
+ * Quem produz evento sabe o valor da van na terça, o do gerador na quarta e o
+ * da alimentação na quinta. Obrigar tudo a ser digitado na madrugada de
+ * domingo, junto com o balanço, é a receita para perder nota e chutar número.
+ *
+ * Por isso o custo nasce como PREVISTO: na terça ainda é orçamento. Quando o
+ * valor real chega, a mesma linha vira realizado — e o fechamento passa a ter
+ * uma pergunta respondível ("foi isso mesmo?") em vez de uma planilha em
+ * branco.
+ */
+export async function criarCusto(
+  eventoId: string,
+  input: { descricao: string; categoria: CategoriaCusto; valor: number; previsto: boolean }
+): Promise<ResultadoId> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+
+    const descricao = input.descricao.trim();
+    if (!descricao) return { ok: false, error: "CUSTO_SEM_DESCRICAO" };
+    if (!CATEGORIAS_CUSTO.includes(input.categoria)) return { ok: false, error: "CUSTO_CATEGORIA_INVALIDA" };
+
+    const { data, error } = await supabase
+      .from("ev_custos")
+      .insert({
+        evento_id: eventoId,
+        descricao,
+        categoria: input.categoria,
+        valor: Math.max(0, input.valor),
+        previsto: input.previsto,
+      })
+      .select("id")
+      .single<{ id: string }>();
+
+    if (error || !data) return { ok: false, error: error?.message ?? "Erro desconhecido." };
+    revalidar(eventoId);
+    return { ok: true, id: data.id };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+export async function atualizarCusto(
+  eventoId: string,
+  id: string,
+  campos: Partial<{ descricao: string; categoria: CategoriaCusto; valor: number; previsto: boolean; pago: boolean }>
+): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+
+    const patch: Record<string, unknown> = {};
+    if (campos.descricao !== undefined) {
+      const limpo = campos.descricao.trim();
+      if (!limpo) return { ok: false, error: "CUSTO_SEM_DESCRICAO" };
+      patch.descricao = limpo;
+    }
+    if (campos.categoria !== undefined) {
+      if (!CATEGORIAS_CUSTO.includes(campos.categoria)) return { ok: false, error: "CUSTO_CATEGORIA_INVALIDA" };
+      patch.categoria = campos.categoria;
+    }
+    if (campos.valor !== undefined) patch.valor = Math.max(0, campos.valor);
+    if (campos.previsto !== undefined) patch.previsto = campos.previsto;
+    if (campos.pago !== undefined) patch.pago = campos.pago;
+
+    const { error } = await supabase.from("ev_custos").update(patch).eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+/**
+ * O olho humano no fechamento.
+ *
+ * Conferir NÃO é o mesmo que marcar realizado, e por isso são dois carimbos: um
+ * custo pode estar com o valor real correto e ainda assim ninguém ter olhado
+ * para ele. O que o fechamento precisa mostrar é a linha que ninguém olhou.
+ */
+export async function conferirCusto(eventoId: string, id: string, conferido: boolean): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+    const { error } = await supabase
+      .from("ev_custos")
+      .update({ conferido_em: conferido ? new Date().toISOString() : null })
+      .eq("id", id);
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+/** Confere tudo de uma vez — o "foi isso mesmo" de quem leu a lista inteira. */
+export async function conferirTodosOsCustos(eventoId: string): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+    const { error } = await supabase
+      .from("ev_custos")
+      .update({ conferido_em: new Date().toISOString() })
+      .eq("evento_id", eventoId)
+      .is("conferido_em", null);
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+export async function removerCusto(eventoId: string, id: string): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+    const { error } = await supabase.from("ev_custos").delete().eq("id", id);
     if (error) return { ok: false, error: error.message };
     revalidar(eventoId);
     return { ok: true };

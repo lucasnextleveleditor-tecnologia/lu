@@ -10,6 +10,7 @@ import type {
   KitRow,
   OcorrenciaRow,
   RealtimeRow,
+  CustoRow,
 } from "@/lib/types/eventos";
 
 /**
@@ -38,6 +39,8 @@ export interface ItemDaCasa {
   id: string;
   nome: string;
   etiqueta: string | null;
+  /** Nome da categoria do Inventário. Null = item sem categoria cadastrada. */
+  categoria: string | null;
 }
 
 export interface EventoCompleto {
@@ -49,6 +52,7 @@ export interface EventoCompleto {
   kit: KitRow[];
   ocorrencias: OcorrenciaRow[];
   realtime: RealtimeRow[];
+  custos: CustoRow[];
   /** Cadastros da casa — atalho, nunca pedágio. */
   clientes: { id: string; nome: string }[];
   /** Vem com `valor_diaria`: escalar alguém já traz o cachê preenchido. */
@@ -70,7 +74,7 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
   // um 404 diferente do outro contaria a quem tentou que o evento existe.
   if (!evento) notFound();
 
-  const [ambientes, blocos, equipe, capturas, kit, ocorrencias, realtime, clientes, membros, inventario] =
+  const [ambientes, blocos, equipe, capturas, kit, ocorrencias, realtime, custos, clientes, membros, inventario] =
     await Promise.all([
       supabase.from("ev_ambientes").select("*").eq("evento_id", id).order("ordem").overrideTypes<AmbienteRow[], { merge: false }>(),
       supabase.from("ev_blocos").select("*").eq("evento_id", id).order("inicio").overrideTypes<BlocoRow[], { merge: false }>(),
@@ -90,6 +94,15 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
         .eq("evento_id", id)
         .order("created_at", { ascending: false })
         .overrideTypes<RealtimeRow[], { merge: false }>(),
+      // Os custos vêm na MESMA leitura do resto: a aba deles é uma gaveta da
+      // mesma tela, e uma segunda ida ao banco só para abri-la faria a gaveta
+      // ter latência que nenhuma outra tem.
+      supabase
+        .from("ev_custos")
+        .select("*")
+        .eq("evento_id", id)
+        .order("created_at")
+        .overrideTypes<CustoRow[], { merge: false }>(),
       supabase.from("clientes").select("id, nome").order("nome").overrideTypes<{ id: string; nome: string }[], { merge: false }>(),
       // `valor_diaria` vem junto: escalar alguém do cadastro já preenche o
       // cachê do dia, que é a única conta do evento que ninguém gosta de
@@ -101,12 +114,24 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
         .overrideTypes<MembroDaCasa[], { merge: false }>(),
       // A coluna do inventário é `nome_item`; aqui ela vira `nome` porque toda
       // a tela de Eventos fala "nome".
+      // A CATEGORIA vem junto, e é ela que torna a lista inteira utilizável:
+      // um inventário de agência tem câmera, tripé e também cafeteira, e quem
+      // monta o kit de um show não quer rolar por "Doméstico" para achar a
+      // lente. O embed segue a FK `categoria_id`.
       supabase
         .from("itens_inventario")
-        .select("id, nome_item, codigo_etiqueta")
+        .select("id, nome_item, codigo_etiqueta, categorias_inventario(nome)")
         .order("nome_item")
-        .limit(300)
-        .overrideTypes<{ id: string; nome_item: string; codigo_etiqueta: string | null }[], { merge: false }>(),
+        .limit(500)
+        .overrideTypes<
+          {
+            id: string;
+            nome_item: string;
+            codigo_etiqueta: string | null;
+            categorias_inventario: { nome: string } | null;
+          }[],
+          { merge: false }
+        >(),
     ]);
 
   return {
@@ -118,8 +143,14 @@ export async function buscarEvento(id: string): Promise<EventoCompleto> {
     kit: kit.data ?? [],
     ocorrencias: ocorrencias.data ?? [],
     realtime: realtime.data ?? [],
+    custos: custos.data ?? [],
     clientes: clientes.data ?? [],
     membros: membros.data ?? [],
-    inventario: (inventario.data ?? []).map((i) => ({ id: i.id, nome: i.nome_item, etiqueta: i.codigo_etiqueta })),
+    inventario: (inventario.data ?? []).map((i) => ({
+      id: i.id,
+      nome: i.nome_item,
+      etiqueta: i.codigo_etiqueta,
+      categoria: i.categorias_inventario?.nome ?? null,
+    })),
   };
 }
