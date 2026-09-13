@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils/cn";
 import { substituir } from "@/lib/utils/texto";
 import { fmtDataCurta, todayISO } from "@/lib/utils/format";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { FUSOS, cidadeDoFuso, deslocamentoDoFuso, fusoValido } from "@/lib/utils/fusos";
+import type { BaseParaDuplicar } from "@/app/admin/eventos/data";
 import { IconPlus, IconX, IconChevronRight } from "@/components/ui/icons";
 import { criarEvento } from "@/app/admin/eventos/actions";
 import type { EventoComResumo, StatusEvento } from "@/lib/types/eventos";
@@ -25,9 +27,12 @@ import type { EventoComResumo, StatusEvento } from "@/lib/types/eventos";
 export function EventosWorkspace({
   eventos,
   clientes,
+  bases,
 }: {
   eventos: EventoComResumo[];
   clientes: { id: string; nome: string }[];
+  /** Modelos salvos e eventos recentes — de onde um evento novo pode nascer pronto. */
+  bases: BaseParaDuplicar[];
 }) {
   const { dict } = useLocale();
   const t = dict.eventos;
@@ -58,7 +63,7 @@ export function EventosWorkspace({
         </div>
       )}
 
-      {modalAberto && <ModalNovoEvento clientes={clientes} onClose={() => setModalAberto(false)} />}
+      {modalAberto && <ModalNovoEvento clientes={clientes} bases={bases} onClose={() => setModalAberto(false)} />}
     </div>
   );
 }
@@ -156,7 +161,15 @@ function Numero({ valor, rotulo, acento, alerta }: { valor: string; rotulo: stri
  * tela seguinte seria uma tela vazia pedindo para cadastrar algo antes de
  * poder fazer qualquer coisa. Quem está criando já sabe quantos palcos vai ter.
  */
-function ModalNovoEvento({ clientes, onClose }: { clientes: { id: string; nome: string }[]; onClose: () => void }) {
+function ModalNovoEvento({
+  clientes,
+  bases,
+  onClose,
+}: {
+  clientes: { id: string; nome: string }[];
+  bases: BaseParaDuplicar[];
+  onClose: () => void;
+}) {
   const { dict } = useLocale();
   const t = dict.eventos;
 
@@ -164,6 +177,12 @@ function ModalNovoEvento({ clientes, onClose }: { clientes: { id: string; nome: 
   const [nome, setNome] = useState("");
   const [clienteId, setClienteId] = useState("");
   const [local, setLocal] = useState("");
+  const [baseId, setBaseId] = useState("");
+  // `Intl` devolve o fuso do navegador; `fusoValido` derruba para o padrão
+  // quando ele não está na lista curada (alguém em Tóquio cadastrando um
+  // evento no Brasil, por exemplo). Na esmagadora maioria das vezes o evento é
+  // em casa, e acertar sozinho poupa um campo.
+  const [fuso, setFuso] = useState(() => fusoValido(Intl.DateTimeFormat().resolvedOptions().timeZone));
   const [dataInicio, setDataInicio] = useState(hoje);
   const [horaInicio, setHoraInicio] = useState("20:00");
   const [dataFim, setDataFim] = useState(hoje);
@@ -215,8 +234,9 @@ function ModalNovoEvento({ clientes, onClose }: { clientes: { id: string; nome: 
 
     iniciar(async () => {
       const r = await criarEvento(
-        { nome, clienteId: clienteId || null, local: local || null, inicio, fim, observacoes: null },
-        ambientes
+        { nome, clienteId: clienteId || null, local: local || null, inicio, fim, fuso, observacoes: null },
+        ambientes,
+        baseId || null
       );
       if (!r.ok) {
         setErro(ERROS[r.error] ?? r.error);
@@ -257,10 +277,42 @@ function ModalNovoEvento({ clientes, onClose }: { clientes: { id: string; nome: 
                 ))}
               </Select>
             </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.baseLabel}</label>
+              <Select value={baseId} onChange={(e) => setBaseId(e.target.value)}>
+                <option value="">{t.baseDoZero}</option>
+                {bases.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.modelo ? `${b.nome} · ${t.baseModelo}` : b.nome}
+                  </option>
+                ))}
+              </Select>
+              {baseId && <p className="mt-1 text-[11px] text-ink-muted">{t.baseAjuda}</p>}
+            </div>
+
             <div>
               <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.campoLocal}</label>
               <Input value={local} onChange={(e) => setLocal(e.target.value)} placeholder={t.campoLocalPlaceholder} />
             </div>
+          </div>
+
+          {/* O fuso é do LOCAL do evento, não de quem está cadastrando: quem
+              opera de São Paulo um show em Lisboa precisa da grade na hora de
+              Lisboa. */}
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink-secondary">{t.fusoLabel}</label>
+            <Select value={fuso} onChange={(e) => setFuso(e.target.value)}>
+              {FUSOS.map((grupo) => (
+                <optgroup key={grupo.regiao} label={rotuloDaRegiao(grupo.regiao, t)}>
+                  {grupo.fusos.map((f) => (
+                    <option key={f} value={f}>
+                      {cidadeDoFuso(f)} · {deslocamentoDoFuso(f)}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </Select>
+            <p className="mt-1 text-[11px] text-ink-muted">{t.fusoAjuda}</p>
           </div>
 
           {/* Data E hora, nos dois lados. Um evento que começa 20h de sábado e
@@ -352,4 +404,14 @@ function ModalNovoEvento({ clientes, onClose }: { clientes: { id: string; nome: 
       </div>
     </div>
   );
+}
+
+/** O rótulo da região sai do dicionário; a lista de fusos é código. */
+function rotuloDaRegiao(
+  regiao: "americaDoSul" | "americaDoNorte" | "europa",
+  t: { fusoRegiaoAmericaDoSul: string; fusoRegiaoAmericaDoNorte: string; fusoRegiaoEuropa: string }
+): string {
+  if (regiao === "americaDoSul") return t.fusoRegiaoAmericaDoSul;
+  if (regiao === "americaDoNorte") return t.fusoRegiaoAmericaDoNorte;
+  return t.fusoRegiaoEuropa;
 }

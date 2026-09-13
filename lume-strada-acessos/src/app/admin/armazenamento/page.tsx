@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
+import { usuarioAtual, perfilAtual } from "@/lib/auth/requireAdmin";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { buscarUsoDeArmazenamento, buscarDetalheDoArmazenamento } from "@/lib/armazenamento/uso";
 import { fmtBytes } from "@/lib/utils/bytes";
@@ -37,13 +36,10 @@ export const dynamic = "force-dynamic";
  * saída definitiva, e só faz sentido depois que a pessoa já viu o que tem.
  */
 export default async function ArmazenamentoPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   if (!user) redirect("/login");
 
-  const perfil = await buscarPerfilComPermissoes(supabase, user.id);
+  const perfil = await perfilAtual();
   if (!perfil) redirect("/login");
   if (perfil.role !== "admin" && perfil.role !== "funcionario") redirect("/dashboard");
 

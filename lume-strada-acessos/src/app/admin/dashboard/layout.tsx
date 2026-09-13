@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
+import { perfilAtual } from "@/lib/auth/requireAdmin";
 import { CabecalhoDashboard } from "@/components/admin/dashboard/CabecalhoDashboard";
 import { DashboardNav } from "@/components/admin/dashboard/DashboardNav";
 
@@ -12,11 +11,7 @@ export const dynamic = "force-dynamic";
  * cópias para desencontrar.
  */
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const perfil = user ? await buscarPerfilComPermissoes(supabase, user.id) : null;
+  const perfil = await perfilAtual();
 
   return (
     <div className="space-y-7">

@@ -1,11 +1,10 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { buscarPerfilComPermissoes } from "@/lib/auth/requireAdmin";
+import { usuarioAtual, perfilAtual } from "@/lib/auth/requireAdmin";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { temAcessoAntecipado } from "@/lib/auth/acessoAntecipado";
 import { EventosEmBreve } from "@/components/admin/eventos/EventosEmBreve";
 import { EventosWorkspace } from "@/components/admin/eventos/EventosWorkspace";
-import { listarEventos, listarClientesParaEvento } from "@/app/admin/eventos/data";
+import { listarEventos, listarClientesParaEvento, listarBasesParaDuplicar } from "@/app/admin/eventos/data";
 
 export const dynamic = "force-dynamic";
 
@@ -24,13 +23,10 @@ export const dynamic = "force-dynamic";
  * quem escolhe o que renderizar é o servidor e não o link.
  */
 export default async function EventosPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await usuarioAtual();
   if (!user) redirect("/login");
 
-  const perfil = await buscarPerfilComPermissoes(supabase, user.id);
+  const perfil = await perfilAtual();
   if (!perfil) redirect("/login");
   if (perfil.role !== "admin" && perfil.role !== "funcionario") redirect("/dashboard");
 
@@ -56,7 +52,11 @@ export default async function EventosPage() {
   // As consultas vêm DEPOIS da porta de propósito: quem recebe a página de
   // "em breve" não dispara nenhuma delas.
   // ---------------------------------------------------------------------------
-  const [eventos, clientes] = await Promise.all([listarEventos(), listarClientesParaEvento()]);
+  const [eventos, clientes, bases] = await Promise.all([
+    listarEventos(),
+    listarClientesParaEvento(),
+    listarBasesParaDuplicar(),
+  ]);
 
   return (
     <div>
@@ -70,7 +70,7 @@ export default async function EventosPage() {
         <p className="mt-1 text-xs leading-relaxed text-ink-muted">{t.emConstrucaoTexto}</p>
       </div>
 
-      <EventosWorkspace eventos={eventos} clientes={clientes} />
+      <EventosWorkspace eventos={eventos} clientes={clientes} bases={bases} />
     </div>
   );
 }

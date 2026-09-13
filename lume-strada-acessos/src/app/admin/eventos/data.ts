@@ -2,6 +2,14 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { EventoRow, EventoComResumo } from "@/lib/types/eventos";
 
+export interface BaseParaDuplicar {
+  id: string;
+  nome: string;
+  inicio: string;
+  /** `true` = modelo salvo no fim de um evento; `false` = um evento de verdade. */
+  modelo: boolean;
+}
+
 /**
  * A lista de eventos, com o resumo que a tela mostra sem precisar abrir cada um.
  *
@@ -20,6 +28,9 @@ export async function listarEventos(): Promise<EventoComResumo[]> {
   const { data: eventos } = await supabase
     .from("ev_eventos")
     .select("*, clientes(nome)")
+    // Modelo não é evento: ele não aconteceu e não vai acontecer. Aparece só
+    // na hora de criar o próximo, que é quando alguém quer um.
+    .eq("modelo", false)
     .order("inicio", { ascending: false })
     .limit(100)
     .overrideTypes<(EventoRow & { clientes: { nome: string } | null })[], { merge: false }>();
@@ -89,4 +100,27 @@ export async function listarClientesParaEvento(): Promise<{ id: string; nome: st
     .order("nome")
     .overrideTypes<{ id: string; nome: string }[], { merge: false }>();
   return data ?? [];
+}
+
+
+/**
+ * De onde um evento novo pode nascer pronto.
+ *
+ * Duas origens na mesma lista, e de propósito: os MODELOS salvos e os últimos
+ * eventos de verdade. "Duplicar o último" é o caso mais comum de todos — a
+ * mesma produtora faz o mesmo festival mês a mês —, e obrigar a salvar um
+ * modelo antes de poder repetir seria pedir uma etapa que ninguém lembra de
+ * fazer no fim do sábado.
+ */
+export async function listarBasesParaDuplicar(): Promise<BaseParaDuplicar[]> {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("ev_eventos")
+    .select("id, nome, inicio, modelo")
+    .order("inicio", { ascending: false })
+    .limit(30)
+    .overrideTypes<{ id: string; nome: string; inicio: string; modelo: boolean }[], { merge: false }>();
+
+  return (data ?? []).map((e) => ({ id: e.id, nome: e.nome, inicio: e.inicio, modelo: e.modelo }));
 }

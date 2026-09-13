@@ -14,7 +14,11 @@ import { getSupabasePublicEnv } from "@/lib/supabase/env";
 // Exigir login antes de assinar mataria o uso. O que segura a porta é o
 // token ser único por pessoa, o documento precisar estar enviado, e tudo o
 // que se registra no ato (IP, hora, navegador, CPF, hash do arquivo).
-const ROTAS_PUBLICAS = ["/login", "/acesso-expirado", "/definir-senha", "/auth/callback", "/orcamento/", "/assinar/"];
+// `/evento/` e a pauta de quem esta em campo: freelancer contratado para um
+// sabado, sem conta no sistema, com o token pessoal na URL. Passar pelo
+// middleware autenticado mandaria ele para o login, que e exatamente a tela
+// que ele nao tem como preencher.
+const ROTAS_PUBLICAS = ["/login", "/acesso-expirado", "/definir-senha", "/auth/callback", "/orcamento/", "/assinar/", "/evento/"];
 
 /**
  * Página de erro autocontida (sem CSS/imagens externas, sem depender de
@@ -59,10 +63,22 @@ function respostaErroConfiguracao(mensagem: string): NextResponse {
  *      PRÓXIMA requisição dele já cai em /acesso-expirado, sem precisar
  *      esperar o token expirar ou o usuário deslogar.
  *
- * A consulta ao perfil roda a cada request. Para o volume de um painel
- * interno de agência isso é desprezível; se um dia o tráfego justificar,
- * dá para cachear o resultado por alguns segundos (ex: em um cookie
- * assinado) — deixado de fora aqui para manter a lógica simples e óbvia.
+ * A consulta ao perfil roda a cada request de NAVEGAÇÃO — e só nelas. O
+ * detalhe importa mais do que parece: a barra lateral tem quase vinte links,
+ * e o `<Link>` do Next pré-carrega todos os que estão na tela. Cada um desses
+ * pré-carregamentos é uma requisição de verdade, que passava por aqui e
+ * gastava uma verificação de sessão MAIS um `select` em `profiles`. Abrir uma
+ * única tela do painel disparava umas quarenta idas ao banco antes de a
+ * pessoa clicar em coisa nenhuma — e o Supabase está em outra região, então
+ * cada ida é ida e volta de rede.
+ *
+ * Requisição de prefetch é reconhecível (`Next-Router-Prefetch: 1`) e não
+ * entrega dado: numa rota dinâmica ela devolve no máximo o esqueleto de
+ * carregamento, nunca o conteúdo. Então a checagem FINA (licença vencida,
+ * senha provisória, papel errado) não protege nada ali — e continua inteira
+ * na navegação de verdade que vem logo depois, que é quando a tela aparece.
+ * A sessão (`getUser`) continua sendo verificada em toda requisição, sem
+ * exceção: é ela que diz se existe alguém do outro lado.
  *
  * Tudo abaixo roda dentro de um try/catch de propósito: como o middleware
  * é invocado em TODA requisição, qualquer exceção não tratada aqui derruba
@@ -117,12 +133,24 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const isRotaPublica = ROTAS_PUBLICAS.some((rota) => pathname.startsWith(rota));
 
+    // O Next marca o pré-carregamento com este cabeçalho. Ver o comentário
+    // grande acima: aqui ele só evita o `select` em `profiles`; a sessão já
+    // foi verificada logo acima, e todo o resto da checagem acontece na
+    // navegação de verdade.
+    const ehPrefetch = request.headers.get("Next-Router-Prefetch") === "1";
+
     // Ninguém logado tentando abrir uma rota protegida -> /login
     if (!user && !isRotaPublica) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       url.searchParams.set("redirectTo", pathname);
       return NextResponse.redirect(url);
+    }
+
+    if (user && ehPrefetch) {
+      // Sessão válida + prefetch: nada a decidir, nada a entregar. Sai antes
+      // da consulta.
+      return response;
     }
 
     if (user) {
