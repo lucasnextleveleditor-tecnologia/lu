@@ -304,6 +304,10 @@ export interface EventosDict {
   ajustesEntregas: string;
   ajustesEntregasAjuda: string;
   balancoNadaLigado: string;
+  mapaTitulo: string;
+  mapaAjuda: string;
+  novoEventoAjuda: string;
+  avancadoTitulo: string;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -628,6 +632,10 @@ export const eventos: EventosDict = {
   ajustesEntregas: "Entregas na Produção",
   ajustesEntregasAjuda: "No Fechamento, transforma o que foi captado em tarefa no quadro da Produção.",
   balancoNadaLigado: "Nenhuma saída ligada para este evento. Ligue entregas ou cachê nos Ajustes se quiser que o fechamento alimente a Produção ou o Financeiro.",
+  mapaTitulo: "O que tem lá dentro",
+  mapaAjuda: "Três modos, a mesma grade — a tela troca de pergunta, não de lugar. As gavetas abrem em qualquer um deles.",
+  novoEventoAjuda: "O nome e os palcos bastam. O resto entra depois, dentro do evento.",
+  avancadoTitulo: "Fuso e modelo",
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",

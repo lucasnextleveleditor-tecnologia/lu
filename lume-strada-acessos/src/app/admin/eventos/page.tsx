@@ -58,19 +58,18 @@ export default async function EventosPage() {
     listarBasesParaDuplicar(),
   ]);
 
+  // O cabecalho e o aviso de construcao entram DENTRO do console, e nao acima
+  // dele: eram tres caixas soltas empilhadas — titulo comum, faixa tracejada e
+  // so entao o modulo — e a primeira impressao do modulo virava a de um painel
+  // administrativo qualquer. Agora e uma peca so, na linguagem da sala.
   return (
-    <div>
-      <div className="mb-5">
-        <h1 className="text-lg font-semibold tracking-tight">{t.tituloPagina}</h1>
-        <p className="mt-0.5 text-sm text-ink-muted">{t.subtituloPagina}</p>
-      </div>
-
-      <div className="mb-4 rounded-xl border border-dashed border-accent/40 bg-accent/[0.04] px-4 py-3">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">{t.emConstrucaoTitulo}</p>
-        <p className="mt-1 text-xs leading-relaxed text-ink-muted">{t.emConstrucaoTexto}</p>
-      </div>
-
-      <EventosWorkspace eventos={eventos} clientes={clientes} bases={bases} />
-    </div>
+    <EventosWorkspace
+      eventos={eventos}
+      clientes={clientes}
+      bases={bases}
+      titulo={t.tituloPagina}
+      subtitulo={t.subtituloPagina}
+      aviso={{ titulo: t.emConstrucaoTitulo, texto: t.emConstrucaoTexto }}
+    />
   );
 }
