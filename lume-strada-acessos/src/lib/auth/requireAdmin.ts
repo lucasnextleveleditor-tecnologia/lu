@@ -40,7 +40,11 @@ export interface PerfilComPermissoes {
  */
 export const usuarioAtual = cache(async (): Promise<User | null> => {
   const supabase = await createClient();
-  const user = await usuarioAtual();
+  // AQUI, e SÓ aqui, a sessão é buscada de verdade. Todo o resto do arquivo
+  // chama `usuarioAtual()`; esta função não pode chamar a si mesma.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return user;
 });
 
