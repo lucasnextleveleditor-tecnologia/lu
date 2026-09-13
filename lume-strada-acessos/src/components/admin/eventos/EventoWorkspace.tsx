@@ -9,6 +9,7 @@ import { IconChevronLeft } from "@/components/ui/icons";
 import { Grade, useRelogio } from "@/components/admin/eventos/Grade";
 import { PainelDoBloco, type ValoresDoBloco } from "@/components/admin/eventos/PainelDoBloco";
 import { Fechamento } from "@/components/admin/eventos/Fechamento";
+import { GavetaEquipe } from "@/components/admin/eventos/GavetaEquipe";
 import { fusoValido } from "@/lib/utils/fusos";
 import { modoDoStatus, type BlocoRow, type ModoEvento } from "@/lib/types/eventos";
 import type { EventoCompleto } from "@/app/admin/eventos/[id]/data";
@@ -52,6 +53,7 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
   const [rascunho, setRascunho] = useState<{ ambienteId: string; inicio: string } | null>(null);
   const [colisoes, setColisoes] = useState<{ minutos: number; lista: Colisao[] } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [gaveta, setGaveta] = useState<"equipe" | null>(null);
 
   const rodando = !!evento.iniciado_em;
 
@@ -169,6 +171,7 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
         onModo={setModo}
         onPlay={play}
         onEncerrar={encerrar}
+        onGaveta={() => setGaveta("equipe")}
         ocupado={pendente}
       />
 
@@ -227,6 +230,10 @@ export function EventoWorkspace({ dados, modoInicial }: { dados: EventoCompleto;
         />
       )}
 
+      {gaveta === "equipe" && (
+        <GavetaEquipe eventoId={evento.id} equipe={equipe} membros={dados.membros} onFechar={() => setGaveta(null)} />
+      )}
+
       {painelAberto && (
         <PainelDoBloco
           bloco={selecionado}
@@ -271,6 +278,7 @@ function Cabecalho({
   onModo,
   onPlay,
   onEncerrar,
+  onGaveta,
   ocupado,
 }: {
   nome: string;
@@ -281,6 +289,7 @@ function Cabecalho({
   onModo: (m: ModoEvento) => void;
   onPlay: () => void;
   onEncerrar: () => void;
+  onGaveta: () => void;
   ocupado: boolean;
 }) {
   const { dict } = useLocale();
@@ -335,6 +344,13 @@ function Cabecalho({
           <Modo chave="fechamento" atual={modo} onClick={onModo} rotulo={t.modoFechamento} quando={t.modoFechamentoQuando} />
 
           <span className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onGaveta}
+              className="rounded-full border border-white/15 px-3.5 py-2 text-xs font-medium text-white/70 transition hover:border-white/35 hover:text-white"
+            >
+              {t.gavetaEquipe}
+            </button>
             {!rodando ? (
               <button
                 type="button"

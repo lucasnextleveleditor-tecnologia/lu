@@ -14,7 +14,11 @@ import { getSupabasePublicEnv } from "@/lib/supabase/env";
 // Exigir login antes de assinar mataria o uso. O que segura a porta é o
 // token ser único por pessoa, o documento precisar estar enviado, e tudo o
 // que se registra no ato (IP, hora, navegador, CPF, hash do arquivo).
-const ROTAS_PUBLICAS = ["/login", "/acesso-expirado", "/definir-senha", "/auth/callback", "/orcamento/", "/assinar/"];
+// `/evento/` e a pauta de quem esta em campo: freelancer contratado para um
+// sabado, sem conta no sistema, com o token pessoal na URL. Passar pelo
+// middleware autenticado mandaria ele para o login, que e exatamente a tela
+// que ele nao tem como preencher.
+const ROTAS_PUBLICAS = ["/login", "/acesso-expirado", "/definir-senha", "/auth/callback", "/orcamento/", "/assinar/", "/evento/"];
 
 /**
  * Página de erro autocontida (sem CSS/imagens externas, sem depender de

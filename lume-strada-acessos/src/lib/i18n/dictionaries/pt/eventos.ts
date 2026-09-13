@@ -194,6 +194,47 @@ export interface EventosDict {
   erroCustosJaLancados: string;
   erroNadaParaEntregar: string;
   erroNadaParaLancar: string;
+  celularOla: string;
+  celularAgora: string;
+  celularASeguir: string;
+  celularPassou: string;
+  celularFeito: string;
+  celularNadaAgora: string;
+  celularCaptei: string;
+  celularNaoRolou: string;
+  celularPular: string;
+  celularDesfazer: string;
+  celularObrigatorio: string;
+  celularFoto: string;
+  celularVideo: string;
+  celularFotoEVideo: string;
+  celularLinkInvalido: string;
+  celularLinkInvalidoTexto: string;
+  celularLinkExpirado: string;
+  celularLinkExpiradoTexto: string;
+  celularItemDeOutro: string;
+  celularErroGenerico: string;
+  equipeGavetaTitulo: string;
+  equipeDoCadastro: string;
+  equipeOuEscreva: string;
+  equipeNome: string;
+  equipeFuncao: string;
+  equipeCache: string;
+  equipeEscalar: string;
+  equipeEscala: string;
+  equipeVazia: string;
+  equipeDaCasa: string;
+  equipeCopiarLink: string;
+  equipeLinkCopiado: string;
+  equipeCopiarManual: string;
+  equipeLinkAjuda: string;
+  equipeChegou: string;
+  equipeSaiu: string;
+  equipeExtra: string;
+  equipeErroSemNome: string;
+  gavetaEquipe: string;
+  gavetaKit: string;
+  gavetaOcorrencia: string;
   emBreveRodape: string;
   emConstrucaoTitulo: string;
   emConstrucaoTexto: string;
@@ -393,6 +434,47 @@ export const eventos: EventosDict = {
   erroCustosJaLancados: "Os custos deste evento já foram lançados.",
   erroNadaParaEntregar: "Nada foi marcado como captado — não há o que entregar.",
   erroNadaParaLancar: "Ninguém na escala tem cachê lançado.",
+  celularOla: "Olá, {nome}",
+  celularAgora: "Agora",
+  celularASeguir: "A seguir",
+  celularPassou: "Passou da hora",
+  celularFeito: "Feito",
+  celularNadaAgora: "Nada agora. Fica de olho.",
+  celularCaptei: "Captei",
+  celularNaoRolou: "Não rolou",
+  celularPular: "Pular",
+  celularDesfazer: "Desfazer",
+  celularObrigatorio: "Obrigatório",
+  celularFoto: "foto",
+  celularVideo: "vídeo",
+  celularFotoEVideo: "foto e vídeo",
+  celularLinkInvalido: "Link inválido",
+  celularLinkInvalidoTexto: "Esse endereço não corresponde a nenhuma escala. Peça o link de novo para quem te chamou.",
+  celularLinkExpirado: "Link encerrado",
+  celularLinkExpiradoTexto: "O evento acabou ou o seu acesso foi desligado. Nada do que você marcou se perdeu.",
+  celularItemDeOutro: "Esse item é de outra pessoa da equipe.",
+  celularErroGenerico: "Não deu para marcar agora. Tenta de novo.",
+  equipeGavetaTitulo: "Equipe do evento",
+  equipeDoCadastro: "Puxar do cadastro da casa",
+  equipeOuEscreva: "— ou escreva o nome abaixo —",
+  equipeNome: "Nome",
+  equipeFuncao: "Função",
+  equipeCache: "Cachê do dia",
+  equipeEscalar: "Escalar",
+  equipeEscala: "Na escala",
+  equipeVazia: "Ninguém escalado ainda.",
+  equipeDaCasa: "do cadastro",
+  equipeCopiarLink: "Copiar link",
+  equipeLinkCopiado: "Copiado",
+  equipeCopiarManual: "Copie o link e mande para a pessoa:",
+  equipeLinkAjuda: "O link é pessoal e expira 12 h depois do fim do evento. É ele que faz o \"captei\" ficar assinado com um nome.",
+  equipeChegou: "Chegou",
+  equipeSaiu: "Saiu",
+  equipeExtra: "Extra",
+  equipeErroSemNome: "Escolha alguém do cadastro ou escreva um nome.",
+  gavetaEquipe: "Equipe",
+  gavetaKit: "Kit",
+  gavetaOcorrencia: "Ocorrência",
   emBreveRodape: "Esta área ainda está em construção. Nada aqui é editável por enquanto.",
   emConstrucaoTitulo: "Módulo em construção — você está vendo a versão de trabalho.",
   emConstrucaoTexto: "As demais contas veem a página de \"em breve\" no lugar desta. Cada pedaço pronto aparece aqui primeiro.",

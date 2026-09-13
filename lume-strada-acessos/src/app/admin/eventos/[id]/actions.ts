@@ -721,3 +721,122 @@ export async function salvarComoTemplate(eventoId: string): Promise<ResultadoId>
     return { ok: false, error: mensagem(err) };
   }
 }
+
+
+// ----------------------------------------------------------------------------
+// A gaveta de Equipe — a escala, o cachê e o link de cada um
+// ----------------------------------------------------------------------------
+
+export interface PessoaInput {
+  /** Quando vem do cadastro da casa. Null = escrito à mão, que é a maioria num evento grande. */
+  membroId: string | null;
+  nome: string;
+  funcao: string | null;
+  telefone: string | null;
+  cache: number;
+}
+
+/**
+ * Escala alguém no evento e já cria o acesso pessoal dela.
+ *
+ * O token nasce junto, no DEFAULT da coluna: não existe "pessoa escalada sem
+ * link". Ter que gerar o acesso num segundo passo garantiria que metade da
+ * equipe chega no sábado sem ele — e aí a pauta não é marcada por ninguém.
+ *
+ * `membroId` NULO é o caminho normal, não a exceção. Num evento grande a maior
+ * parte da equipe é freelancer que não está no cadastro da casa, e obrigar a
+ * cadastrar cada um antes de escalar transformaria uma escala de dez minutos
+ * numa tarde de digitação.
+ */
+export async function adicionarNaEquipe(eventoId: string, input: PessoaInput): Promise<ResultadoId> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+
+    const nome = input.nome.trim();
+    if (!nome) return { ok: false, error: "PESSOA_SEM_NOME" };
+
+    const { data: evento } = await supabase
+      .from("ev_eventos")
+      .select("fim")
+      .eq("id", eventoId)
+      .maybeSingle<{ fim: string }>();
+
+    // O acesso vence 12 horas depois do fim previsto. Folga suficiente para o
+    // evento virar a madrugada e atrasar, curta o bastante para o link não
+    // ficar valendo na terça-feira.
+    const expira = evento ? new Date(new Date(evento.fim).getTime() + 12 * 60 * 60_000).toISOString() : null;
+
+    const { data, error } = await supabase
+      .from("ev_equipe")
+      .insert({
+        evento_id: eventoId,
+        equipe_membro_id: input.membroId,
+        nome,
+        funcao: input.funcao?.trim() || null,
+        telefone: input.telefone?.trim() || null,
+        cache: input.cache > 0 ? input.cache : 0,
+        token_expira_em: expira,
+      })
+      .select("id")
+      .single<{ id: string }>();
+
+    if (error || !data) return { ok: false, error: error?.message ?? "Erro desconhecido." };
+
+    revalidar(eventoId);
+    return { ok: true, id: data.id };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+export async function atualizarPessoaDaEquipe(
+  eventoId: string,
+  pessoaId: string,
+  campos: { funcao?: string | null; cache?: number; extras?: number; ativo?: boolean }
+): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+    const { error } = await supabase.from("ev_equipe").update(campos).eq("id", pessoaId);
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+/**
+ * O PONTO — chegou e saiu, num toque.
+ *
+ * Sem campo de hora: o ponto é o instante do toque, que é o único que a pessoa
+ * não tem como errar. Digitar "cheguei às 19h40" no domingo é justamente o que
+ * faz a conta do evento sair errada.
+ */
+export async function baterPonto(eventoId: string, pessoaId: string, qual: "entrada" | "saida"): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+    const agora = new Date().toISOString();
+    const { error } = await supabase
+      .from("ev_equipe")
+      .update(qual === "entrada" ? { checkin_em: agora } : { checkout_em: agora })
+      .eq("id", pessoaId);
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
+
+/** Tira a pessoa da escala. O que ela já marcou FICA: a marcação é registro do evento, não propriedade dela. */
+export async function removerDaEquipe(eventoId: string, pessoaId: string): Promise<Resultado> {
+  try {
+    const { supabase } = await requireModulo("eventos");
+    const { error } = await supabase.from("ev_equipe").delete().eq("id", pessoaId);
+    if (error) return { ok: false, error: error.message };
+    revalidar(eventoId);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: mensagem(err) };
+  }
+}
